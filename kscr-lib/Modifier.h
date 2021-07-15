@@ -2,6 +2,8 @@
 
 enum class Modifier
 {
+	None = 0x0,
+	
 	Public = 0x0001,
 	Protected = 0x0002,
 	Internal = 0x0004,
