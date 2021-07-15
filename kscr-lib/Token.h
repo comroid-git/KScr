@@ -3,8 +3,6 @@
 #include <utility>
 #include <vector>
 
-#include "Modifier.h"
-
 enum class TokenType
 {
 	Nop = 0x0,
@@ -17,10 +15,9 @@ enum class TokenType
 
 struct Token
 {
-	explicit Token(TokenType type, Modifier modifier) : type(type), modifier(modifier) {}
-	explicit Token(TokenType type, Modifier modifier, std::string arg) : type(type), modifier(modifier), arg(std::move(arg)) {}
+	explicit Token(TokenType type) : type(type) {}
+	explicit Token(TokenType type, std::string arg) : type(type), arg(std::move(arg)) {}
 	const TokenType type;
-	const Modifier modifier;
 	const std::string arg;
 	const std::vector<Token> sub = std::vector<Token>();
 };
