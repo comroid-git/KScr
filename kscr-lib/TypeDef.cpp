@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "Filesystem.h"
+#include "Const.h"
 
 using namespace std;
 
@@ -20,13 +21,12 @@ MemberDef* TypeDef::findMember(std::string name)
 
 class Parser
 {
-private:
 	std::string source = "";
 	int cnt = 0;
 public:
-	void digest(char c)
+	void digest(char chars[])
 	{
-		source += c;
+		source += chars;
 		cnt++;
 	}
 
@@ -39,17 +39,19 @@ void TypeDef::Parse(std::string file)
 	std::ifstream read = std::ifstream(file, ios::in | ios::binary | ios::ate);
 	TypeDef out = TypeDef("", name);
 	Parser parser = Parser();
-	char* buf = new char[1];
+	char* buf;
 	streampos size;
 	
 	if (read.is_open())
 	{
 		size = read.tellg();
+		buf = new char[size];
 		read.seekg(0, ios::beg);
 		read.read(buf, size);
-		parser.digest(buf[0]);
+		parser.digest(buf);
 	}
-
 	read.close();
+	
 	TypeDef typeDef = parser.finalize();
+	Const::typeCache[typeDef.name] = &typeDef;
 }
