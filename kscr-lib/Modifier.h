@@ -9,6 +9,7 @@ enum Modifier : int
 
 	Static = 0x0010,
 	Abstract = 0x0020,
+	Final = 0x0040,
 	
 	Method = 0x0100,
 	FieldGetter = 0x0200,
