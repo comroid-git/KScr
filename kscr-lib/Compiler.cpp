@@ -12,7 +12,7 @@ void digest(char buf[])
 
 void Compiler::compileTypes(std::vector<std::string>* files)
 {
-	for (std::string file : files)
+	for (std::string file : files->begin())
 	{
 		std::string name = Filesystem::simpleFileName(file);
 		std::ifstream read = std::ifstream(file);
