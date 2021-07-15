@@ -10,6 +10,7 @@ obj/
 *.tlog
 *.obj
 *.idb
+*.pch
 
 .idea/
 .vs/
