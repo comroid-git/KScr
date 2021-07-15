@@ -12,6 +12,5 @@ public:
 	const std::string parent;
 	const std::string name;
 	MemberDef* findMember(std::string name);
-	static void Parse(std::string file);
 };
 
