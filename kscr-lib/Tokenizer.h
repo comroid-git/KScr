@@ -2,11 +2,14 @@
 #include <string>
 #include <vector>
 
+#include "Token.h"
+
 class Tokenizer
 {
 public:
-	static void compileTypes(std::vector<std::string>* files);
-	static void compileBodies();
+	static void tokenize(std::vector<std::string>* files);
+	void digest(char data[]);
+	const std::vector<Token> output = std::vector<Token>();
 private:
 	explicit Tokenizer() {}
 };

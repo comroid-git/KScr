@@ -7,7 +7,7 @@
 
 void compile()
 {
-	Tokenizer::compileTypes(&Const::files);
+	Tokenizer::tokenize(&Const::files);
 	Tokenizer::compileBodies();
 }
 

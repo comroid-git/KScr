@@ -6,19 +6,18 @@
 
 #include "Const.h"
 
-void digest(char buf[])
-{
-}
+using namespace std;
 
-void Tokenizer::compileTypes(std::vector<std::string>* files)
+void Tokenizer::tokenize(vector<string>* files)
 {
-	for (std::string file : files->begin())
+	Tokenizer tokenizer = Tokenizer();
+	for (string file : files->begin())
 	{
-		std::string name = Filesystem::simpleFileName(file);
-		std::ifstream read = std::ifstream(file);
+		string name = Filesystem::simpleFileName(file);
+		ifstream read = ifstream(file);
 		TypeDef out = TypeDef("", name);
 		char* buf;
-		std::streampos size;
+		streampos size;
 
 		if (read.is_open())
 		{
@@ -26,12 +25,12 @@ void Tokenizer::compileTypes(std::vector<std::string>* files)
 			buf = new char[size];
 			read.seekg(0, std::ios::beg);
 			read.read(buf, size);
-			digest(buf);
+			tokenizer.digest(buf);
 		}
 		read.close();
 	}
 }
 
-void Tokenizer::compileBodies()
+void Tokenizer::digest(char data[])
 {
 }
