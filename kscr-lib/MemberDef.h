@@ -3,10 +3,6 @@
 #include <string>
 #include <utility>
 
-#define FIELD 1;
-#define PROPERTY 2;
-#define METHOD 3;
-
 class MemberDef
 {
 public:
