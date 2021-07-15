@@ -10,6 +10,6 @@ public:
 	explicit TypeCache() = default;
 	TypeDef* findType(std::string name);
 	MemberDef* findEntryPoint();
-	void runEntryPoint();
+	int runEntryPoint();
 };
 

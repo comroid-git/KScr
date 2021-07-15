@@ -8,8 +8,8 @@ class Compiler
 {
 public:
 	explicit Compiler(TypeCache typeCache) : typeCache(typeCache) {}
-	void compileTypes(std::vector<std::string> files);
-	void compileBodies();
+	static void compileTypes(std::vector<std::string>* files);
+	static void compileBodies();
 private:
 	const TypeCache typeCache;
 };

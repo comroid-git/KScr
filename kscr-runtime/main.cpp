@@ -7,14 +7,13 @@
 
 void compile()
 {
-	Compiler compiler(Const::typeCache);
-	compiler.compileTypes(Const::files);
-	compiler.compileBodies();
+	Compiler::compileTypes(&Const::files);
+	Compiler::compileBodies();
 }
 
 int run()
 {
-	Const::typeCache.runEntryPoint();
+	return Const::typeCache.runEntryPoint();
 }
 
 auto main(int argc, char* argv[]) -> int

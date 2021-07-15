@@ -6,7 +6,11 @@
 
 #include "Const.h"
 
-void Compiler::compileTypes(std::vector<std::string> files)
+void digest(char buf[])
+{
+}
+
+void Compiler::compileTypes(std::vector<std::string>* files)
 {
 	for (std::string file : files)
 	{
@@ -22,12 +26,9 @@ void Compiler::compileTypes(std::vector<std::string> files)
 			buf = new char[size];
 			read.seekg(0, std::ios::beg);
 			read.read(buf, size);
-			parser.digest(buf);
+			digest(buf);
 		}
 		read.close();
-
-		TypeDef typeDef = parser.finalize();
-		Const::typeCache[typeDef.name] = &typeDef;
 	}
 }
 

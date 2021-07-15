@@ -22,7 +22,8 @@ MemberDef* TypeCache::findEntryPoint()
 	return nullptr;
 }
 
-void TypeCache::runEntryPoint()
+int TypeCache::runEntryPoint()
 {
 	MemberDef* entryPoint = findEntryPoint();
+	return -2;
 }
