@@ -1,29 +1,29 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "../kscr-lib/Const.h"
 #include "../kscr-lib/Filesystem.h"
 #include "../kscr-lib/Compiler.h"
-
-struct Const
-{
-	static std::vector<std::string> files;
-	static TypeCache typeCache;
-};
 
 void compile()
 {
 	Compiler compiler(Const::typeCache);
-	compiler.compile(Const::files);
+	compiler.compileTypes(Const::files);
+	compiler.compileBodies();
 }
 
-void run()
+int run()
 {
 	Const::typeCache.runEntryPoint();
 }
 
 auto main(int argc, char* argv[]) -> int
 {
-	std::cout << "hello world; i am kscr";
+	if (argc == 0)
+	{
+		std::cout << "Missing source";
+		return -1;
+	}
 	for (int i = 0; i < argc; ++i)
 	{
 		std::string str(argv[i]);
@@ -34,5 +34,7 @@ auto main(int argc, char* argv[]) -> int
 	}
 	
 	compile();
-	run();
+	const int exitCode = run();
+	std::cout << "Program finished with exit code " << exitCode << std::endl;
+	return exitCode;
 }

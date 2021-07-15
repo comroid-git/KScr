@@ -4,12 +4,14 @@
 
 #include <fstream>
 
-void Compiler::compile(std::vector<std::string> files)
+void Compiler::compileTypes(std::vector<std::string> files)
 {
 	for (std::string file : files)
 	{
-		std::ifstream fread;
-		fread.open(file);
-		TypeDef::Parse(Filesystem::simpleFileName(file), fread);
+		TypeDef::Parse(file);
 	}
+}
+
+void Compiler::compileBodies()
+{
 }

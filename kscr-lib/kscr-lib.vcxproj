@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Compiler.h" />
+    <ClInclude Include="Const.h" />
     <ClInclude Include="Filesystem.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MemberDef.h" />
