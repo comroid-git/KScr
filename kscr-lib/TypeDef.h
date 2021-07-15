@@ -7,7 +7,7 @@
 class TypeDef : std::map<std::string, MemberDef*>
 {
 public:
-	explicit TypeDef() = delete;
+	explicit TypeDef() = default;
 	explicit TypeDef(std::string parent, std::string name) : parent(std::move(parent)), name(std::move(name)) {}
 	const std::string parent;
 	const std::string name;
