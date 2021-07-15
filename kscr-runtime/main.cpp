@@ -4,18 +4,21 @@
 #include "../kscr-lib/Filesystem.h"
 #include "../kscr-lib/Compiler.h"
 
-std::vector<std::string> files = std::vector<std::string>();
-TypeCache typeCache = TypeCache();
+struct Const
+{
+	static std::vector<std::string> files;
+	static TypeCache typeCache;
+};
 
 void compile()
 {
-	Compiler compiler(typeCache);
-	compiler.compile(files);
+	Compiler compiler(Const::typeCache);
+	compiler.compile(Const::files);
 }
 
 void run()
 {
-	typeCache.runEntryPoint();
+	Const::typeCache.runEntryPoint();
 }
 
 auto main(int argc, char* argv[]) -> int
@@ -27,7 +30,7 @@ auto main(int argc, char* argv[]) -> int
 
 		// take input files
 		if (str.find(".kscr") && Filesystem::exists(str))
-			files.push_back(str);
+			Const::files.push_back(str);
 	}
 	
 	compile();
