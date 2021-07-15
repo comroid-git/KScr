@@ -3,7 +3,6 @@
 #include <vector>
 #include "../kscr-lib/Filesystem.h"
 #include "../kscr-lib/Compiler.h"
-#include "../kscr-lib/TypeCache.h"
 
 std::vector<std::string> files = std::vector<std::string>();
 TypeCache typeCache = TypeCache();
