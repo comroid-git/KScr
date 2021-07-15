@@ -3,12 +3,12 @@
 #include <vector>
 #include "../kscr-lib/Const.h"
 #include "../kscr-lib/Filesystem.h"
-#include "../kscr-lib/Compiler.h"
+#include "../kscr-lib/Tokenizer.h"
 
 void compile()
 {
-	Compiler::compileTypes(&Const::files);
-	Compiler::compileBodies();
+	Tokenizer::compileTypes(&Const::files);
+	Tokenizer::compileBodies();
 }
 
 int run()

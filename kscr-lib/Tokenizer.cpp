@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Filesystem.h"
-#include "Compiler.h"
+#include "Tokenizer.h"
 
 #include <fstream>
 
@@ -10,7 +10,7 @@ void digest(char buf[])
 {
 }
 
-void Compiler::compileTypes(std::vector<std::string>* files)
+void Tokenizer::compileTypes(std::vector<std::string>* files)
 {
 	for (std::string file : files->begin())
 	{
@@ -32,6 +32,6 @@ void Compiler::compileTypes(std::vector<std::string>* files)
 	}
 }
 
-void Compiler::compileBodies()
+void Tokenizer::compileBodies()
 {
 }

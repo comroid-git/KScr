@@ -2,12 +2,12 @@
 #include <string>
 #include <vector>
 
-class Compiler
+class Tokenizer
 {
 public:
 	static void compileTypes(std::vector<std::string>* files);
 	static void compileBodies();
 private:
-	explicit Compiler() {}
+	explicit Tokenizer() {}
 };
 
