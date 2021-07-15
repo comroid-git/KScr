@@ -16,7 +16,7 @@ void compile()
 
 void run()
 {
-	typeCache.findEntryPoint().runEntryPoint();
+	typeCache.runEntryPoint();
 }
 
 auto main(int argc, char* argv[]) -> int

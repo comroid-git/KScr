@@ -1,7 +1,7 @@
 #pragma once
 
-#include "TypeCache.h"
-#include "TypeDef.h"
+#include <string>
+#include <utility>
 
 #define FIELD 1;
 #define PROPERTY 2;
@@ -10,14 +10,9 @@
 class MemberDef
 {
 public:
-	explicit MemberDef(const TypeDef parent, const int type, std::string name) : type(type), parent(parent), name(name), typeCache(typeCache)
-	{
-	}
+	explicit MemberDef(std::string parent, int type, std::string name) : type(type), parent(std::move(parent)), name(std::move(name)) {}
 	const int type;
-	const TypeDef parent;
-	const std::string name;
-	void runEntryPoint();
-private:
-	const TypeCache typeCache;
+	std::string parent;
+	std::string name;
 };
 

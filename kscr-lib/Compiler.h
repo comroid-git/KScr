@@ -1,10 +1,8 @@
 #pragma once
-#include <map>
 #include <string>
 #include <vector>
 
 #include "TypeCache.h"
-#include "TypeDef.h"
 
 class Compiler
 {
