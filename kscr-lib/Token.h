@@ -5,7 +5,7 @@
 
 #include "Modifier.h"
 
-enum TokenType : int
+enum class TokenType
 {
 	Nop = 0x0,
 	Op = 0x1,

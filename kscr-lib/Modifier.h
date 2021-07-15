@@ -1,6 +1,6 @@
 #pragma once
 
-enum Modifier : int
+enum class Modifier
 {
 	Public = 0x0001,
 	Protected = 0x0002,
