@@ -1,5 +1,5 @@
 public class Hello {
-    public static int Base = 2;
+    public static final int Base = 2;
 
     public static int Main(string[] args) {
         int v = Base + (3 * 2);

@@ -1,0 +1,3 @@
+public static int Main(string[] args) {
+	StdIO.print("Hello World!");
+}
