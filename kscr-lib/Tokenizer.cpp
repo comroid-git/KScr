@@ -35,20 +35,19 @@ void Tokenizer::digest(char data[])
 {
 	const int len = static_cast<int>(sizeof data);
 	string key;
-	Token* prev;
+	Token* prev = nullptr;
 	
 	for (int i = 0; i < len; ++i)
 	{
-		char c = data[i];
+		const char c = data[i];
+		key += c;
 
-		if (c == ' ' || c == '.')
+		if (c == ' ' || c == '.' || c == ';' || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}' || c == '<' || c == '>')
 			// terminate key
 		{
 			Token found = Token::Find(prev, key);
 			output.push_back(prev = &found);
 			key = "";
 		}
-		// append key
-		else key += c;
 	}
 }
