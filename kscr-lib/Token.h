@@ -41,6 +41,11 @@ public:
 		return out;
 	}
 
+	static Token Find(Token* prev, std::string key)
+	{
+		
+	}
+
 	static Token read(const int* bytes)
 	{
 		const int type = *bytes,

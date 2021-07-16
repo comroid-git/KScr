@@ -33,4 +33,22 @@ void Tokenizer::tokenize(vector<string>* files)
 
 void Tokenizer::digest(char data[])
 {
+	const int len = static_cast<int>(sizeof data);
+	string key;
+	Token* prev;
+	
+	for (int i = 0; i < len; ++i)
+	{
+		char c = data[i];
+
+		if (c == ' ' || c == '.')
+			// terminate key
+		{
+			Token found = Token::Find(prev, key);
+			output.push_back(prev = &found);
+			key = "";
+		}
+		// append key
+		else key += c;
+	}
 }
