@@ -11,7 +11,7 @@ using namespace std;
 void Tokenizer::tokenize(vector<string>* files)
 {
 	Tokenizer tokenizer = Tokenizer();
-	for (string file : files->begin())
+	for (string file : *files)
 	{
 		string name = Filesystem::simpleFileName(file);
 		ifstream read = ifstream(file);
