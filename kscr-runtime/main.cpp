@@ -8,7 +8,6 @@
 void compile()
 {
 	Tokenizer::tokenize(&Const::files);
-	Tokenizer::compileBodies();
 }
 
 int run()
