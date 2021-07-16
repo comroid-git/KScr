@@ -163,7 +163,6 @@
     <ClInclude Include="TypeDef.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Token.cpp" />
     <ClCompile Include="Tokenizer.cpp" />
     <ClCompile Include="Filesystem.cpp" />
     <ClCompile Include="MemberDef.cpp" />
