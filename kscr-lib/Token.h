@@ -27,7 +27,7 @@ private:
 	}
 
 public:
-	explicit Token(Modifier modifier) : type(static_cast<int>(TokenType::Mod)), modifier(static_cast<int>(modifier))
+	explicit Token(Modifier modifier) : type(static_cast<int>(TokenType::Mod)), modifier(static_cast<int>(modifier)), arg(nullptr)
 	{
 	}
 
