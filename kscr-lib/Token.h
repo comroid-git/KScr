@@ -17,7 +17,7 @@ enum class TokenType
 	Par   = 0x10
 };
 
-const std::regex numRegex = std::regex("\d+");
+const std::regex numRegex = std::regex("\\d+");
 
 struct Token
 {
@@ -106,7 +106,7 @@ public:
 		//region Strings
 		char f = key.at(0);
 		char l = key.at(len - 1);
-		if (f == l == '"') {
+		if (f == '"' && l == '"') {
 			std::string str = key.substr(1, len- 2);
 			return Token(TokenType::Str, &str);
 		}
