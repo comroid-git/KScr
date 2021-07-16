@@ -84,7 +84,7 @@ public:
 		//endregion
 
 		//region Operators
-		if (key == "+" || key == "-" || key == "/" || key == "*" || key == "%" || key == "&" || key == "|" || key == "!")
+		if (key == "+" || key == "-" || key == "/" || key == "*" || key == "%" || key == "&" || key == "|" || key == "!" || key == "?")
 			return Token(TokenType::Op, &key);
 		//endregion
 

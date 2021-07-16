@@ -40,9 +40,10 @@ void Tokenizer::digest(char data[])
 	for (int i = 0; i < len; ++i)
 	{
 		const char c = data[i];
+		const char next = data[i + 1 == len ? i : i + 1];
 		key += c;
 
-		if (c == ' ' || c == '.' || c == ';' || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}' || c == '<' || c == '>')
+		if (c == ' ' || c == '.' || c == ';' || c == '?' || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}' || c == '<' || c == '>')
 			// terminate key
 		{
 			Token found = Token::Find(prev, key);
