@@ -39,6 +39,16 @@ public:
 	const int type;
 	const int modifier;
 	const std::string* arg;
+	
+	std::string str()
+	{
+		int* bytes = Token::bytes();
+		std::string str;
+		int len = sizeof bytes;
+		for (int i = 0; i < len; ++i)
+			str += static_cast<char>(*bytes);
+		return str;
+	}
 
 	int* bytes()
 	{

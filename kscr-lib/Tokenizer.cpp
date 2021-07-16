@@ -3,6 +3,7 @@
 #include "Tokenizer.h"
 
 #include <fstream>
+#include <iostream>
 
 #include "Const.h"
 
@@ -50,5 +51,10 @@ void Tokenizer::digest(char data[])
 			output.push_back(prev = &found);
 			key = "";
 		}
+	}
+
+	for (auto each : output)
+	{
+		cout << "Token: " << each->str() << endl;
 	}
 }
