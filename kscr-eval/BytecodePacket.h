@@ -9,8 +9,8 @@ public:
 	// base types
 	static constexpr int DECLARATION         = 0x0001;
 	static constexpr int ASSIGNMENT          = 0x0002;
-	static constexpr int STATEMENT           = 0x0004;
-	static constexpr int EXPRESSION          = 0x0008;
+	static constexpr int EXPRESSION          = 0x0004;
+	static constexpr int STATEMENT           = 0x0008;
 	static constexpr int METHOD_CALL         = 0x000F;
 
 	// static declaration args
