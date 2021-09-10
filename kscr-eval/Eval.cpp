@@ -132,7 +132,8 @@ void finalizePacket()
 	(nextIntoAlt == 0 ? prevPacket->altPacket : prevPacket) = &packet;
 	packet = BytecodePacket();
 	prevPacket->followupPacket = &packet;
-	nextIntoAlt--;
+	if (nextIntoAlt >= 0)
+		nextIntoAlt--;
 }
 
 const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
