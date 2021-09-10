@@ -83,7 +83,8 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode, const int len)
 		else
 		{
 			bool prevcomplete = token.complete;
-			if (!isWhitespace) str += c;
+			if (!isWhitespace)
+				str += c;
 
 			// check for complete tokens
 			if (str == "return")
