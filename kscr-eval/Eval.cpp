@@ -263,7 +263,7 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 		else if (token->type == Token::NUM_LITERAL)
 		{
 			packet.type |= BytecodePacket::EXPRESSION | BytecodePacket::EXPRESSION_NUMERIC;
-			packet.arg = token->arg;
+			packet.arg = Numeric::parse(token->arg);
 			packet.complete = true;
 		}
 		// string literal
@@ -299,7 +299,7 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 
 }
 
-const int Eval::execute(const std::vector<BytecodePacket>* bytecode)
+const int Eval::execute(const BytecodePacket* bytecode)
 {
 	constexpr long len = sizeof *bytecode;
 }

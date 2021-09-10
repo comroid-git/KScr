@@ -55,3 +55,26 @@ Numeric Numeric::constant(char byteValue)
 	constants[kptr] = vptr;
 	return value;
 }
+
+Numeric* Numeric::parse(char* str)
+{
+	std::smatch matches;
+	if (!std::regex_search(std::string(str), matches, NumberRegex))
+		throw std::invalid_argument("Not a valid number!");
+	const std::string type = matches[matches.size() == 5 ? 1 : 0].str();
+	Numeric result;
+	if (type == "b")
+		result = constant(*str);
+	else if (type == "i")
+		result = constant(std::stoi(str));
+	else if (type == "l")
+		result = constant(std::stol(str));
+	else if (type == "f")
+		result = constant(std::stof(str));
+	else if (type == "d")
+		result = constant(std::stod(str));
+	else if (matches[2].length() > matches[3].length())
+		result = constant(std::stof(str));
+	else result = constant(std::stoi(str));
+	return &result;
+}
