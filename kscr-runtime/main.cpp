@@ -22,11 +22,14 @@ auto main(int argc, char* argv[]) -> int
 	// debug code statement
 	const char* code = "num a = 1; num b = 2.2; return a + b;";
 
-	// tokenize into bytecode
-	const char* lib = Eval::tokenize(code);
+	// parse code into tokens
+	const char* tokens = Eval::tokenize(code);
+
+	// compile tokens into bytecode
+	const char* bytecode = Eval::compile(tokens);
 
 	// run bytecode
-	return Eval::execute(lib);
+	return Eval::execute(bytecode);
 }
 
 /* // lib test

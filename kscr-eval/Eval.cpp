@@ -21,9 +21,9 @@ void appendToken(Token& token, std::vector<char>* lib)
 	}
 }
 
-const char* Eval::tokenize(const char* code)
+const char* Eval::tokenize(const char* sourcecode)
 {
-	constexpr long len = sizeof code;
+	constexpr long len = sizeof sourcecode;
 	Token token = Token();
 	std::vector<char> lib = std::vector<char>();
 	std::string str = "";
@@ -31,9 +31,9 @@ const char* Eval::tokenize(const char* code)
 
 	for (long i = 0; i < len; i++)
 	{
-		const char c = *(code + i);
-		const char n = *(code + (i + 1));
-		const char p = *(code + (i - 1));
+		const char c = *(sourcecode + i);
+		const char n = *(sourcecode + (i + 1));
+		const char p = *(sourcecode + (i - 1));
 
 		// linefeeds
 		bool isLineFeed = false;
@@ -116,7 +116,12 @@ const char* Eval::tokenize(const char* code)
 	return lib.data();
 }
 
-const int Eval::execute(const char* lib)
+const char* Eval::compile(const char* tokens)
 {
-	constexpr long len = sizeof lib;
+	constexpr long len = sizeof tokens;
+}
+
+const int Eval::execute(const char* bytecode)
+{
+	constexpr long len = sizeof bytecode;
 }

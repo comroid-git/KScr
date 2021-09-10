@@ -10,6 +10,7 @@
 class Eval
 {
 public:
-	static const char* tokenize(const char* code);
-	static const int execute(const char* code);
+	static const char* tokenize(const char* sourcecode);
+	static const char* compile(const char* tokens);
+	static const int execute(const char* bytecode);
 };
