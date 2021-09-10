@@ -45,7 +45,7 @@ public:
 	void* evaluate(std::map<const char*, void*>* obj_map);
 
 	int type = 0;
-	char* arg = nullptr;
+	void* arg = nullptr;
 	BytecodePacket* previousPacket = nullptr;
 	BytecodePacket* followupPacket = nullptr;
 	BytecodePacket* altPacket = nullptr;

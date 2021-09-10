@@ -4,6 +4,7 @@
 #include <regex>
 #include <vector>
 #include "Eval.h"
+#include "../kscr-lib/Numeric.h"
 
 void appendToken(Token* token, std::vector<Token>* lib)
 {
@@ -95,7 +96,7 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode)
 				token = Token(Token::VAR_ident);
 			else if (str == "void")
 				token = Token(Token::VOID_ident);
-			else if (std::regex_match("", NumberRegex))
+			else if (std::regex_match("", Numeric::NumberRegex))
 				token = Token(Token::NUM_LITERAL, _strdup(str.data()));
 			else if (str.at(0) == '"' && str.at(str.size() - 1) == '"')
 				token = Token(Token::STR_LITERAL, _strdup(str.substr(1, str.size() - 2).data()));
