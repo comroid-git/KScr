@@ -164,6 +164,7 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 		if (token->type == Token::TERMINATOR)
 		{
 			packet.complete = true;
+			//todo do any statement finalizing here
 		}
 
 		// declarations
