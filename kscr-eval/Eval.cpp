@@ -117,19 +117,34 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode)
 	return lib;
 }
 
+BytecodePacket* prevPacket = nullptr;
+BytecodePacket packet = BytecodePacket();
+
+void finalizePacket()
+{
+	if (!packet.complete)
+		throw std::exception("Packet is incomplete");
+	prevPacket = &packet;
+	packet = BytecodePacket();
+	prevPacket->followupPacket = &packet;
+}
+
 const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 {
 	constexpr long len = sizeof *tokens;
-	BytecodePacket* prevPacket = nullptr;
-	BytecodePacket packet = BytecodePacket();
 
 	for (int i = 0; i < len; i++)
 	{
 		// initialize new packet
 		packet.previousPacket = prevPacket;
 
+		// this & next token
 		const Token* token = &tokens->at(i);
 		const Token* next = &tokens->at(i + 1);
+
+		// terminator
+		if (token->type == Token::TERMINATOR)
+			packet.complete = true;
 
 		// declarations
 		if (token->type == Token::BYTE_ident)
@@ -189,12 +204,10 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 		}
 		// todo: boolean assignments & expression assignments
 
-		// finalize packet
+		// finalize packet if complete
 		if (packet.complete)
 		{
-			prevPacket = &packet;
-			packet = BytecodePacket();
-			prevPacket->followupPacket = &packet;
+			finalizePacket();
 		}
 	}
 
