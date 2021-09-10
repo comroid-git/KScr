@@ -13,15 +13,20 @@ public:
 	static constexpr char MODE_DOUBLE   = 0x8;
 	static constexpr char MODE_BYTE     = 0xF;
 
-	explicit Numeric() : readonly(true), mode(MODE_BYTE)
-	{
-	}
+	explicit Numeric() : readonly(true), mode(MODE_BYTE){}
+
 	static Numeric* constant(int intValue);
 	static Numeric* constant(long longValue);
 	static Numeric* constant(float floatValue);
 	static Numeric* constant(double doubleValue);
 	static Numeric* constant(char byteValue);
 	static Numeric* parse(char* str);
+
+	Numeric* plus(Numeric* right);
+	Numeric* minus(Numeric* right);
+	Numeric* multiply(Numeric* right);
+	Numeric* divide(Numeric* right);
+	Numeric* modulus(Numeric* right);
 
 	// class logic
 	bool readonly;

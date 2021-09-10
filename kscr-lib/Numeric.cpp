@@ -78,3 +78,84 @@ Numeric* Numeric::parse(char* str)
 	else result = constant(std::stoi(str));
 	return result;
 }
+
+Numeric* Numeric::plus(Numeric* right)
+{
+	if (mode == right->mode)
+	{
+		if (mode == MODE_BYTE)
+			return constant(ByteValue + right->ByteValue);
+		if (mode == MODE_INT)
+			return constant(IntValue + right->IntValue);
+		if (mode == MODE_LONG)
+			return constant(LongValue + right->LongValue);
+		if (mode == MODE_FLOAT)
+			return constant(FloatValue + right->FloatValue);
+		if (mode == MODE_DOUBLE)
+			return constant(DoubleValue + right->DoubleValue);
+	}
+}
+
+Numeric* Numeric::minus(Numeric* right)
+{
+	if (mode == right->mode)
+	{
+		if (mode == MODE_BYTE)
+			return constant(ByteValue - right->ByteValue);
+		if (mode == MODE_INT)
+			return constant(IntValue - right->IntValue);
+		if (mode == MODE_LONG)
+			return constant(LongValue - right->LongValue);
+		if (mode == MODE_FLOAT)
+			return constant(FloatValue - right->FloatValue);
+		if (mode == MODE_DOUBLE)
+			return constant(DoubleValue - right->DoubleValue);
+	}
+}
+
+Numeric* Numeric::multiply(Numeric* right)
+{
+	if (mode == right->mode)
+	{
+		if (mode == MODE_BYTE)
+			return constant(ByteValue * right->ByteValue);
+		if (mode == MODE_INT)
+			return constant(IntValue * right->IntValue);
+		if (mode == MODE_LONG)
+			return constant(LongValue * right->LongValue);
+		if (mode == MODE_FLOAT)
+			return constant(FloatValue * right->FloatValue);
+		if (mode == MODE_DOUBLE)
+			return constant(DoubleValue * right->DoubleValue);
+	}
+}
+
+Numeric* Numeric::divide(Numeric* right)
+{
+	if (mode == right->mode)
+	{
+		if (mode == MODE_BYTE)
+			return constant(ByteValue / right->ByteValue);
+		if (mode == MODE_INT)
+			return constant(IntValue / right->IntValue);
+		if (mode == MODE_LONG)
+			return constant(LongValue / right->LongValue);
+		if (mode == MODE_FLOAT)
+			return constant(FloatValue / right->FloatValue);
+		if (mode == MODE_DOUBLE)
+			return constant(DoubleValue / right->DoubleValue);
+	}
+}
+
+Numeric* Numeric::modulus(Numeric* right)
+{
+	if (mode == right->mode)
+	{
+		if (mode == MODE_BYTE)
+			return constant(ByteValue % right->ByteValue);
+		if (mode == MODE_INT)
+			return constant(IntValue % right->IntValue);
+		if (mode == MODE_LONG)
+			return constant(LongValue % right->LongValue);
+	}
+}
