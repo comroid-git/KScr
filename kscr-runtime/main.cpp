@@ -20,10 +20,10 @@ int run()
 auto main(int argc, char* argv[]) -> int
 {
 	// debug code statement
-	const char* code = "num a = 1; num b = 2.2; return a + b;";
+	const std::string code = "num a = 1; num b = 2.2; return a + b;";
 
 	// parse code into tokens
-	const std::vector<Token> tokens = Eval::tokenize(code);
+	const std::vector<Token> tokens = Eval::tokenize(code.data(), code.length());
 
 	// compile tokens into bytecode
 	BytecodePacket bytecode = Eval::compile(&tokens);

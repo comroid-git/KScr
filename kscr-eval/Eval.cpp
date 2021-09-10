@@ -8,20 +8,20 @@
 
 std::map<const char*, void*> obj_map = std::map<const char*, void*>();
 
-void appendToken(Token* token, std::vector<Token>* lib)
+void appendToken(Token* token, std::vector<Token>* lib, std::string* str)
 {
 	if (!token->complete)
-		throw std::exception("Token is incomplete: ");
+		return;// throw std::invalid_argument("Token is incomplete: ");
 	lib->push_back(*token);
 	*token = Token();
+	*str = "";
 }
 
-const std::vector<Token> Eval::tokenize(const char* sourcecode)
+const std::vector<Token> Eval::tokenize(const char* sourcecode, const int len)
 {
-	constexpr long len = sizeof *sourcecode;
 	Token token = Token();
 	std::vector<Token> lib = std::vector<Token>();
-	std::string str = "";
+	std::string str;
 	bool isComment = false, isBlockComment = false;
 
 	for (long i = 0; i < len; i++)
@@ -63,7 +63,7 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode)
 		// terminator token
 		if (c == ';')
 		{
-			appendToken(&token, &lib);
+			appendToken(&token, &lib, &str);
 			token = Token(Token::TERMINATOR);
 		}
 		// arithmetic tokens
@@ -83,7 +83,7 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode)
 		else
 		{
 			bool prevcomplete = token.complete;
-			str += c;
+			if (!isWhitespace) str += c;
 
 			// check for complete tokens
 			if (str == "return")
@@ -106,7 +106,7 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode)
 				token = Token(Token::TRUE);
 			else if (str == "false")
 				token = Token(Token::FALSE);
-			else // otherwise we assume its a variable name 
+			else if (isWhitespace || isLineFeed)
 				token = Token(Token::VAR, _strdup(str.data()));
 
 			// reset string if token is now completed
@@ -116,7 +116,7 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode)
 
 		// append token if it is complete
 		if (token.complete)
-			appendToken(&token, &lib);
+			appendToken(&token, &lib, &str);
 	}
 
 	return lib;
@@ -159,7 +159,7 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 
 		// this & next token
 		const Token* token = &tokens->at(i);
-		const Token* next = &tokens->at(i + 1);
+		const Token* next = static_cast<int>(tokens->size()) > i ? &tokens->at(i + 1) : nullptr;
 
 		// terminator
 		if (token->type == Token::TERMINATOR)
@@ -284,10 +284,11 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 
 		// allow initialization at declaration
 		// by moving the equals operator in declaration alt
-		if ((packet.type & BytecodePacket::DECLARATION) != 0 && next->type == Token::EQUALS && *&tokens->at(i + 2).type != Token::EQUALS)
+		bool cond = (i + 1 < tokens->size() && tokens->at(i + 2).type != Token::EQUALS);
+		if ((packet.type & BytecodePacket::DECLARATION) != 0 && next->type == Token::EQUALS && cond)
 			nextIntoAlt = 1;
 		// and moving an expression into the prevAltPacket that is the equals
-		if ((prevAltPacket->type & BytecodePacket::ASSIGNMENT) != 0 && (packet.type & BytecodePacket::EXPRESSION) != 0)
+		if (prevAltPacket != nullptr && (prevAltPacket->type & BytecodePacket::ASSIGNMENT) != 0 && (packet.type & BytecodePacket::EXPRESSION) != 0)
 			nextIntoAltAlt = 0;
 
 		// finalize packet if complete
