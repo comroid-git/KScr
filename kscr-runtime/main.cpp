@@ -20,27 +20,26 @@ int run()
 // eval test
 auto main(int argc, char* argv[]) -> int
 {
-	try
-	{
+	//try{
 		// debug code statement
-		const std::string code = "num a = 1; num b = 2.2; return a + b;";
+		const std::string code = "num aNum = 1; return aNum + 1;";
 
 		// parse code into tokens
-		const std::vector<Token> tokens = Eval::tokenize(code.data(), code.length());
+		const std::vector<Token> tokens = Eval::tokenize(code.data(), static_cast<int>(code.length()));
 
 		// compile tokens into bytecode
 		BytecodePacket bytecode = Eval::compile(&tokens);
 
 		// run bytecode
 		return Eval::execute(&bytecode);
-	}
-	/*catch (std::exception& e)
+	/*}
+	catch (std::exception& e)
 	{
 		std::cerr
 		<< "An internal exception occurred:" << std::endl
 		<< "\t- " << std::string(e.what()) << std::endl;
 		return -1;
-	}*/
+	}
 	catch (const int i) {
 		std::cerr << "An exit code was thrown: " << i << std::endl;
 		return i;
@@ -57,7 +56,7 @@ auto main(int argc, char* argv[]) -> int
 	}
 	catch (...) {
 		std::cout << "nope, sorry, I really have no clue what that is\n";
-	}
+	}*/
 }
 
 /* // lib test

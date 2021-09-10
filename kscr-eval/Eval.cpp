@@ -27,8 +27,8 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode, const int len)
 	for (long i = 0; i < len; i++)
 	{
 		const char c = *(sourcecode + i);
-		const char n = *(sourcecode + (i + 1));
-		const char p = *(sourcecode + (i - 1));
+		const char n = i + 1 < len ? *(sourcecode + (i + 1)) : ' ';
+		const char p = i - 1 > 0 ? *(sourcecode + (i - 1)) : ' ';
 
 		// linefeeds
 		bool isLineFeed = false;
@@ -84,35 +84,33 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode, const int len)
 		{
 			bool prevcomplete = token.complete;
 			if (!isWhitespace)
+			{
 				str += c;
 
-			// check for complete tokens
-			if (str == "return")
-				token = Token(Token::RETURN);
-			else if (str == "byte")
-				token = Token(Token::BYTE_ident);
-			else if (str == "num")
-				token = Token(Token::NUM_ident);
-			else if (str == "str")
-				token = Token(Token::STR_ident);
-			else if (str == "var")
-				token = Token(Token::VAR_ident);
-			else if (str == "void")
-				token = Token(Token::VOID_ident);
-			else if (std::regex_match(str, Numeric::NumberRegex))
-				token = Token(Token::NUM_LITERAL, _strdup(str.data()));
-			else if (str.at(0) == '"' && str.at(str.size() - 1) == '"')
-				token = Token(Token::STR_LITERAL, _strdup(str.substr(1, str.size() - 2).data()));
-			else if (str == "true")
-				token = Token(Token::TRUE);
-			else if (str == "false")
-				token = Token(Token::FALSE);
-			else if (isWhitespace || isLineFeed)
-				token = Token(Token::VAR, _strdup(str.data()));
-
-			// reset string if token is now completed
-			if (!prevcomplete && token.complete)
-				str = "";
+				// check for complete tokens
+				if (str == "return")
+					token = Token(Token::RETURN);
+				else if (str == "byte")
+					token = Token(Token::BYTE_ident);
+				else if (str == "num")
+					token = Token(Token::NUM_ident);
+				else if (str == "str")
+					token = Token(Token::STR_ident);
+				else if (str == "var")
+					token = Token(Token::VAR_ident);
+				else if (str == "void")
+					token = Token(Token::VOID_ident);
+				else if (std::regex_match(str, Numeric::NumberRegex))
+					token = Token(Token::NUM_LITERAL, _strdup(str.data()));
+				else if (str.at(0) == '"' && str.at(str.size() - 1) == '"')
+					token = Token(Token::STR_LITERAL, _strdup(str.substr(1, str.size() - 2).data()));
+				else if (str == "true")
+					token = Token(Token::TRUE);
+				else if (str == "false")
+					token = Token(Token::FALSE);
+				else if (isWhitespace || isLineFeed)
+					token = Token(Token::VAR, _strdup(str.data()));
+			}
 		}
 
 		// append token if it is complete
