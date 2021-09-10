@@ -4,6 +4,7 @@
 #include "../kscr-lib/Const.h"
 #include "../kscr-lib/Filesystem.h"
 #include "../kscr-lib/Tokenizer.h"
+#include "../kscr-eval/Eval.h"
 
 void compile()
 {
@@ -15,6 +16,20 @@ int run()
 	return Const::typeCache.runEntryPoint();
 }
 
+// eval test
+auto main(int argc, char* argv[]) -> int
+{
+	// debug code statement
+	const char* constCode = "num a = 1; num b = 2.2; return a + b;";
+
+	// copy constant to nonconstant
+	const int len = static_cast<int>(strlen(constCode));
+	char* code = _strdup(constCode);
+
+	Eval::Compile(code, len);
+}
+
+/* // lib test
 auto main(int argc, char* argv[]) -> int
 {
 	if (argc == 0)
@@ -36,3 +51,4 @@ auto main(int argc, char* argv[]) -> int
 	std::cout << "Program finished with exit code " << exitCode << std::endl;
 	return exitCode;
 }
+*/
