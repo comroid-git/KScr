@@ -8,7 +8,7 @@ public:
 
 	// base types
 	static constexpr int DECLARATION            = 0x00000001;
-	static constexpr int VARIABLE               = 0x00000002;
+	static constexpr int ASSIGNMENT             = 0x00000002;
 	static constexpr int EXPRESSION             = 0x00000004;
 	static constexpr int STATEMENT              = 0x00000008;
 	static constexpr int OPERATOR               = 0x0000000F | EXPRESSION;
@@ -40,6 +40,7 @@ public:
 
 	// class structure
 	explicit BytecodePacket() = default;
+	auto evaluate();
 
 	int type = 0;
 	char* arg = nullptr;

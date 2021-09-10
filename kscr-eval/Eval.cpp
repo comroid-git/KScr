@@ -122,18 +122,28 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode)
 }
 
 BytecodePacket* prevPacket = nullptr;
+BytecodePacket* prevAltPacket = nullptr;
 BytecodePacket packet = BytecodePacket();
 int nextIntoAlt = -1;
+int nextIntoAltAlt = -1;
 
 void finalizePacket()
 {
 	if (!packet.complete)
 		throw std::exception("Packet is incomplete");
-	(nextIntoAlt == 0 ? prevPacket->altPacket : prevPacket) = &packet;
+	if (nextIntoAlt == 0)
+		prevPacket->altPacket = prevAltPacket = &packet;
+	else prevAltPacket = nullptr;
+	if (nextIntoAltAlt == 0 && prevAltPacket != nullptr)
+		prevAltPacket->altPacket = &packet;
+	if (nextIntoAlt == -1 && nextIntoAltAlt == -1)
+		prevPacket = &packet;
 	packet = BytecodePacket();
 	prevPacket->followupPacket = &packet;
 	if (nextIntoAlt >= 0)
 		nextIntoAlt--;
+	if (nextIntoAltAlt >= 0)
+		nextIntoAltAlt--;
 }
 
 const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
@@ -152,7 +162,9 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 
 		// terminator
 		if (token->type == Token::TERMINATOR)
+		{
 			packet.complete = true;
+		}
 
 		// declarations
 		if (token->type == Token::BYTE_ident)
@@ -195,7 +207,6 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 			packet.arg = next->arg; // var name
 			packet.complete = true;
 		}
-
 		// syntax operators
 		// = symbol
 		else if (token->type == Token::EQUALS)
@@ -203,11 +214,12 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 			// todo: handle equals
 			// assignments
 			if (((prevPacket->type & BytecodePacket::DECLARATION) != 0 || (prevPacket->type & BytecodePacket::EXPRESSION_VAR) != 0)
-				&& (next->type == Token::VAR || next->type == Token::NUM_LITERAL || next->type == Token::NUM_LITERAL))
+				&& (next->type == Token::VAR || next->type == Token::STR_LITERAL || next->type == Token::NUM_LITERAL))
 				// if previous is a declaration or variable & next is varname or literal
 			{
-				packet.type = BytecodePacket::VARIABLE;
+				packet.type = BytecodePacket::ASSIGNMENT;
 				packet.complete = true;
+				nextIntoAlt = 1;
 			}
 		}
 		// + symbol
@@ -267,6 +279,14 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 			packet.type |= BytecodePacket::EXPRESSION | (token->type == Token::TRUE ? BytecodePacket::EXPRESSION_TRUE : BytecodePacket::EXPRESSION_FALSE);
 			packet.complete = true;
 		}
+
+		// allow initialization at declaration
+		// by moving the equals operator in declaration alt
+		if ((packet.type & BytecodePacket::DECLARATION) != 0 && next->type == Token::EQUALS && *&tokens->at(i + 2).type != Token::EQUALS)
+			nextIntoAlt = 1;
+		// and moving an expression into the prevAltPacket that is the equals
+		if ((prevAltPacket->type & BytecodePacket::ASSIGNMENT) != 0 && (packet.type & BytecodePacket::EXPRESSION) != 0)
+			nextIntoAltAlt = 0;
 
 		// finalize packet if complete
 		if (packet.complete)
