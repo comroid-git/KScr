@@ -42,7 +42,7 @@ public:
 
 	// class structure
 	explicit BytecodePacket() = default;
-	auto evaluate(std::map<const char*, void*>* obj_map);
+	void* evaluate(std::map<const char*, void*>* obj_map);
 
 	int type = 0;
 	char* arg = nullptr;
