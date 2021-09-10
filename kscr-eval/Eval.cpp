@@ -80,7 +80,8 @@ const char* Eval::tokenize(const char* code)
 			token = Token(Token::MODULUS);
 
 		// append token if it is complete
-		appendToken(token, &lib);
+		if (token.complete)
+			appendToken(token, &lib);
 	}
 
 	return lib.data();
