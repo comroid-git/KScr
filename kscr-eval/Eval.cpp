@@ -101,6 +101,10 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode)
 				token = Token(Token::NUM_LITERAL, _strdup(str.data()));
 			else if (str.at(0) == '"' && str.at(str.size() - 1) == '"')
 				token = Token(Token::STR_LITERAL, _strdup(str.substr(1, str.size() - 2).data()));
+			else if (str == "true")
+				token = Token(Token::TRUE);
+			else if (str == "false")
+				token = Token(Token::FALSE);
 			else // otherwise we assume its a variable name 
 				token = Token(Token::VAR, _strdup(str.data()));
 
@@ -189,21 +193,25 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 			packet.complete = true;
 		}
 
-		// assignments
-		// number assignment
+		// expressions
+		// numeric literal
 		else if (token->type == Token::EQUALS && next->type == Token::NUM_LITERAL)
 		{
-			packet.type |= BytecodePacket::ASSIGNMENT | BytecodePacket::ASSIGNMENT_NUMERIC;
-			packet.arg = next->arg;
+			packet.type |= BytecodePacket::ASSIGNMENT;
 			packet.complete = true;
 		}
+		// string literal
 		else if (token->type == Token::EQUALS && next->type == Token::STR_LITERAL)
 		{
-			packet.type |= BytecodePacket::ASSIGNMENT | BytecodePacket::ASSIGNMENT_STRING;
-			packet.arg = next->arg;
+			packet.type |= BytecodePacket::ASSIGNMENT;
 			packet.complete = true;
 		}
-		// todo: boolean assignments & expression assignments
+		// boolean literals
+		else if (token->type == Token::TRUE || token->type == Token::FALSE)
+		{
+			packet.type |= BytecodePacket::EXPRESSION | (token->type == Token::TRUE ? BytecodePacket::EXPRESSION_TRUE : BytecodePacket::EXPRESSION_FALSE);
+			packet.complete = true;
+		}
 
 		// finalize packet if complete
 		if (packet.complete)

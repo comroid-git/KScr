@@ -28,6 +28,10 @@ public:
 	static constexpr int MODULUS     = 0x0F00; // % symbol
 	static constexpr int EQUALS      = 0x1000; // % symbol
 
+	// boolean identifiers
+	static constexpr int TRUE        = 0x2000; // true
+	static constexpr int FALSE       = 0x4000; // false
+
 	// class structure
 	explicit Token() : type(0), arg(nullptr) {}
 	explicit Token(int type) : type(type), arg(nullptr), complete(true) {}
