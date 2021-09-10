@@ -1,8 +1,11 @@
 ﻿#include "pch.h"
 #include <stdexcept>
 #include <iostream>
+#include <regex>
 #include <vector>
 #include "Eval.h"
+
+static const std::regex NumberRegex = std::regex("([\d]+)(i|l|f|d)?(\.([\d]+)(f|d)?)?");
 
 void appendToken(Token& token, std::vector<char>* lib)
 {
@@ -23,6 +26,7 @@ const char* Eval::tokenize(const char* code)
 	constexpr long len = sizeof code;
 	Token token = Token();
 	std::vector<char> lib = std::vector<char>();
+	std::string str = "";
 	bool isComment = false, isBlockComment = false;
 
 	for (long i = 0; i < len; i++)
@@ -78,6 +82,31 @@ const char* Eval::tokenize(const char* code)
 			token = Token(Token::DIVIDE);
 		else if (c == '%')
 			token = Token(Token::MODULUS);
+		// lexical tokens
+		else
+		{
+			str += c;
+
+			// check for complete tokens
+			if (str == "return")
+				token = Token(Token::RETURN);
+			else if (str == "byte")
+				token = Token(Token::BYTE_ident);
+			else if (str == "num")
+				token = Token(Token::NUM_ident);
+			else if (str == "str")
+				token = Token(Token::STR_ident);
+			else if (str == "var")
+				token = Token(Token::VAR_ident);
+			else if (str == "void")
+				token = Token(Token::VOID_ident);
+			else if (std::regex_match("", NumberRegex))
+				token = Token(Token::NUM_LITERAL, _strdup(str.data()));
+			else if (str.at(0) == '"' && str.at(str.size() - 1))
+				token = Token(Token::STR_LITERAL, _strdup(str.substr(1, str.size() - 2).data()));
+			else // otherwise we assume its a variable name 
+				token = Token(Token::VAR, _strdup(str.data()));
+		}
 
 		// append token if it is complete
 		if (token.complete)
