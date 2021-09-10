@@ -63,8 +63,7 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode, const int len)
 		// terminator token
 		if (c == ';')
 		{
-			appendToken(&token, &lib, &str);
-			token = Token(Token::TERMINATOR);
+			token = Token(Token::TERMINATOR, _strdup(str.data()));
 		}
 		// arithmetic tokens
 		else if (c == '+')
@@ -84,37 +83,35 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode, const int len)
 		{
 			bool prevcomplete = token.complete;
 			if (!isWhitespace)
-			{
 				str += c;
 
-				// check for complete tokens
-				if (str == "return")
-					token = Token(Token::RETURN);
-				else if (str == "byte")
-					token = Token(Token::BYTE_ident);
-				else if (str == "num")
-					token = Token(Token::NUM_ident);
-				else if (str == "str")
-					token = Token(Token::STR_ident);
-				else if (str == "var")
-					token = Token(Token::VAR_ident);
-				else if (str == "void")
-					token = Token(Token::VOID_ident);
-				else if (std::regex_match(str, Numeric::NumberRegex))
-					token = Token(Token::NUM_LITERAL, _strdup(str.data()));
-				else if (str.at(0) == '"' && str.at(str.size() - 1) == '"')
-					token = Token(Token::STR_LITERAL, _strdup(str.substr(1, str.size() - 2).data()));
-				else if (str == "true")
-					token = Token(Token::TRUE);
-				else if (str == "false")
-					token = Token(Token::FALSE);
-				else if (isWhitespace || isLineFeed)
-					token = Token(Token::VAR, _strdup(str.data()));
-			}
+			// check for complete tokens
+			if (str == "return")
+				token = Token(Token::RETURN);
+			else if (str == "byte")
+				token = Token(Token::BYTE_ident);
+			else if (str == "num")
+				token = Token(Token::NUM_ident);
+			else if (str == "str")
+				token = Token(Token::STR_ident);
+			else if (str == "var")
+				token = Token(Token::VAR_ident);
+			else if (str == "void")
+				token = Token(Token::VOID_ident);
+			else if (std::regex_match(str, Numeric::NumberRegex) && (n == ';' || n == ' '))
+				token = Token(Token::NUM_LITERAL, _strdup(str.data()));
+			else if (str.size() > 2 && str.at(0) == '"' && str.at(str.size() - 1) == '"' && (n == ';' || n == ' '))
+				token = Token(Token::STR_LITERAL, _strdup(str.substr(1, str.size() - 2).data()));
+			else if (str == "true")
+				token = Token(Token::TRUE);
+			else if (str == "false")
+				token = Token(Token::FALSE);
+			else if ((isWhitespace || isLineFeed) && !str.empty())
+				token = Token(Token::VAR, _strdup(str.data()));
 		}
 
 		// append token if it is complete
-		if (token.complete)
+		if (token.complete && token.type != 0)
 			appendToken(&token, &lib, &str);
 	}
 
