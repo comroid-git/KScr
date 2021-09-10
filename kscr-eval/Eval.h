@@ -2,11 +2,13 @@
 #include <string>
 #include <vector>
 
+#include "Token.h"
+
 #pragma once
 
 class Eval
 {
 public:
-	static const char* compile(const char* code);
+	static const char* tokenize(const char* code);
 	static const int execute(const char* code);
 };

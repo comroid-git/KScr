@@ -22,8 +22,8 @@ auto main(int argc, char* argv[]) -> int
 	// debug code statement
 	const char* code = "num a = 1; num b = 2.2; return a + b;";
 
-	// compile into bytecode
-	const char* lib = Eval::compile(code);
+	// tokenize into bytecode
+	const char* lib = Eval::tokenize(code);
 
 	// run bytecode
 	return Eval::execute(lib);
@@ -46,7 +46,7 @@ auto main(int argc, char* argv[]) -> int
 			Const::files.push_back(str);
 	}
 	
-	compile();
+	tokenize();
 	const int exitCode = run();
 	std::cout << "Program finished with exit code " << exitCode << std::endl;
 	return exitCode;
