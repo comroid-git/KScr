@@ -5,8 +5,6 @@
 #include <vector>
 #include "Eval.h"
 
-static const std::regex NumberRegex = std::regex("([\d]+)(i|l|f|d)?(\.([\d]+)(f|d)?)?");
-
 void appendToken(Token* token, std::vector<Token>* lib)
 {
 	if (!token->complete)

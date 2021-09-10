@@ -5,7 +5,6 @@ auto BytecodePacket::evaluate(std::map<const char*, void*>* obj_map)
 {
 	void* result;
 	void* altResult;
-	const char* argc = arg;
 
 	// evaluate alternate packet first
 	if (altPacket != nullptr)
@@ -13,12 +12,11 @@ auto BytecodePacket::evaluate(std::map<const char*, void*>* obj_map)
 
 	if ((type & BytecodePacket::DECLARATION) == 0)
 	{
-		obj_map->insert(std::make_pair(argc, altResult));
+		obj_map->insert(std::make_pair(arg, altResult));
 	} else if ((type & BytecodePacket::EXPRESSION_NUMERIC) == 0)
 	{
 	}
-	else if ((type & BytecodePacket::EXPRESSION_STRING) == 0) {
-	}
+	else if ((type & BytecodePacket::EXPRESSION_STRING) == 0) {}
 
 	return result;
 }
