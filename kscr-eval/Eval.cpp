@@ -10,7 +10,7 @@ static const std::regex NumberRegex = std::regex("([\d]+)(i|l|f|d)?(\.([\d]+)(f|
 void appendToken(Token* token, std::vector<Token>* lib)
 {
 	if (!token->complete)
-		throw std::invalid_argument("Token is incomplete: ");
+		throw std::exception("Token is incomplete: ");
 	lib->push_back(*token);
 	*token = Token();
 }
@@ -123,6 +123,12 @@ const std::vector<BytecodePacket> Eval::compile(const std::vector<Token>* tokens
 	for (int i = 0; i < len; i++)
 	{
 		const Token* token = &tokens->at(i);
+
+		if (packet.complete)
+		{
+			if (packet.followupPacket == nullptr)
+				throw std::exception("BytecodePacket is missing a followup Packet");
+		}
 	}
 
 }
