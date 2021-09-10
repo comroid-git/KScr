@@ -34,13 +34,13 @@ auto main(int argc, char* argv[]) -> int
 		// run bytecode
 		return Eval::execute(&bytecode);
 	}
-	catch (std::exception& e)
+	/*catch (std::exception& e)
 	{
 		std::cerr
 		<< "An internal exception occurred:" << std::endl
 		<< "\t- " << std::string(e.what()) << std::endl;
 		return -1;
-	}
+	}*/
 	catch (const int i) {
 		std::cerr << "An exit code was thrown: " << i << std::endl;
 		return i;
