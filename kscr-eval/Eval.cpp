@@ -17,7 +17,7 @@ void appendToken(Token* token, std::vector<Token>* lib)
 
 const std::vector<Token> Eval::tokenize(const char* sourcecode)
 {
-	constexpr long len = sizeof sourcecode;
+	constexpr long len = sizeof *sourcecode;
 	Token token = Token();
 	std::vector<Token> lib = std::vector<Token>();
 	std::string str = "";
@@ -117,10 +117,17 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode)
 
 const std::vector<BytecodePacket> Eval::compile(const std::vector<Token>* tokens)
 {
-	constexpr long len = sizeof tokens;
+	constexpr long len = sizeof *tokens;
+	BytecodePacket packet = BytecodePacket();
+
+	for (int i = 0; i < len; i++)
+	{
+		const Token* token = &tokens->at(i);
+	}
+
 }
 
 const int Eval::execute(const std::vector<BytecodePacket>* bytecode)
 {
-	constexpr long len = sizeof bytecode;
+	constexpr long len = sizeof *bytecode;
 }
