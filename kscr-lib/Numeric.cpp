@@ -67,16 +67,16 @@ Numeric* Numeric::parse(char* str)
 	if (type == "b")
 		result = constant(*str);
 	else if (type == "i")
-		result = constant(std::stoi(str));
+		result = constant(std::stoi(string));
 	else if (type == "l")
-		result = constant(std::stol(str));
+		result = constant(std::stol(string));
 	else if (type == "f")
-		result = constant(std::stof(str));
+		result = constant(std::stof(string));
 	else if (type == "d")
-		result = constant(std::stod(str));
+		result = constant(std::stod(string));
 	else if (matches[2].length() > matches[3].length())
-		result = constant(std::stof(str));
-	else result = constant(std::stoi(str));
+		result = constant(std::stof(string));
+	else result = constant(std::stoi(string));
 	return result;
 }
 
