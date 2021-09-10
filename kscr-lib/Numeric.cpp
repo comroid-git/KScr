@@ -3,7 +3,7 @@
 
 #include <map>
 
-std::regex Numeric::NumberRegex = std::regex("([\d]+)(i|l|f|d)?(\.([\d]+)(f|d)?)?");
+std::regex Numeric::NumberRegex = std::regex("([\\d]+)(i|l|f|d)?(\\.([\\d]+)(f|d)?)?");
 static std::map<const void*, Numeric*> constants = std::map<const void*, Numeric*>();
 
 Numeric* Numeric::constant(int intValue)
