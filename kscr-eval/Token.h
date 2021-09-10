@@ -28,7 +28,7 @@ public:
 	static constexpr int MODULUS     = 0x0F00; // % symbol
 
 	// class structure
-	explicit Token() : type(0), arg(nullptr), complete(false) {}
+	explicit Token() : type(0), arg(nullptr) {}
 	explicit Token(int type) : type(type), arg(nullptr), complete(true) {}
 	explicit Token(int type, char* arg) : type(type), arg(arg), complete(true) {}
 
@@ -79,5 +79,5 @@ public:
 
 	int type;
 	char* arg;
-	bool complete;
+	bool complete = false;
 };
