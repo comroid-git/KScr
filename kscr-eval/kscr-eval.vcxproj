@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClInclude Include="Eval.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Token.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Eval.cpp" />

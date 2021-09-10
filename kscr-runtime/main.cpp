@@ -20,13 +20,13 @@ int run()
 auto main(int argc, char* argv[]) -> int
 {
 	// debug code statement
-	const char* constCode = "num a = 1; num b = 2.2; return a + b;";
+	const char* code = "num a = 1; num b = 2.2; return a + b;";
 
-	// copy constant to nonconstant
-	const int len = static_cast<int>(strlen(constCode));
-	char* code = _strdup(constCode);
+	// compile into bytecode
+	const char* lib = Eval::compile(code);
 
-	Eval::Compile(code, len);
+	// run bytecode
+	return Eval::execute(lib);
 }
 
 /* // lib test

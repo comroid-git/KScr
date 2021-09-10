@@ -7,5 +7,6 @@
 class Eval
 {
 public:
-	static void Compile(char* code, int len);
+	static const char* compile(const char* code);
+	static const int execute(const char* code);
 };
