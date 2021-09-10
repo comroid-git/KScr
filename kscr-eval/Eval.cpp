@@ -129,7 +129,7 @@ void finalizePacket()
 {
 	if (!packet.complete)
 		throw std::exception("Packet is incomplete");
-	(nextIntoAlt != 0 ? prevPacket : prevPacket->altPacket) = &packet;
+	(nextIntoAlt == 0 ? prevPacket->altPacket : prevPacket) = &packet;
 	packet = BytecodePacket();
 	prevPacket->followupPacket = &packet;
 	nextIntoAlt--;
