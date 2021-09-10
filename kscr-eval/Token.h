@@ -51,9 +51,10 @@ public:
 		{
 			char* ptr = bytes + i;
 
+			// copy remaining packet length
 			if (i == 0)
 			{
-				*ptr = static_cast<char>(bytelen);
+				*ptr = static_cast<char>(bytelen - 1);
 			}
 			// copy bytes
 			else if (i > 0 && i < 5)
