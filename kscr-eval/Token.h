@@ -14,9 +14,9 @@ public:
 	static constexpr int NUM_ident   = 0x0004; // 'num'-declaration
 	static constexpr int BYTE_ident  = 0x0008; // 'byte'-declaration
 	static constexpr int STR_ident   = 0x000F; // 'str'-declaration
-	static constexpr int VOID_ident  = 0x0010;
-	static constexpr int NUM_LITERAL = 0x0020;
-	static constexpr int STR_LITERAL = 0x0040;
+	static constexpr int VOID_ident  = 0x0010; // 'void'-declaration
+	static constexpr int NUM_LITERAL = 0x0020; // number literal
+	static constexpr int STR_LITERAL = 0x0040; // string literal
 	static constexpr int reserved4   = 0x0080;
 	static constexpr int RETURN      = 0x00F0; // 'return'-statement
 
