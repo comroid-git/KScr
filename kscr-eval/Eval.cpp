@@ -136,7 +136,8 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 	for (int i = 0; i < len; i++)
 	{
 		// initialize new packet
-		packet.previousPacket = prevPacket;
+		if (packet.previousPacket == nullptr)
+			packet.previousPacket = prevPacket;
 
 		// this & next token
 		const Token* token = &tokens->at(i);
