@@ -76,6 +76,8 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode)
 			token = Token(Token::DIVIDE);
 		else if (c == '%')
 			token = Token(Token::MODULUS);
+		else if (c == '=') 
+			token = Token(Token::EQUALS);
 		// lexical tokens
 		else
 		{
@@ -118,16 +120,72 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode)
 const std::vector<BytecodePacket> Eval::compile(const std::vector<Token>* tokens)
 {
 	constexpr long len = sizeof *tokens;
+	BytecodePacket* prevPacket = nullptr;
 	BytecodePacket packet = BytecodePacket();
 
 	for (int i = 0; i < len; i++)
 	{
 		const Token* token = &tokens->at(i);
+		const Token* next = &tokens->at(i + 1);
 
+		// declarations
+		if (token->type == Token::BYTE_ident)
+		{
+			if (next->type != Token::VAR)
+				throw std::exception("Invalid byte assignment: Missing variable name");
+			packet.type |= BytecodePacket::DECLARATION_BYTE | BytecodePacket::DECLARATION;
+			packet.arg = next->arg; // var name
+		}
+		else if (token->type == Token::NUM_ident)
+		{
+			if (next->type != Token::VAR)
+				throw std::exception("Invalid numeric assignment: Missing variable name");
+			packet.type |= BytecodePacket::DECLARATION_NUMERIC | BytecodePacket::DECLARATION;
+			packet.arg = next->arg; // var name
+		}
+		else if (token->type == Token::STR_ident)
+		{
+			if (next->type != Token::VAR)
+				throw std::exception("Invalid string assignment: Missing variable name");
+			packet.type |= BytecodePacket::DECLARATION_STRING | BytecodePacket::DECLARATION;
+			packet.arg = next->arg; // var name
+		}
+		else if (token->type == Token::VAR_ident)
+		{
+			if (next->type != Token::VAR)
+				throw std::exception("Invalid var assignment: Missing variable name");
+			packet.type |= BytecodePacket::DECLARATION_VAR | BytecodePacket::DECLARATION;
+			packet.arg = next->arg; // var name
+		}
+		else if (token->type == Token::VOID_ident)
+		{
+			if (next->type != Token::VAR)
+				throw std::exception("Invalid void assignment: Missing variable name");
+			packet.type |= BytecodePacket::DECLARATION_VOID | BytecodePacket::DECLARATION;
+			packet.arg = next->arg; // var name
+		}
+
+		// assignments
+		// number assignment
+		else if (token->type == Token::EQUALS && next->type == Token::NUM_LITERAL)
+		{
+			packet.type |= BytecodePacket::ASSIGNMENT | BytecodePacket::ASSIGNMENT_NUMERIC;
+			packet.arg = next->arg;
+			prevPacket->followupPacket = &packet;
+		}
+		else if (token->type == Token::EQUALS && next->type == Token::STR_LITERAL)
+		{
+			packet.type |= BytecodePacket::ASSIGNMENT | BytecodePacket::ASSIGNMENT_STRING;
+			packet.arg = next->arg;
+			prevPacket->followupPacket = &packet;
+		}
+		// todo: boolean assignments & expression assignments
+
+		// finalize packet
 		if (packet.complete)
 		{
-			if (packet.followupPacket == nullptr)
-				throw std::exception("BytecodePacket is missing a followup Packet");
+			prevPacket = &packet;
+			packet = BytecodePacket();
 		}
 	}
 

@@ -26,6 +26,7 @@ public:
 	static constexpr int MULTIPLY    = 0x0400; // * symbol
 	static constexpr int DIVIDE      = 0x0800; // / symbol
 	static constexpr int MODULUS     = 0x0F00; // % symbol
+	static constexpr int EQUALS      = 0x1000; // % symbol
 
 	// class structure
 	explicit Token() : type(0), arg(nullptr) {}
