@@ -27,7 +27,7 @@ public:
 	static constexpr int EXPRESSION_STRING      = 0x00000200 | EXPRESSION;
 	static constexpr int EXPRESSION_TRUE        = 0x00000400 | EXPRESSION;
 	static constexpr int EXPRESSION_FALSE       = 0x00000800 | EXPRESSION;
-	static constexpr int EXPRESSION_VAR         = 0x00000F00 | EXPRESSION | DECLARATION_VARIABLE;
+	static constexpr int EXPRESSION_VAR         = 0x00000F00 | EXPRESSION;
 
 	// static operator args
 	static constexpr int OPERATOR_PLUS          = 0x00001000 | OPERATOR;

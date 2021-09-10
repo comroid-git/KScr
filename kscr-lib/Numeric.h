@@ -16,11 +16,11 @@ public:
 	explicit Numeric() : readonly(true), mode(MODE_BYTE)
 	{
 	}
-	static Numeric constant(int intValue);
-	static Numeric constant(long longValue);
-	static Numeric constant(float floatValue);
-	static Numeric constant(double doubleValue);
-	static Numeric constant(char byteValue);
+	static Numeric* constant(int intValue);
+	static Numeric* constant(long longValue);
+	static Numeric* constant(float floatValue);
+	static Numeric* constant(double doubleValue);
+	static Numeric* constant(char byteValue);
 	static Numeric* parse(char* str);
 
 	// class logic
