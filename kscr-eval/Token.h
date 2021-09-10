@@ -4,7 +4,7 @@
 class Token
 {
 public:
-	// token class definitions
+	// token bytes definitions
 	static constexpr char PACKET_TERMINATOR = 0xFFFF;
 
 	// basic symbols
@@ -27,6 +27,7 @@ public:
 	static constexpr int DIVIDE      = 0x0800; // / symbol
 	static constexpr int MODULUS     = 0x0F00; // % symbol
 
+	// class structure
 	explicit Token() : type(0), arg(nullptr), complete(false) {}
 	explicit Token(int type) : type(type), arg(nullptr), complete(true) {}
 	explicit Token(int type, char* arg) : type(type), arg(arg), complete(true) {}
@@ -39,7 +40,7 @@ public:
 	char* toBytes()
 	{
 		int arglen = sizeof arg;
-		int bytelen = 4 + arglen + 1;
+		int bytelen = 1 + 4 + arglen + 1;
 		char* bytes = static_cast<char*>(malloc(bytelen));
 
 		// copy type
@@ -50,15 +51,19 @@ public:
 		{
 			char* ptr = bytes + i;
 
+			if (i == 0)
+			{
+				*ptr = static_cast<char>(bytelen);
+			}
 			// copy bytes
-			if (i < 4)
+			else if (i > 0 && i < 5)
 			{
 				*ptr = *(typebytes + i);
 			}
 			// copy args
-			else if (i > 3 && i < bytelen)
+			else if (i > 4 && i < bytelen)
 			{
-				char* argptr = arg + i - 4;
+				char* argptr = arg + i - 5;
 				*ptr = *argptr;
 			}
 			// copy terminator
