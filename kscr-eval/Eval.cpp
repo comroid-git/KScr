@@ -102,7 +102,7 @@ const char* Eval::tokenize(const char* code)
 				token = Token(Token::VOID_ident);
 			else if (std::regex_match("", NumberRegex))
 				token = Token(Token::NUM_LITERAL, _strdup(str.data()));
-			else if (str.at(0) == '"' && str.at(str.size() - 1))
+			else if (str.at(0) == '"' && str.at(str.size() - 1) == '"')
 				token = Token(Token::STR_LITERAL, _strdup(str.substr(1, str.size() - 2).data()));
 			else // otherwise we assume its a variable name 
 				token = Token(Token::VAR, _strdup(str.data()));
