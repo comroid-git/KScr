@@ -85,6 +85,7 @@ const char* Eval::tokenize(const char* sourcecode)
 		// lexical tokens
 		else
 		{
+			bool prevcomplete = token.complete;
 			str += c;
 
 			// check for complete tokens
@@ -106,6 +107,10 @@ const char* Eval::tokenize(const char* sourcecode)
 				token = Token(Token::STR_LITERAL, _strdup(str.substr(1, str.size() - 2).data()));
 			else // otherwise we assume its a variable name 
 				token = Token(Token::VAR, _strdup(str.data()));
+
+			// reset string if token is now completed
+			if (!prevcomplete && token.complete)
+				str = "";
 		}
 
 		// append token if it is complete
