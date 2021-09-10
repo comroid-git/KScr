@@ -59,7 +59,8 @@ Numeric* Numeric::constant(char byteValue)
 Numeric* Numeric::parse(char* str)
 {
 	std::smatch matches;
-	if (!std::regex_search(std::string(str), matches, NumberRegex))
+	std::string string = std::string(str);
+	if (!std::regex_search(string, matches, NumberRegex))
 		throw std::invalid_argument("Not a valid number!");
 	const std::string type = matches[matches.size() == 5 ? 1 : 0].str();
 	Numeric* result;

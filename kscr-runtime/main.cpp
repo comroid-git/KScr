@@ -26,7 +26,7 @@ auto main(int argc, char* argv[]) -> int
 	const std::vector<Token> tokens = Eval::tokenize(code);
 
 	// compile tokens into bytecode
-	const BytecodePacket bytecode = Eval::compile(&tokens);
+	BytecodePacket bytecode = Eval::compile(&tokens);
 
 	// run bytecode
 	return Eval::execute(&bytecode);

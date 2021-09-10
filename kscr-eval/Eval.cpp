@@ -6,6 +6,8 @@
 #include "Eval.h"
 #include "../kscr-lib/Numeric.h"
 
+std::map<const char*, void*> obj_map = std::map<const char*, void*>();
+
 void appendToken(Token* token, std::vector<Token>* lib)
 {
 	if (!token->complete)
@@ -299,7 +301,7 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 
 }
 
-const int Eval::execute(const BytecodePacket* bytecode)
+const int Eval::execute(BytecodePacket* bytecode)
 {
-	constexpr long len = sizeof *bytecode;
+	return *static_cast<int*>(bytecode->evaluate(nullptr, nullptr, &obj_map));
 }

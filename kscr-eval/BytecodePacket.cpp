@@ -8,10 +8,22 @@ void* operatorPlus(void* left, void* right)
 	if (typeid(left) == typeid(Numeric) && typeid(right) == typeid(Numeric))
 		return static_cast<Numeric*>(left)->plus(static_cast<Numeric*>(right));
 }
-void* operatorMinus(void* left, void* right);
-void* operatorMultiply(void* left, void* right);
-void* operatorDivide(void* left, void* right);
-void* operatorModulus(void* left, void* right);
+void* operatorMinus(void* left, void* right)
+{
+	return nullptr;
+}
+void* operatorMultiply(void* left, void* right)
+{
+	return nullptr;
+}
+void* operatorDivide(void* left, void* right)
+{
+	return nullptr;
+}
+void* operatorModulus(void* left, void* right)
+{
+	return nullptr;
+}
 
 void* BytecodePacket::evaluate(BytecodePacket* prev, void* prevResult, std::map<const char*, void*>* obj_map)
 {
