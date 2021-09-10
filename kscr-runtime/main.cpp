@@ -3,12 +3,13 @@
 #include <vector>
 #include "../kscr-lib/Const.h"
 #include "../kscr-lib/Filesystem.h"
-#include "../kscr-lib/Tokenizer.h"
 #include "../kscr-eval/Eval.h"
+#include "../kscr-eval/Token.h"
+#include "../kscr-eval/BytecodePacket.h"
 
 void compile()
 {
-	Tokenizer::tokenize(&Const::files);
+	//Tokenizer::tokenize(&Const::files);
 }
 
 int run()
@@ -23,13 +24,13 @@ auto main(int argc, char* argv[]) -> int
 	const char* code = "num a = 1; num b = 2.2; return a + b;";
 
 	// parse code into tokens
-	const char* tokens = Eval::tokenize(code);
+	const std::vector<Token> tokens = Eval::tokenize(code);
 
 	// compile tokens into bytecode
-	const char* bytecode = Eval::compile(tokens);
+	const std::vector<BytecodePacket> bytecode = Eval::compile(&tokens);
 
 	// run bytecode
-	return Eval::execute(bytecode);
+	return Eval::execute(&bytecode);
 }
 
 /* // lib test

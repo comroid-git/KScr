@@ -7,25 +7,19 @@
 
 static const std::regex NumberRegex = std::regex("([\d]+)(i|l|f|d)?(\.([\d]+)(f|d)?)?");
 
-void appendToken(Token& token, std::vector<char>* lib)
+void appendToken(Token* token, std::vector<Token>* lib)
 {
-	if (!token.complete)
+	if (!token->complete)
 		throw std::invalid_argument("Token is incomplete: ");
-	char* bytes = token.toBytes();
-	token = Token();
-	int len = sizeof bytes;
-	for (int j = 0; j < len; j++)
-	{
-		char* ptr = bytes + j;
-		lib->push_back(*ptr);
-	}
+	lib->push_back(*token);
+	*token = Token();
 }
 
-const char* Eval::tokenize(const char* sourcecode)
+const std::vector<Token> Eval::tokenize(const char* sourcecode)
 {
 	constexpr long len = sizeof sourcecode;
 	Token token = Token();
-	std::vector<char> lib = std::vector<char>();
+	std::vector<Token> lib = std::vector<Token>();
 	std::string str = "";
 	bool isComment = false, isBlockComment = false;
 
@@ -68,7 +62,7 @@ const char* Eval::tokenize(const char* sourcecode)
 		// terminator token
 		if (c == ';')
 		{
-			appendToken(token, &lib);
+			appendToken(&token, &lib);
 			token = Token(Token::TERMINATOR);
 		}
 		// arithmetic tokens
@@ -115,18 +109,18 @@ const char* Eval::tokenize(const char* sourcecode)
 
 		// append token if it is complete
 		if (token.complete)
-			appendToken(token, &lib);
+			appendToken(&token, &lib);
 	}
 
-	return lib.data();
+	return lib;
 }
 
-const char* Eval::compile(const char* tokens)
+const std::vector<BytecodePacket> Eval::compile(const std::vector<Token>* tokens)
 {
 	constexpr long len = sizeof tokens;
 }
 
-const int Eval::execute(const char* bytecode)
+const int Eval::execute(const std::vector<BytecodePacket>* bytecode)
 {
 	constexpr long len = sizeof bytecode;
 }
