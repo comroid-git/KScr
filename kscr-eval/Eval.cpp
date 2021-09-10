@@ -123,14 +123,16 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode)
 
 BytecodePacket* prevPacket = nullptr;
 BytecodePacket packet = BytecodePacket();
+int nextIntoAlt = -1;
 
 void finalizePacket()
 {
 	if (!packet.complete)
 		throw std::exception("Packet is incomplete");
-	prevPacket = &packet;
+	(nextIntoAlt != 0 ? prevPacket : prevPacket->altPacket) = &packet;
 	packet = BytecodePacket();
 	prevPacket->followupPacket = &packet;
+	nextIntoAlt--;
 }
 
 const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
@@ -210,23 +212,37 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 		// + symbol
 		else if (token->type == Token::PLUS)
 		{
-			packet.type = BytecodePacket::EXPRESSION_VAR;
+			packet.type = BytecodePacket::OPERATOR_PLUS;
+			packet.complete = true;
+			nextIntoAlt = 1;
 		}
 		// - symbol
 		else if (token->type == Token::MINUS)
 		{
+			packet.type = BytecodePacket::OPERATOR_MINUS;
+			packet.complete = true;
+			nextIntoAlt = 1;
 		}
 		// * symbol
 		else if (token->type == Token::MULTIPLY)
 		{
+			packet.type = BytecodePacket::OPERATOR_MULTIPLY;
+			packet.complete = true;
+			nextIntoAlt = 1;
 		}
 		// / symbol
 		else if (token->type == Token::DIVIDE)
 		{
+			packet.type = BytecodePacket::OPERATOR_DIVIDE;
+			packet.complete = true;
+			nextIntoAlt = 1;
 		}
 		// % symbol
 		else if (token->type == Token::MODULUS)
 		{
+			packet.type = BytecodePacket::OPERATOR_MODULUS;
+			packet.complete = true;
+			nextIntoAlt = 1;
 		}
 
 		// expressions
