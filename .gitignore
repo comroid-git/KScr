@@ -20,3 +20,4 @@ obj/
 !*.kscr
 *.iobj
 *.ipdb
+*.enc
