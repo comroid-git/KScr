@@ -18,3 +18,5 @@ obj/
 
 !*.sln
 !*.kscr
+*.iobj
+*.ipdb
