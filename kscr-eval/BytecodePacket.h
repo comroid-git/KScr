@@ -34,10 +34,11 @@ public:
 	// static method call args
 
 	// class structure
-	explicit BytecodePacket() : type(0), arg(nullptr), followupPacket(nullptr) {}
+	explicit BytecodePacket() = default;
 
-	int type;
-	char* arg;
-	BytecodePacket* followupPacket;
+	int type = 0;
+	char* arg = nullptr;
+	BytecodePacket* previousPacket = nullptr;
+	BytecodePacket* followupPacket = nullptr;
 	bool complete = false;
 };
