@@ -8,7 +8,6 @@ public:
 	static constexpr char PACKET_TERMINATOR = 0xFFFF;
 
 	// basic symbols
-	static constexpr int reserved4  = 0x0080;
 	static constexpr int TERMINATOR  = 0x0000; // ';' statement termination
 	static constexpr int VAR         = 0x0001; // variable identifier
 	static constexpr int VAR_ident   = 0x0002; // 'var'-declaration
@@ -18,6 +17,7 @@ public:
 	static constexpr int VOID_ident  = 0x0010;
 	static constexpr int NUM_LITERAL = 0x0020;
 	static constexpr int STR_LITERAL = 0x0040;
+	static constexpr int reserved4   = 0x0080;
 	static constexpr int RETURN      = 0x00F0; // 'return'-statement
 
 	// arithmetic operators
