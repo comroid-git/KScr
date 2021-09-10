@@ -155,7 +155,7 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 
 		// this & next token
 		const Token* token = &tokens->at(i);
-		const Token* next = static_cast<int>(tokens->size()) > i ? &tokens->at(i + 1) : nullptr;
+		const Token* next = tokens->size()  - 1 > i ? &tokens->at(i + 1) : nullptr; // todo some kind of index error here
 
 		// terminator
 		if (token->type == Token::TERMINATOR)
@@ -278,14 +278,16 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 			packet.complete = true;
 		}
 
+		/*todo
 		// allow initialization at declaration
 		// by moving the equals operator in declaration alt
-		bool cond = (i + 1 < tokens->size() && tokens->at(i + 2).type != Token::EQUALS);
+		bool cond = (i + 2 < static_cast<int>(tokens->size()) && tokens->at(i + 2).type != Token::EQUALS);
 		if ((packet.type & BytecodePacket::DECLARATION) != 0 && next->type == Token::EQUALS && cond)
 			nextIntoAlt = 1;
 		// and moving an expression into the prevAltPacket that is the equals
 		if (prevAltPacket != nullptr && (prevAltPacket->type & BytecodePacket::ASSIGNMENT) != 0 && (packet.type & BytecodePacket::EXPRESSION) != 0)
 			nextIntoAltAlt = 0;
+		*/
 
 		// finalize packet if complete
 		if (packet.complete)
