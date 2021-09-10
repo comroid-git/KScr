@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <map>
+#include <string>
 
 class BytecodePacket
 {
@@ -40,7 +42,7 @@ public:
 
 	// class structure
 	explicit BytecodePacket() = default;
-	auto evaluate();
+	auto evaluate(std::map<const char*, void*>* obj_map);
 
 	int type = 0;
 	char* arg = nullptr;

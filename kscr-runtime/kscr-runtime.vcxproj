@@ -22,8 +22,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\kscr-lib\kscr-lib.vcxproj">
-      <Project>{7a33f0be-90c6-46c4-8f15-5b264c9a2dfd}</Project>
+    <ProjectReference Include="..\kscr-eval\kscr-eval.vcxproj">
+      <Project>{7bc2f25d-a781-4f80-ab24-589836aeda1e}</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
