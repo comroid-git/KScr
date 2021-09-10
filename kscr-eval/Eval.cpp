@@ -117,7 +117,7 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode)
 	return lib;
 }
 
-const std::vector<BytecodePacket> Eval::compile(const std::vector<Token>* tokens)
+const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 {
 	constexpr long len = sizeof *tokens;
 	BytecodePacket* prevPacket = nullptr;
@@ -125,6 +125,9 @@ const std::vector<BytecodePacket> Eval::compile(const std::vector<Token>* tokens
 
 	for (int i = 0; i < len; i++)
 	{
+		// initialize new packet
+		packet.previousPacket = prevPacket;
+
 		const Token* token = &tokens->at(i);
 		const Token* next = &tokens->at(i + 1);
 
@@ -135,6 +138,7 @@ const std::vector<BytecodePacket> Eval::compile(const std::vector<Token>* tokens
 				throw std::exception("Invalid byte assignment: Missing variable name");
 			packet.type |= BytecodePacket::DECLARATION_BYTE | BytecodePacket::DECLARATION;
 			packet.arg = next->arg; // var name
+			packet.complete = true;
 		}
 		else if (token->type == Token::NUM_ident)
 		{
@@ -142,6 +146,7 @@ const std::vector<BytecodePacket> Eval::compile(const std::vector<Token>* tokens
 				throw std::exception("Invalid numeric assignment: Missing variable name");
 			packet.type |= BytecodePacket::DECLARATION_NUMERIC | BytecodePacket::DECLARATION;
 			packet.arg = next->arg; // var name
+			packet.complete = true;
 		}
 		else if (token->type == Token::STR_ident)
 		{
@@ -149,6 +154,7 @@ const std::vector<BytecodePacket> Eval::compile(const std::vector<Token>* tokens
 				throw std::exception("Invalid string assignment: Missing variable name");
 			packet.type |= BytecodePacket::DECLARATION_STRING | BytecodePacket::DECLARATION;
 			packet.arg = next->arg; // var name
+			packet.complete = true;
 		}
 		else if (token->type == Token::VAR_ident)
 		{
@@ -156,6 +162,7 @@ const std::vector<BytecodePacket> Eval::compile(const std::vector<Token>* tokens
 				throw std::exception("Invalid var assignment: Missing variable name");
 			packet.type |= BytecodePacket::DECLARATION_VAR | BytecodePacket::DECLARATION;
 			packet.arg = next->arg; // var name
+			packet.complete = true;
 		}
 		else if (token->type == Token::VOID_ident)
 		{
@@ -163,6 +170,7 @@ const std::vector<BytecodePacket> Eval::compile(const std::vector<Token>* tokens
 				throw std::exception("Invalid void assignment: Missing variable name");
 			packet.type |= BytecodePacket::DECLARATION_VOID | BytecodePacket::DECLARATION;
 			packet.arg = next->arg; // var name
+			packet.complete = true;
 		}
 
 		// assignments
@@ -171,13 +179,13 @@ const std::vector<BytecodePacket> Eval::compile(const std::vector<Token>* tokens
 		{
 			packet.type |= BytecodePacket::ASSIGNMENT | BytecodePacket::ASSIGNMENT_NUMERIC;
 			packet.arg = next->arg;
-			prevPacket->followupPacket = &packet;
+			packet.complete = true;
 		}
 		else if (token->type == Token::EQUALS && next->type == Token::STR_LITERAL)
 		{
 			packet.type |= BytecodePacket::ASSIGNMENT | BytecodePacket::ASSIGNMENT_STRING;
 			packet.arg = next->arg;
-			prevPacket->followupPacket = &packet;
+			packet.complete = true;
 		}
 		// todo: boolean assignments & expression assignments
 
@@ -186,8 +194,11 @@ const std::vector<BytecodePacket> Eval::compile(const std::vector<Token>* tokens
 		{
 			prevPacket = &packet;
 			packet = BytecodePacket();
+			prevPacket->followupPacket = &packet;
 		}
 	}
+
+	return packet;
 
 }
 
