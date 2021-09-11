@@ -145,7 +145,7 @@ void finalizePacket()
 
 const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 {
-	constexpr long len = sizeof *tokens;
+	constexpr long len = sizeof tokens;
 
 	for (int i = 0; i < len; i++)
 	{
@@ -199,7 +199,7 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 		}
 		else if (token->type == Token::VOID_ident)
 		{
-			if (next->type != Token::VAR)
+			if (next != nullptr && next->type != Token::VAR)
 				throw std::exception("Invalid void assignment: Missing variable name");
 			packet.type = BytecodePacket::DECLARATION_VOID;
 			packet.arg = next->arg; // var name
@@ -212,7 +212,7 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 			// todo: handle equals
 			// assignments
 			if (((prevPacket->type & BytecodePacket::DECLARATION) != 0 || (prevPacket->type & BytecodePacket::EXPRESSION_VAR) != 0)
-				&& (next->type == Token::VAR || next->type == Token::STR_LITERAL || next->type == Token::NUM_LITERAL))
+				&& next != nullptr && (next->type == Token::VAR || next->type == Token::STR_LITERAL || next->type == Token::NUM_LITERAL))
 				// if previous is a declaration or variable & next is varname or literal
 			{
 				packet.type = BytecodePacket::ASSIGNMENT;
@@ -260,21 +260,21 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 		// numeric literal
 		else if (token->type == Token::NUM_LITERAL)
 		{
-			packet.type |= BytecodePacket::EXPRESSION | BytecodePacket::EXPRESSION_NUMERIC;
+			packet.type = BytecodePacket::EXPRESSION | BytecodePacket::EXPRESSION_NUMERIC;
 			packet.arg = Numeric::parse(token->arg);
 			packet.complete = true;
 		}
 		// string literal
 		else if (token->type == Token::STR_LITERAL)
 		{
-			packet.type |= BytecodePacket::EXPRESSION | BytecodePacket::EXPRESSION_STRING;
+			packet.type = BytecodePacket::EXPRESSION | BytecodePacket::EXPRESSION_STRING;
 			packet.arg = token->arg;
 			packet.complete = true;
 		}
 		// boolean literals
 		else if (token->type == Token::TRUE || token->type == Token::FALSE)
 		{
-			packet.type |= BytecodePacket::EXPRESSION | (token->type == Token::TRUE ? BytecodePacket::EXPRESSION_TRUE : BytecodePacket::EXPRESSION_FALSE);
+			packet.type = BytecodePacket::EXPRESSION | (token->type == Token::TRUE ? BytecodePacket::EXPRESSION_TRUE : BytecodePacket::EXPRESSION_FALSE);
 			packet.complete = true;
 		}
 
