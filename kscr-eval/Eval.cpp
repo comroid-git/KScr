@@ -143,142 +143,138 @@ void finalizePacket()
 		nextIntoAltAlt--;
 }
 
-const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
+static void compileToken(const std::vector<Token>* tokens, int i)
 {
-	constexpr long len = sizeof tokens;
+	// initialize new packet
+	if (packet.previousPacket == nullptr)
+		packet.previousPacket = prevPacket;
 
-	for (int i = 0; i < len; i++)
+	// this & next token
+	const Token* token = &tokens->at(i);
+	const Token* next = tokens->size()  - 1 > i ? &tokens->at(i + 1) : nullptr; // todo some kind of index error here
+
+	// terminator
+	if (token->type == Token::TERMINATOR)
 	{
-		// initialize new packet
-		if (packet.previousPacket == nullptr)
-			packet.previousPacket = prevPacket;
+		packet.complete = true;
+		//todo do any statement finalizing here
+	}
 
-		// this & next token
-		const Token* token = &tokens->at(i);
-		const Token* next = tokens->size()  - 1 > i ? &tokens->at(i + 1) : nullptr; // todo some kind of index error here
-
-		// terminator
-		if (token->type == Token::TERMINATOR)
-		{
-			packet.complete = true;
-			//todo do any statement finalizing here
-		}
-
-		// declarations
-		if (token->type == Token::BYTE_ident)
-		{
-			if (next->type != Token::VAR)
-				throw std::exception("Invalid byte assignment: Missing variable name");
-			packet.type = BytecodePacket::DECLARATION_BYTE;
-			packet.arg = next->arg; // var name
-			packet.complete = true;
-		}
-		else if (token->type == Token::NUM_ident)
-		{
-			if (next->type != Token::VAR)
-				throw std::exception("Invalid numeric assignment: Missing variable name");
-			packet.type = BytecodePacket::DECLARATION_NUMERIC;
-			packet.arg = next->arg; // var name
-			packet.complete = true;
-		}
-		else if (token->type == Token::STR_ident)
-		{
-			if (next->type != Token::VAR)
-				throw std::exception("Invalid string assignment: Missing variable name");
-			packet.type = BytecodePacket::DECLARATION_STRING;
-			packet.arg = next->arg; // var name
-			packet.complete = true;
-		}
-		else if (token->type == Token::VAR_ident)
-		{
-			if (next->type != Token::VAR)
-				throw std::exception("Invalid var assignment: Missing variable name");
-			packet.type = BytecodePacket::DECLARATION_VARIABLE;
-			packet.arg = next->arg; // var name
-			packet.complete = true;
-		}
-		else if (token->type == Token::VOID_ident)
-		{
-			if (next != nullptr && next->type != Token::VAR)
-				throw std::exception("Invalid void assignment: Missing variable name");
-			packet.type = BytecodePacket::DECLARATION_VOID;
-			packet.arg = next->arg; // var name
-			packet.complete = true;
-		}
+	// declarations
+	if (token->type == Token::BYTE_ident)
+	{
+		if (next->type != Token::VAR)
+			throw std::exception("Invalid byte assignment: Missing variable name");
+		packet.type = BytecodePacket::DECLARATION_BYTE;
+		packet.arg = next->arg; // var name
+		packet.complete = true;
+	}
+	else if (token->type == Token::NUM_ident)
+	{
+		if (next->type != Token::VAR)
+			throw std::exception("Invalid numeric assignment: Missing variable name");
+		packet.type = BytecodePacket::DECLARATION_NUMERIC;
+		packet.arg = next->arg; // var name
+		packet.complete = true;
+	}
+	else if (token->type == Token::STR_ident)
+	{
+		if (next->type != Token::VAR)
+			throw std::exception("Invalid string assignment: Missing variable name");
+		packet.type = BytecodePacket::DECLARATION_STRING;
+		packet.arg = next->arg; // var name
+		packet.complete = true;
+	}
+	else if (token->type == Token::VAR_ident)
+	{
+		if (next->type != Token::VAR)
+			throw std::exception("Invalid var assignment: Missing variable name");
+		packet.type = BytecodePacket::DECLARATION_VARIABLE;
+		packet.arg = next->arg; // var name
+		packet.complete = true;
+	}
+	else if (token->type == Token::VOID_ident)
+	{
+		if (next != nullptr && next->type != Token::VAR)
+			throw std::exception("Invalid void assignment: Missing variable name");
+		packet.type = BytecodePacket::DECLARATION_VOID;
+		packet.arg = next->arg; // var name
+		packet.complete = true;
+	}
 		// syntax operators
 		// = symbol
-		else if (token->type == Token::EQUALS)
+	else if (token->type == Token::EQUALS)
+	{
+		// todo: handle equals
+		// assignments
+		if (((prevPacket->type & BytecodePacket::DECLARATION) != 0 || (prevPacket->type & BytecodePacket::EXPRESSION_VAR) != 0)
+			&& next != nullptr && (next->type == Token::VAR || next->type == Token::STR_LITERAL || next->type == Token::NUM_LITERAL))
+			// if previous is a declaration or variable & next is varname or literal
 		{
-			// todo: handle equals
-			// assignments
-			if (((prevPacket->type & BytecodePacket::DECLARATION) != 0 || (prevPacket->type & BytecodePacket::EXPRESSION_VAR) != 0)
-				&& next != nullptr && (next->type == Token::VAR || next->type == Token::STR_LITERAL || next->type == Token::NUM_LITERAL))
-				// if previous is a declaration or variable & next is varname or literal
-			{
-				packet.type = BytecodePacket::ASSIGNMENT;
-				packet.complete = true;
-				nextIntoAlt = 1;
-			}
+			packet.type = BytecodePacket::ASSIGNMENT;
+			packet.complete = true;
+			nextIntoAlt = 1;
 		}
+	}
 		// + symbol
-		else if (token->type == Token::PLUS)
-		{
-			packet.type = BytecodePacket::OPERATOR_PLUS;
-			packet.complete = true;
-			nextIntoAlt = 1;
-		}
+	else if (token->type == Token::PLUS)
+	{
+		packet.type = BytecodePacket::OPERATOR_PLUS;
+		packet.complete = true;
+		nextIntoAlt = 1;
+	}
 		// - symbol
-		else if (token->type == Token::MINUS)
-		{
-			packet.type = BytecodePacket::OPERATOR_MINUS;
-			packet.complete = true;
-			nextIntoAlt = 1;
-		}
+	else if (token->type == Token::MINUS)
+	{
+		packet.type = BytecodePacket::OPERATOR_MINUS;
+		packet.complete = true;
+		nextIntoAlt = 1;
+	}
 		// * symbol
-		else if (token->type == Token::MULTIPLY)
-		{
-			packet.type = BytecodePacket::OPERATOR_MULTIPLY;
-			packet.complete = true;
-			nextIntoAlt = 1;
-		}
+	else if (token->type == Token::MULTIPLY)
+	{
+		packet.type = BytecodePacket::OPERATOR_MULTIPLY;
+		packet.complete = true;
+		nextIntoAlt = 1;
+	}
 		// / symbol
-		else if (token->type == Token::DIVIDE)
-		{
-			packet.type = BytecodePacket::OPERATOR_DIVIDE;
-			packet.complete = true;
-			nextIntoAlt = 1;
-		}
+	else if (token->type == Token::DIVIDE)
+	{
+		packet.type = BytecodePacket::OPERATOR_DIVIDE;
+		packet.complete = true;
+		nextIntoAlt = 1;
+	}
 		// % symbol
-		else if (token->type == Token::MODULUS)
-		{
-			packet.type = BytecodePacket::OPERATOR_MODULUS;
-			packet.complete = true;
-			nextIntoAlt = 1;
-		}
+	else if (token->type == Token::MODULUS)
+	{
+		packet.type = BytecodePacket::OPERATOR_MODULUS;
+		packet.complete = true;
+		nextIntoAlt = 1;
+	}
 
 		// expressions
 		// numeric literal
-		else if (token->type == Token::NUM_LITERAL)
-		{
-			packet.type = BytecodePacket::EXPRESSION | BytecodePacket::EXPRESSION_NUMERIC;
-			packet.arg = Numeric::parse(token->arg);
-			packet.complete = true;
-		}
+	else if (token->type == Token::NUM_LITERAL)
+	{
+		packet.type = BytecodePacket::EXPRESSION | BytecodePacket::EXPRESSION_NUMERIC;
+		packet.arg = Numeric::parse(token->arg);
+		packet.complete = true;
+	}
 		// string literal
-		else if (token->type == Token::STR_LITERAL)
-		{
-			packet.type = BytecodePacket::EXPRESSION | BytecodePacket::EXPRESSION_STRING;
-			packet.arg = token->arg;
-			packet.complete = true;
-		}
+	else if (token->type == Token::STR_LITERAL)
+	{
+		packet.type = BytecodePacket::EXPRESSION | BytecodePacket::EXPRESSION_STRING;
+		packet.arg = token->arg;
+		packet.complete = true;
+	}
 		// boolean literals
-		else if (token->type == Token::TRUE || token->type == Token::FALSE)
-		{
-			packet.type = BytecodePacket::EXPRESSION | (token->type == Token::TRUE ? BytecodePacket::EXPRESSION_TRUE : BytecodePacket::EXPRESSION_FALSE);
-			packet.complete = true;
-		}
+	else if (token->type == Token::TRUE || token->type == Token::FALSE)
+	{
+		packet.type = BytecodePacket::EXPRESSION | (token->type == Token::TRUE ? BytecodePacket::EXPRESSION_TRUE : BytecodePacket::EXPRESSION_FALSE);
+		packet.complete = true;
+	}
 
-		/*todo
+	/*todo
 		// allow initialization at declaration
 		// by moving the equals operator in declaration alt
 		bool cond = (i + 2 < static_cast<int>(tokens->size()) && tokens->at(i + 2).type != Token::EQUALS);
@@ -289,12 +285,17 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 			nextIntoAltAlt = 0;
 		*/
 
-		// finalize packet if complete
-		if (packet.complete)
-		{
-			finalizePacket();
-		}
-	}
+	// finalize packet if complete
+	if (packet.complete)
+		finalizePacket();
+}
+
+const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
+{
+	constexpr long len = sizeof tokens;
+
+	for (int i = 0; i < len; i++)
+		compileToken(tokens, i);
 
 	return packet;
 
