@@ -303,5 +303,7 @@ const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 
 const int Eval::execute(BytecodePacket* bytecode)
 {
+	if (bytecode == nullptr)
+		throw std::invalid_argument("Bytecode is undefined");
 	return *static_cast<int*>(bytecode->evaluate(nullptr, nullptr, &obj_map));
 }
