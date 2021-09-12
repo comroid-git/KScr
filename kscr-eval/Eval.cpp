@@ -120,23 +120,24 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode, const int len)
 
 BytecodePacket* prevPacket = nullptr;
 BytecodePacket* prevAltPacket = nullptr;
-BytecodePacket packet = BytecodePacket();
+BytecodePacket* packet = nullptr;
 int nextIntoAlt = -1;
 int nextIntoAltAlt = -1;
 
 void finalizePacket()
 {
-	if (!packet.complete)
+	if (!packet->complete)
 		throw std::exception("Packet is incomplete");
 	if (nextIntoAlt == 0)
-		prevPacket->altPacket = prevAltPacket = &packet;
+		prevPacket->altPacket = prevAltPacket = packet;
 	else prevAltPacket = nullptr;
 	if (nextIntoAltAlt == 0 && prevAltPacket != nullptr)
-		prevAltPacket->altPacket = &packet;
+		prevAltPacket->altPacket = packet;
 	if (nextIntoAlt == -1 && nextIntoAltAlt == -1)
-		prevPacket = &packet;
-	packet = BytecodePacket();
-	prevPacket->followupPacket = &packet;
+		prevPacket = packet;
+	BytecodePacket newPacket = BytecodePacket();
+	packet = &newPacket;
+	prevPacket->followupPacket = packet;
 	if (nextIntoAlt >= 0)
 		nextIntoAlt--;
 	if (nextIntoAltAlt >= 0)
@@ -146,8 +147,8 @@ void finalizePacket()
 static void compileToken(const std::vector<Token>* tokens, int i)
 {
 	// initialize new packet
-	if (packet.previousPacket == nullptr)
-		packet.previousPacket = prevPacket;
+	if (packet->previousPacket == nullptr)
+		packet->previousPacket = prevPacket;
 
 	// this & next token
 	const Token* token = &tokens->at(i);
@@ -156,7 +157,7 @@ static void compileToken(const std::vector<Token>* tokens, int i)
 	// terminator
 	if (token->type == Token::TERMINATOR)
 	{
-		packet.complete = true;
+		packet->complete = true;
 		//todo do any statement finalizing here
 	}
 
@@ -165,41 +166,41 @@ static void compileToken(const std::vector<Token>* tokens, int i)
 	{
 		if (next->type != Token::VAR)
 			throw std::exception("Invalid byte assignment: Missing variable name");
-		packet.type = BytecodePacket::DECLARATION_BYTE;
-		packet.arg = next->arg; // var name
-		packet.complete = true;
+		packet->type = BytecodePacket::DECLARATION_BYTE;
+		packet->arg = next->arg; // var name
+		packet->complete = true;
 	}
 	else if (token->type == Token::NUM_ident)
 	{
 		if (next->type != Token::VAR)
 			throw std::exception("Invalid numeric assignment: Missing variable name");
-		packet.type = BytecodePacket::DECLARATION_NUMERIC;
-		packet.arg = next->arg; // var name
-		packet.complete = true;
+		packet->type = BytecodePacket::DECLARATION_NUMERIC;
+		packet->arg = next->arg; // var name
+		packet->complete = true;
 	}
 	else if (token->type == Token::STR_ident)
 	{
 		if (next->type != Token::VAR)
 			throw std::exception("Invalid string assignment: Missing variable name");
-		packet.type = BytecodePacket::DECLARATION_STRING;
-		packet.arg = next->arg; // var name
-		packet.complete = true;
+		packet->type = BytecodePacket::DECLARATION_STRING;
+		packet->arg = next->arg; // var name
+		packet->complete = true;
 	}
 	else if (token->type == Token::VAR_ident)
 	{
 		if (next->type != Token::VAR)
 			throw std::exception("Invalid var assignment: Missing variable name");
-		packet.type = BytecodePacket::DECLARATION_VARIABLE;
-		packet.arg = next->arg; // var name
-		packet.complete = true;
+		packet->type = BytecodePacket::DECLARATION_VARIABLE;
+		packet->arg = next->arg; // var name
+		packet->complete = true;
 	}
 	else if (token->type == Token::VOID_ident)
 	{
 		if (next == nullptr && next->type != Token::VAR)
 			throw std::exception("Invalid void assignment: Missing variable name");
-		packet.type = BytecodePacket::DECLARATION_VOID;
-		packet.arg = next->arg; // var name
-		packet.complete = true;
+		packet->type = BytecodePacket::DECLARATION_VOID;
+		packet->arg = next->arg; // var name
+		packet->complete = true;
 	}
 		// syntax operators
 		// = symbol
@@ -211,44 +212,44 @@ static void compileToken(const std::vector<Token>* tokens, int i)
 			&& next != nullptr && (next->type == Token::VAR || next->type == Token::STR_LITERAL || next->type == Token::NUM_LITERAL))
 			// if previous is a declaration or variable & next is varname or literal
 		{
-			packet.type = BytecodePacket::ASSIGNMENT;
-			packet.complete = true;
+			packet->type = BytecodePacket::ASSIGNMENT;
+			packet->complete = true;
 			nextIntoAlt = 1;
 		}
 	}
 		// + symbol
 	else if (token->type == Token::PLUS)
 	{
-		packet.type = BytecodePacket::OPERATOR_PLUS;
-		packet.complete = true;
+		packet->type = BytecodePacket::OPERATOR_PLUS;
+		packet->complete = true;
 		nextIntoAlt = 1;
 	}
 		// - symbol
 	else if (token->type == Token::MINUS)
 	{
-		packet.type = BytecodePacket::OPERATOR_MINUS;
-		packet.complete = true;
+		packet->type = BytecodePacket::OPERATOR_MINUS;
+		packet->complete = true;
 		nextIntoAlt = 1;
 	}
 		// * symbol
 	else if (token->type == Token::MULTIPLY)
 	{
-		packet.type = BytecodePacket::OPERATOR_MULTIPLY;
-		packet.complete = true;
+		packet->type = BytecodePacket::OPERATOR_MULTIPLY;
+		packet->complete = true;
 		nextIntoAlt = 1;
 	}
 		// / symbol
 	else if (token->type == Token::DIVIDE)
 	{
-		packet.type = BytecodePacket::OPERATOR_DIVIDE;
-		packet.complete = true;
+		packet->type = BytecodePacket::OPERATOR_DIVIDE;
+		packet->complete = true;
 		nextIntoAlt = 1;
 	}
 		// % symbol
 	else if (token->type == Token::MODULUS)
 	{
-		packet.type = BytecodePacket::OPERATOR_MODULUS;
-		packet.complete = true;
+		packet->type = BytecodePacket::OPERATOR_MODULUS;
+		packet->complete = true;
 		nextIntoAlt = 1;
 	}
 
@@ -256,22 +257,22 @@ static void compileToken(const std::vector<Token>* tokens, int i)
 		// numeric literal
 	else if (token->type == Token::NUM_LITERAL)
 	{
-		packet.type = BytecodePacket::EXPRESSION_NUMERIC;
-		packet.arg = Numeric::parse(token->arg);
-		packet.complete = true;
+		packet->type = BytecodePacket::EXPRESSION_NUMERIC;
+		packet->arg = Numeric::parse(token->arg);
+		packet->complete = true;
 	}
 		// string literal
 	else if (token->type == Token::STR_LITERAL)
 	{
-		packet.type = BytecodePacket::EXPRESSION_STRING;
-		packet.arg = token->arg;
-		packet.complete = true;
+		packet->type = BytecodePacket::EXPRESSION_STRING;
+		packet->arg = token->arg;
+		packet->complete = true;
 	}
 		// boolean literals
 	else if (token->type == Token::TRUE || token->type == Token::FALSE)
 	{
-		packet.type = BytecodePacket::EXPRESSION | (token->type == Token::TRUE ? BytecodePacket::EXPRESSION_TRUE : BytecodePacket::EXPRESSION_FALSE);
-		packet.complete = true;
+		packet->type = BytecodePacket::EXPRESSION | (token->type == Token::TRUE ? BytecodePacket::EXPRESSION_TRUE : BytecodePacket::EXPRESSION_FALSE);
+		packet->complete = true;
 	}
 
 	/*todo
@@ -286,18 +287,20 @@ static void compileToken(const std::vector<Token>* tokens, int i)
 		*/
 
 	// finalize packet if complete
-	if (packet.complete)
+	if (packet->complete)
 		finalizePacket();
 }
 
 const BytecodePacket Eval::compile(const std::vector<Token>* tokens)
 {
+	BytecodePacket firstPacket = BytecodePacket();
+	packet = &firstPacket;
 	constexpr long len = sizeof tokens;
 
 	for (int i = 0; i < len; i++)
 		compileToken(tokens, i);
 
-	return packet;
+	return firstPacket;
 
 }
 
