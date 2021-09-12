@@ -42,12 +42,10 @@ public:
 
 	// class structure
 	explicit BytecodePacket() = default;
-	void* evaluate(BytecodePacket* prev, void* prevResult, std::map<const char*, void*>* obj_map);
+	void* evaluate(const BytecodePacket* prev, void* prevResult, std::map<const char*, void*>* obj_map);
 
 	int type = 0;
 	void* arg = nullptr;
-	BytecodePacket* previousPacket = nullptr;
-	BytecodePacket* followupPacket = nullptr;
 	BytecodePacket* altPacket = nullptr;
-	bool complete = false;
+	BytecodePacket* subPacket = nullptr;
 };

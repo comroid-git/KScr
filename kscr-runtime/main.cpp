@@ -24,14 +24,14 @@ auto main(int argc, char* argv[]) -> int
 		// debug code statement
 		const std::string code = "num aNum = 1; return aNum + 1;";
 
-		// parse code into tokens
+		//// parse code into tokens
 		const std::vector<Token> tokens = Eval::tokenize(code.data(), static_cast<int>(code.length()));
 
 		// compile tokens into bytecode
-		BytecodePacket bytecode = Eval::compile(&tokens);
+		const std::vector<BytecodePacket>* bytecode = Eval::compile(&tokens);
 
 		// run bytecode
-		return Eval::execute(&bytecode);
+		return Eval::execute(bytecode);
 	/*}
 	catch (std::exception& e)
 	{

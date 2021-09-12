@@ -29,19 +29,22 @@ void* operatorModulus(void* left, void* right)
 		return static_cast<Numeric*>(left)->modulus(static_cast<Numeric*>(right));
 }
 
-void* BytecodePacket::evaluate(BytecodePacket* prev, void* prevResult, std::map<const char*, void*>* obj_map)
+void* BytecodePacket::evaluate(const BytecodePacket* prev, void* prevResult, std::map<const char*, void*>* obj_map)
 {
 	void* result = nullptr;
-	void* altResult;
+	void* altResult = nullptr;
+	void* subResult = nullptr;
 
-	// evaluate alternate packet first
+	// evaluate alternate packet 1 first
 	if (altPacket != nullptr)
 		altResult = altPacket->evaluate(this, result, obj_map);
+	if (subPacket != nullptr)
+		subResult = subPacket->evaluate(this, result, obj_map);
 
 	if ((type & DECLARATION) != 0)
-	{
 		obj_map->insert(std::make_pair(static_cast<char*>(arg), altResult));
-	}
+	else if ((type & ASSIGNMENT) != 0 && (prev->type & DECLARATION) != 0)
+		obj_map->insert(std::make_pair(static_cast<char*>(prev->arg), subResult));
 	else if ((type & EXPRESSION_NUMERIC) != 0)
 		result = Numeric::parse(static_cast<char*>(arg));
 	else if ((type & EXPRESSION_STRING) != 0)
@@ -54,17 +57,16 @@ void* BytecodePacket::evaluate(BytecodePacket* prev, void* prevResult, std::map<
 		result = obj_map->at(static_cast<char*>(arg));
 	else if ((type & OPERATOR) != 0)
 	{
-		void* rightResult = followupPacket->evaluate(this, result, obj_map);
 		if ((type & OPERATOR_PLUS) != 0)
-			return operatorPlus(prevResult, rightResult);
+			return operatorPlus(prevResult, subResult);
 		if ((type & OPERATOR_MINUS) != 0)
-			return operatorMinus(prevResult, rightResult);
+			return operatorMinus(prevResult, subResult);
 		if ((type & OPERATOR_MULTIPLY) != 0)
-			return operatorMultiply(prevResult, rightResult);
+			return operatorMultiply(prevResult, subResult);
 		if ((type & OPERATOR_DIVIDE) != 0)
-			return operatorDivide(prevResult, rightResult);
+			return operatorDivide(prevResult, subResult);
 		if ((type & OPERATOR_MODULUS) != 0)
-			return operatorModulus(prevResult, rightResult);
+			return operatorModulus(prevResult, subResult);
 	}
 
 	return result;
