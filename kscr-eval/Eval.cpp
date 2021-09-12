@@ -195,7 +195,7 @@ static void compileToken(const std::vector<Token>* tokens, int i)
 	}
 	else if (token->type == Token::VOID_ident)
 	{
-		if (next != nullptr && next->type != Token::VAR)
+		if (next == nullptr && next->type != Token::VAR)
 			throw std::exception("Invalid void assignment: Missing variable name");
 		packet.type = BytecodePacket::DECLARATION_VOID;
 		packet.arg = next->arg; // var name
@@ -256,14 +256,14 @@ static void compileToken(const std::vector<Token>* tokens, int i)
 		// numeric literal
 	else if (token->type == Token::NUM_LITERAL)
 	{
-		packet.type = BytecodePacket::EXPRESSION | BytecodePacket::EXPRESSION_NUMERIC;
+		packet.type = BytecodePacket::EXPRESSION_NUMERIC;
 		packet.arg = Numeric::parse(token->arg);
 		packet.complete = true;
 	}
 		// string literal
 	else if (token->type == Token::STR_LITERAL)
 	{
-		packet.type = BytecodePacket::EXPRESSION | BytecodePacket::EXPRESSION_STRING;
+		packet.type = BytecodePacket::EXPRESSION_STRING;
 		packet.arg = token->arg;
 		packet.complete = true;
 	}
@@ -305,5 +305,11 @@ const int Eval::execute(BytecodePacket* bytecode)
 {
 	if (bytecode == nullptr)
 		throw std::invalid_argument("Bytecode is undefined");
-	return *static_cast<int*>(bytecode->evaluate(nullptr, nullptr, &obj_map));
+
+	void* result = bytecode->evaluate(nullptr, nullptr, &obj_map);
+	if (result == nullptr) {
+		std::cerr << "Program exited without exit code";
+		return 0;
+	}
+	return *static_cast<int*>(result);
 }

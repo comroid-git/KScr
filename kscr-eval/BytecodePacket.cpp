@@ -38,32 +38,32 @@ void* BytecodePacket::evaluate(BytecodePacket* prev, void* prevResult, std::map<
 	if (altPacket != nullptr)
 		altResult = altPacket->evaluate(this, result, obj_map);
 
-	if ((type & DECLARATION) == 0)
+	if ((type & DECLARATION) != 0)
 	{
 		obj_map->insert(std::make_pair(static_cast<char*>(arg), altResult));
 	}
-	else if ((type & EXPRESSION_NUMERIC) == 0)
+	else if ((type & EXPRESSION_NUMERIC) != 0)
 		result = Numeric::parse(static_cast<char*>(arg));
-	else if ((type & EXPRESSION_STRING) == 0)
+	else if ((type & EXPRESSION_STRING) != 0)
 		result = String::instance(static_cast<char*>(arg));
-	else if ((type & EXPRESSION_TRUE) == 0)
+	else if ((type & EXPRESSION_TRUE) != 0)
 		result = Numeric::constant(static_cast<char>(1));
-	else if ((type & EXPRESSION_FALSE) == 0)
+	else if ((type & EXPRESSION_FALSE) != 0)
 		result = Numeric::constant(static_cast<char>(-1));
-	else if ((type & EXPRESSION_VAR) == 0)
+	else if ((type & EXPRESSION_VAR) != 0)
 		result = obj_map->at(static_cast<char*>(arg));
-	else if ((type & OPERATOR) == 0)
+	else if ((type & OPERATOR) != 0)
 	{
 		void* rightResult = followupPacket->evaluate(this, result, obj_map);
-		if ((type & OPERATOR_PLUS) == 0)
+		if ((type & OPERATOR_PLUS) != 0)
 			return operatorPlus(prevResult, rightResult);
-		if ((type & OPERATOR_MINUS) == 0)
+		if ((type & OPERATOR_MINUS) != 0)
 			return operatorMinus(prevResult, rightResult);
-		if ((type & OPERATOR_MULTIPLY) == 0)
+		if ((type & OPERATOR_MULTIPLY) != 0)
 			return operatorMultiply(prevResult, rightResult);
-		if ((type & OPERATOR_DIVIDE) == 0)
+		if ((type & OPERATOR_DIVIDE) != 0)
 			return operatorDivide(prevResult, rightResult);
-		if ((type & OPERATOR_MODULUS) == 0)
+		if ((type & OPERATOR_MODULUS) != 0)
 			return operatorModulus(prevResult, rightResult);
 	}
 
