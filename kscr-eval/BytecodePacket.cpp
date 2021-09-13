@@ -58,15 +58,15 @@ void* BytecodePacket::evaluate(const BytecodePacket* prev, void* prevResult, std
 	else if ((type & OPERATOR) != 0)
 	{
 		if ((type & OPERATOR_PLUS) != 0)
-			return operatorPlus(prevResult, subResult);
+			return operatorPlus(prevResult, altResult);
 		if ((type & OPERATOR_MINUS) != 0)
-			return operatorMinus(prevResult, subResult);
+			return operatorMinus(prevResult, altResult);
 		if ((type & OPERATOR_MULTIPLY) != 0)
-			return operatorMultiply(prevResult, subResult);
+			return operatorMultiply(prevResult, altResult);
 		if ((type & OPERATOR_DIVIDE) != 0)
-			return operatorDivide(prevResult, subResult);
+			return operatorDivide(prevResult, altResult);
 		if ((type & OPERATOR_MODULUS) != 0)
-			return operatorModulus(prevResult, subResult);
+			return operatorModulus(prevResult, altResult);
 	}
 
 	return result;
