@@ -23,10 +23,10 @@ public:
 	static constexpr int DECLARATION_VOID       = 0x000000F0 | DECLARATION;
 
 	// static assignment types
-	static constexpr int EXPRESSION_NUMERIC     = 0x00000100 | EXPRESSION;
-	static constexpr int EXPRESSION_STRING      = 0x00000200 | EXPRESSION;
-	static constexpr int EXPRESSION_TRUE        = 0x00000400 | EXPRESSION;
-	static constexpr int EXPRESSION_FALSE       = 0x00000800 | EXPRESSION;
+	static constexpr int LITERAL_NUMERIC        = 0x00000100 | EXPRESSION;
+	static constexpr int LITERAL_STRING         = 0x00000200 | EXPRESSION;
+	static constexpr int LITERAL_TRUE           = 0x00000400 | EXPRESSION;
+	static constexpr int LITERAL_FALSE          = 0x00000800 | EXPRESSION;
 	static constexpr int EXPRESSION_VAR         = 0x00000F00 | EXPRESSION;
 
 	// static operator args

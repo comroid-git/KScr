@@ -45,13 +45,13 @@ void* BytecodePacket::evaluate(const BytecodePacket* prev, void* prevResult, std
 		obj_map->insert(std::make_pair(static_cast<char*>(arg), altResult));
 	else if ((type & ASSIGNMENT) != 0 && (prev->type & DECLARATION) != 0)
 		obj_map->insert(std::make_pair(static_cast<char*>(prev->arg), subResult));
-	else if ((type & EXPRESSION_NUMERIC) != 0)
+	else if (type == LITERAL_NUMERIC)
 		result = Numeric::parse(static_cast<char*>(arg));
-	else if ((type & EXPRESSION_STRING) != 0)
+	else if (type == LITERAL_STRING)
 		result = String::instance(static_cast<char*>(arg));
-	else if ((type & EXPRESSION_TRUE) != 0)
+	else if (type == LITERAL_TRUE)
 		result = Numeric::constant(static_cast<char>(1));
-	else if ((type & EXPRESSION_FALSE) != 0)
+	else if (type == LITERAL_FALSE)
 		result = Numeric::constant(static_cast<char>(-1));
 	else if ((type & EXPRESSION_VAR) != 0)
 		result = obj_map->at(static_cast<char*>(arg));

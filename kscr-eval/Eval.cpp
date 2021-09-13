@@ -273,21 +273,21 @@ const std::vector<BytecodePacket>* Eval::compile(const std::vector<Token>* token
 		// numeric literal
 		else if (token->type == Token::NUM_LITERAL)
 		{
-			packet->type = BytecodePacket::EXPRESSION_NUMERIC;
+			packet->type = BytecodePacket::LITERAL_NUMERIC;
 			packet->arg = Numeric::parse(token->arg);
 			pushPacket();
 		}
 		// string literal
 		else if (token->type == Token::STR_LITERAL)
 		{
-			packet->type = BytecodePacket::EXPRESSION_STRING;
+			packet->type = BytecodePacket::LITERAL_STRING;
 			packet->arg = token->arg;
 			pushPacket();
 		}
 		// boolean literals
 		else if (token->type == Token::TRUE || token->type == Token::FALSE)
 		{
-			packet->type = BytecodePacket::EXPRESSION | (token->type == Token::TRUE ? BytecodePacket::EXPRESSION_TRUE : BytecodePacket::EXPRESSION_FALSE);
+			packet->type = (token->type == Token::TRUE ? BytecodePacket::LITERAL_TRUE : BytecodePacket::LITERAL_FALSE);
 			pushPacket();
 		}
 		// var names
