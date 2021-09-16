@@ -36,9 +36,9 @@ void* BytecodePacket::evaluate(const BytecodePacket* prev, void* prevResult, std
 	void* subResult = nullptr;
 
 	// evaluate alternate packet 1 first
-	if (altPacket != nullptr)
+	if (altPacket != nullptr && reinterpret_cast<int>(altPacket) != 0xdddddddd)
 		altResult = altPacket->evaluate(this, result, obj_map);
-	if (subPacket != nullptr)
+	if (subPacket != nullptr && reinterpret_cast<int>(subPacket) != 0xdddddddd)
 		subResult = subPacket->evaluate(this, result, obj_map);
 
 	if ((type & DECLARATION) != 0)
