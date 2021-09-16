@@ -137,6 +137,7 @@ void indexpointers()
 
 void pushPacket()
 {
+	// todo some pointers are incorrect
 	if (nextIntoAlt == 0)
 		prevPacket->altPacket = packet;
 	else if (nextIntoSub == 0)
