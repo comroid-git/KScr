@@ -128,34 +128,29 @@ BytecodePacket* prevPacket = nullptr;
 int nextIntoAlt = -1;
 int nextIntoSub = -1;
 
-void indexpointers()
-{
-	index++;
-	packet = &output.output.at(index);
-	int prevIndex = index - 1;
-	if (prevIndex < static_cast<int>(output.output.size()) && prevIndex >= 0)
-		prevPacket = &output.output.at(index - 1);
-	else prevPacket = nullptr;
-}
-
 void pushPacket()
 {
 	// todo some pointers are incorrect
 	if (nextIntoAlt == 0)
-		prevPacket->altPacket = packet;
+		prevPacket->altPacket = &output.extra.at(eIndex);
 	else if (nextIntoSub == 0)
-		prevPacket->subPacket = packet;
+		prevPacket->subPacket = &output.extra.at(eIndex);
 	if (nextIntoAlt == 1 || nextIntoSub == 1)
 	{
-		output.extra.push_back(BytecodePacket());
+		output.extra.emplace_back(BytecodePacket());
 		eIndex++;
 		prevPacket = packet;
 		packet = &output.extra.at(eIndex);
 	}
 	else
 	{
-		output.output.push_back(BytecodePacket());
-		indexpointers();
+		output.output.emplace_back(BytecodePacket());
+		index++;
+		packet = &output.output.at(index);
+		int prevIndex = index - 1;
+		if (prevIndex < static_cast<int>(output.output.size()) && prevIndex >= 0)
+			prevPacket = &output.output.at(index - 1);
+		else prevPacket = nullptr;
 	}
 
 	if (nextIntoAlt >= 0)
@@ -181,6 +176,7 @@ const Bytecode* Eval::compile(const std::vector<Token>* tokens)
 		if (token->type == Token::TERMINATOR)
 		{
 			//todo do any statement finalizing here
+			pushPacket();
 		}
 		// declarations
 		else if (token->type == Token::BYTE_ident)
