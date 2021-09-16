@@ -4,6 +4,8 @@
 #include <regex>
 #include <vector>
 #include "Eval.h"
+
+#include "Bytecode.h"
 #include "../kscr-lib/Numeric.h"
 
 std::map<const char*, void*> obj_map = std::map<const char*, void*>();
@@ -118,8 +120,7 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode, const int len)
 	return lib;
 }
 
-std::vector<BytecodePacket> output;
-std::vector<BytecodePacket> extra;
+Bytecode output;
 int eIndex = -1;
 int index = -1;
 BytecodePacket* packet = nullptr;
@@ -130,10 +131,10 @@ int nextIntoSub = -1;
 void indexpointers()
 {
 	index++;
-	packet = &output.at(index);
+	packet = &output.output.at(index);
 	int prevIndex = index - 1;
-	if (prevIndex < static_cast<int>(output.size()) && prevIndex >= 0)
-		prevPacket = &output.at(index - 1);
+	if (prevIndex < static_cast<int>(output.output.size()) && prevIndex >= 0)
+		prevPacket = &output.output.at(index - 1);
 	else prevPacket = nullptr;
 }
 
@@ -146,14 +147,14 @@ void pushPacket()
 		prevPacket->subPacket = packet;
 	if (nextIntoAlt == 1 || nextIntoSub == 1)
 	{
-		extra.push_back(BytecodePacket());
+		output.extra.push_back(BytecodePacket());
 		eIndex++;
 		prevPacket = packet;
-		packet = &extra.at(eIndex);
+		packet = &output.extra.at(eIndex);
 	}
 	else
 	{
-		output.push_back(BytecodePacket());
+		output.output.push_back(BytecodePacket());
 		indexpointers();
 	}
 
@@ -163,9 +164,9 @@ void pushPacket()
 		nextIntoSub--;
 }
 
-const std::vector<BytecodePacket>* Eval::compile(const std::vector<Token>* tokens)
+const Bytecode* Eval::compile(const std::vector<Token>* tokens)
 {
-	output = std::vector<BytecodePacket>();
+	output = Bytecode();
 	
 	const long len = tokens->size();
 	pushPacket();
@@ -318,16 +319,16 @@ const std::vector<BytecodePacket>* Eval::compile(const std::vector<Token>* token
 
 }
 
-const int Eval::execute(const std::vector<BytecodePacket>* bytecode)
+const int Eval::execute(const Bytecode* bytecode)
 {
 	void* yield = nullptr;
 
-	const long len = static_cast<long>(bytecode->size());
+	const long len = static_cast<long>(bytecode->output.size());
 	for (long i = 0; i < len; i++)
 	{
-		BytecodePacket it = bytecode->at(i);
+		BytecodePacket it = bytecode->output.at(i);
 		long previ = i - 1;
-		const BytecodePacket* prev = previ < 0 ? nullptr : &bytecode->at(previ);
+		const BytecodePacket* prev = previ < 0 ? nullptr : &bytecode->output.at(previ);
 
 		yield = it.evaluate(prev, yield, &obj_map);
 	}

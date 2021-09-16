@@ -3,7 +3,7 @@
 #include <vector>
 #include <regex>
 
-#include "BytecodePacket.h"
+#include "Bytecode.h"
 #include "Token.h"
 
 #pragma once
@@ -12,6 +12,6 @@ class Eval
 {
 public:
 	static const std::vector<Token> tokenize(const char* sourcecode, const int len);
-	static const std::vector<BytecodePacket>* compile(const std::vector<Token>* tokens);
-	static const int execute(const std::vector<BytecodePacket>* bytecode);
+	static const Bytecode* compile(const std::vector<Token>* tokens);
+	static const int execute(const Bytecode* bytecode);
 };
