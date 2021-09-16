@@ -119,6 +119,8 @@ const std::vector<Token> Eval::tokenize(const char* sourcecode, const int len)
 }
 
 std::vector<BytecodePacket> output;
+std::vector<BytecodePacket> extra;
+int eIndex = -1;
 int index = -1;
 BytecodePacket* packet = nullptr;
 BytecodePacket* prevPacket = nullptr;
@@ -144,9 +146,10 @@ void pushPacket()
 		prevPacket->subPacket = packet;
 	if (nextIntoAlt == 1 || nextIntoSub == 1)
 	{
-		BytecodePacket nextPacket = BytecodePacket();
+		extra.push_back(BytecodePacket());
+		eIndex++;
 		prevPacket = packet;
-		packet = &nextPacket;
+		packet = &extra.at(eIndex);
 	}
 	else
 	{
