@@ -1,5 +1,7 @@
 ﻿#include "pch.h"
 #include "BytecodePacket.h"
+
+#include "Bytecode.h"
 #include "../kscr-lib/Numeric.h"
 #include "../kscr-lib/String.h"
 
@@ -29,17 +31,23 @@ void* operatorModulus(void* left, void* right)
 		return static_cast<Numeric*>(left)->modulus(static_cast<Numeric*>(right));
 }
 
-void* BytecodePacket::evaluate(const BytecodePacket* prev, void* prevResult, std::map<const char*, void*>* obj_map)
+void* BytecodePacket::evaluate(const Bytecode* bytecode, const BytecodePacket* prev, void* prevResult, std::map<const char*, void*>* obj_map)
 {
 	void* result = nullptr;
 	void* altResult = nullptr;
 	void* subResult = nullptr;
 
 	// evaluate alternate packet 1 first
-	if (altPacket != nullptr && reinterpret_cast<int>(altPacket) != 0xdddddddd)
-		altResult = altPacket->evaluate(this, result, obj_map);
-	if (subPacket != nullptr && reinterpret_cast<int>(subPacket) != 0xdddddddd)
-		subResult = subPacket->evaluate(this, result, obj_map);
+	if (altPacketEindex != -1)
+	{
+		BytecodePacket altPacket = bytecode->extra.at(altPacketEindex);
+		altResult = altPacket.evaluate(bytecode, this, result, obj_map);
+	}
+	if (subPacketEindex != -1)
+	{
+		BytecodePacket subPacket = bytecode->extra.at(subPacketEindex);
+		subResult = subPacket.evaluate(bytecode, this, result, obj_map);
+	}
 
 	if ((type & DECLARATION) != 0)
 		obj_map->insert(std::make_pair(static_cast<char*>(arg), altResult));

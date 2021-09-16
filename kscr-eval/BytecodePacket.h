@@ -1,6 +1,9 @@
 ﻿#pragma once
 #include <map>
 #include <string>
+#include <memory>
+
+#include "Bytecode.h"
 
 class BytecodePacket
 {
@@ -42,10 +45,10 @@ public:
 
 	// class structure
 	explicit BytecodePacket() = default;
-	void* evaluate(const BytecodePacket* prev, void* prevResult, std::map<const char*, void*>* obj_map);
+	void* evaluate(const Bytecode* bytecode, const BytecodePacket* prev, void* prevResult, std::map<const char*, void*>* obj_map);
 
 	int type = 0;
 	void* arg = nullptr;
-	BytecodePacket* altPacket = nullptr;
-	BytecodePacket* subPacket = nullptr;
+	int altPacketEindex = -1;
+	int subPacketEindex = -1;
 };

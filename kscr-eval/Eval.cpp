@@ -132,9 +132,9 @@ void pushPacket()
 {
 	// todo some pointers are incorrect
 	if (nextIntoAlt == 0)
-		prevPacket->altPacket = &output.extra.at(eIndex);
+		prevPacket->altPacketEindex = eIndex;
 	else if (nextIntoSub == 0)
-		prevPacket->subPacket = &output.extra.at(eIndex);
+		prevPacket->subPacketEindex = eIndex;
 	if (nextIntoAlt == 1 || nextIntoSub == 1)
 	{
 		output.extra.emplace_back(BytecodePacket());
@@ -326,7 +326,7 @@ const int Eval::execute(const Bytecode* bytecode)
 		long previ = i - 1;
 		const BytecodePacket* prev = previ < 0 ? nullptr : &bytecode->output.at(previ);
 
-		yield = it.evaluate(prev, yield, &obj_map);
+		yield = it.evaluate(bytecode, prev, yield, &obj_map);
 	}
 
 	if (yield == nullptr) {
