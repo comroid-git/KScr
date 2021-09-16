@@ -54,7 +54,12 @@ void* BytecodePacket::evaluate(const BytecodePacket* prev, void* prevResult, std
 	else if (type == LITERAL_FALSE)
 		result = Numeric::constant(static_cast<char>(-1));
 	else if ((type & EXPRESSION_VAR) != 0)
-		result = obj_map->at(static_cast<char*>(arg));
+	{
+		char* key = static_cast<char*>(arg);
+		if (obj_map->count(key) == 1)
+			result = obj_map->at(key);
+		else obj_map->insert(std::pair<char*, void*>(key, nullptr));
+	}
 	else if ((type & OPERATOR) != 0)
 	{
 		if ((type & OPERATOR_PLUS) != 0)
