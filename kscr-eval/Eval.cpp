@@ -8,7 +8,7 @@
 #include "BytecodePacket.h"
 #include "../kscr-lib/Numeric.h"
 
-std::map<const char*, void*> obj_map = std::map<const char*, void*>();
+std::map<unsigned long, void*> obj_map = std::map<unsigned long, void*>();
 
 void appendToken(Token* token, std::vector<Token>* lib, std::string* str)
 {
