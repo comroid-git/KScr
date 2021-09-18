@@ -6,8 +6,10 @@
 #include "Eval.h"
 
 #include "BytecodePacket.h"
+#include "../kscr-lib/NameCache.h"
 #include "../kscr-lib/Numeric.h"
 
+NameCache name_cache = NameCache();
 std::map<unsigned long, void*> obj_map = std::map<unsigned long, void*>();
 
 void appendToken(Token* token, std::vector<Token>* lib, std::string* str)
@@ -326,7 +328,7 @@ const int Eval::execute(const Bytecode* bytecode)
 		long previ = i - 1;
 		const BytecodePacket* prev = previ < 0 ? nullptr : &bytecode->output.at(previ);
 
-		yield = it.evaluate(bytecode, prev, yield, &obj_map);
+		yield = it.evaluate(bytecode, prev, yield, &name_cache, &obj_map);
 	}
 
 	if (yield == nullptr) {

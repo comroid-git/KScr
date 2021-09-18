@@ -30,7 +30,7 @@ void* operatorModulus(void* left, void* right)
 		return static_cast<Numeric*>(left)->modulus(static_cast<Numeric*>(right));
 }
 
-void* BytecodePacket::evaluate(const Bytecode* bytecode, const BytecodePacket* prev, void* prevResult, std::map<const char*, void*>* obj_map)
+void* BytecodePacket::evaluate(const Bytecode* bytecode, const BytecodePacket* prev, void* prevResult, NameCache* name_cache, std::map<unsigned long, void*>* obj_map)
 {
 	void* result = nullptr;
 	void* altResult = nullptr;
@@ -40,18 +40,18 @@ void* BytecodePacket::evaluate(const Bytecode* bytecode, const BytecodePacket* p
 	if (altPacketEindex != -1)
 	{
 		BytecodePacket altPacket = bytecode->extra.at(altPacketEindex);
-		altResult = altPacket.evaluate(bytecode, this, result, obj_map);
+		altResult = altPacket.evaluate(bytecode, this, result, name_cache, obj_map);
 	}
 	if (subPacketEindex != -1)
 	{
 		BytecodePacket subPacket = bytecode->extra.at(subPacketEindex);
-		subResult = subPacket.evaluate(bytecode, this, result, obj_map);
+		subResult = subPacket.evaluate(bytecode, this, result, name_cache, obj_map);
 	}
 
 	if ((type & DECLARATION) != 0)
-		obj_map->insert(std::make_pair(static_cast<char*>(arg), altResult));
+		obj_map->insert(std::make_pair(name_cache->operator[](static_cast<char*>(arg))->id, altResult));
 	else if ((type & ASSIGNMENT) != 0 && (prev->type & DECLARATION) != 0)
-		obj_map->insert(std::make_pair(static_cast<char*>(prev->arg), subResult));
+		obj_map->insert(std::make_pair(name_cache->operator[](static_cast<char*>(prev->arg))->id, subResult));
 	else if (type == LITERAL_NUMERIC)
 		result = arg;
 	else if (type == LITERAL_STRING)
@@ -62,10 +62,10 @@ void* BytecodePacket::evaluate(const Bytecode* bytecode, const BytecodePacket* p
 		result = Numeric::constant(static_cast<char>(-1));
 	else if ((type & EXPRESSION_VAR) != 0)
 	{
-		char* key = static_cast<char*>(arg);
+		unsigned long key = name_cache->operator[](static_cast<char*>(arg))->id;
 		if (obj_map->count(key) == 1)
 			result = obj_map->at(key);
-		else obj_map->insert(std::pair<char*, void*>(key, nullptr));
+		else obj_map->insert(std::pair<unsigned long, void*>(key, nullptr));
 	}
 	else if ((type & OPERATOR) != 0)
 	{

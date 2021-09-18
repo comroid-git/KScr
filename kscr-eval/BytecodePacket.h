@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include "../kscr-lib/NameCache.h"
 
 class BytecodePacket;
 
@@ -53,7 +54,7 @@ public:
 
 	// class structure
 	explicit BytecodePacket() = default;
-	void* evaluate(const Bytecode* bytecode, const BytecodePacket* prev, void* prevResult, std::map<const char*, void*>* obj_map);
+	void* evaluate(const Bytecode* bytecode, const BytecodePacket* prev, void* prevResult, NameCache* name_cache, std::map<unsigned long, void*>* obj_map);
 
 	int type = 0;
 	void* arg = nullptr;

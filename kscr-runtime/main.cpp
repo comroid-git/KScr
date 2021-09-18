@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "../kscr-lib/NameCache.h"
 #include "../kscr-eval/Eval.h"
 #include "../kscr-eval/Token.h"
 #include "../kscr-eval/BytecodePacket.h"
@@ -20,6 +21,17 @@ int run()
 // eval test
 auto main(int argc, char* argv[]) -> int
 {
+	auto cache = NameCache();
+	
+	cache["hello"]->id = 123;
+	auto check = cache["hello"]->id == 123;
+	std::cout << "First set was " << check;
+
+	cache["helloasfdgjehgi2ouw34rtnsoiajdvgnpqewioruthgsdifuvbnsaieufrhcasoiudghasliucghaslkjgfhasdlkjfghadslkjfghalksjdfhoeacisurthsdr"]->id = 456;
+	check = cache["helloasfdgjehgi2ouw34rtnsoiajdvgnpqewioruthgsdifuvbnsaieufrhcasoiudghasliucghaslkjgfhasdlkjfghadslkjfghalksjdfhoeacisurthsdr"]->id == 456;
+	std::cout << "Second set was " << check;
+
+
 	//try{
 		// debug code statement
 		const std::string code = "num aNum = 1; return aNum + 1;";
