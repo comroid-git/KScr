@@ -5,7 +5,7 @@
 #include <vector>
 #include "Eval.h"
 
-#include "Bytecode.h"
+#include "BytecodePacket.h"
 #include "../kscr-lib/Numeric.h"
 
 std::map<const char*, void*> obj_map = std::map<const char*, void*>();

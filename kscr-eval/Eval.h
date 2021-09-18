@@ -3,7 +3,7 @@
 #include <vector>
 #include <regex>
 
-#include "Bytecode.h"
+#include "BytecodePacket.h"
 #include "Token.h"
 
 #pragma once

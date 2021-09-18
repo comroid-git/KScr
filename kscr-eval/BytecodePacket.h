@@ -2,8 +2,16 @@
 #include <map>
 #include <string>
 #include <memory>
+#include <vector>
 
-#include "Bytecode.h"
+class BytecodePacket;
+
+class Bytecode
+{
+public:
+	std::vector<BytecodePacket> output = std::vector<BytecodePacket>();
+	std::vector<BytecodePacket> extra = std::vector<BytecodePacket>();
+};					
 
 class BytecodePacket
 {

@@ -1,7 +1,6 @@
 ﻿#include "pch.h"
 #include "BytecodePacket.h"
 
-#include "Bytecode.h"
 #include "../kscr-lib/Numeric.h"
 #include "../kscr-lib/String.h"
 

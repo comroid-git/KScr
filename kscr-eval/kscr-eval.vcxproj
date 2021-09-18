@@ -151,7 +151,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Bytecode.h" />
     <ClInclude Include="BytecodePacket.h" />
     <ClInclude Include="Eval.h" />
     <ClInclude Include="pch.h" />
