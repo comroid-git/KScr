@@ -1,4 +1,0 @@
-public static int Main(string[] args) {
-    int v = args.length + (3 * 2) / 6;
-    return v;
-}
