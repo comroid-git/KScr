@@ -6,9 +6,14 @@
 
         // basic symbols
         Terminator,
-        Var,
+        Word,
         Return,
         Throw,
+
+        // logistical symbols
+        Dot,
+        Colon,
+        Comma,
 
         // parentheses
         ParRoundOpen,
@@ -17,9 +22,10 @@
         ParSquareClose,
         ParAccOpen,
         ParAccClose,
+        ParDiamondOpen,
+        ParDiamondClose,
 
         // identifiers
-        IdentVar,
         IdentNum,
         IdentStr,
         IdentByte,

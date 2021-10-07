@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using KScr.Lib.Core;
-using KScr.Lib.VM;
+using KScr.Lib.Exception;
+using KScr.Lib.Store;
 using String = KScr.Lib.Core.String;
 
 namespace KScr.Lib.Model
@@ -67,7 +68,7 @@ namespace KScr.Lib.Model
         public BytecodePacket? SubPacket { get; set; }
         public List<BytecodePacket> SubStack { get; } = new List<BytecodePacket>();
 
-        public IObject? Evaluate(BytecodePacket? prev, IObject? prevResult, VirtualMachine vm)
+        public IObject? Evaluate(BytecodePacket? prev, IObject? prevResult, RuntimeBase vm)
         {
             IObject? result = null, altResult = AltPacket?.Evaluate(this, null, vm);
 
@@ -85,7 +86,7 @@ namespace KScr.Lib.Model
 
             // literals
             if (Type == BytecodeType.LiteralNumeric)
-                return Arg as Numeric;
+                return Numeric.Compile(vm, Arg as string);
             if (Type == BytecodeType.LiteralString)
                 return String.Instance(vm, Arg as string);
             if (Type == BytecodeType.LiteralTrue)
@@ -115,10 +116,11 @@ namespace KScr.Lib.Model
             // symbols
             if ((Type & BytecodeType.Declaration) != 0)
             {
-                var rev = new ObjectRef(TypeRef.VoidType, IObject.Nil);
+                var rev = new ObjectRef(TypeRef.VoidType, IObject.Null);
                 vm[VariableContext.Local, (Arg as string)!] = rev;
                 return rev.Value;
             }
+
             if ((Type & BytecodeType.Assignment) != 0 && ((prev?.Type & BytecodeType.Declaration) != 0 ||
                                                           (prev?.Type & BytecodeType.ExpressionVariable) != 0))
             {
@@ -126,7 +128,9 @@ namespace KScr.Lib.Model
                 if (value is ReturnValue rtn)
                     value = rtn.Value;
                 var rev = vm[VariableContext.Local, (prev.Arg as string)!];
-                return rev!.Value = value;
+                if (rev == null)
+                    throw new InternalException("Assignment failed: Local variable not found: " + prev.Arg);
+                return rev.Value = value;
             }
 
             if ((Type & BytecodeType.ExpressionVariable) != 0)
@@ -143,7 +147,7 @@ namespace KScr.Lib.Model
 
     public static class BytecodeExtensions
     {
-        public static IObject? Evaluate(this IList<BytecodePacket> stack, VirtualMachine vm)
+        public static IObject? Evaluate(this IList<BytecodePacket> stack, RuntimeBase vm)
         {
             // todo: Sort arithmetic operators in stack before evaluation
 

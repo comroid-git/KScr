@@ -1,21 +1,18 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
-using KScr.Eval;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
-using KScr.Lib.VM;
 
 namespace KScr.Runtime
 {
     internal class Program
     {
-        private static readonly KScrEval vm = new KScrEval();
+        private static readonly KScrRuntime vm = new KScrRuntime();
 
         private static int Main(string[] args)
         {
-            var eval = new KScrEval();
+            var eval = new KScrRuntime();
 
             if (args.Length == 0)
                 return StdIoMode(eval);
@@ -43,12 +40,12 @@ namespace KScr.Runtime
             Console.Read();
         }
 
-        private static int RunCode(KScrEval eval, Bytecode bytecode)
+        private static int RunCode(KScrRuntime runtime, Bytecode bytecode)
         {
             IObject? result = null;
             try
             {
-                result = eval.Execute(bytecode, vm);
+                result = runtime.Execute(bytecode, vm);
             }
             catch (ThrownValue thr)
             {
@@ -70,7 +67,7 @@ namespace KScr.Runtime
             return 0;
         }
 
-        private static int StdIoMode(KScrEval eval)
+        private static int StdIoMode(KScrRuntime runtime)
         {
             Bytecode full = new Bytecode();
             var verbose = false;
@@ -89,30 +86,26 @@ namespace KScr.Runtime
                 {
                     case "exit":
                         return 0;
-                    case "verbose on":
-                        verbose = true;
-                        continue;
-                    case "verbose off":
-                        verbose = false;
-                        continue;
                     case "verbose":
-                        verbose = !verbose;
+                        // ReSharper disable once AssignmentInConditionalExpression
+                        Console.WriteLine("Verbose console output " + ((verbose = !verbose) ? "on" : "off"));
                         continue;
                     case "clear":
-                        ClearEval(eval);
+                        ClearEval(runtime);
                         full = new Bytecode();
                         continue;
                     case "run":
-                        ClearEval(eval);
-                        return RunCode(eval, full);
+                        ClearEval(runtime);
+                        return RunCode(runtime, full);
                     default:
                         if (!input.EndsWith(';'))
                             input += ';';
-                        var result = HandleSourcecode(eval, input, out Bytecode here, out var time);
+                        var result = HandleSourcecode(runtime, input, out Bytecode here, out var time);
+                        var isnull = result == null;
 
-                        string str0 = result?.ToString(0) ?? "null";
+                        string str0 = !isnull ? result!.ToString(0) : "null";
                         if (verbose)
-                            str0 += "\t\t" + result?.ToString(-1) ?? "void";
+                            str0 += "\t\t" + (!isnull ? result!.ToString(-1) : "void");
                         str0 += $" [{time} µs]";
                         Console.WriteLine(str0);
                         full += here;
@@ -121,17 +114,17 @@ namespace KScr.Runtime
             }
         }
 
-        private static void ClearEval(KScrEval eval)
+        private static void ClearEval(KScrRuntime runtime)
         {
             Console.Clear();
             vm.Clear();
         }
 
-        private static IObject? HandleSourcecode(KScrEval eval, string? input, out Bytecode? here, out long time)
+        private static IObject? HandleSourcecode(KScrRuntime runtime, string? input, out Bytecode? here, out long time)
         {
-            var tokens = eval.Tokenize(input);
-            here = eval.Compile(tokens);
-            var result = eval.Execute(here, vm, out time);
+            var tokens = runtime.Tokenize(input);
+            here = runtime.Compile(tokens);
+            var result = runtime.Execute(here, vm, out time);
             return result;
         }
     }

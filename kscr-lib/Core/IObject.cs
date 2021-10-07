@@ -1,5 +1,4 @@
-﻿using System;
-using KScr.Lib.VM;
+﻿using KScr.Lib.Store;
 
 namespace KScr.Lib.Core
 {
@@ -8,11 +7,11 @@ namespace KScr.Lib.Core
         public const int ToString_TypeName = -1;
         public const int ToString_ShortName = 0;
         public const int ToString_LongName = 1;
-        public static readonly IObject Nil = new ConstantValue(Numeric.Zero);
+        public static readonly IObject Null = new ConstantValue(Numeric.Zero);
 
         long ObjectId { get; }
         bool Primitive { get; }
-        
+
         TypeRef Type { get; }
 
         string ToString(short variant);
@@ -27,11 +26,14 @@ namespace KScr.Lib.Core
 
         public IObject? Value { get; }
 
-        public long ObjectId => Value?.ObjectId ?? UInt32.MinValue;
+        public long ObjectId => Value?.ObjectId ?? long.MinValue;
         public bool Primitive => Value?.Primitive ?? true;
         public TypeRef Type => Value?.Type ?? TypeRef.VoidType;
 
-        public string ToString(short variant) => Value?.ToString(variant) ?? "null";
+        public string ToString(short variant)
+        {
+            return Value?.ToString(variant) ?? "null";
+        }
     }
 
     public sealed class ReturnValue : IObject
@@ -43,26 +45,32 @@ namespace KScr.Lib.Core
 
         public IObject? Value { get; }
 
-        public long ObjectId => Value?.ObjectId ?? UInt32.MinValue;
+        public long ObjectId => Value?.ObjectId ?? long.MinValue;
         public bool Primitive => Value?.Primitive ?? true;
         public TypeRef Type => Value?.Type ?? TypeRef.VoidType;
 
-        public string ToString(short variant) => Value?.ToString(variant) ?? "null";
+        public string ToString(short variant)
+        {
+            return Value?.ToString(variant) ?? "null";
+        }
     }
 
-    public sealed class ThrownValue : Exception, IObject
+    public sealed class ThrownValue : System.Exception, IObject
     {
-        public ThrownValue(IObject? value)
+        public ThrownValue(IObject value)
         {
             Value = value;
         }
 
-        public IObject? Value { get; }
+        public IObject Value { get; }
 
-        public long ObjectId => Value?.ObjectId ?? UInt32.MinValue;
-        public bool Primitive => Value?.Primitive ?? true;
-        public TypeRef Type => Value?.Type ?? TypeRef.VoidType;
+        public long ObjectId => Value.ObjectId;
+        public bool Primitive => Value.Primitive;
+        public TypeRef Type => Value.Type;
 
-        public string ToString(short variant) => Value?.ToString(variant) ?? "null";
+        public string ToString(short variant)
+        {
+            return Value.ToString(variant);
+        }
     }
 }

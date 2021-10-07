@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
-using KScr.Lib.VM;
+using KScr.Lib.Exception;
+using KScr.Lib.Store;
 
 namespace KScr.Lib.Core
 {
@@ -18,18 +19,21 @@ namespace KScr.Lib.Core
     public sealed class Numeric : IObject
     {
         public static readonly Regex NumberRegex = new Regex(@"([\d]+)(i|l|f|d|b)?(\.([\d]+)(f|d)?)?");
+
         public static readonly Numeric Zero = new Numeric(0)
         {
             Mutable = false,
             Bytes = BitConverter.GetBytes((short)0),
             Mode = NumericMode.Short
         };
+
         public static readonly Numeric One = new Numeric(1)
         {
             Mutable = false,
             Bytes = BitConverter.GetBytes((short)1),
             Mode = NumericMode.Short
         };
+
         public static readonly Numeric MinusOne = new Numeric(2)
         {
             Mutable = false,
@@ -40,13 +44,27 @@ namespace KScr.Lib.Core
         private static readonly ConcurrentDictionary<decimal, Numeric> Cache =
             new ConcurrentDictionary<decimal, Numeric>();
 
+        private readonly bool _constant;
+
         private readonly uint _objId;
+        private bool _mutable = true;
 
-        private Numeric(uint objId) => _objId = objId;
+        private Numeric(uint objId)
+        {
+            _objId = objId;
+        }
 
-        private Numeric(VirtualMachine vm) => _objId = vm.NextObjId();
+        private Numeric(RuntimeBase vm, bool constant = false)
+        {
+            _constant = constant;
+            _objId = vm.NextObjId();
+        }
 
-        public bool Mutable { get; private set; } = true;
+        public bool Mutable
+        {
+            get => !_constant && _mutable;
+            private set => _mutable = value;
+        }
 
         public NumericMode Mode { get; private set; } = NumericMode.Short;
         public byte[] Bytes { get; private set; } = BitConverter.GetBytes((short)0);
@@ -58,7 +76,7 @@ namespace KScr.Lib.Core
         public double DoubleValue => GetAs<double>();
         public string StringValue => GetAs<string>();
 
-        public long ObjectId => VirtualMachine.CombineHash(_objId, "num:" + StringValue);
+        public long ObjectId => RuntimeBase.CombineHash(_objId, "num:" + StringValue);
         public bool Primitive => true;
         public TypeRef Type => TypeRef.NumericType(Mode);
 
@@ -72,58 +90,76 @@ namespace KScr.Lib.Core
             };
         }
 
-        public static Numeric Constant(VirtualMachine vm, byte value)
+        public static Numeric Constant(RuntimeBase vm, byte value)
         {
-            var num = new Numeric(vm);
-            num.SetAs(value);
-            num.Mutable = false;
-            return num;
+            return (vm.ComputeObject(VariableContext.Absolute, "num:" + value, () =>
+            {
+                var num = new Numeric(vm, true);
+                num.SetAs(value);
+                num.Mutable = false;
+                return num;
+            }).Value as Numeric)!;
         }
 
-        public static Numeric Constant(VirtualMachine vm, short value)
+        public static Numeric Constant(RuntimeBase vm, short value)
         {
-            var num = new Numeric(vm);
-            num.SetAs(value);
-            num.Mutable = false;
-            return num;
+            return (vm.ComputeObject(VariableContext.Absolute, "num:" + value, () =>
+            {
+                var num = new Numeric(vm, true);
+                num.SetAs(value);
+                num.Mutable = false;
+                return num;
+            }).Value as Numeric)!;
         }
 
-        public static Numeric Constant(VirtualMachine vm, int value)
+        public static Numeric Constant(RuntimeBase vm, int value)
         {
-            var num = new Numeric(vm);
-            num.SetAs(value);
-            num.Mutable = false;
-            return num;
+            return (vm.ComputeObject(VariableContext.Absolute, "num:" + value, () =>
+            {
+                var num = new Numeric(vm, true);
+                num.SetAs(value);
+                num.Mutable = false;
+                return num;
+            }).Value as Numeric)!;
         }
 
-        public static Numeric Constant(VirtualMachine vm, long value)
+        public static Numeric Constant(RuntimeBase vm, long value)
         {
-            var num = new Numeric(vm);
-            num.SetAs(value);
-            num.Mutable = false;
-            return num;
+            return (vm.ComputeObject(VariableContext.Absolute, "num:" + value, () =>
+            {
+                var num = new Numeric(vm, true);
+                num.SetAs(value);
+                num.Mutable = false;
+                return num;
+            }).Value as Numeric)!;
         }
 
-        public static Numeric Constant(VirtualMachine vm, float value)
+        public static Numeric Constant(RuntimeBase vm, float value)
         {
-            var num = new Numeric(vm);
-            num.SetAs(value);
-            num.Mutable = false;
-            return num;
+            return (vm.ComputeObject(VariableContext.Absolute, "num:" + value, () =>
+            {
+                var num = new Numeric(vm, true);
+                num.SetAs(value);
+                num.Mutable = false;
+                return num;
+            }).Value as Numeric)!;
         }
 
-        public static Numeric Constant(VirtualMachine vm, double value)
+        public static Numeric Constant(RuntimeBase vm, double value)
         {
-            var num = new Numeric(vm);
-            num.SetAs(value);
-            num.Mutable = false;
-            return num;
+            return (vm.ComputeObject(VariableContext.Absolute, "num:" + value, () =>
+            {
+                var num = new Numeric(vm, true);
+                num.SetAs(value);
+                num.Mutable = false;
+                return num;
+            }).Value as Numeric)!;
         }
 
         private void SetAs<T>(T value)
         {
-            if (!Mutable)
-                throw new Exception("Numeric is immutable");
+            if (!Mutable && !_constant)
+                throw new InternalException("Numeric is immutable");
 
             var type = typeof(T);
 
@@ -159,7 +195,7 @@ namespace KScr.Lib.Core
             }
             else
             {
-                throw new Exception("Invalid target Type: " + type);
+                throw new InternalException("Invalid target Type: " + type);
             }
         }
 
@@ -312,15 +348,15 @@ namespace KScr.Lib.Core
                         throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode);
                 }
 
-            throw new Exception("Invalid target Type: " + type);
+            throw new InternalException("Invalid target Type: " + type);
         }
 
-        public static Numeric Compile(VirtualMachine vm, string str)
+        public static Numeric Compile(RuntimeBase vm, string str)
         {
             var result = NumberRegex.Match(str);
 
             if (!result.Success)
-                throw new Exception("Invalid numeric literal: " + str);
+                throw new InternalException("Invalid numeric literal: " + str);
             var groups = result.Groups;
             var type = groups[5].Value;
             if (type == string.Empty)
@@ -337,7 +373,7 @@ namespace KScr.Lib.Core
             if (type == "d")
                 return Constant(vm, double.Parse(str.Substring(0, str.Length - 1)));
             if (type != string.Empty)
-                throw new Exception("Invalid target Type: " + type);
+                throw new InternalException("Invalid target Type: " + type);
             if (groups[3].Length > groups[4].Length)
                 return Constant(vm, float.Parse(str));
             try
@@ -350,7 +386,7 @@ namespace KScr.Lib.Core
             }
         }
 
-        public Numeric OpPlus(VirtualMachine vm, Numeric right)
+        public Numeric OpPlus(RuntimeBase vm, Numeric right)
         {
             switch (Mode)
             {
@@ -371,7 +407,7 @@ namespace KScr.Lib.Core
             }
         }
 
-        public Numeric OpMinus(VirtualMachine vm, Numeric right)
+        public Numeric OpMinus(RuntimeBase vm, Numeric right)
         {
             switch (Mode)
             {
@@ -392,7 +428,7 @@ namespace KScr.Lib.Core
             }
         }
 
-        public Numeric OpMultiply(VirtualMachine vm, Numeric right)
+        public Numeric OpMultiply(RuntimeBase vm, Numeric right)
         {
             switch (Mode)
             {
@@ -413,7 +449,7 @@ namespace KScr.Lib.Core
             }
         }
 
-        public Numeric OpDivide(VirtualMachine vm, Numeric right)
+        public Numeric OpDivide(RuntimeBase vm, Numeric right)
         {
             switch (Mode)
             {
@@ -434,7 +470,7 @@ namespace KScr.Lib.Core
             }
         }
 
-        public Numeric OpModulus(VirtualMachine vm, Numeric right)
+        public Numeric OpModulus(RuntimeBase vm, Numeric right)
         {
             switch (Mode)
             {

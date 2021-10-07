@@ -1,22 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using KScr.Lib.VM;
+using KScr.Lib.Exception;
+using KScr.Lib.Store;
 
 namespace KScr.Lib.Core
 {
     public sealed class String : IObject
     {
-        private long _objId;
         private const string ObjPrefix = "kscr.string";
 
-        private String(VirtualMachine vm, string str)
+        private String(RuntimeBase vm, string str)
         {
-            _objId = vm.NextObjId("str:" + str);
+            ObjectId = vm.NextObjId("str:" + str);
             Str = str;
         }
 
         public string Str { get; }
-        public long ObjectId => _objId;
+        public long ObjectId { get; }
+
         public bool Primitive => true;
         public TypeRef Type => TypeRef.StringType;
 
@@ -30,7 +30,7 @@ namespace KScr.Lib.Core
             };
         }
 
-        public static String Instance(VirtualMachine vm, string str)
+        public static String Instance(RuntimeBase vm, string str)
         {
             string key = ObjPrefix + '#' + str.GetHashCode();
             string ptr = "str-literal:" + str;
@@ -39,7 +39,7 @@ namespace KScr.Lib.Core
             if (obj is String strObj && strObj.Str == str)
                 return strObj;
             if (obj != null)
-                throw new Exception("Unexpected object at key " + key);
+                throw new InternalException("Unexpected object at key " + key);
             if (rev != null)
                 return ((rev.Value = new String(vm, str)) as String)!;
             throw new NullReferenceException("Pointer not found: " + ptr);
