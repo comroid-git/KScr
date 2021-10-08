@@ -19,6 +19,7 @@ namespace KScr.Eval
         internal CompilerLevel CompilerLevel = CompilerLevel.Statement;
         internal Statement Statement = new Statement();
         internal StatementComponent Component = new StatementComponent();
+        internal StatementComponent? PrevComponent = null;
 
         public IEvaluable Compile(RuntimeBase runtime, IList<Token> tokens)
         {
@@ -34,12 +35,17 @@ namespace KScr.Eval
         {
             Bytecode.Main.Add(Statement);
             Statement = new Statement();
+            CompilerLevel = CompilerLevel.Statement;
         }
 
-        private void PushComponent()
+        private void PushComponent(bool sub = false)
         {
+            var swap = PrevComponent;
+            PrevComponent = Component;
             Component.Statement = Statement;
-            Statement.Main.Add(Component);
+            if (sub && swap != null)
+                swap.SubComponent = Component;
+            else Statement.Main.Add(Component);
             Component = new StatementComponent();
         }
 
@@ -77,8 +83,25 @@ namespace KScr.Eval
                     break;
                 case TokenType.Throw:
                     break;
+                case TokenType.LiteralNum:
+                case TokenType.LiteralStr:
+                case TokenType.LiteralTrue:
+                case TokenType.LiteralFalse:
+                case TokenType.LiteralNull:
                 case TokenType.ParRoundOpen:
-                    return new SubCompiler(this, SubCompilerMode.ParenthesesRound, sub => { });
+                    return new SubCompiler(this, SubCompilerMode.Expression, sub =>
+                    {
+                        if (!Statement.TargetType.CanHold(sub.TargetType))
+                            throw new CompilerException($"Incompatible expression type: {sub.TargetType}; expected type: {Statement.TargetType}");
+                        Component = sub;
+                        PushComponent(true);
+                    })
+                    {
+                        Arg = Component.Arg,
+                        Type = Component.Type,
+                        CodeType = Component.CodeType,
+                        VariableContext = Component.VariableContext
+                    };
                 case TokenType.ParRoundClose:
                     break;
                 case TokenType.ParSquareOpen:
@@ -129,56 +152,6 @@ namespace KScr.Eval
                     Statement.TargetType = TypeRef.VoidType;
                     CompilerLevel = CompilerLevel.Component;
                     break;
-                case TokenType.LiteralNum:
-                    if (CompilerLevel != CompilerLevel.Component)
-                        throw new CompilerException("Unexpected numeric literal at index " + i);
-                    if (!Statement.TargetType.FullName.StartsWith("num"))
-                        throw new CompilerException("Unexpected numeric; target type is " + Statement.TargetType);
-                    Component.Type = StatementComponentType.Expression;
-                    Component.CodeType = BytecodeType.LiteralNumeric;
-                    Component.Arg = token.Arg!;
-                    PushComponent();
-                    break;
-                case TokenType.LiteralStr:
-                    if (CompilerLevel != CompilerLevel.Component)
-                        throw new CompilerException("Unexpected string literal at index " + i);
-                    if (!Statement.TargetType.FullName.StartsWith("num"))
-                        throw new CompilerException("Unexpected string; target type is " + Statement.TargetType);
-                    Component.Type = StatementComponentType.Expression;
-                    Component.CodeType = BytecodeType.LiteralString;
-                    Component.Arg = token.Arg!;
-                    PushComponent();
-                    break;
-                case TokenType.LiteralTrue:
-                    if (CompilerLevel != CompilerLevel.Component)
-                        throw new CompilerException("Unexpected bool literal at index " + i);
-                    if (!Statement.TargetType.FullName.StartsWith("num"))
-                        throw new CompilerException("Unexpected bool; target type is " + Statement.TargetType);
-                    Component.Type = StatementComponentType.Expression;
-                    Component.CodeType = BytecodeType.LiteralTrue;
-                    Component.Arg = token.Arg!;
-                    PushComponent();
-                    break;
-                case TokenType.LiteralFalse:
-                    if (CompilerLevel != CompilerLevel.Component)
-                        throw new CompilerException("Unexpected bool literal at index " + i);
-                    if (!Statement.TargetType.FullName.StartsWith("num"))
-                        throw new CompilerException("Unexpected bool; target type is " + Statement.TargetType);
-                    Component.Type = StatementComponentType.Expression;
-                    Component.CodeType = BytecodeType.LiteralFalse;
-                    Component.Arg = token.Arg!;
-                    PushComponent();
-                    break;
-                case TokenType.LiteralNull:
-                    if (CompilerLevel != CompilerLevel.Component)
-                        throw new CompilerException("Unexpected null literal at index " + i);
-                    if (!Statement.TargetType.FullName.StartsWith("num"))
-                        throw new CompilerException("Unexpected null; target type is " + Statement.TargetType);
-                    Component.Type = StatementComponentType.Expression;
-                    Component.CodeType = BytecodeType.LiteralNumeric;
-                    Component.Arg = token.Arg!;
-                    PushComponent();
-                    break;
                 case TokenType.OperatorPlus:
                     break;
                 case TokenType.OperatorMinus:
@@ -198,6 +171,9 @@ namespace KScr.Eval
                             // is assignment
                             Component.Type = StatementComponentType.Code;
                             Component.CodeType = BytecodeType.Assignment;
+                            var compiler = new SubCompiler(this, SubCompilerMode.Expression, sub => { });
+                            Component.SubComponent = compiler;
+                            return compiler;
                         }
                         else
                         {
@@ -225,7 +201,7 @@ namespace KScr.Eval
 
     public enum SubCompilerMode
     {
-        ParenthesesRound,
+        Expression,
         ParenthesesSquare,
         ParenthesesAccolade,
         ParseTypeParameters
@@ -241,7 +217,6 @@ namespace KScr.Eval
         internal TypeRef TargetType = TypeRef.VoidType;
         private int _c;
         private bool _finished;
-        public StatementComponentType OutputType { get; }
 
         public SubCompiler(MainCompiler parent, SubCompilerMode mode, Action<SubCompiler> finishedAction)
         {
@@ -261,9 +236,9 @@ namespace KScr.Eval
             var prev = i - 1 < 0 ? tokens[i - 1] : null;
             var next = i + 1 > tokens.Count ? tokens[i + 1] : null;
 
-            if (_c++ == 0 && token.Type != _firstExpected)
+            if (_c++ == 0 && (_mode != SubCompilerMode.Expression || token.Type != _firstExpected))
                 throw new CompilerException($"First expected token was {_firstExpected}; got {token}");
-            _finished = token.Type == _lastExpected;
+            _finished = token.Type == _lastExpected || next?.Type == TokenType.Terminator;
 
             switch (token.Type)
             {
@@ -280,14 +255,12 @@ namespace KScr.Eval
                 case TokenType.Word:
                     switch (_mode)
                     {
-                        case SubCompilerMode.ParenthesesRound:
-                            break;
                         case SubCompilerMode.ParenthesesSquare:
                             break;
                         case SubCompilerMode.ParenthesesAccolade:
                             break;
                         case SubCompilerMode.ParseTypeParameters:
-                            TargetType = vm.FindType(token.Arg);
+                            TargetType = vm.FindType(token.Arg!) ?? throw new CompilerException("Type not found: " + token.Arg);
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -323,14 +296,49 @@ namespace KScr.Eval
                 case TokenType.IdentVoid:
                     break;
                 case TokenType.LiteralNum:
+                    if (_parent.CompilerLevel != CompilerLevel.Component)
+                        throw new CompilerException("Unexpected numeric literal at index " + i);
+                    if (!Statement.TargetType.FullName.StartsWith("num"))
+                        throw new CompilerException("Unexpected numeric; target type is " + Statement.TargetType);
+                    Type = StatementComponentType.Expression;
+                    CodeType = BytecodeType.LiteralNumeric;
+                    Arg = token.Arg!;
                     break;
                 case TokenType.LiteralStr:
+                    if (_parent.CompilerLevel != CompilerLevel.Component)
+                        throw new CompilerException("Unexpected string literal at index " + i);
+                    if (!Statement.TargetType.FullName.StartsWith("num"))
+                        throw new CompilerException("Unexpected string; target type is " + Statement.TargetType);
+                    Type = StatementComponentType.Expression;
+                    CodeType = BytecodeType.LiteralString;
+                    Arg = token.Arg!;
                     break;
                 case TokenType.LiteralTrue:
+                    if (_parent.CompilerLevel != CompilerLevel.Component)
+                        throw new CompilerException("Unexpected bool literal at index " + i);
+                    if (!Statement.TargetType.FullName.StartsWith("num"))
+                        throw new CompilerException("Unexpected bool; target type is " + Statement.TargetType);
+                    Type = StatementComponentType.Expression;
+                    CodeType = BytecodeType.LiteralTrue;
+                    Arg = token.Arg!;
                     break;
                 case TokenType.LiteralFalse:
+                    if (_parent.CompilerLevel != CompilerLevel.Component)
+                        throw new CompilerException("Unexpected bool literal at index " + i);
+                    if (!Statement.TargetType.FullName.StartsWith("num"))
+                        throw new CompilerException("Unexpected bool; target type is " + Statement.TargetType);
+                    Type = StatementComponentType.Expression;
+                    CodeType = BytecodeType.LiteralFalse;
+                    Arg = token.Arg!;
                     break;
                 case TokenType.LiteralNull:
+                    if (_parent.CompilerLevel != CompilerLevel.Component)
+                        throw new CompilerException("Unexpected null literal at index " + i);
+                    if (!Statement.TargetType.FullName.StartsWith("num"))
+                        throw new CompilerException("Unexpected null; target type is " + Statement.TargetType);
+                    Type = StatementComponentType.Expression;
+                    CodeType = BytecodeType.LiteralNumeric;
+                    Arg = token.Arg!;
                     break;
                 case TokenType.OperatorPlus:
                     break;
@@ -368,19 +376,19 @@ namespace KScr.Eval
 
         private static TokenType FirstExpected(SubCompilerMode mode) => mode switch
         {
-            SubCompilerMode.ParenthesesRound => TokenType.ParRoundOpen,
             SubCompilerMode.ParenthesesSquare => TokenType.ParSquareOpen,
             SubCompilerMode.ParenthesesAccolade => TokenType.ParAccOpen,
             SubCompilerMode.ParseTypeParameters => TokenType.ParDiamondOpen,
+            SubCompilerMode.Expression => TokenType.ParRoundOpen,
             _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
         };
 
         private static TokenType LastExpected(SubCompilerMode mode) => mode switch
         {
-            SubCompilerMode.ParenthesesRound => TokenType.ParRoundClose,
             SubCompilerMode.ParenthesesSquare => TokenType.ParSquareClose,
             SubCompilerMode.ParenthesesAccolade => TokenType.ParAccClose,
             SubCompilerMode.ParseTypeParameters => TokenType.ParDiamondClose,
+            SubCompilerMode.Expression => TokenType.ParRoundClose,
             _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
         };
     }
