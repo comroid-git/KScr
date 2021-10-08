@@ -76,8 +76,10 @@ namespace KScr.Eval
                     {
                         Statement.Type = Component.Type = StatementComponentType.Provider;
                         Component.CodeType = BytecodeType.ExpressionVariable;
+                        CompilerLevel = CompilerLevel.Component;
                     }
                     PushComponent();
+
                     break;
                 case TokenType.Return:
                     if (CompilerLevel != CompilerLevel.Statement)
@@ -362,7 +364,7 @@ namespace KScr.Eval
                     if (!Statement.TargetType.CanHold(TypeRef.VoidType))
                         throw new CompilerException("Unexpected null; target type is " + Statement.TargetType);
                     Type = StatementComponentType.Expression;
-                    CodeType = BytecodeType.LiteralNumeric;
+                    CodeType = BytecodeType.Null;
                     Arg = token.Arg!;
                     TargetType = TypeRef.VoidType;
                     break;

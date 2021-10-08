@@ -82,7 +82,7 @@ namespace KScr.Eval
                         case BytecodeType.Assignment:
                             // assignment
                             if (rev == null)
-                                throw new InternalException("Invalid assignment; no ObjectRef found");
+                                throw new InternalException("Invalid assignment; missing variable name");
                             if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new InternalException("Invalid assignment; no Expression found");
                             ObjectRef? output = null;
