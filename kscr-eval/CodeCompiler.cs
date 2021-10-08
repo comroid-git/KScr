@@ -407,14 +407,19 @@ namespace KScr.Eval
                     _finished = next?.Type != TokenType.Terminator || next?.Type != TokenType.ParRoundClose;
                     break;
                 case TokenType.OperatorPlus:
-                    break;
                 case TokenType.OperatorMinus:
-                    break;
                 case TokenType.OperatorMultiply:
-                    break;
                 case TokenType.OperatorDivide:
-                    break;
                 case TokenType.OperatorModulus:
+                    if (CompilerLevel != CompilerLevel.Component)
+                        throw new CompilerException("Invalid CompilerLevel for dot Token");
+                    if (!(next is { Type: TokenType.Word }))
+                        throw new CompilerException("Unexpected token; dot must be followed by a word");
+                    Arg = next.Arg!;
+                    _statement.Type = Type = StatementComponentType.Provider;
+                    CodeType = GetCodeType(token.Type);
+                    i++;
+                    _finished = true;
                     break;
                 case TokenType.OperatorEquals:
                     break;
@@ -427,6 +432,16 @@ namespace KScr.Eval
             }
             return this;
         }
+
+        private BytecodeType GetCodeType(TokenType tokenType) => tokenType switch
+        {
+            TokenType.OperatorPlus => BytecodeType.OperatorPlus,
+            TokenType.OperatorMinus => BytecodeType.OperatorMinus,
+            TokenType.OperatorMultiply => BytecodeType.OperatorMultiply,
+            TokenType.OperatorDivide => BytecodeType.OperatorDivide,
+            TokenType.OperatorModulus => BytecodeType.OperatorModulus,
+            _ => throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, null)
+        };
 
         public ICompiler Parent => _parent;
 
