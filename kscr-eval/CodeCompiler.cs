@@ -232,6 +232,16 @@ namespace KScr.Eval
         }
 
         public IEvaluable Compile(RuntimeBase runtime) => Bytecode;
+
+        public static BytecodeType GetCodeType(TokenType tokenType) => tokenType switch
+        {
+            TokenType.OperatorPlus => BytecodeType.OperatorPlus,
+            TokenType.OperatorMinus => BytecodeType.OperatorMinus,
+            TokenType.OperatorMultiply => BytecodeType.OperatorMultiply,
+            TokenType.OperatorDivide => BytecodeType.OperatorDivide,
+            TokenType.OperatorModulus => BytecodeType.OperatorModulus,
+            _ => throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, null)
+        };
     }
 
     public enum SubCompilerMode
@@ -412,12 +422,10 @@ namespace KScr.Eval
                 case TokenType.OperatorDivide:
                 case TokenType.OperatorModulus:
                     if (CompilerLevel != CompilerLevel.Component)
-                        throw new CompilerException("Invalid CompilerLevel for dot Token");
-                    if (!(next is { Type: TokenType.Word }))
-                        throw new CompilerException("Unexpected token; dot must be followed by a word");
+                        throw new CompilerException("Invalid CompilerLevel for operator Token");
                     Arg = next.Arg!;
                     _statement.Type = Type = StatementComponentType.Provider;
-                    CodeType = GetCodeType(token.Type);
+                    CodeType = MainCompiler.GetCodeType(token.Type);
                     i++;
                     _finished = true;
                     break;
@@ -432,16 +440,6 @@ namespace KScr.Eval
             }
             return this;
         }
-
-        private BytecodeType GetCodeType(TokenType tokenType) => tokenType switch
-        {
-            TokenType.OperatorPlus => BytecodeType.OperatorPlus,
-            TokenType.OperatorMinus => BytecodeType.OperatorMinus,
-            TokenType.OperatorMultiply => BytecodeType.OperatorMultiply,
-            TokenType.OperatorDivide => BytecodeType.OperatorDivide,
-            TokenType.OperatorModulus => BytecodeType.OperatorModulus,
-            _ => throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, null)
-        };
 
         public ICompiler Parent => _parent;
 
