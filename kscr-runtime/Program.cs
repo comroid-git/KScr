@@ -39,20 +39,6 @@ namespace KScr.Runtime
             Console.Read();
         }
 
-        private static int RunCode(KScrRuntime runtime, Bytecode bytecode, out IObject? result, out State state)
-        {
-            try
-            {
-                result = runtime.Execute(bytecode, out state);
-            }
-            catch (ThrownValue thr)
-            {
-                result = thr.Value;
-                state = State.Throw;
-            }
-            return HandleExit(state, result);
-        }
-
         private static int StdIoMode(KScrRuntime runtime)
         {
             Bytecode full = new Bytecode();
@@ -84,7 +70,8 @@ namespace KScr.Runtime
                         continue;
                     case "run":
                         ClearEval(runtime);
-                        return RunCode(runtime, full, out result, out state);
+                        result = runtime.Execute(full, out state);
+                        return HandleExit(state, result);
                     default:
                         if (!input.EndsWith(';'))
                             input += ';';
@@ -150,8 +137,8 @@ namespace KScr.Runtime
             time = RuntimeBase.UnixTime();
             var tokens = runtime.Tokenize(input!);
             here = runtime.Compile(tokens);
-            RunCode(runtime, here as Bytecode, out IObject? result, out state);
-            time -= RuntimeBase.UnixTime();
+            var result = runtime.Execute(here, out state);
+            time = RuntimeBase.UnixTime() - time;
             return result;
         }
     }

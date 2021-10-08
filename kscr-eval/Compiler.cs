@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using KScr.Lib;
+using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
@@ -80,7 +81,16 @@ namespace KScr.Eval
                     PushComponent();
                     break;
                 case TokenType.Return:
-                    break;
+                    Statement.Type = Component.Type = StatementComponentType.Code;
+                    Component.CodeType = BytecodeType.Return;
+                    CompilerLevel = CompilerLevel.Component;
+                    var rtnExpr = new SubCompiler(this, SubCompilerMode.Expression, sub =>
+                    {
+                        Component = sub;
+                        PushComponent(true);
+                    });
+                    Component.SubComponent = rtnExpr;
+                    return rtnExpr;
                 case TokenType.Throw:
                     break;
                 case TokenType.LiteralNum:
@@ -171,6 +181,7 @@ namespace KScr.Eval
                             // is assignment
                             Component.Type = StatementComponentType.Code;
                             Component.CodeType = BytecodeType.Assignment;
+                            CompilerLevel = CompilerLevel.Component;
                             var compiler = new SubCompiler(this, SubCompilerMode.Expression, sub => { });
                             Component.SubComponent = compiler;
                             return compiler;
@@ -264,8 +275,6 @@ namespace KScr.Eval
                         case SubCompilerMode.ParseTypeParameters:
                             TargetType = vm.FindType(token.Arg!) ?? throw new CompilerException("Type not found: " + token.Arg);
                             break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
                     }
                     break;
                 case TokenType.Return:
@@ -300,11 +309,12 @@ namespace KScr.Eval
                 case TokenType.LiteralNum:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected numeric literal at index " + i);
-                    if (!Statement.TargetType.FullName.StartsWith("num"))
+                    var num = Numeric.Compile(vm, token.Arg!);
+                    if (!Statement.TargetType.CanHold(num.Type))
                         throw new CompilerException("Unexpected numeric; target type is " + Statement.TargetType);
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.LiteralNumeric;
-                    Arg = token.Arg!;
+                    Arg = num.Value?.ToString(IObject.ToString_LongName) ?? token.Arg!;
                     break;
                 case TokenType.LiteralStr:
                     if (_parent.CompilerLevel != CompilerLevel.Component)

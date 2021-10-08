@@ -85,6 +85,14 @@ namespace KScr.Eval
                             if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new InternalException("Invalid assignment; no Expression found");
                             return SubComponent.Evaluate(vm, this, ref rev);
+                        case BytecodeType.Return:
+                            // return
+                            if (rev == null)
+                                throw new InternalException("Invalid return statement; no ObjectRef found");
+                            if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
+                                throw new InternalException("Invalid return statement; no Expression found");
+                            var state = SubComponent.Evaluate(vm, this, ref rev);
+                            return state;
                     }
                     throw new NotImplementedException();
                 case StatementComponentType.Operator:
