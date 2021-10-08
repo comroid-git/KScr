@@ -7,6 +7,13 @@ using KScr.Lib.Store;
 
 namespace KScr.Lib
 {
+    public enum State : uint
+    {
+        Normal = 0,
+        Return = 1,
+        Throw = 2
+    }
+    
     public abstract class RuntimeBase
     {
         private uint _lastObjId = 0xF;
@@ -61,7 +68,7 @@ namespace KScr.Lib
             return ((long)hash << 0x20) | objId;
         }
 
-        public long UnixTime()
+        public static long UnixTime()
         {
             var epochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return (DateTime.UtcNow - epochStart).Ticks / 10;
@@ -93,17 +100,19 @@ namespace KScr.Lib
             return Compiler.Compile(this, tokens);
         }
 
-        public ObjectRef? Execute(IEvaluable bytecode, out long timeµs)
+        public IObject? Execute(IEvaluable bytecode, out State state, out long timeµs)
         {
             timeµs = UnixTime();
-            var yield = Execute(bytecode);
+            var yield = Execute(bytecode, out state);
             timeµs = UnixTime() - timeµs;
             return yield;
         }
 
-        public ObjectRef? Execute(IEvaluable bytecode)
+        public IObject? Execute(IEvaluable bytecode, out State state)
         {
-            return bytecode.Evaluate(this, null, null);
+            ObjectRef? nil = null;
+            state = bytecode.Evaluate(this, null, ref nil);
+            return nil?.Value;
         }
 
         public TypeRef? FindType(string name)

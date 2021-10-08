@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using KScr.Eval;
+using KScr.Lib;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
@@ -23,12 +24,8 @@ namespace KScr.Runtime
                     .Select(File.ReadAllText));
             if (fullSource != string.Empty)
             {
-                var yield = HandleSourcecode(eval, fullSource, out IEvaluable? bytecode, out var time);
-                var code = yield?.Value is Numeric num ? num.IntValue : 0;
-
-                Console.WriteLine("Program finished with exit code " + code);
-                PressToExit();
-                return code;
+                var yield = HandleSourcecode(eval, fullSource, out State state, out IEvaluable? bytecode, out var time);
+                return HandleExit(state, yield);
             }
 
             Console.WriteLine("Uh-oh, I really don't know what this is: [" + string.Join(',', args) + ']');
@@ -42,39 +39,28 @@ namespace KScr.Runtime
             Console.Read();
         }
 
-        private static int RunCode(KScrRuntime runtime, Bytecode bytecode)
+        private static int RunCode(KScrRuntime runtime, Bytecode bytecode, out IObject? result, out State state)
         {
-            ObjectRef? result = null;
             try
             {
-                result = runtime.Execute(bytecode);
+                result = runtime.Execute(bytecode, out state);
             }
             catch (ThrownValue thr)
             {
-                var v = thr.Value;
-                Console.WriteLine("Program failed with exit value " + v?.ToString(IObject.ToString_LongName) ?? "null");
-
-                if (v is Numeric code) return code.IntValue;
+                result = thr.Value;
+                state = State.Throw;
             }
-
-            if (result?.Value is Numeric num)
-            {
-                Console.WriteLine("Program finished with exit code " + result);
-                PressToExit();
-                return num.IntValue;
-            }
-
-            Console.WriteLine("Program finished without exit value");
-            PressToExit();
-            return 0;
+            return HandleExit(state, result);
         }
 
         private static int StdIoMode(KScrRuntime runtime)
         {
             Bytecode full = new Bytecode();
+            IObject? result = null;
+            State state = State.Normal;
             var verbose = false;
 
-            while (true)
+            while (state == State.Normal)
             {
                 // write prefix
                 Console.Write("kscr> ");
@@ -98,22 +84,59 @@ namespace KScr.Runtime
                         continue;
                     case "run":
                         ClearEval(runtime);
-                        return RunCode(runtime, full);
+                        return RunCode(runtime, full, out result, out state);
                     default:
                         if (!input.EndsWith(';'))
                             input += ';';
-                        var result = HandleSourcecode(runtime, input, out IEvaluable here, out var time);
+                        result = HandleSourcecode(runtime, input, out state, out IEvaluable here, out var time);
                         var isnull = result == null;
 
-                        string str0 = result?.Value!.ToString(0) ?? "null";
+                        string str0 = result?.ToString(0) ?? "null";
                         if (verbose)
-                            str0 += "\t\t" + (result?.Value!.ToString(-1) ?? "void");
+                            str0 += "\t\t" + (result?.ToString(-1) ?? "void");
                         str0 += $" [{time} µs]";
                         Console.WriteLine(str0);
                         full.Append(here);
                         continue;
                 }
             }
+
+            return HandleExit(state, result);
+        }
+
+        private static int HandleExit(State state, IObject? result)
+        {
+            switch (state)
+            {
+                case State.Normal:
+                    Console.Write("Program stopped ");
+                    break;
+                case State.Return:
+                    Console.Write("Program finished ");
+                    break;
+                case State.Throw:
+                    Console.Write("Program failed ");
+                    break;
+            }
+
+            if (result == null)
+                Console.WriteLine("without exit value;");
+            else if (result is Numeric num)
+            {
+                int rtn = num.IntValue;
+                Console.WriteLine("with exit code " + rtn);
+                return rtn;
+            }
+            else Console.WriteLine("with exit message: " + result.ToString(IObject.ToString_LongName));
+
+            PressToExit();
+            return state switch
+            {
+                State.Normal => 0,
+                State.Return => 1,
+                State.Throw => -1,
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
         private static void ClearEval(KScrRuntime runtime)
@@ -122,11 +145,13 @@ namespace KScr.Runtime
             vm.Clear();
         }
 
-        private static ObjectRef? HandleSourcecode(KScrRuntime runtime, string? input, out IEvaluable? here, out long time)
+        private static IObject? HandleSourcecode(KScrRuntime runtime, string? input, out State state, out IEvaluable? here, out long time)
         {
-            var tokens = runtime.Tokenize(input);
+            time = RuntimeBase.UnixTime();
+            var tokens = runtime.Tokenize(input!);
             here = runtime.Compile(tokens);
-            var result = runtime.Execute(here, out time);
+            RunCode(runtime, here as Bytecode, out IObject? result, out state);
+            time -= RuntimeBase.UnixTime();
             return result;
         }
     }

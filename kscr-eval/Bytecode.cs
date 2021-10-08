@@ -9,23 +9,23 @@ namespace KScr.Eval
 {
     public class Bytecode : IStatement<Statement>
     {
-        public StatementComponentType Type { get; }
+        public StatementComponentType Type { get; } = StatementComponentType.Code;
         public List<Statement> Main { get; } = new List<Statement>();
 
-        public ObjectRef? Evaluate(RuntimeBase vm, IEvaluable? _, ObjectRef? __)
+        public State Evaluate(RuntimeBase vm, IEvaluable? _, ref ObjectRef? __)
         {
             ObjectRef? rev = null;
             Statement? prev = null;
+            State state = State.Normal;
             
             foreach (var statement in Main)
             {
-                rev = statement.Evaluate(vm, prev, rev);
+                state = statement.Evaluate(vm, prev, ref rev);
                 if (rev?.Value is ReturnValue)
-                    return rev;
+                    return State.Return;
                 prev = statement;
             }
-
-            return rev;
+            return state;
         }
 
         public void Append(IEvaluable? here)

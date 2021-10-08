@@ -15,20 +15,22 @@ namespace KScr.Eval
         public TypeRef TargetType { get; internal set; } = TypeRef.VoidType;
         public List<StatementComponent> Main { get; } = new List<StatementComponent>();
         
-        public ObjectRef? Evaluate(RuntimeBase vm, IEvaluable? prev, ObjectRef? _)
+        public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? _)
         {
             ObjectRef? rev = null;
+            State state = State.Normal;
+            
             foreach (var component in Main)
             {
                 switch (component.Type)
                 {
                     default:
-                        rev = component.Evaluate(vm, prev, rev);
+                        state = component.Evaluate(vm, prev, ref rev);
                         break;
                 }
                 prev = component;
             }
-            return rev;
+            return state;
         }
     }
     public class StatementComponent : IStatementComponent
@@ -40,7 +42,7 @@ namespace KScr.Eval
         public BytecodeType CodeType { get; internal set; } = BytecodeType.Terminator;
         public StatementComponent? SubComponent { get; internal set; }
         
-        public ObjectRef? Evaluate(RuntimeBase vm, IEvaluable? prev, ObjectRef? prevRef)
+        public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
         {
             switch (Type)
             {
@@ -49,21 +51,27 @@ namespace KScr.Eval
                     switch (CodeType)
                     {
                         case BytecodeType.LiteralNumeric:
-                            return Numeric.Compile(vm, Arg);
+                            rev = Numeric.Compile(vm, Arg);
+                            break;
                         case BytecodeType.LiteralString:
-                            return String.Instance(vm, Arg);
+                            rev = String.Instance(vm, Arg);
+                            break;
                         case BytecodeType.LiteralTrue:
-                            return vm.ConstantTrue;
+                            rev = vm.ConstantTrue;
+                            break;
                         case BytecodeType.LiteralFalse:
-                            return vm.ConstantFalse;
+                            rev = vm.ConstantFalse;
+                            break;
                         case BytecodeType.Null:
-                            return vm.ConstantVoid;
+                            rev = vm.ConstantVoid;
+                            break;
                     }
 
                     throw new InternalException("Invalid Expression Subtype: " + CodeType);
                 case StatementComponentType.Declaration:
                     // variable declaration
-                    return vm[VariableContext, Arg] = new ObjectRef(Statement.TargetType);
+                    vm[VariableContext, Arg] = new ObjectRef(Statement.TargetType);
+                    break;
                 case StatementComponentType.Pipe:
                     throw new NotImplementedException();
                 case StatementComponentType.Code:
@@ -72,12 +80,11 @@ namespace KScr.Eval
                     {
                         case BytecodeType.Assignment:
                             // assignment
-                            if (prevRef == null)
+                            if (rev == null)
                                 throw new InternalException("Invalid assignment; no ObjectRef found");
                             if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new InternalException("Invalid assignment; no Expression found");
-                            prevRef.Value = SubComponent.Evaluate(vm, this, null)?.Value;
-                            return prevRef;
+                            return SubComponent.Evaluate(vm, this, ref rev);
                     }
                     throw new NotImplementedException();
                 case StatementComponentType.Operator:
@@ -88,7 +95,8 @@ namespace KScr.Eval
                     {
                         case BytecodeType.ExpressionVariable:
                             // read variable
-                            return vm[VariableContext, Arg];
+                            rev = vm[VariableContext, Arg];
+                            break;
                     }
                     break;
                 case StatementComponentType.Consumer:
@@ -100,7 +108,8 @@ namespace KScr.Eval
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            throw new NotImplementedException();
+
+            return State.Normal;
         }
     }
 }
