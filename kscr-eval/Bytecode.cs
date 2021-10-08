@@ -20,7 +20,9 @@ namespace KScr.Eval
             
             foreach (var statement in Main)
             {
-                state = statement.Evaluate(vm, prev, ref rev);
+                if (vm.StdIoMode)
+                    state = statement.Evaluate(vm, prev, ref output);
+                else state = statement.Evaluate(vm, prev, ref rev);
                 if (rev?.Value is ReturnValue)
                     state = State.Return;
                 if (state != State.Normal)

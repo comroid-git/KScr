@@ -41,6 +41,7 @@ namespace KScr.Runtime
 
         private static int StdIoMode(KScrRuntime runtime)
         {
+            runtime.StdIoMode = true;
             Bytecode full = new Bytecode();
             IObject? result = null;
             State state = State.Normal;

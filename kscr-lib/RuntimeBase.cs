@@ -40,6 +40,7 @@ namespace KScr.Lib
         public ObjectRef ConstantVoid => ComputeObject(VariableContext.Absolute, Numeric.CreateKey(-1), () => IObject.Null);
         public ObjectRef ConstantFalse => ComputeObject(VariableContext.Absolute, Numeric.CreateKey(0), () => Numeric.Zero);
         public ObjectRef ConstantTrue => ComputeObject(VariableContext.Absolute, Numeric.CreateKey(1), () => Numeric.One);
+        public bool StdIoMode { get; set; } = false;
 
         public uint NextObjId()
         {
