@@ -125,7 +125,7 @@ namespace KScr.Eval
                     {
                         if (!_statement.TargetType.CanHold(sub.TargetType))
                             throw new CompilerException($"Incompatible expression type: {sub.TargetType}; expected type: {_statement.TargetType}");
-                        if (next?.Type == TokenType.Dot) {
+                        if (next?.Type != TokenType.Terminator || next?.Type != TokenType.ParRoundClose) {
                             Component = sub;
                             PushComponent();
                         }
@@ -360,7 +360,7 @@ namespace KScr.Eval
                     CodeType = BytecodeType.LiteralNumeric;
                     Arg = num.Value?.ToString(IObject.ToString_LongName) ?? token.Arg!;
                     TargetType = num.Type;
-                    _finished = next?.Type == TokenType.Dot;
+                    _finished = next?.Type != TokenType.Terminator || next?.Type != TokenType.ParRoundClose;
                     break;
                 case TokenType.LiteralStr:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
@@ -371,7 +371,7 @@ namespace KScr.Eval
                     CodeType = BytecodeType.LiteralString;
                     Arg = token.Arg!;
                     TargetType = TypeRef.StringType;
-                    _finished = next?.Type == TokenType.Dot;
+                    _finished = next?.Type != TokenType.Terminator || next?.Type != TokenType.ParRoundClose;
                     break;
                 case TokenType.LiteralTrue:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
@@ -382,7 +382,7 @@ namespace KScr.Eval
                     CodeType = BytecodeType.LiteralTrue;
                     Arg = token.Arg!;
                     TargetType = TypeRef.NumericShortType;
-                    _finished = next?.Type == TokenType.Dot;
+                    _finished = next?.Type != TokenType.Terminator || next?.Type != TokenType.ParRoundClose;
                     break;
                 case TokenType.LiteralFalse:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
@@ -393,7 +393,7 @@ namespace KScr.Eval
                     CodeType = BytecodeType.LiteralFalse;
                     Arg = token.Arg!;
                     TargetType = TypeRef.NumericShortType;
-                    _finished = next?.Type == TokenType.Dot;
+                    _finished = next?.Type != TokenType.Terminator || next?.Type != TokenType.ParRoundClose;
                     break;
                 case TokenType.LiteralNull:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
@@ -404,7 +404,7 @@ namespace KScr.Eval
                     CodeType = BytecodeType.Null;
                     Arg = token.Arg!;
                     TargetType = TypeRef.VoidType;
-                    _finished = next?.Type == TokenType.Dot;
+                    _finished = next?.Type != TokenType.Terminator || next?.Type != TokenType.ParRoundClose;
                     break;
                 case TokenType.OperatorPlus:
                     break;
