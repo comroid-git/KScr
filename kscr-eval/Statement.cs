@@ -13,10 +13,22 @@ namespace KScr.Eval
     {
         public StatementComponentType Type { get; internal set; }
         public TypeRef TargetType { get; internal set; } = TypeRef.VoidType;
-        public List<StatementComponent> Main { get; internal set; }
-        public ObjectRef? Evaluate(RuntimeBase vm, IEvaluable? prev, ObjectRef? prevRef)
+        public List<StatementComponent> Main { get; } = new List<StatementComponent>();
+        
+        public ObjectRef? Evaluate(RuntimeBase vm, IEvaluable? prev, ObjectRef? _)
         {
-            throw new System.NotImplementedException();
+            ObjectRef? rev = null;
+            foreach (var component in Main)
+            {
+                switch (component.Type)
+                {
+                    default:
+                        rev = component.Evaluate(vm, prev, rev);
+                        break;
+                }
+                prev = component;
+            }
+            return rev;
         }
     }
     public class StatementComponent : IStatementComponent
