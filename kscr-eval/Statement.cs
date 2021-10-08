@@ -71,7 +71,7 @@ namespace KScr.Eval
                     return State.Normal;
                 case StatementComponentType.Declaration:
                     // variable declaration
-                    vm[VariableContext, Arg] = new ObjectRef(Statement.TargetType);
+                    rev = vm[VariableContext, Arg] = new ObjectRef(Statement.TargetType);
                     break;
                 case StatementComponentType.Pipe:
                     throw new NotImplementedException();
@@ -85,7 +85,10 @@ namespace KScr.Eval
                                 throw new InternalException("Invalid assignment; no ObjectRef found");
                             if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new InternalException("Invalid assignment; no Expression found");
-                            return SubComponent.Evaluate(vm, this, ref rev);
+                            ObjectRef? output = null;
+                            var state1 = SubComponent.Evaluate(vm, this, ref output);
+                            rev.Value = output?.Value;
+                            return state1;
                         case BytecodeType.Return:
                             // return
                             if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)

@@ -190,8 +190,12 @@ namespace KScr.Eval
                             Component.Type = StatementComponentType.Code;
                             Component.CodeType = BytecodeType.Assignment;
                             CompilerLevel = CompilerLevel.Component;
-                            var compiler = new SubCompiler(this, SubCompilerMode.Expression, sub => { });
-                            Component.SubComponent = compiler;
+                            PushComponent();
+                            var compiler = new SubCompiler(this, SubCompilerMode.Expression, sub =>
+                            {
+                                Component = sub;
+                                PushComponent(true);
+                            });
                             return compiler;
                         }
                         else
