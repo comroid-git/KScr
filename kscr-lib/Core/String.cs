@@ -30,19 +30,21 @@ namespace KScr.Lib.Core
             };
         }
 
-        public static String Instance(RuntimeBase vm, string str)
+        public static ObjectRef Instance(RuntimeBase vm, string str)
         {
             string key = ObjPrefix + '#' + str.GetHashCode();
             string ptr = "str-literal:" + str;
             var rev = vm[VariableContext.Absolute, ptr];
             var obj = rev?.Value;
             if (obj is String strObj && strObj.Str == str)
-                return strObj;
+                return rev!;
             if (obj != null)
                 throw new InternalException("Unexpected object at key " + key);
-            if (rev != null)
-                return ((rev.Value = new String(vm, str)) as String)!;
-            throw new NullReferenceException("Pointer not found: " + ptr);
+            if (rev == null)
+                throw new InternalException("String Pointer not found: " + ptr);
+            rev.Value = new String(vm, str);
+            return rev;
+
         }
 
         public override string ToString()

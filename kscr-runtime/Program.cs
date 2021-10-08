@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using KScr.Eval;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
+using KScr.Lib.Store;
 
 namespace KScr.Runtime
 {
@@ -21,8 +23,8 @@ namespace KScr.Runtime
                     .Select(File.ReadAllText));
             if (fullSource != string.Empty)
             {
-                var yield = HandleSourcecode(eval, fullSource, out Bytecode bytecode, out var time);
-                var code = yield is Numeric num ? num.IntValue : 0;
+                var yield = HandleSourcecode(eval, fullSource, out IEvaluable? bytecode, out var time);
+                var code = yield?.Value is Numeric num ? num.IntValue : 0;
 
                 Console.WriteLine("Program finished with exit code " + code);
                 PressToExit();
@@ -42,10 +44,10 @@ namespace KScr.Runtime
 
         private static int RunCode(KScrRuntime runtime, Bytecode bytecode)
         {
-            IObject? result = null;
+            ObjectRef? result = null;
             try
             {
-                result = runtime.Execute(bytecode, vm);
+                result = runtime.Execute(bytecode);
             }
             catch (ThrownValue thr)
             {
@@ -55,7 +57,7 @@ namespace KScr.Runtime
                 if (v is Numeric code) return code.IntValue;
             }
 
-            if (result is Numeric num)
+            if (result?.Value is Numeric num)
             {
                 Console.WriteLine("Program finished with exit code " + result);
                 PressToExit();
@@ -100,15 +102,15 @@ namespace KScr.Runtime
                     default:
                         if (!input.EndsWith(';'))
                             input += ';';
-                        var result = HandleSourcecode(runtime, input, out Bytecode here, out var time);
+                        var result = HandleSourcecode(runtime, input, out IEvaluable here, out var time);
                         var isnull = result == null;
 
-                        string str0 = !isnull ? result!.ToString(0) : "null";
+                        string str0 = result?.Value!.ToString(0) ?? "null";
                         if (verbose)
-                            str0 += "\t\t" + (!isnull ? result!.ToString(-1) : "void");
+                            str0 += "\t\t" + (result?.Value!.ToString(-1) ?? "void");
                         str0 += $" [{time} µs]";
                         Console.WriteLine(str0);
-                        full += here;
+                        full.Append(here);
                         continue;
                 }
             }
@@ -120,11 +122,11 @@ namespace KScr.Runtime
             vm.Clear();
         }
 
-        private static IObject? HandleSourcecode(KScrRuntime runtime, string? input, out Bytecode? here, out long time)
+        private static ObjectRef? HandleSourcecode(KScrRuntime runtime, string? input, out IEvaluable? here, out long time)
         {
             var tokens = runtime.Tokenize(input);
             here = runtime.Compile(tokens);
-            var result = runtime.Execute(here, vm, out time);
+            var result = runtime.Execute(here, out time);
             return result;
         }
     }

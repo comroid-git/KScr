@@ -41,11 +41,4 @@ namespace KScr.Lib.Model
         Return = 0x8000_0000 | Statement,
         Null = 0xF000_0000 | Expression
     }
-    
-        public override string ToString()
-        {
-            return $"BytecodePacket<{Type}{(Arg != null ? "," + Arg : string.Empty)}>";
-        }
-    }
-
 }

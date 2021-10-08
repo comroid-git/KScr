@@ -38,6 +38,7 @@ namespace KScr.Eval
 
         private void PushComponent()
         {
+            Component.Statement = Statement;
             Statement.Main.Add(Component);
             Component = new StatementComponent();
         }
@@ -191,7 +192,8 @@ namespace KScr.Eval
                 case TokenType.OperatorEquals:
                     if (CompilerLevel == CompilerLevel.Component)
                     {
-                        if (next.Type != TokenType.OperatorEquals)
+                        // next token may not be null here
+                        if (next!.Type != TokenType.OperatorEquals)
                         {
                             // is assignment
                             Component.Type = StatementComponentType.Code;

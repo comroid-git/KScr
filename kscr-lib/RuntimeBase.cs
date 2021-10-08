@@ -30,6 +30,10 @@ namespace KScr.Lib
         public abstract ITokenizer Tokenizer { get; }
         public abstract ICompiler Compiler { get; }
 
+        public ObjectRef ConstantVoid => ComputeObject(VariableContext.Absolute, Numeric.CreateKey(-1), () => IObject.Null);
+        public ObjectRef ConstantFalse => ComputeObject(VariableContext.Absolute, Numeric.CreateKey(0), () => Numeric.Zero);
+        public ObjectRef ConstantTrue => ComputeObject(VariableContext.Absolute, Numeric.CreateKey(1), () => Numeric.One);
+
         public uint NextObjId()
         {
             return ++_lastObjId;
@@ -84,22 +88,22 @@ namespace KScr.Lib
             return Tokenizer.Tokenize(source);
         }
 
-        public Bytecode Compile(IList<Token> tokens)
+        public IEvaluable Compile(IList<Token> tokens)
         {
             return Compiler.Compile(this, tokens);
         }
 
-        public IObject? Execute(Bytecode bytecode, RuntimeBase vm, out long timeµs)
+        public ObjectRef? Execute(IEvaluable bytecode, out long timeµs)
         {
             timeµs = UnixTime();
-            var yield = Execute(bytecode, vm);
+            var yield = Execute(bytecode);
             timeµs = UnixTime() - timeµs;
             return yield;
         }
 
-        public IObject? Execute(Bytecode bytecode, RuntimeBase vm)
+        public ObjectRef? Execute(IEvaluable bytecode)
         {
-            return bytecode.main.Evaluate(vm);
+            return bytecode.Evaluate(this, null, null);
         }
 
         public TypeRef? FindType(string name)

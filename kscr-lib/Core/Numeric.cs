@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using KScr.Lib.Exception;
 using KScr.Lib.Store;
@@ -31,13 +32,6 @@ namespace KScr.Lib.Core
         {
             Mutable = false,
             Bytes = BitConverter.GetBytes((short)1),
-            Mode = NumericMode.Short
-        };
-
-        public static readonly Numeric MinusOne = new Numeric(2)
-        {
-            Mutable = false,
-            Bytes = BitConverter.GetBytes((short)-1),
             Mode = NumericMode.Short
         };
 
@@ -76,7 +70,7 @@ namespace KScr.Lib.Core
         public double DoubleValue => GetAs<double>();
         public string StringValue => GetAs<string>();
 
-        public long ObjectId => RuntimeBase.CombineHash(_objId, "num:" + StringValue);
+        public long ObjectId => RuntimeBase.CombineHash(_objId, CreateKey(StringValue));
         public bool Primitive => true;
         public TypeRef Type => TypeRef.NumericType(Mode);
 
@@ -90,70 +84,70 @@ namespace KScr.Lib.Core
             };
         }
 
-        public static Numeric Constant(RuntimeBase vm, byte value)
+        public static ObjectRef Constant(RuntimeBase vm, byte value)
         {
-            return (vm.ComputeObject(VariableContext.Absolute, "num:" + value, () =>
+            return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
             {
                 var num = new Numeric(vm, true);
                 num.SetAs(value);
                 num.Mutable = false;
                 return num;
-            }).Value as Numeric)!;
+            });
         }
 
-        public static Numeric Constant(RuntimeBase vm, short value)
+        public static ObjectRef Constant(RuntimeBase vm, short value)
         {
-            return (vm.ComputeObject(VariableContext.Absolute, "num:" + value, () =>
+            return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
             {
                 var num = new Numeric(vm, true);
                 num.SetAs(value);
                 num.Mutable = false;
                 return num;
-            }).Value as Numeric)!;
+            });
         }
 
-        public static Numeric Constant(RuntimeBase vm, int value)
+        public static ObjectRef Constant(RuntimeBase vm, int value)
         {
-            return (vm.ComputeObject(VariableContext.Absolute, "num:" + value, () =>
+            return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
             {
                 var num = new Numeric(vm, true);
                 num.SetAs(value);
                 num.Mutable = false;
                 return num;
-            }).Value as Numeric)!;
+            });
         }
 
-        public static Numeric Constant(RuntimeBase vm, long value)
+        public static ObjectRef Constant(RuntimeBase vm, long value)
         {
-            return (vm.ComputeObject(VariableContext.Absolute, "num:" + value, () =>
+            return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
             {
                 var num = new Numeric(vm, true);
                 num.SetAs(value);
                 num.Mutable = false;
                 return num;
-            }).Value as Numeric)!;
+            });
         }
 
-        public static Numeric Constant(RuntimeBase vm, float value)
+        public static ObjectRef Constant(RuntimeBase vm, float value)
         {
-            return (vm.ComputeObject(VariableContext.Absolute, "num:" + value, () =>
+            return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
             {
                 var num = new Numeric(vm, true);
                 num.SetAs(value);
                 num.Mutable = false;
                 return num;
-            }).Value as Numeric)!;
+            });
         }
 
-        public static Numeric Constant(RuntimeBase vm, double value)
+        public static ObjectRef Constant(RuntimeBase vm, double value)
         {
-            return (vm.ComputeObject(VariableContext.Absolute, "num:" + value, () =>
+            return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
             {
                 var num = new Numeric(vm, true);
                 num.SetAs(value);
                 num.Mutable = false;
                 return num;
-            }).Value as Numeric)!;
+            });
         }
 
         private void SetAs<T>(T value)
@@ -351,7 +345,7 @@ namespace KScr.Lib.Core
             throw new InternalException("Invalid target Type: " + type);
         }
 
-        public static Numeric Compile(RuntimeBase vm, string str)
+        public static ObjectRef Compile(RuntimeBase vm, string str)
         {
             var result = NumberRegex.Match(str);
 
@@ -386,7 +380,7 @@ namespace KScr.Lib.Core
             }
         }
 
-        public Numeric OpPlus(RuntimeBase vm, Numeric right)
+        public ObjectRef OpPlus(RuntimeBase vm, Numeric right)
         {
             switch (Mode)
             {
@@ -407,7 +401,7 @@ namespace KScr.Lib.Core
             }
         }
 
-        public Numeric OpMinus(RuntimeBase vm, Numeric right)
+        public ObjectRef OpMinus(RuntimeBase vm, Numeric right)
         {
             switch (Mode)
             {
@@ -428,7 +422,7 @@ namespace KScr.Lib.Core
             }
         }
 
-        public Numeric OpMultiply(RuntimeBase vm, Numeric right)
+        public ObjectRef OpMultiply(RuntimeBase vm, Numeric right)
         {
             switch (Mode)
             {
@@ -449,7 +443,7 @@ namespace KScr.Lib.Core
             }
         }
 
-        public Numeric OpDivide(RuntimeBase vm, Numeric right)
+        public ObjectRef OpDivide(RuntimeBase vm, Numeric right)
         {
             switch (Mode)
             {
@@ -470,7 +464,7 @@ namespace KScr.Lib.Core
             }
         }
 
-        public Numeric OpModulus(RuntimeBase vm, Numeric right)
+        public ObjectRef OpModulus(RuntimeBase vm, Numeric right)
         {
             switch (Mode)
             {
@@ -495,5 +489,10 @@ namespace KScr.Lib.Core
         {
             return ToString(0);
         }
+
+        public static string CreateKey(string num) => "num:" + num;
+        public static string CreateKey(long num) => CreateKey(num.ToString());
+        public static string CreateKey(float num) => CreateKey(num.ToString(CultureInfo.InvariantCulture));
+        public static string CreateKey(double num) => CreateKey(num.ToString(CultureInfo.InvariantCulture));
     }
 }

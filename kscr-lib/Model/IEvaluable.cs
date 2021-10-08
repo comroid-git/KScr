@@ -1,9 +1,10 @@
 ﻿using KScr.Lib.Core;
+using KScr.Lib.Store;
 
 namespace KScr.Lib.Model
 {
     public interface IEvaluable
     {
-        public IObject? Evaluate(RuntimeBase vm, IEvaluable prev, IObject? prevResult);
+        public ObjectRef? Evaluate(RuntimeBase vm, IEvaluable? prev, ObjectRef? prevRef);
     }
 }
