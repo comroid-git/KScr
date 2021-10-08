@@ -26,7 +26,7 @@ namespace KScr.Lib
 
         public abstract ObjectStore ObjectStore { get; }
         public abstract TypeStore TypeStore { get; }
-        public Context Context { get; internal set; } = new Context();
+        public Context Context { get; } = new Context();
 
         public ObjectRef? this[VariableContext varctx, string name]
         {
