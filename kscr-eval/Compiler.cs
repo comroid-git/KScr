@@ -329,7 +329,7 @@ namespace KScr.Eval
                 case TokenType.LiteralStr:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected string literal at index " + i);
-                    if (!Statement.TargetType.FullName.StartsWith("num"))
+                    if (!Statement.TargetType.CanHold(TypeRef.StringType))
                         throw new CompilerException("Unexpected string; target type is " + Statement.TargetType);
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.LiteralString;
@@ -339,7 +339,7 @@ namespace KScr.Eval
                 case TokenType.LiteralTrue:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected bool literal at index " + i);
-                    if (!Statement.TargetType.FullName.StartsWith("num"))
+                    if (!Statement.TargetType.CanHold(TypeRef.NumericShortType))
                         throw new CompilerException("Unexpected bool; target type is " + Statement.TargetType);
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.LiteralTrue;
@@ -349,7 +349,7 @@ namespace KScr.Eval
                 case TokenType.LiteralFalse:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected bool literal at index " + i);
-                    if (!Statement.TargetType.FullName.StartsWith("num"))
+                    if (!Statement.TargetType.CanHold(TypeRef.NumericShortType))
                         throw new CompilerException("Unexpected bool; target type is " + Statement.TargetType);
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.LiteralFalse;
@@ -359,7 +359,7 @@ namespace KScr.Eval
                 case TokenType.LiteralNull:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected null literal at index " + i);
-                    if (!Statement.TargetType.FullName.StartsWith("num"))
+                    if (!Statement.TargetType.CanHold(TypeRef.VoidType))
                         throw new CompilerException("Unexpected null; target type is " + Statement.TargetType);
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.LiteralNumeric;

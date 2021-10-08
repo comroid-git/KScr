@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq.Expressions;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
 
@@ -60,7 +61,9 @@ namespace KScr.Eval
                         continue;
                     // logistical symbols
                     case '.':
-                        token = new Token(TokenType.Dot) { Complete = true };
+                        if (str.Length > 0 && !char.IsDigit(str[^1]))
+                            token = new Token(TokenType.Dot) { Complete = true };
+                        else LexicalToken(isWhitespace, ref str, c, isStringLiteral, tokens, artParLevel, n, ref token, ref i);
                         break;
                     case ':':
                         token = new Token(TokenType.Colon) { Complete = true };
@@ -110,6 +113,7 @@ namespace KScr.Eval
                         token = new Token(TokenType.ParDiamondClose) { Complete = true };
                         break;
                     case '"':
+                        // ReSharper disable once AssignmentInConditionalExpression
                         if (isStringLiteral = !isStringLiteral)
                             token = new Token(TokenType.LiteralStr, "");
                         break;
@@ -126,68 +130,7 @@ namespace KScr.Eval
                         continue;
                     // lexical tokens
                     default:
-                        if (!isWhitespace)
-                            str += c;
-                        if (isStringLiteral)
-                            break;
-
-                        switch (str)
-                        {
-                            case "return":
-                                PushToken(tokens, new Token(TokenType.Return) { Complete = true }, out str);
-                                PushToken(tokens, new Token(TokenType.ParRoundOpen) { Complete = true }, out str);
-                                artParLevel++;
-                                continue;
-                            case "throw":
-                                PushToken(tokens, new Token(TokenType.Throw) { Complete = true }, out str);
-                                PushToken(tokens, new Token(TokenType.ParRoundOpen) { Complete = true }, out str);
-                                artParLevel++;
-                                continue;
-                            case "num":
-                                token = new Token(TokenType.IdentNum) { Complete = true };
-                                break;
-                            case "str":
-                                token = new Token(TokenType.IdentStr) { Complete = true };
-                                break;
-                            case "byte":
-                                token = new Token(TokenType.IdentByte) { Complete = true };
-                                break;
-                            case "void":
-                                token = new Token(TokenType.IdentVoid) { Complete = true };
-                                break;
-                            case "true":
-                                token = new Token(TokenType.LiteralTrue) { Complete = true };
-                                break;
-                            case "false":
-                                token = new Token(TokenType.LiteralFalse) { Complete = true };
-                                break;
-                            case "null":
-                                token = new Token(TokenType.LiteralNull) { Complete = true };
-                                break;
-                            default:
-                                if (Numeric.NumberRegex.IsMatch(str) && !char.IsDigit(n) && n != '.')
-                                {
-                                    if (n == 'b' || n == 'i' || n == 'l' || n == 'f' || n == 'd')
-                                    {
-                                        str += n;
-                                        i++;
-                                    }
-
-                                    token = new Token(TokenType.LiteralNum, str) { Complete = true };
-                                }
-                                else if (str.Length >= 2 && str[0] == '"' && str[^1] == '"')
-                                {
-                                    token = new Token(TokenType.LiteralStr, str.Substring(1, str.Length - 2))
-                                        { Complete = true };
-                                }
-                                else if (!char.IsLetterOrDigit(n) && str != string.Empty && !char.IsDigit(str[^1]))
-                                {
-                                    token = new Token(TokenType.Word, str) { Complete = true };
-                                }
-
-                                break;
-                        }
-
+                        LexicalToken(isWhitespace, ref str, c, isStringLiteral, tokens, artParLevel, n, ref token, ref i);
                         break;
                 }
 
@@ -195,6 +138,72 @@ namespace KScr.Eval
             }
 
             return tokens;
+        }
+
+        private static void LexicalToken(bool isWhitespace, ref string str, char c, bool isStringLiteral, List<Token> tokens,
+            int artParLevel, char n, ref Token token, ref int i)
+        {
+            if (!isWhitespace)
+                str += c;
+            if (isStringLiteral)
+                return;
+
+            switch (str)
+            {
+                case "return":
+                    PushToken(tokens, new Token(TokenType.Return) { Complete = true }, out str);
+                    PushToken(tokens, new Token(TokenType.ParRoundOpen) { Complete = true }, out str);
+                    artParLevel++;
+                    return;
+                case "throw":
+                    PushToken(tokens, new Token(TokenType.Throw) { Complete = true }, out str);
+                    PushToken(tokens, new Token(TokenType.ParRoundOpen) { Complete = true }, out str);
+                    artParLevel++;
+                    return;
+                case "num":
+                    token = new Token(TokenType.IdentNum) { Complete = true };
+                    break;
+                case "str":
+                    token = new Token(TokenType.IdentStr) { Complete = true };
+                    break;
+                case "byte":
+                    token = new Token(TokenType.IdentByte) { Complete = true };
+                    break;
+                case "void":
+                    token = new Token(TokenType.IdentVoid) { Complete = true };
+                    break;
+                case "true":
+                    token = new Token(TokenType.LiteralTrue) { Complete = true };
+                    break;
+                case "false":
+                    token = new Token(TokenType.LiteralFalse) { Complete = true };
+                    break;
+                case "null":
+                    token = new Token(TokenType.LiteralNull) { Complete = true };
+                    break;
+                default:
+                    if (Numeric.NumberRegex.IsMatch(str) && !char.IsDigit(n) && n != '.')
+                    {
+                        if (n == 'b' || n == 'i' || n == 'l' || n == 'f' || n == 'd')
+                        {
+                            str += n;
+                            i++;
+                        }
+
+                        token = new Token(TokenType.LiteralNum, str) { Complete = true };
+                    }
+                    else if (str.Length >= 2 && str[0] == '"' && str[^1] == '"')
+                    {
+                        token = new Token(TokenType.LiteralStr, str.Substring(1, str.Length - 2))
+                            { Complete = true };
+                    }
+                    else if (!char.IsLetterOrDigit(n) && str != string.Empty && !char.IsDigit(str[^1]))
+                    {
+                        token = new Token(TokenType.Word, str) { Complete = true };
+                    }
+
+                    break;
+            }
         }
 
         private static Token PushToken(List<Token> tokens, Token token, out string str)
