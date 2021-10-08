@@ -54,7 +54,7 @@ namespace KScr.Eval
         {
             var token = tokens[i];
             var prev = i - 1 < 0 ? null : tokens[i - 1];
-            var next = i + 1 > tokens.Count ? null : tokens[i + 1];
+            var next = i + 1 >= tokens.Count ? null : tokens[i + 1];
 
             switch (token.Type)
             {
@@ -220,6 +220,8 @@ namespace KScr.Eval
 
         public SubCompiler(MainCompiler parent, SubCompilerMode mode, Action<SubCompiler> finishedAction)
         {
+            Statement = parent.Statement;
+
             _parent = parent;
             _mode = mode;
             _finishedAction = finishedAction;
