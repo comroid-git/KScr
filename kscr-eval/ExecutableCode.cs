@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using KScr.Lib;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
@@ -7,18 +6,18 @@ using KScr.Lib.Store;
 
 namespace KScr.Eval
 {
-    public class Bytecode : IStatement<Statement>
+    public class ExecutableCode : IStatement<Statement>
     {
         public StatementComponentType Type => StatementComponentType.Code;
-        public TypeRef TargetType => TypeRef.VoidType;
+        public IClassRef TargetType => ClassRef.VoidType;
         public List<Statement> Main { get; } = new List<Statement>();
 
         public State Evaluate(RuntimeBase vm, IEvaluable? _, ref ObjectRef? output)
         {
             ObjectRef? rev = null;
             Statement? prev = null;
-            State state = State.Normal;
-            
+            var state = State.Normal;
+
             foreach (var statement in Main)
             {
                 if (vm.StdIoMode)
@@ -31,12 +30,13 @@ namespace KScr.Eval
 
                 prev = statement;
             }
+
             return state;
         }
 
         public void Append(IEvaluable? here)
         {
-            if (here is Bytecode bc)
+            if (here is ExecutableCode bc)
                 Main.AddRange(bc.Main);
         }
     }

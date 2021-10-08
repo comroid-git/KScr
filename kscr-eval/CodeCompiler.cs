@@ -8,11 +8,14 @@ using KScr.Lib.Store;
 
 namespace KScr.Eval
 {
-    public sealed class MainCompiler : ICompiler
+    public sealed class MainCodeCompiler : ICodeCompiler
     {
-        internal readonly Bytecode Bytecode = new Bytecode();
+        internal readonly ExecutableCode ExecutableCode = new ExecutableCode();
+        private Statement _statement = new Statement();
+        internal StatementComponent Component = new StatementComponent();
+        internal StatementComponent? PrevComponent;
 
-        public ICompiler? Parent => null;
+        public ICodeCompiler? Parent => null;
 
         public IStatement<IStatementComponent> Statement
         {
@@ -21,23 +24,195 @@ namespace KScr.Eval
         }
 
         public CompilerLevel CompilerLevel { get; private set; } = CompilerLevel.Statement;
-        internal StatementComponent Component = new StatementComponent();
-        internal StatementComponent? PrevComponent = null;
-        private Statement _statement = new Statement();
 
-        public IEvaluable Compile(RuntimeBase runtime, IList<Token> tokens)
+        public IEvaluable Compile(RuntimeBase runtime, IList<CodeToken> tokens)
         {
-            var len = tokens.Count;
-            ICompiler use = this;
-            for (int i = 0; i < len; i++) 
+            int len = tokens.Count;
+            ICodeCompiler use = this;
+            for (var i = 0; i < len; i++)
                 use = use.AcceptToken(runtime, tokens, ref i);
             return use.Compile(runtime);
         }
 
+        // fixme proposal: allow precompiler code to generate tokens yourself
+        public ICodeCompiler AcceptToken(RuntimeBase vm, IList<CodeToken> tokens, ref int i)
+        {
+            var token = tokens[i];
+            var prev = i - 1 < 0 ? null : tokens[i - 1];
+            var next = i + 1 >= tokens.Count ? null : tokens[i + 1];
+
+            switch (token.Type)
+            {
+                case CodeTokenType.None:
+                    break;
+                case CodeTokenType.Terminator:
+                    PushStatement();
+                    break;
+                case CodeTokenType.Dot:
+                    if (PrevComponent != null && (PrevComponent.Type & StatementComponentType.Expression) != 0)
+                    {
+                        --i;
+                        var compiler = new SubCodeCompiler(this, SubCompilerMode.Call, sub =>
+                        {
+                            Component = sub;
+                            PushComponent();
+                        });
+                        return compiler;
+                    }
+
+                    break;
+                case CodeTokenType.Colon:
+                    break;
+                case CodeTokenType.Comma:
+                    break;
+                case CodeTokenType.Word:
+                    // find type or just store word as arg because we cant use it here
+                    Component.Arg = token.Arg!;
+                    if (CompilerLevel == CompilerLevel.Statement)
+                    {
+                        _statement.Type = Component.Type = StatementComponentType.Provider;
+                        Component.CodeType = BytecodeType.ExpressionVariable;
+                        CompilerLevel = CompilerLevel.Component;
+                    }
+
+                    PushComponent();
+
+                    break;
+                case CodeTokenType.Return:
+                    if (CompilerLevel != CompilerLevel.Statement)
+                        throw new CompilerException("Unexpected return statement");
+                    _statement.Type = Component.Type = StatementComponentType.Code;
+                    Component.CodeType = BytecodeType.Return;
+                    CompilerLevel = CompilerLevel.Component;
+                    PushComponent();
+                    --i;
+                    var rtnExpr = new SubCodeCompiler(this, SubCompilerMode.Expression, sub =>
+                    {
+                        Component = sub;
+                        PushComponent(true);
+                    });
+                    Component.SubComponent = rtnExpr;
+                    return rtnExpr;
+                case CodeTokenType.Throw:
+                    break;
+                case CodeTokenType.LiteralNum:
+                case CodeTokenType.LiteralStr:
+                case CodeTokenType.LiteralTrue:
+                case CodeTokenType.LiteralFalse:
+                case CodeTokenType.LiteralNull:
+                case CodeTokenType.ParRoundOpen:
+                    --i;
+                    CompilerLevel = CompilerLevel.Component;
+                    Component.Type = StatementComponentType.Expression;
+                    var sub1 = new SubCodeCompiler(this, SubCompilerMode.Expression, sub =>
+                    {
+                        if (!_statement.TargetType.CanHold(sub.TargetType))
+                            throw new CompilerException(
+                                $"Incompatible expression type: {sub.TargetType}; expected type: {_statement.TargetType}");
+                        if (next?.Type == CodeTokenType.Dot)
+                        {
+                            Component = sub;
+                            PushComponent();
+                        }
+                    })
+                    {
+                        Arg = Component.Arg,
+                        Type = Component.Type,
+                        CodeType = Component.CodeType,
+                        VariableContext = Component.VariableContext
+                    };
+                    Component.SubComponent = sub1;
+                    return sub1;
+                case CodeTokenType.ParRoundClose:
+                    break;
+                case CodeTokenType.ParSquareOpen:
+                    --i;
+                    return new SubCodeCompiler(this, SubCompilerMode.ParenthesesSquare, sub => { });
+                    break;
+                case CodeTokenType.ParSquareClose:
+                    break;
+                case CodeTokenType.ParAccOpen:
+                    --i;
+                    return new SubCodeCompiler(this, SubCompilerMode.ParenthesesAccolade, sub => { });
+                    break;
+                case CodeTokenType.ParAccClose:
+                    break;
+                case CodeTokenType.ParDiamondOpen:
+                    break;
+                case CodeTokenType.ParDiamondClose:
+                    break;
+                case CodeTokenType.IdentNum:
+                    // todo:
+                    // expect generic type parameters and compile them;
+                    // THEN assign them here
+                    // TargetType = TypeRef.NumericType();
+                    if (CompilerLevel != CompilerLevel.Statement)
+                        return null; // todo
+                    _statement.Type = Component.Type = StatementComponentType.Declaration;
+                    return new SubCodeCompiler(this, SubCompilerMode.ParseTypeParameters, sub =>
+                    {
+                        _statement.TargetType = sub.TargetType;
+                        CompilerLevel = CompilerLevel.Component;
+                    });
+                case CodeTokenType.IdentStr:
+                    if (CompilerLevel != CompilerLevel.Statement)
+                        throw new CompilerException($"Illegal Identifier {token.Type} at index {i}");
+                    _statement.Type = Component.Type = StatementComponentType.Declaration;
+                    _statement.TargetType = ClassRef.StringType;
+                    CompilerLevel = CompilerLevel.Component;
+                    break;
+                case CodeTokenType.IdentVoid:
+                    if (CompilerLevel != CompilerLevel.Statement)
+                        throw new CompilerException($"Illegal Identifier {token.Type} at index {i}");
+                    _statement.Type = Component.Type = StatementComponentType.Declaration;
+                    _statement.TargetType = ClassRef.VoidType;
+                    CompilerLevel = CompilerLevel.Component;
+                    break;
+                case CodeTokenType.OperatorPlus:
+                    break;
+                case CodeTokenType.OperatorMinus:
+                    break;
+                case CodeTokenType.OperatorMultiply:
+                    break;
+                case CodeTokenType.OperatorDivide:
+                    break;
+                case CodeTokenType.OperatorModulus:
+                    break;
+                case CodeTokenType.OperatorEquals:
+                    if (CompilerLevel == CompilerLevel.Component)
+                        // next token may not be null here
+                        if (next!.Type != CodeTokenType.OperatorEquals)
+                        {
+                            // is assignment
+                            Component.Type = StatementComponentType.Code;
+                            Component.CodeType = BytecodeType.Assignment;
+                            CompilerLevel = CompilerLevel.Component;
+                            PushComponent();
+                            var compiler = new SubCodeCompiler(this, SubCompilerMode.Expression, sub =>
+                            {
+                                Component = sub;
+                                PushComponent(true);
+                            });
+                            return compiler;
+                        }
+
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return this;
+        }
+
+        public IEvaluable Compile(RuntimeBase runtime)
+        {
+            return ExecutableCode;
+        }
+
         private void PushStatement()
         {
-            Bytecode.Main.Add(_statement);
-            Statement = (IStatement<IStatementComponent>) new Statement();
+            ExecutableCode.Main.Add(_statement);
+            Statement = new Statement();
             CompilerLevel = CompilerLevel.Statement;
         }
 
@@ -51,187 +226,6 @@ namespace KScr.Eval
             else Statement.Main.Add(Component);
             Component = new StatementComponent();
         }
-
-        // fixme proposal: allow precompiler code to generate tokens yourself
-        public ICompiler AcceptToken(RuntimeBase vm, IList<Token> tokens, ref int i)
-        {
-            var token = tokens[i];
-            var prev = i - 1 < 0 ? null : tokens[i - 1];
-            var next = i + 1 >= tokens.Count ? null : tokens[i + 1];
-
-            switch (token.Type)
-            {
-                case TokenType.None:
-                    break;
-                case TokenType.Terminator:
-                    PushStatement();
-                    break;
-                case TokenType.Dot:
-                    if (PrevComponent != null && (PrevComponent.Type & StatementComponentType.Expression) != 0)
-                    {
-                        --i;
-                        var compiler = new SubCompiler(this, SubCompilerMode.Call, sub =>
-                        {
-                            Component = sub;
-                            PushComponent();
-                        });
-                        return compiler;
-                    }
-
-                    break;
-                case TokenType.Colon:
-                    break;
-                case TokenType.Comma:
-                    break;
-                case TokenType.Word:
-                    // find type or just store word as arg because we cant use it here
-                    Component.Arg = token.Arg!;
-                    if (CompilerLevel == CompilerLevel.Statement)
-                    {
-                        _statement.Type = Component.Type = StatementComponentType.Provider;
-                        Component.CodeType = BytecodeType.ExpressionVariable;
-                        CompilerLevel = CompilerLevel.Component;
-                    }
-                    PushComponent();
-
-                    break;
-                case TokenType.Return:
-                    if (CompilerLevel != CompilerLevel.Statement)
-                        throw new CompilerException("Unexpected return statement");
-                    _statement.Type = Component.Type = StatementComponentType.Code;
-                    Component.CodeType = BytecodeType.Return;
-                    CompilerLevel = CompilerLevel.Component;
-                    PushComponent();
-                    --i;
-                    var rtnExpr = new SubCompiler(this, SubCompilerMode.Expression, sub =>
-                    {
-                        Component = sub;
-                        PushComponent(true);
-                    });
-                    Component.SubComponent = rtnExpr;
-                    return rtnExpr;
-                case TokenType.Throw:
-                    break;
-                case TokenType.LiteralNum:
-                case TokenType.LiteralStr:
-                case TokenType.LiteralTrue:
-                case TokenType.LiteralFalse:
-                case TokenType.LiteralNull:
-                case TokenType.ParRoundOpen:
-                    --i;
-                    CompilerLevel = CompilerLevel.Component;
-                    Component.Type = StatementComponentType.Expression;
-                    var sub1 = new SubCompiler(this, SubCompilerMode.Expression, sub =>
-                    {
-                        if (!_statement.TargetType.CanHold(sub.TargetType))
-                            throw new CompilerException($"Incompatible expression type: {sub.TargetType}; expected type: {_statement.TargetType}");
-                        if (next?.Type == TokenType.Dot) {
-                            Component = sub;
-                            PushComponent();
-                        }
-                    })
-                    {
-                        Arg = Component.Arg,
-                        Type = Component.Type,
-                        CodeType = Component.CodeType,
-                        VariableContext = Component.VariableContext
-                    };
-                    Component.SubComponent = sub1;
-                    return sub1;
-                case TokenType.ParRoundClose:
-                    break;
-                case TokenType.ParSquareOpen:
-                    --i;
-                    return new SubCompiler(this, SubCompilerMode.ParenthesesSquare, sub => { });
-                    break;
-                case TokenType.ParSquareClose:
-                    break;
-                case TokenType.ParAccOpen:
-                    --i;
-                    return new SubCompiler(this, SubCompilerMode.ParenthesesAccolade, sub => { });
-                    break;
-                case TokenType.ParAccClose:
-                    break;
-                case TokenType.ParDiamondOpen:
-                    break;
-                case TokenType.ParDiamondClose:
-                    break;
-                case TokenType.IdentNum:
-                    // todo:
-                    // expect generic type parameters and compile them;
-                    // THEN assign them here
-                    // TargetType = TypeRef.NumericType();
-                    if (CompilerLevel != CompilerLevel.Statement)
-                        return null; // todo
-                    _statement.Type = Component.Type = StatementComponentType.Declaration;
-                    return new SubCompiler(this, SubCompilerMode.ParseTypeParameters, sub =>
-                    {
-                        _statement.TargetType = sub.TargetType;
-                        CompilerLevel = CompilerLevel.Component;
-                    });
-                case TokenType.IdentStr:
-                    if (CompilerLevel != CompilerLevel.Statement)
-                        throw new CompilerException($"Illegal Identifier {token.Type} at index {i}");
-                    _statement.Type = Component.Type = StatementComponentType.Declaration;
-                    _statement.TargetType = TypeRef.StringType;
-                    CompilerLevel = CompilerLevel.Component;
-                    break;
-                case TokenType.IdentByte:
-                    if (CompilerLevel != CompilerLevel.Statement)
-                        throw new CompilerException($"Illegal Identifier {token.Type} at index {i}");
-                    _statement.Type = Component.Type = StatementComponentType.Declaration;
-                    _statement.TargetType = TypeRef.NumericByteType;
-                    CompilerLevel = CompilerLevel.Component;
-                    break;
-                case TokenType.IdentVoid:
-                    if (CompilerLevel != CompilerLevel.Statement)
-                        throw new CompilerException($"Illegal Identifier {token.Type} at index {i}");
-                    _statement.Type = Component.Type = StatementComponentType.Declaration;
-                    _statement.TargetType = TypeRef.VoidType;
-                    CompilerLevel = CompilerLevel.Component;
-                    break;
-                case TokenType.OperatorPlus:
-                    break;
-                case TokenType.OperatorMinus:
-                    break;
-                case TokenType.OperatorMultiply:
-                    break;
-                case TokenType.OperatorDivide:
-                    break;
-                case TokenType.OperatorModulus:
-                    break;
-                case TokenType.OperatorEquals:
-                    if (CompilerLevel == CompilerLevel.Component)
-                    {
-                        // next token may not be null here
-                        if (next!.Type != TokenType.OperatorEquals)
-                        {
-                            // is assignment
-                            Component.Type = StatementComponentType.Code;
-                            Component.CodeType = BytecodeType.Assignment;
-                            CompilerLevel = CompilerLevel.Component;
-                            PushComponent();
-                            var compiler = new SubCompiler(this, SubCompilerMode.Expression, sub =>
-                            {
-                                Component = sub;
-                                PushComponent(true);
-                            });
-                            return compiler;
-                        }
-                        else
-                        {
-                            // is equality operator
-                        }
-                    }
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            return this;
-        }
-
-        public IEvaluable Compile(RuntimeBase runtime) => Bytecode;
     }
 
     public enum SubCompilerMode
@@ -243,20 +237,20 @@ namespace KScr.Eval
         Call
     }
 
-    internal  class SubCompiler : StatementComponent, ICompiler
+    internal class SubCodeCompiler : StatementComponent, ICodeCompiler
     {
-        private readonly ICompiler _parent;
+        private readonly Action<SubCodeCompiler> _finishedAction;
+        private readonly CodeTokenType _firstExpected;
+        private readonly CodeTokenType? _lastExpected;
         private readonly SubCompilerMode _mode;
-        private readonly Action<SubCompiler> _finishedAction;
-        private readonly TokenType _firstExpected;
-        private readonly TokenType? _lastExpected;
-        internal TypeRef TargetType = TypeRef.VoidType;
         private int _c;
         private bool _finished;
+        internal IClassRef TargetType = ClassRef.VoidType;
 
-        public SubCompiler(ICompiler parent, SubCompilerMode mode, Action<SubCompiler> finishedAction)
-        {;
-            _parent = parent;
+        public SubCodeCompiler(ICodeCompiler parent, SubCompilerMode mode, Action<SubCodeCompiler> finishedAction)
+        {
+            ;
+            Parent = parent;
             _mode = mode;
             _finishedAction = finishedAction;
 
@@ -264,13 +258,18 @@ namespace KScr.Eval
             _lastExpected = LastExpected(mode);
         }
 
-        public IStatement<IStatementComponent> Statement => _parent.Statement;
         private Statement _statement => (Statement as Statement)!;
 
-        public CompilerLevel CompilerLevel => _parent.CompilerLevel;
-        public IEvaluable Compile(RuntimeBase runtime, IList<Token> tokens) => throw new NotSupportedException("A SubCompiler cannot compile a complete list of tokens");
+        public IStatement<IStatementComponent> Statement => Parent.Statement;
 
-        public ICompiler AcceptToken(RuntimeBase vm, IList<Token> tokens, ref int i)
+        public CompilerLevel CompilerLevel => Parent.CompilerLevel;
+
+        public IEvaluable Compile(RuntimeBase runtime, IList<CodeToken> tokens)
+        {
+            throw new NotSupportedException("A SubCompiler cannot compile a complete list of tokens");
+        }
+
+        public ICodeCompiler AcceptToken(RuntimeBase vm, IList<CodeToken> tokens, ref int i)
         {
             var token = tokens[i];
             var prev = i - 1 < 0 ? null : tokens[i - 1];
@@ -278,18 +277,18 @@ namespace KScr.Eval
 
             if (_c++ == 0 && _mode != SubCompilerMode.Expression && token.Type != _firstExpected)
                 throw new CompilerException($"First expected token was {_firstExpected}; got {token}");
-            _finished = token.Type == _lastExpected || next?.Type == TokenType.Terminator;
+            _finished = token.Type == _lastExpected || next?.Type == CodeTokenType.Terminator;
 
             switch (token.Type)
             {
-                case TokenType.None:
+                case CodeTokenType.None:
                     break;
-                case TokenType.Terminator:
+                case CodeTokenType.Terminator:
                     break;
-                case TokenType.Dot:
+                case CodeTokenType.Dot:
                     if (CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Invalid CompilerLevel for dot Token");
-                    if (!(next is { Type: TokenType.Word }))
+                    if (!(next is { Type: CodeTokenType.Word }))
                         throw new CompilerException("Unexpected token; dot must be followed by a word");
                     Arg = next.Arg!;
                     _statement.Type = Type = StatementComponentType.Provider;
@@ -297,11 +296,11 @@ namespace KScr.Eval
                     i++;
                     _finished = true;
                     break;
-                case TokenType.Colon:
+                case CodeTokenType.Colon:
                     break;
-                case TokenType.Comma:
+                case CodeTokenType.Comma:
                     break;
-                case TokenType.Word:
+                case CodeTokenType.Word:
                     switch (_mode)
                     {
                         case SubCompilerMode.Expression:
@@ -315,43 +314,43 @@ namespace KScr.Eval
                         case SubCompilerMode.ParenthesesAccolade:
                             break;
                         case SubCompilerMode.ParseTypeParameters:
-                            TargetType = vm.FindType(token.Arg!) ?? throw new CompilerException("Type not found: " + token.Arg);
+                            TargetType = vm.FindType(token.Arg!) ??
+                                         throw new CompilerException("Type not found: " + token.Arg);
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
+
                     break;
-                case TokenType.Return:
+                case CodeTokenType.Return:
                     break;
-                case TokenType.Throw:
+                case CodeTokenType.Throw:
                     break;
-                case TokenType.ParRoundOpen:
+                case CodeTokenType.ParRoundOpen:
                     break;
-                case TokenType.ParRoundClose:
+                case CodeTokenType.ParRoundClose:
                     break;
-                case TokenType.ParSquareOpen:
+                case CodeTokenType.ParSquareOpen:
                     break;
-                case TokenType.ParSquareClose:
+                case CodeTokenType.ParSquareClose:
                     break;
-                case TokenType.ParAccOpen:
+                case CodeTokenType.ParAccOpen:
                     break;
-                case TokenType.ParAccClose:
+                case CodeTokenType.ParAccClose:
                     break;
-                case TokenType.ParDiamondOpen:
+                case CodeTokenType.ParDiamondOpen:
                     // expect a set of generic type parameters or definitions
                     break;
-                case TokenType.ParDiamondClose:
+                case CodeTokenType.ParDiamondClose:
                     break;
-                case TokenType.IdentNum:
+                case CodeTokenType.IdentNum:
                     break;
-                case TokenType.IdentStr:
+                case CodeTokenType.IdentStr:
                     break;
-                case TokenType.IdentByte:
+                case CodeTokenType.IdentVoid:
                     break;
-                case TokenType.IdentVoid:
-                    break;
-                case TokenType.LiteralNum:
-                    if (_parent.CompilerLevel != CompilerLevel.Component)
+                case CodeTokenType.LiteralNum:
+                    if (Parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected numeric literal at index " + i);
                     var num = Numeric.Compile(vm, token.Arg!);
                     if (!Statement.TargetType.CanHold(num.Type))
@@ -360,95 +359,105 @@ namespace KScr.Eval
                     CodeType = BytecodeType.LiteralNumeric;
                     Arg = num.Value?.ToString(IObject.ToString_LongName) ?? token.Arg!;
                     TargetType = num.Type;
-                    _finished = next?.Type == TokenType.Dot;
+                    _finished = next?.Type == CodeTokenType.Dot;
                     break;
-                case TokenType.LiteralStr:
-                    if (_parent.CompilerLevel != CompilerLevel.Component)
+                case CodeTokenType.LiteralStr:
+                    if (Parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected string literal at index " + i);
-                    if (!Statement.TargetType.CanHold(TypeRef.StringType))
+                    if (!Statement.TargetType.CanHold(ClassRef.StringType))
                         throw new CompilerException("Unexpected string; target type is " + Statement.TargetType);
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.LiteralString;
                     Arg = token.Arg!;
-                    TargetType = TypeRef.StringType;
-                    _finished = next?.Type == TokenType.Dot;
+                    TargetType = ClassRef.StringType;
+                    _finished = next?.Type == CodeTokenType.Dot;
                     break;
-                case TokenType.LiteralTrue:
-                    if (_parent.CompilerLevel != CompilerLevel.Component)
+                case CodeTokenType.LiteralTrue:
+                    if (Parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected bool literal at index " + i);
-                    if (!Statement.TargetType.CanHold(TypeRef.NumericShortType))
+                    if (!Statement.TargetType.CanHold(ClassRef.NumericShortType))
                         throw new CompilerException("Unexpected bool; target type is " + Statement.TargetType);
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.LiteralTrue;
                     Arg = token.Arg!;
-                    TargetType = TypeRef.NumericShortType;
-                    _finished = next?.Type == TokenType.Dot;
+                    TargetType = ClassRef.NumericShortType;
+                    _finished = next?.Type == CodeTokenType.Dot;
                     break;
-                case TokenType.LiteralFalse:
-                    if (_parent.CompilerLevel != CompilerLevel.Component)
+                case CodeTokenType.LiteralFalse:
+                    if (Parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected bool literal at index " + i);
-                    if (!Statement.TargetType.CanHold(TypeRef.NumericShortType))
+                    if (!Statement.TargetType.CanHold(ClassRef.NumericShortType))
                         throw new CompilerException("Unexpected bool; target type is " + Statement.TargetType);
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.LiteralFalse;
                     Arg = token.Arg!;
-                    TargetType = TypeRef.NumericShortType;
-                    _finished = next?.Type == TokenType.Dot;
+                    TargetType = ClassRef.NumericShortType;
+                    _finished = next?.Type == CodeTokenType.Dot;
                     break;
-                case TokenType.LiteralNull:
-                    if (_parent.CompilerLevel != CompilerLevel.Component)
+                case CodeTokenType.LiteralNull:
+                    if (Parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected null literal at index " + i);
-                    if (!Statement.TargetType.CanHold(TypeRef.VoidType))
+                    if (!Statement.TargetType.CanHold(ClassRef.VoidType))
                         throw new CompilerException("Unexpected null; target type is " + Statement.TargetType);
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.Null;
                     Arg = token.Arg!;
-                    TargetType = TypeRef.VoidType;
-                    _finished = next?.Type == TokenType.Dot;
+                    TargetType = ClassRef.VoidType;
+                    _finished = next?.Type == CodeTokenType.Dot;
                     break;
-                case TokenType.OperatorPlus:
+                case CodeTokenType.OperatorPlus:
                     break;
-                case TokenType.OperatorMinus:
+                case CodeTokenType.OperatorMinus:
                     break;
-                case TokenType.OperatorMultiply:
+                case CodeTokenType.OperatorMultiply:
                     break;
-                case TokenType.OperatorDivide:
+                case CodeTokenType.OperatorDivide:
                     break;
-                case TokenType.OperatorModulus:
+                case CodeTokenType.OperatorModulus:
                     break;
-                case TokenType.OperatorEquals:
+                case CodeTokenType.OperatorEquals:
                     break;
             }
 
             if (_finished)
             {
                 _finishedAction(this);
-                return _parent;
+                return Parent;
             }
+
             return this;
         }
 
-        public ICompiler Parent => _parent;
+        public ICodeCompiler Parent { get; }
 
-        public IEvaluable Compile(RuntimeBase runtime) => Parent.Compile(runtime);
-
-        private static TokenType FirstExpected(SubCompilerMode mode) => mode switch
+        public IEvaluable Compile(RuntimeBase runtime)
         {
-            SubCompilerMode.ParenthesesSquare => TokenType.ParSquareOpen,
-            SubCompilerMode.ParenthesesAccolade => TokenType.ParAccOpen,
-            SubCompilerMode.ParseTypeParameters => TokenType.ParDiamondOpen,
-            SubCompilerMode.Expression => TokenType.ParRoundOpen,
-            SubCompilerMode.Call => TokenType.Dot,
-            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
-        };
+            return Parent.Compile(runtime);
+        }
 
-        private static TokenType? LastExpected(SubCompilerMode mode) => mode switch
+        private static CodeTokenType FirstExpected(SubCompilerMode mode)
         {
-            SubCompilerMode.ParenthesesSquare => TokenType.ParSquareClose,
-            SubCompilerMode.ParenthesesAccolade => TokenType.ParAccClose,
-            SubCompilerMode.ParseTypeParameters => TokenType.ParDiamondClose,
-            SubCompilerMode.Expression => TokenType.ParRoundClose,
-            _ => null
-        };
+            return mode switch
+            {
+                SubCompilerMode.ParenthesesSquare => CodeTokenType.ParSquareOpen,
+                SubCompilerMode.ParenthesesAccolade => CodeTokenType.ParAccOpen,
+                SubCompilerMode.ParseTypeParameters => CodeTokenType.ParDiamondOpen,
+                SubCompilerMode.Expression => CodeTokenType.ParRoundOpen,
+                SubCompilerMode.Call => CodeTokenType.Dot,
+                _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+            };
+        }
+
+        private static CodeTokenType? LastExpected(SubCompilerMode mode)
+        {
+            return mode switch
+            {
+                SubCompilerMode.ParenthesesSquare => CodeTokenType.ParSquareClose,
+                SubCompilerMode.ParenthesesAccolade => CodeTokenType.ParAccClose,
+                SubCompilerMode.ParseTypeParameters => CodeTokenType.ParDiamondClose,
+                SubCompilerMode.Expression => CodeTokenType.ParRoundClose,
+                _ => null
+            };
+        }
     }
 }

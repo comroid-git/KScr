@@ -13,7 +13,7 @@ namespace KScr.Lib
         Return = 1,
         Throw = 2
     }
-    
+
     public abstract class RuntimeBase
     {
         private uint _lastObjId = 0xF;
@@ -25,7 +25,7 @@ namespace KScr.Lib
         }
 
         public abstract ObjectStore ObjectStore { get; }
-        public abstract TypeStore TypeStore { get; }
+        public abstract ClassStore ClassStore { get; }
         public Context Context { get; } = new Context();
 
         public ObjectRef? this[VariableContext varctx, string name]
@@ -34,12 +34,20 @@ namespace KScr.Lib
             set => ObjectStore[Context, varctx, name] = value;
         }
 
-        public abstract ITokenizer Tokenizer { get; }
-        public abstract ICompiler Compiler { get; }
+        public abstract ICodeTokenizer CodeTokenizer { get; }
+        public abstract ICodeCompiler CodeCompiler { get; }
+        public abstract IClassTokenizer ClassTokenizer { get; }
+        public abstract IClassCompiler ClassCompiler { get; }
 
-        public ObjectRef ConstantVoid => ComputeObject(VariableContext.Absolute, Numeric.CreateKey(-1), () => IObject.Null);
-        public ObjectRef ConstantFalse => ComputeObject(VariableContext.Absolute, Numeric.CreateKey(0), () => Numeric.Zero);
-        public ObjectRef ConstantTrue => ComputeObject(VariableContext.Absolute, Numeric.CreateKey(1), () => Numeric.One);
+        public ObjectRef ConstantVoid =>
+            ComputeObject(VariableContext.Absolute, Numeric.CreateKey(-1), () => IObject.Null);
+
+        public ObjectRef ConstantFalse =>
+            ComputeObject(VariableContext.Absolute, Numeric.CreateKey(0), () => Numeric.Zero);
+
+        public ObjectRef ConstantTrue =>
+            ComputeObject(VariableContext.Absolute, Numeric.CreateKey(1), () => Numeric.One);
+
         public bool StdIoMode { get; set; } = false;
 
         public uint NextObjId()
@@ -78,7 +86,7 @@ namespace KScr.Lib
         public void Clear()
         {
             ObjectStore.Clear();
-            TypeStore.Clear();
+            ClassStore.Clear();
         }
 
         public ObjectRef ComputeObject(VariableContext varctx, string key, Func<IObject> func)
@@ -88,12 +96,18 @@ namespace KScr.Lib
 
         public ObjectRef PutObject(VariableContext varctx, string key, IObject? value)
         {
-            return this[varctx, key] = new ObjectRef(value?.Type ?? TypeRef.VoidType, value ?? IObject.Null);
+            return this[varctx, key] = new ObjectRef(value?.Type ?? ClassRef.VoidType, value ?? IObject.Null);
         }
 
-        public IList<Token> Tokenize(string source) => Tokenizer.Tokenize(source);
+        public IList<CodeToken> Tokenize(string source)
+        {
+            return CodeTokenizer.Tokenize(source);
+        }
 
-        public IEvaluable Compile(IList<Token> tokens) => Compiler.Compile(this, tokens);
+        public IEvaluable Compile(IList<CodeToken> tokens)
+        {
+            return CodeCompiler.Compile(this, tokens);
+        }
 
         public IObject? Execute(IEvaluable bytecode, out State state, out long timeµs)
         {
@@ -110,26 +124,26 @@ namespace KScr.Lib
             return nil?.Value;
         }
 
-        public TypeRef? FindType(string name)
+        public ClassRef? FindType(string name)
         {
             switch (name)
             {
                 case "byte":
-                    return TypeRef.NumericByteType;
+                    return ClassRef.NumericByteType;
                 case "short":
-                    return TypeRef.NumericShortType;
+                    return ClassRef.NumericShortType;
                 case "int":
-                    return TypeRef.NumericIntegerType;
+                    return ClassRef.NumericIntegerType;
                 case "long":
-                    return TypeRef.NumericLongType;
+                    return ClassRef.NumericLongType;
                 case "float":
-                    return TypeRef.NumericFloatType;
+                    return ClassRef.NumericFloatType;
                 case "double":
-                    return TypeRef.NumericDoubleType;
+                    return ClassRef.NumericDoubleType;
                 case "str":
-                    return TypeRef.StringType;
+                    return ClassRef.StringType;
                 case "void":
-                    return TypeRef.VoidType;
+                    return ClassRef.VoidType;
             }
 
             return null; // todo;

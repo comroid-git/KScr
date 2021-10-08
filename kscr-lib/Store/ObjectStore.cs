@@ -15,14 +15,14 @@ namespace KScr.Lib.Store
         {
             get
             {
-                var key = CreateKey(ctx, varctx, name);
+                string? key = CreateKey(ctx, varctx, name);
                 if (cache.ContainsKey(key))
                     return cache[key];
                 return null;
             }
             set
             {
-                var key = CreateKey(ctx, varctx, name);
+                string? key = CreateKey(ctx, varctx, name);
                 cache[key] = value;
             }
         }
@@ -55,24 +55,24 @@ namespace KScr.Lib.Store
     {
         private IObject? _value;
 
-        public ObjectRef(TypeRef type) : this(type, null)
+        public ObjectRef(IClassRef type) : this(type, null)
         {
         }
 
-        public ObjectRef(TypeRef type, IObject? value)
+        public ObjectRef(IClassRef type, IObject? value)
         {
             Type = type;
             _value = value;
         }
 
-        public TypeRef Type { get; }
+        public IClassRef Type { get; }
 
         public IObject? Value
         {
             get => _value;
             set
             {
-                var canHold = Type.CanHold(value?.Type);
+                bool canHold = Type.CanHold(value?.Type);
                 if (canHold)
                     _value = value;
                 else

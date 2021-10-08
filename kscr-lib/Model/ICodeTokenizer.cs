@@ -1,6 +1,8 @@
-﻿namespace KScr.Lib.Model
+﻿using System.Collections.Generic;
+
+namespace KScr.Lib.Model
 {
-    public enum TokenType : byte
+    public enum CodeTokenType : byte
     {
         None,
 
@@ -28,7 +30,6 @@
         // identifiers
         IdentNum,
         IdentStr,
-        IdentByte,
         IdentVoid,
 
         // literals
@@ -47,23 +48,28 @@
         OperatorEquals
     }
 
-    public class Token
+    public class CodeToken
     {
         public const byte Version = 1;
         public bool Complete;
 
-        public Token(TokenType type = TokenType.None, string arg = null)
+        public CodeToken(CodeTokenType type = CodeTokenType.None, string arg = null)
         {
             Type = type;
             Arg = arg;
         }
 
-        public TokenType Type { get; }
+        public CodeTokenType Type { get; }
         public string? Arg { get; set; }
 
         public override string ToString()
         {
             return $"Token<{Type}{(Arg != null ? ',' + Arg : string.Empty)}>";
         }
+    }
+
+    public interface ICodeTokenizer
+    {
+        IList<CodeToken> Tokenize(string source);
     }
 }

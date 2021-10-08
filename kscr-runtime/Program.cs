@@ -5,7 +5,6 @@ using KScr.Eval;
 using KScr.Lib;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
-using KScr.Lib.Store;
 
 namespace KScr.Runtime
 {
@@ -24,7 +23,7 @@ namespace KScr.Runtime
                     .Select(File.ReadAllText));
             if (fullSource != string.Empty)
             {
-                var yield = HandleSourcecode(eval, fullSource, out State state, out IEvaluable? bytecode, out var time);
+                var yield = HandleSourcecode(eval, fullSource, out var state, out var bytecode, out long time);
                 return HandleExit(state, yield);
             }
 
@@ -42,9 +41,9 @@ namespace KScr.Runtime
         private static int StdIoMode(KScrRuntime runtime)
         {
             runtime.StdIoMode = true;
-            Bytecode full = new Bytecode();
+            ExecutableCode full = new ExecutableCode();
             IObject? result = null;
-            State state = State.Normal;
+            var state = State.Normal;
             var verbose = false;
 
             while (state == State.Normal)
@@ -52,7 +51,7 @@ namespace KScr.Runtime
                 // write prefix
                 Console.Write("kscr> ");
                 // read command or code
-                var input = Console.ReadLine();
+                string? input = Console.ReadLine();
 
                 if (input == string.Empty)
                     continue;
@@ -67,7 +66,7 @@ namespace KScr.Runtime
                         continue;
                     case "clear":
                         ClearEval(runtime);
-                        full = new Bytecode();
+                        full = new ExecutableCode();
                         continue;
                     case "run":
                         ClearEval(runtime);
@@ -76,8 +75,8 @@ namespace KScr.Runtime
                     default:
                         if (!input.EndsWith(';'))
                             input += ';';
-                        result = HandleSourcecode(runtime, input, out state, out IEvaluable here, out var time);
-                        var isnull = result == null;
+                        result = HandleSourcecode(runtime, input, out state, out IEvaluable here, out long time);
+                        bool isnull = result == null;
 
                         string str0 = result?.ToString(0) ?? "null";
                         if (verbose)
@@ -108,14 +107,19 @@ namespace KScr.Runtime
             }
 
             if (result == null)
+            {
                 Console.WriteLine("without exit value;");
+            }
             else if (result is Numeric num)
             {
                 int rtn = num.IntValue;
                 Console.WriteLine("with exit code " + rtn);
                 return rtn;
             }
-            else Console.WriteLine("with exit message: " + result.ToString(IObject.ToString_LongName));
+            else
+            {
+                Console.WriteLine("with exit message: " + result.ToString(IObject.ToString_LongName));
+            }
 
             PressToExit();
             return state switch
@@ -133,7 +137,8 @@ namespace KScr.Runtime
             vm.Clear();
         }
 
-        private static IObject? HandleSourcecode(KScrRuntime runtime, string? input, out State state, out IEvaluable? here, out long time)
+        private static IObject? HandleSourcecode(KScrRuntime runtime, string? input, out State state,
+            out IEvaluable? here, out long time)
         {
             time = RuntimeBase.UnixTime();
             var tokens = runtime.Tokenize(input!);

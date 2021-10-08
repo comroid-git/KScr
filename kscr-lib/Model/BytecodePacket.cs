@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using KScr.Lib.Core;
-using KScr.Lib.Exception;
-using KScr.Lib.Store;
-using String = KScr.Lib.Core.String;
 
 namespace KScr.Lib.Model
 {

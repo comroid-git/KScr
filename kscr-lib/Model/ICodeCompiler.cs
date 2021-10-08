@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace KScr.Lib.Model
 {
@@ -9,14 +8,14 @@ namespace KScr.Lib.Model
         Component // parentheses, generic types, ...
     }
 
-    public interface ICompiler
+    public interface ICodeCompiler
     {
-        public ICompiler? Parent { get; }
+        public ICodeCompiler? Parent { get; }
         public IStatement<IStatementComponent> Statement { get; }
         public CompilerLevel CompilerLevel { get; }
-        public IEvaluable Compile(RuntimeBase runtime, IList<Token> tokens);
+        public IEvaluable Compile(RuntimeBase runtime, IList<CodeToken> tokens);
 
-        public ICompiler AcceptToken(RuntimeBase vm, IList<Token> tokens, ref int i);
+        public ICodeCompiler AcceptToken(RuntimeBase vm, IList<CodeToken> tokens, ref int i);
         public IEvaluable Compile(RuntimeBase runtime);
     }
 }

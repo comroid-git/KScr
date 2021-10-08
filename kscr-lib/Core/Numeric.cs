@@ -72,7 +72,7 @@ namespace KScr.Lib.Core
 
         public long ObjectId => RuntimeBase.CombineHash(_objId, CreateKey(StringValue));
         public bool Primitive => true;
-        public TypeRef Type => TypeRef.NumericType(Mode);
+        public ClassRef Type => ClassRef.NumericType(Mode);
 
         public string ToString(short variant)
         {
@@ -87,7 +87,6 @@ namespace KScr.Lib.Core
         public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args)
         {
             if (member.StartsWith("Operator") && args[0] is Numeric other)
-            {
                 switch (member.Substring("Operator".Length))
                 {
                     case "Plus":
@@ -101,7 +100,7 @@ namespace KScr.Lib.Core
                     case "Modulus":
                         return OpModulus(vm, other);
                 }
-            }
+
             switch (member)
             {
                 case "toString":
@@ -379,7 +378,7 @@ namespace KScr.Lib.Core
             if (!result.Success)
                 throw new InternalException("Invalid numeric literal: " + str);
             var groups = result.Groups;
-            var type = groups[5].Value;
+            string? type = groups[5].Value;
             if (type == string.Empty)
                 type = groups[2].Value;
 
@@ -517,9 +516,24 @@ namespace KScr.Lib.Core
             return ToString(0);
         }
 
-        public static string CreateKey(string num) => "num:" + num;
-        public static string CreateKey(long num) => CreateKey(num.ToString());
-        public static string CreateKey(float num) => CreateKey(num.ToString(CultureInfo.InvariantCulture));
-        public static string CreateKey(double num) => CreateKey(num.ToString(CultureInfo.InvariantCulture));
+        public static string CreateKey(string num)
+        {
+            return "num:" + num;
+        }
+
+        public static string CreateKey(long num)
+        {
+            return CreateKey(num.ToString());
+        }
+
+        public static string CreateKey(float num)
+        {
+            return CreateKey(num.ToString(CultureInfo.InvariantCulture));
+        }
+
+        public static string CreateKey(double num)
+        {
+            return CreateKey(num.ToString(CultureInfo.InvariantCulture));
+        }
     }
 }

@@ -12,7 +12,7 @@ namespace KScr.Lib.Core
         long ObjectId { get; }
         bool Primitive { get; }
 
-        TypeRef Type { get; }
+        ClassRef Type { get; }
 
         string ToString(short variant);
 
@@ -30,14 +30,17 @@ namespace KScr.Lib.Core
 
         public long ObjectId => Value?.ObjectId ?? long.MinValue;
         public bool Primitive => Value?.Primitive ?? true;
-        public TypeRef Type => Value?.Type ?? TypeRef.VoidType;
+        public ClassRef Type => Value?.Type ?? ClassRef.VoidType;
 
         public string ToString(short variant)
         {
             return Value?.ToString(variant) ?? "null";
         }
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args) => Value?.Invoke(vm, member, args);
+        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args)
+        {
+            return Value?.Invoke(vm, member, args);
+        }
     }
 
     public sealed class ReturnValue : IObject
@@ -51,14 +54,17 @@ namespace KScr.Lib.Core
 
         public long ObjectId => Value?.ObjectId ?? long.MinValue;
         public bool Primitive => Value?.Primitive ?? true;
-        public TypeRef Type => Value?.Type ?? TypeRef.VoidType;
+        public ClassRef Type => Value?.Type ?? ClassRef.VoidType;
 
         public string ToString(short variant)
         {
             return Value?.ToString(variant) ?? "null";
         }
-        
-        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args) => Value?.Invoke(vm, member, args);
+
+        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args)
+        {
+            return Value?.Invoke(vm, member, args);
+        }
     }
 
     public sealed class ThrownValue : System.Exception, IObject
@@ -72,13 +78,16 @@ namespace KScr.Lib.Core
 
         public long ObjectId => Value.ObjectId;
         public bool Primitive => Value.Primitive;
-        public TypeRef Type => Value.Type;
+        public ClassRef Type => Value.Type;
 
         public string ToString(short variant)
         {
             return Value.ToString(variant);
         }
-        
-        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args) => Value?.Invoke(vm, member, args);
+
+        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args)
+        {
+            return Value?.Invoke(vm, member, args);
+        }
     }
 }

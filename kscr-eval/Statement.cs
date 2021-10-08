@@ -12,13 +12,13 @@ namespace KScr.Eval
     public class Statement : IStatement<IStatementComponent>
     {
         public StatementComponentType Type { get; internal set; }
-        public TypeRef TargetType { get; internal set; } = TypeRef.VoidType;
+        public IClassRef TargetType { get; internal set; } = ClassRef.VoidType;
         public List<IStatementComponent> Main { get; } = new List<IStatementComponent>();
-        
+
         public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
         {
-            State state = State.Normal;
-            
+            var state = State.Normal;
+
             foreach (var component in Main)
             {
                 switch (component.Type)
@@ -27,22 +27,25 @@ namespace KScr.Eval
                         state = component.Evaluate(vm, prev, ref rev);
                         break;
                 }
+
                 if (state != State.Normal)
                     break;
                 prev = component;
             }
+
             return state;
         }
     }
+
     public class StatementComponent : IStatementComponent
     {
         public Statement Statement { get; internal set; } = null!;
-        public StatementComponentType Type { get; internal set; }
         public VariableContext VariableContext { get; internal set; }
         public string Arg { get; internal set; } = string.Empty;
-        public BytecodeType CodeType { get; internal set; } = BytecodeType.Terminator;
         public StatementComponent? SubComponent { get; internal set; }
-        
+        public StatementComponentType Type { get; internal set; }
+        public BytecodeType CodeType { get; internal set; } = BytecodeType.Terminator;
+
         public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
         {
             switch (Type)
@@ -96,6 +99,7 @@ namespace KScr.Eval
                             var state = SubComponent.Evaluate(vm, this, ref rev);
                             return state == State.Normal ? State.Return : state;
                     }
+
                     throw new NotImplementedException();
                 case StatementComponentType.Operator:
                     throw new NotImplementedException();
@@ -112,6 +116,7 @@ namespace KScr.Eval
                             rev = rev?.Value?.Invoke(vm, Arg); // todo: allow parameters
                             break;
                     }
+
                     break;
                 case StatementComponentType.Consumer:
                     throw new NotImplementedException();

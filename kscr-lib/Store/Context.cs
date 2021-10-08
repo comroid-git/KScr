@@ -18,7 +18,7 @@ namespace KScr.Lib.Store
         public string PrefixLocal => _local + Delimiter;
         public string PrefixThis => _this + Delimiter;
 
-        public void Refocus(TypeRef into, string local /*todo implement memberref type*/)
+        public void Refocus(ClassRef into, string local /*todo implement memberref type*/)
         {
             _local = local;
             _this = into.TypeId.ToString();

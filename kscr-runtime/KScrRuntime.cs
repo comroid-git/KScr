@@ -8,8 +8,10 @@ namespace KScr.Runtime
     public sealed class KScrRuntime : RuntimeBase
     {
         public override ObjectStore ObjectStore { get; } = new ObjectStore();
-        public override TypeStore TypeStore { get; } = new TypeStore();
-        public override ITokenizer Tokenizer => new Tokenizer();
-        public override ICompiler Compiler => new MainCompiler();
+        public override ClassStore ClassStore { get; } = new ClassStore();
+        public override ICodeTokenizer CodeTokenizer => new CodeTokenizer();
+        public override ICodeCompiler CodeCompiler => new MainCodeCompiler();
+        public override IClassTokenizer ClassTokenizer => new ClassTokenizer();
+        public override IClassCompiler ClassCompiler => new ClassCompiler();
     }
 }

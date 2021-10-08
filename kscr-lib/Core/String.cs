@@ -18,7 +18,7 @@ namespace KScr.Lib.Core
         public long ObjectId { get; }
 
         public bool Primitive => true;
-        public TypeRef Type => TypeRef.StringType;
+        public ClassRef Type => ClassRef.StringType;
 
         public string ToString(short variant)
         {
@@ -56,7 +56,6 @@ namespace KScr.Lib.Core
             if (rev == null)
                 rev = vm.ComputeObject(VariableContext.Absolute, ptr, () => new String(vm, str));
             return rev;
-
         }
 
         public override string ToString()
