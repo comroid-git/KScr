@@ -53,8 +53,8 @@ namespace KScr.Eval
         public ICompiler AcceptToken(RuntimeBase vm, IList<Token> tokens, ref int i)
         {
             var token = tokens[i];
-            var prev = i - 1 < 0 ? tokens[i - 1] : null;
-            var next = i + 1 > tokens.Count ? tokens[i + 1] : null;
+            var prev = i - 1 < 0 ? null : tokens[i - 1];
+            var next = i + 1 > tokens.Count ? null : tokens[i + 1];
 
             switch (token.Type)
             {
