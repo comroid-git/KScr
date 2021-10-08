@@ -41,8 +41,7 @@ namespace KScr.Lib.Core
             if (obj != null)
                 throw new InternalException("Unexpected object at key " + key);
             if (rev == null)
-                throw new InternalException("String Pointer not found: " + ptr);
-            rev.Value = new String(vm, str);
+                rev = vm.ComputeObject(VariableContext.Absolute, ptr, () => new String(vm, str));
             return rev;
 
         }
