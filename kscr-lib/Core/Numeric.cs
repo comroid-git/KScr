@@ -84,6 +84,33 @@ namespace KScr.Lib.Core
             };
         }
 
+        public IObject? Invoke(RuntimeBase vm, string member, params IObject[] args)
+        {
+            if (member.StartsWith("Operator") && args[0] is Numeric other)
+            {
+                switch (member.Substring("Operator".Length))
+                {
+                    case "Plus":
+                        return OpPlus(vm, other).Value;
+                    case "Minus":
+                        return OpMinus(vm, other).Value;
+                    case "Multiply":
+                        return OpMultiply(vm, other).Value;
+                    case "Divide":
+                        return OpDivide(vm, other).Value;
+                    case "Modulus":
+                        return OpModulus(vm, other).Value;
+                }
+            }
+            switch (member)
+            {
+                case "toString":
+                    return String.Instance(vm, StringValue).Value;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
         public static ObjectRef Constant(RuntimeBase vm, byte value)
         {
             return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>

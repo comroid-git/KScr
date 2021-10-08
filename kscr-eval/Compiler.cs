@@ -8,19 +8,20 @@ using KScr.Lib.Store;
 
 namespace KScr.Eval
 {
-    internal enum CompilerLevel
-    {
-        Statement, // expression, declaration, return, throw, if, while, ...
-        Component // parentheses, generic types, ...
-    }
-
     public sealed class MainCompiler : ICompiler
     {
         internal readonly Bytecode Bytecode = new Bytecode();
-        internal CompilerLevel CompilerLevel = CompilerLevel.Statement;
-        internal Statement Statement = new Statement();
+
+        public IStatement<IStatementComponent> Statement
+        {
+            get => _statement;
+            private set => _statement = (value as Statement)!;
+        }
+
+        public CompilerLevel CompilerLevel { get; private set; } = CompilerLevel.Statement;
         internal StatementComponent Component = new StatementComponent();
         internal StatementComponent? PrevComponent = null;
+        private Statement _statement = new Statement();
 
         public IEvaluable Compile(RuntimeBase runtime, IList<Token> tokens)
         {
@@ -33,8 +34,8 @@ namespace KScr.Eval
 
         private void PushStatement()
         {
-            Bytecode.Main.Add(Statement);
-            Statement = new Statement();
+            Bytecode.Main.Add(_statement);
+            Statement = (IStatement<IStatementComponent>) new Statement();
             CompilerLevel = CompilerLevel.Statement;
         }
 
@@ -42,7 +43,7 @@ namespace KScr.Eval
         {
             var swap = PrevComponent;
             PrevComponent = Component;
-            Component.Statement = Statement;
+            Component.Statement = _statement;
             if (sub && swap != null)
                 swap.SubComponent = Component;
             else Statement.Main.Add(Component);
@@ -63,8 +64,6 @@ namespace KScr.Eval
                 case TokenType.Terminator:
                     PushStatement();
                     break;
-                case TokenType.Dot:
-                    break;
                 case TokenType.Colon:
                     break;
                 case TokenType.Comma:
@@ -74,7 +73,7 @@ namespace KScr.Eval
                     Component.Arg = token.Arg!;
                     if (CompilerLevel == CompilerLevel.Statement)
                     {
-                        Statement.Type = Component.Type = StatementComponentType.Provider;
+                        _statement.Type = Component.Type = StatementComponentType.Provider;
                         Component.CodeType = BytecodeType.ExpressionVariable;
                         CompilerLevel = CompilerLevel.Component;
                     }
@@ -84,7 +83,7 @@ namespace KScr.Eval
                 case TokenType.Return:
                     if (CompilerLevel != CompilerLevel.Statement)
                         throw new CompilerException("Unexpected return statement");
-                    Statement.Type = Component.Type = StatementComponentType.Code;
+                    _statement.Type = Component.Type = StatementComponentType.Code;
                     Component.CodeType = BytecodeType.Return;
                     CompilerLevel = CompilerLevel.Component;
                     PushComponent();
@@ -109,8 +108,8 @@ namespace KScr.Eval
                     Component.Type = StatementComponentType.Expression;
                     return new SubCompiler(this, SubCompilerMode.Expression, sub =>
                     {
-                        if (!Statement.TargetType.CanHold(sub.TargetType))
-                            throw new CompilerException($"Incompatible expression type: {sub.TargetType}; expected type: {Statement.TargetType}");
+                        if (!_statement.TargetType.CanHold(sub.TargetType))
+                            throw new CompilerException($"Incompatible expression type: {sub.TargetType}; expected type: {_statement.TargetType}");
                         Component = sub;
                         PushComponent(true);
                     })
@@ -145,31 +144,31 @@ namespace KScr.Eval
                     // TargetType = TypeRef.NumericType();
                     if (CompilerLevel != CompilerLevel.Statement)
                         return null; // todo
-                    Statement.Type = Component.Type = StatementComponentType.Declaration;
+                    _statement.Type = Component.Type = StatementComponentType.Declaration;
                     return new SubCompiler(this, SubCompilerMode.ParseTypeParameters, sub =>
                     {
-                        Statement.TargetType = sub.TargetType;
+                        _statement.TargetType = sub.TargetType;
                         CompilerLevel = CompilerLevel.Component;
                     });
                 case TokenType.IdentStr:
                     if (CompilerLevel != CompilerLevel.Statement)
                         throw new CompilerException($"Illegal Identifier {token.Type} at index {i}");
-                    Statement.Type = Component.Type = StatementComponentType.Declaration;
-                    Statement.TargetType = TypeRef.StringType;
+                    _statement.Type = Component.Type = StatementComponentType.Declaration;
+                    _statement.TargetType = TypeRef.StringType;
                     CompilerLevel = CompilerLevel.Component;
                     break;
                 case TokenType.IdentByte:
                     if (CompilerLevel != CompilerLevel.Statement)
                         throw new CompilerException($"Illegal Identifier {token.Type} at index {i}");
-                    Statement.Type = Component.Type = StatementComponentType.Declaration;
-                    Statement.TargetType = TypeRef.NumericByteType;
+                    _statement.Type = Component.Type = StatementComponentType.Declaration;
+                    _statement.TargetType = TypeRef.NumericByteType;
                     CompilerLevel = CompilerLevel.Component;
                     break;
                 case TokenType.IdentVoid:
                     if (CompilerLevel != CompilerLevel.Statement)
                         throw new CompilerException($"Illegal Identifier {token.Type} at index {i}");
-                    Statement.Type = Component.Type = StatementComponentType.Declaration;
-                    Statement.TargetType = TypeRef.VoidType;
+                    _statement.Type = Component.Type = StatementComponentType.Declaration;
+                    _statement.TargetType = TypeRef.VoidType;
                     CompilerLevel = CompilerLevel.Component;
                     break;
                 case TokenType.OperatorPlus:
@@ -226,7 +225,7 @@ namespace KScr.Eval
 
     internal  class SubCompiler : StatementComponent, ICompiler
     {
-        private readonly MainCompiler _parent;
+        private readonly ICompiler _parent;
         private readonly SubCompilerMode _mode;
         private readonly Action<SubCompiler> _finishedAction;
         private readonly TokenType _firstExpected;
@@ -235,10 +234,8 @@ namespace KScr.Eval
         private int _c;
         private bool _finished;
 
-        public SubCompiler(MainCompiler parent, SubCompilerMode mode, Action<SubCompiler> finishedAction)
-        {
-            Statement = parent.Statement;
-
+        public SubCompiler(ICompiler parent, SubCompilerMode mode, Action<SubCompiler> finishedAction)
+        {;
             _parent = parent;
             _mode = mode;
             _finishedAction = finishedAction;
@@ -247,6 +244,10 @@ namespace KScr.Eval
             _lastExpected = LastExpected(mode);
         }
 
+        public IStatement<IStatementComponent> Statement => _parent.Statement;
+        private Statement _statement => (Statement as Statement)!;
+
+        public CompilerLevel CompilerLevel { get; private set; }
         public IEvaluable Compile(RuntimeBase runtime, IList<Token> tokens) => throw new NotSupportedException("A SubCompiler cannot compile a complete list of tokens");
 
         public ICompiler AcceptToken(RuntimeBase vm, IList<Token> tokens, ref int i)
@@ -264,8 +265,6 @@ namespace KScr.Eval
                 case TokenType.None:
                     break;
                 case TokenType.Terminator:
-                    break;
-                case TokenType.Dot:
                     break;
                 case TokenType.Colon:
                     break;

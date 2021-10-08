@@ -9,11 +9,11 @@ using String = KScr.Lib.Core.String;
 
 namespace KScr.Eval
 {
-    public class Statement : IStatement<StatementComponent>
+    public class Statement : IStatement<IStatementComponent>
     {
         public StatementComponentType Type { get; internal set; }
         public TypeRef TargetType { get; internal set; } = TypeRef.VoidType;
-        public List<StatementComponent> Main { get; } = new List<StatementComponent>();
+        public List<IStatementComponent> Main { get; } = new List<IStatementComponent>();
         
         public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
         {

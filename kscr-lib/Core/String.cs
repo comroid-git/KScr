@@ -30,6 +30,19 @@ namespace KScr.Lib.Core
             };
         }
 
+        public IObject? Invoke(RuntimeBase vm, string member, params IObject[] args)
+        {
+            switch (member)
+            {
+                case "toString":
+                    return this;
+                case "length":
+                    return Numeric.Constant(vm, Str.Length).Value;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
         public static ObjectRef Instance(RuntimeBase vm, string str)
         {
             string key = ObjPrefix + '#' + str.GetHashCode();

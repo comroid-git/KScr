@@ -36,7 +36,7 @@ namespace KScr.Lib.Model
         OperatorDivide = 0x0000_8000 | Operator,
         OperatorModulus = 0x0000_F000 | Operator,
 
-
+        Call = 0x2000_0000 | Expression,
         Throw = 0x4000_0000 | Statement,
         Return = 0x8000_0000 | Statement,
         Null = 0xF000_0000 | Expression
