@@ -15,9 +15,8 @@ namespace KScr.Eval
         public TypeRef TargetType { get; internal set; } = TypeRef.VoidType;
         public List<StatementComponent> Main { get; } = new List<StatementComponent>();
         
-        public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? _)
+        public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
         {
-            ObjectRef? rev = null;
             State state = State.Normal;
             
             foreach (var component in Main)
@@ -28,6 +27,8 @@ namespace KScr.Eval
                         state = component.Evaluate(vm, prev, ref rev);
                         break;
                 }
+                if (state != State.Normal)
+                    break;
                 prev = component;
             }
             return state;
@@ -52,19 +53,19 @@ namespace KScr.Eval
                     {
                         case BytecodeType.LiteralNumeric:
                             rev = Numeric.Compile(vm, Arg);
-                            break;
+                            return State.Normal;
                         case BytecodeType.LiteralString:
                             rev = String.Instance(vm, Arg);
-                            break;
+                            return State.Normal;
                         case BytecodeType.LiteralTrue:
                             rev = vm.ConstantTrue;
-                            break;
+                            return State.Normal;
                         case BytecodeType.LiteralFalse:
                             rev = vm.ConstantFalse;
-                            break;
+                            return State.Normal;
                         case BytecodeType.Null:
                             rev = vm.ConstantVoid;
-                            break;
+                            return State.Normal;
                     }
 
                     throw new InternalException("Invalid Expression Subtype: " + CodeType);
@@ -87,12 +88,10 @@ namespace KScr.Eval
                             return SubComponent.Evaluate(vm, this, ref rev);
                         case BytecodeType.Return:
                             // return
-                            if (rev == null)
-                                throw new InternalException("Invalid return statement; no ObjectRef found");
                             if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new InternalException("Invalid return statement; no Expression found");
                             var state = SubComponent.Evaluate(vm, this, ref rev);
-                            return state;
+                            return state == State.Normal ? State.Return : state;
                     }
                     throw new NotImplementedException();
                 case StatementComponentType.Operator:

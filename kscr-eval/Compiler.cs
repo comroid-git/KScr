@@ -10,8 +10,8 @@ namespace KScr.Eval
 {
     internal enum CompilerLevel
     {
-        Statement,
-        Component
+        Statement, // expression, declaration, return, throw, if, while, ...
+        Component // parentheses, generic types, ...
     }
 
     public sealed class MainCompiler : ICompiler
@@ -24,12 +24,11 @@ namespace KScr.Eval
 
         public IEvaluable Compile(RuntimeBase runtime, IList<Token> tokens)
         {
-            var output = new Bytecode();
             var len = tokens.Count;
             ICompiler use = this;
             for (int i = 0; i < len; i++) 
                 use = use.AcceptToken(runtime, tokens, ref i);
-            return output;
+            return use.Compile(runtime);
         }
 
         private void PushStatement()
@@ -81,9 +80,13 @@ namespace KScr.Eval
                     PushComponent();
                     break;
                 case TokenType.Return:
+                    if (CompilerLevel != CompilerLevel.Statement)
+                        throw new CompilerException("Unexpected return statement");
                     Statement.Type = Component.Type = StatementComponentType.Code;
                     Component.CodeType = BytecodeType.Return;
                     CompilerLevel = CompilerLevel.Component;
+                    PushComponent();
+                    --i;
                     var rtnExpr = new SubCompiler(this, SubCompilerMode.Expression, sub =>
                     {
                         Component = sub;
@@ -99,6 +102,9 @@ namespace KScr.Eval
                 case TokenType.LiteralFalse:
                 case TokenType.LiteralNull:
                 case TokenType.ParRoundOpen:
+                    --i;
+                    CompilerLevel = CompilerLevel.Component;
+                    Component.Type = StatementComponentType.Expression;
                     return new SubCompiler(this, SubCompilerMode.Expression, sub =>
                     {
                         if (!Statement.TargetType.CanHold(sub.TargetType))
@@ -115,11 +121,13 @@ namespace KScr.Eval
                 case TokenType.ParRoundClose:
                     break;
                 case TokenType.ParSquareOpen:
+                    --i;
                     return new SubCompiler(this, SubCompilerMode.ParenthesesSquare, sub => { });
                     break;
                 case TokenType.ParSquareClose:
                     break;
                 case TokenType.ParAccOpen:
+                    --i;
                     return new SubCompiler(this, SubCompilerMode.ParenthesesAccolade, sub => { });
                     break;
                 case TokenType.ParAccClose:
@@ -199,15 +207,7 @@ namespace KScr.Eval
             return this;
         }
 
-        public IStatementComponent Compose(RuntimeBase runtime)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEvaluable Compile(RuntimeBase runtime)
-        {
-            throw new NotImplementedException();
-        }
+        public IEvaluable Compile(RuntimeBase runtime) => Bytecode;
     }
 
     public enum SubCompilerMode
@@ -246,8 +246,8 @@ namespace KScr.Eval
         public ICompiler AcceptToken(RuntimeBase vm, IList<Token> tokens, ref int i)
         {
             var token = tokens[i];
-            var prev = i - 1 < 0 ? tokens[i - 1] : null;
-            var next = i + 1 > tokens.Count ? tokens[i + 1] : null;
+            var prev = i - 1 < 0 ? null : tokens[i - 1];
+            var next = i + 1 >= tokens.Count ? null : tokens[i + 1];
 
             if (_c++ == 0 && _mode != SubCompilerMode.Expression && token.Type != _firstExpected)
                 throw new CompilerException($"First expected token was {_firstExpected}; got {token}");
@@ -315,6 +315,7 @@ namespace KScr.Eval
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.LiteralNumeric;
                     Arg = num.Value?.ToString(IObject.ToString_LongName) ?? token.Arg!;
+                    TargetType = num.Type;
                     break;
                 case TokenType.LiteralStr:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
@@ -324,6 +325,7 @@ namespace KScr.Eval
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.LiteralString;
                     Arg = token.Arg!;
+                    TargetType = TypeRef.StringType;
                     break;
                 case TokenType.LiteralTrue:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
@@ -333,6 +335,7 @@ namespace KScr.Eval
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.LiteralTrue;
                     Arg = token.Arg!;
+                    TargetType = TypeRef.NumericShortType;
                     break;
                 case TokenType.LiteralFalse:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
@@ -342,6 +345,7 @@ namespace KScr.Eval
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.LiteralFalse;
                     Arg = token.Arg!;
+                    TargetType = TypeRef.NumericShortType;
                     break;
                 case TokenType.LiteralNull:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
@@ -351,6 +355,7 @@ namespace KScr.Eval
                     Type = StatementComponentType.Expression;
                     CodeType = BytecodeType.LiteralNumeric;
                     Arg = token.Arg!;
+                    TargetType = TypeRef.VoidType;
                     break;
                 case TokenType.OperatorPlus:
                     break;
@@ -364,8 +369,6 @@ namespace KScr.Eval
                     break;
                 case TokenType.OperatorEquals:
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
 
             if (_finished)
@@ -374,11 +377,6 @@ namespace KScr.Eval
                 return _parent;
             }
             return this;
-        }
-
-        public IStatementComponent Compose(RuntimeBase runtime)
-        {
-            throw new NotImplementedException();
         }
 
         public IEvaluable Compile(RuntimeBase runtime)

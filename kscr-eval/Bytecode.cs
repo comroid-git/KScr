@@ -12,7 +12,7 @@ namespace KScr.Eval
         public StatementComponentType Type { get; } = StatementComponentType.Code;
         public List<Statement> Main { get; } = new List<Statement>();
 
-        public State Evaluate(RuntimeBase vm, IEvaluable? _, ref ObjectRef? __)
+        public State Evaluate(RuntimeBase vm, IEvaluable? _, ref ObjectRef? output)
         {
             ObjectRef? rev = null;
             Statement? prev = null;
@@ -22,7 +22,10 @@ namespace KScr.Eval
             {
                 state = statement.Evaluate(vm, prev, ref rev);
                 if (rev?.Value is ReturnValue)
-                    return State.Return;
+                    state = State.Return;
+                if (state != State.Normal)
+                    output = rev;
+
                 prev = statement;
             }
             return state;

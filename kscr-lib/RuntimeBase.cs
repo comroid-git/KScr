@@ -90,15 +90,9 @@ namespace KScr.Lib
             return this[varctx, key] = new ObjectRef(value?.Type ?? TypeRef.VoidType, value ?? IObject.Null);
         }
 
-        public IList<Token> Tokenize(string source)
-        {
-            return Tokenizer.Tokenize(source);
-        }
+        public IList<Token> Tokenize(string source) => Tokenizer.Tokenize(source);
 
-        public IEvaluable Compile(IList<Token> tokens)
-        {
-            return Compiler.Compile(this, tokens);
-        }
+        public IEvaluable Compile(IList<Token> tokens) => Compiler.Compile(this, tokens);
 
         public IObject? Execute(IEvaluable bytecode, out State state, out long timeµs)
         {

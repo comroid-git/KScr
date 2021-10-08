@@ -9,7 +9,6 @@ namespace KScr.Lib.Model
         public IEvaluable Compile(RuntimeBase runtime, IList<Token> tokens);
 
         public ICompiler AcceptToken(RuntimeBase vm, IList<Token> tokens, ref int i);
-        public IStatementComponent Compose(RuntimeBase runtime);
         public IEvaluable Compile(RuntimeBase runtime);
     }
 }
