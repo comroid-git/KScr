@@ -68,7 +68,7 @@ namespace KScr.Eval
                             return State.Normal;
                     }
 
-                    throw new InternalException("Invalid Expression Subtype: " + CodeType);
+                    return State.Normal;
                 case StatementComponentType.Declaration:
                     // variable declaration
                     vm[VariableContext, Arg] = new ObjectRef(Statement.TargetType);

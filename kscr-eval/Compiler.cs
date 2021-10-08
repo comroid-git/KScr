@@ -268,6 +268,11 @@ namespace KScr.Eval
                 case TokenType.Word:
                     switch (_mode)
                     {
+                        case SubCompilerMode.Expression:
+                            Type = StatementComponentType.Provider;
+                            CodeType = BytecodeType.ExpressionVariable;
+                            Arg = token.Arg!;
+                            break;
                         case SubCompilerMode.ParenthesesSquare:
                             break;
                         case SubCompilerMode.ParenthesesAccolade:
