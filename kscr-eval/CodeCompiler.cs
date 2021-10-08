@@ -277,7 +277,7 @@ namespace KScr.Eval
             var next = i + 1 >= tokens.Count ? null : tokens[i + 1];
 
             if (_c++ == 0 && _mode != SubCompilerMode.Expression && token.Type != _firstExpected)
-                throw new CompilerException($"First expected token was {_firstExpected}; got {token}");
+                ;//throw new CompilerException($"First expected token was {_firstExpected}; got {token}");
             _finished = token.Type == _lastExpected || next?.Type == TokenType.Terminator;
 
             switch (token.Type)
