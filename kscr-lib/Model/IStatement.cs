@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using KScr.Lib.Store;
 
 namespace KScr.Lib.Model
 {
@@ -58,8 +59,9 @@ namespace KScr.Lib.Model
 
     public interface IStatement<SubType> : IEvaluable where SubType : IEvaluable
     {
-        public StatementComponentType Type { get; }
         public List<SubType> Main { get; }
+        public StatementComponentType Type { get; }
+        public TypeRef TargetType { get; }
     }
     public interface IStatementComponent : IEvaluable
     {

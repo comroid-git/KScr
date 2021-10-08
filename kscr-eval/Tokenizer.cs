@@ -61,7 +61,7 @@ namespace KScr.Eval
                         continue;
                     // logistical symbols
                     case '.':
-                        if (str.Length > 0 && !char.IsDigit(str[^1]))
+                        if (str.Length == 0 || !char.IsDigit(str[^1]))
                             token = new Token(TokenType.Dot) { Complete = true };
                         else LexicalToken(isWhitespace, ref str, c, isStringLiteral, tokens, artParLevel, n, ref token, ref i);
                         break;

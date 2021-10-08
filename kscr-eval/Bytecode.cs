@@ -9,7 +9,8 @@ namespace KScr.Eval
 {
     public class Bytecode : IStatement<Statement>
     {
-        public StatementComponentType Type { get; } = StatementComponentType.Code;
+        public StatementComponentType Type => StatementComponentType.Code;
+        public TypeRef TargetType => TypeRef.VoidType;
         public List<Statement> Main { get; } = new List<Statement>();
 
         public State Evaluate(RuntimeBase vm, IEvaluable? _, ref ObjectRef? output)

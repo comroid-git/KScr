@@ -12,6 +12,8 @@ namespace KScr.Eval
     {
         internal readonly Bytecode Bytecode = new Bytecode();
 
+        public ICompiler? Parent => null;
+
         public IStatement<IStatementComponent> Statement
         {
             get => _statement;
@@ -64,6 +66,19 @@ namespace KScr.Eval
                 case TokenType.Terminator:
                     PushStatement();
                     break;
+                case TokenType.Dot:
+                    if (PrevComponent != null && (PrevComponent.Type & StatementComponentType.Expression) != 0)
+                    {
+                        --i;
+                        var compiler = new SubCompiler(this, SubCompilerMode.Call, sub =>
+                        {
+                            Component = sub;
+                            PushComponent();
+                        });
+                        return compiler;
+                    }
+
+                    break;
                 case TokenType.Colon:
                     break;
                 case TokenType.Comma:
@@ -106,12 +121,14 @@ namespace KScr.Eval
                     --i;
                     CompilerLevel = CompilerLevel.Component;
                     Component.Type = StatementComponentType.Expression;
-                    return new SubCompiler(this, SubCompilerMode.Expression, sub =>
+                    var sub1 = new SubCompiler(this, SubCompilerMode.Expression, sub =>
                     {
                         if (!_statement.TargetType.CanHold(sub.TargetType))
                             throw new CompilerException($"Incompatible expression type: {sub.TargetType}; expected type: {_statement.TargetType}");
-                        Component = sub;
-                        PushComponent(true);
+                        if (next?.Type == TokenType.Dot) {
+                            Component = sub;
+                            PushComponent();
+                        }
                     })
                     {
                         Arg = Component.Arg,
@@ -119,6 +136,8 @@ namespace KScr.Eval
                         CodeType = Component.CodeType,
                         VariableContext = Component.VariableContext
                     };
+                    Component.SubComponent = sub1;
+                    return sub1;
                 case TokenType.ParRoundClose:
                     break;
                 case TokenType.ParSquareOpen:
@@ -220,7 +239,8 @@ namespace KScr.Eval
         Expression,
         ParenthesesSquare,
         ParenthesesAccolade,
-        ParseTypeParameters
+        ParseTypeParameters,
+        Call
     }
 
     internal  class SubCompiler : StatementComponent, ICompiler
@@ -229,7 +249,7 @@ namespace KScr.Eval
         private readonly SubCompilerMode _mode;
         private readonly Action<SubCompiler> _finishedAction;
         private readonly TokenType _firstExpected;
-        private readonly TokenType _lastExpected;
+        private readonly TokenType? _lastExpected;
         internal TypeRef TargetType = TypeRef.VoidType;
         private int _c;
         private bool _finished;
@@ -247,7 +267,7 @@ namespace KScr.Eval
         public IStatement<IStatementComponent> Statement => _parent.Statement;
         private Statement _statement => (Statement as Statement)!;
 
-        public CompilerLevel CompilerLevel { get; private set; }
+        public CompilerLevel CompilerLevel => _parent.CompilerLevel;
         public IEvaluable Compile(RuntimeBase runtime, IList<Token> tokens) => throw new NotSupportedException("A SubCompiler cannot compile a complete list of tokens");
 
         public ICompiler AcceptToken(RuntimeBase vm, IList<Token> tokens, ref int i)
@@ -266,6 +286,17 @@ namespace KScr.Eval
                     break;
                 case TokenType.Terminator:
                     break;
+                case TokenType.Dot:
+                    if (CompilerLevel != CompilerLevel.Component)
+                        throw new CompilerException("Invalid CompilerLevel for dot Token");
+                    if (!(next is { Type: TokenType.Word }))
+                        throw new CompilerException("Unexpected token; dot must be followed by a word");
+                    Arg = next.Arg!;
+                    _statement.Type = Type = StatementComponentType.Provider;
+                    CodeType = BytecodeType.Call;
+                    i++;
+                    _finished = true;
+                    break;
                 case TokenType.Colon:
                     break;
                 case TokenType.Comma:
@@ -277,6 +308,7 @@ namespace KScr.Eval
                             Type = StatementComponentType.Provider;
                             CodeType = BytecodeType.ExpressionVariable;
                             Arg = token.Arg!;
+                            _finished = true;
                             break;
                         case SubCompilerMode.ParenthesesSquare:
                             break;
@@ -285,6 +317,8 @@ namespace KScr.Eval
                         case SubCompilerMode.ParseTypeParameters:
                             TargetType = vm.FindType(token.Arg!) ?? throw new CompilerException("Type not found: " + token.Arg);
                             break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
                     break;
                 case TokenType.Return:
@@ -326,6 +360,7 @@ namespace KScr.Eval
                     CodeType = BytecodeType.LiteralNumeric;
                     Arg = num.Value?.ToString(IObject.ToString_LongName) ?? token.Arg!;
                     TargetType = num.Type;
+                    _finished = next?.Type == TokenType.Dot;
                     break;
                 case TokenType.LiteralStr:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
@@ -336,6 +371,7 @@ namespace KScr.Eval
                     CodeType = BytecodeType.LiteralString;
                     Arg = token.Arg!;
                     TargetType = TypeRef.StringType;
+                    _finished = next?.Type == TokenType.Dot;
                     break;
                 case TokenType.LiteralTrue:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
@@ -346,6 +382,7 @@ namespace KScr.Eval
                     CodeType = BytecodeType.LiteralTrue;
                     Arg = token.Arg!;
                     TargetType = TypeRef.NumericShortType;
+                    _finished = next?.Type == TokenType.Dot;
                     break;
                 case TokenType.LiteralFalse:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
@@ -356,6 +393,7 @@ namespace KScr.Eval
                     CodeType = BytecodeType.LiteralFalse;
                     Arg = token.Arg!;
                     TargetType = TypeRef.NumericShortType;
+                    _finished = next?.Type == TokenType.Dot;
                     break;
                 case TokenType.LiteralNull:
                     if (_parent.CompilerLevel != CompilerLevel.Component)
@@ -366,6 +404,7 @@ namespace KScr.Eval
                     CodeType = BytecodeType.Null;
                     Arg = token.Arg!;
                     TargetType = TypeRef.VoidType;
+                    _finished = next?.Type == TokenType.Dot;
                     break;
                 case TokenType.OperatorPlus:
                     break;
@@ -389,10 +428,9 @@ namespace KScr.Eval
             return this;
         }
 
-        public IEvaluable Compile(RuntimeBase runtime)
-        {
-            throw new NotImplementedException();
-        }
+        public ICompiler Parent => _parent;
+
+        public IEvaluable Compile(RuntimeBase runtime) => Parent.Compile(runtime);
 
         private static TokenType FirstExpected(SubCompilerMode mode) => mode switch
         {
@@ -400,16 +438,17 @@ namespace KScr.Eval
             SubCompilerMode.ParenthesesAccolade => TokenType.ParAccOpen,
             SubCompilerMode.ParseTypeParameters => TokenType.ParDiamondOpen,
             SubCompilerMode.Expression => TokenType.ParRoundOpen,
+            SubCompilerMode.Call => TokenType.Dot,
             _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
         };
 
-        private static TokenType LastExpected(SubCompilerMode mode) => mode switch
+        private static TokenType? LastExpected(SubCompilerMode mode) => mode switch
         {
             SubCompilerMode.ParenthesesSquare => TokenType.ParSquareClose,
             SubCompilerMode.ParenthesesAccolade => TokenType.ParAccClose,
             SubCompilerMode.ParseTypeParameters => TokenType.ParDiamondClose,
             SubCompilerMode.Expression => TokenType.ParRoundClose,
-            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+            _ => null
         };
     }
 }

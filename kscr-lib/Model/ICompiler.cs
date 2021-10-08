@@ -11,6 +11,7 @@ namespace KScr.Lib.Model
 
     public interface ICompiler
     {
+        public ICompiler? Parent { get; }
         public IStatement<IStatementComponent> Statement { get; }
         public CompilerLevel CompilerLevel { get; }
         public IEvaluable Compile(RuntimeBase runtime, IList<Token> tokens);

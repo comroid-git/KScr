@@ -107,6 +107,10 @@ namespace KScr.Eval
                             // read variable
                             rev = vm[VariableContext, Arg];
                             break;
+                        case BytecodeType.Call:
+                            // invoke method
+                            rev = rev?.Value?.Invoke(vm, Arg); // todo: allow parameters
+                            break;
                     }
                     break;
                 case StatementComponentType.Consumer:

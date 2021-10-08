@@ -30,14 +30,14 @@ namespace KScr.Lib.Core
             };
         }
 
-        public IObject? Invoke(RuntimeBase vm, string member, params IObject[] args)
+        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args)
         {
             switch (member)
             {
                 case "toString":
-                    return this;
+                    return Instance(vm, Str);
                 case "length":
-                    return Numeric.Constant(vm, Str.Length).Value;
+                    return Numeric.Constant(vm, Str.Length);
                 default:
                     throw new NotImplementedException();
             }
