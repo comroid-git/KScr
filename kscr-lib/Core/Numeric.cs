@@ -84,7 +84,7 @@ namespace KScr.Lib.Core
             };
         }
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args)
+        public ObjectRef Invoke(RuntimeBase vm, string member, params IObject?[] args)
         {
             if (member.StartsWith("Operator") && args[0] is Numeric other)
             {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using KScr.Lib;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
@@ -45,6 +46,8 @@ namespace KScr.Eval
         
         public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
         {
+            ObjectRef? output;
+            State state;
             switch (Type)
             {
                 case StatementComponentType.Expression:
@@ -85,7 +88,7 @@ namespace KScr.Eval
                                 throw new InternalException("Invalid assignment; missing variable name");
                             if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new InternalException("Invalid assignment; no Expression found");
-                            ObjectRef? output = null;
+                            output = null;
                             var state1 = SubComponent.Evaluate(vm, this, ref output);
                             rev.Value = output?.Value;
                             return state1;
@@ -93,7 +96,7 @@ namespace KScr.Eval
                             // return
                             if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new InternalException("Invalid return statement; no Expression found");
-                            var state = SubComponent.Evaluate(vm, this, ref rev);
+                            state = SubComponent.Evaluate(vm, this, ref rev);
                             return state == State.Normal ? State.Return : state;
                     }
                     throw new NotImplementedException();
@@ -107,6 +110,19 @@ namespace KScr.Eval
                             // read variable
                             rev = vm[VariableContext, Arg];
                             break;
+                        case BytecodeType.OperatorPlus:
+                        case BytecodeType.OperatorMinus:
+                        case BytecodeType.OperatorMultiply:
+                        case BytecodeType.OperatorDivide:
+                        case BytecodeType.OperatorModulus:
+                            if (rev == null)
+                                throw new InternalException("Left side of operator cannot be null");
+                            if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
+                                throw new InternalException("Right side of operator not found");
+                            output = null;
+                            state = SubComponent.Evaluate(vm, this, ref output);
+                            rev = rev.Value!.Invoke(vm, CodeType.ToString(), output?.Value);
+                            return state;
                         case BytecodeType.Call:
                             // invoke method
                             rev = rev?.Value?.Invoke(vm, Arg); // todo: allow parameters
