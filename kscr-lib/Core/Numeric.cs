@@ -86,7 +86,7 @@ namespace KScr.Lib.Core
 
         public ObjectRef Invoke(RuntimeBase vm, string member, params IObject?[] args)
         {
-            if (member.StartsWith("Operator") && args[0] is Numeric other)
+            if (member.StartsWith("Operator") && args.Length > 0 && args[0] is Numeric other)
             {
                 switch (member.Substring("Operator".Length))
                 {

@@ -110,19 +110,6 @@ namespace KScr.Eval
                             // read variable
                             rev = vm[VariableContext, Arg];
                             break;
-                        case BytecodeType.OperatorPlus:
-                        case BytecodeType.OperatorMinus:
-                        case BytecodeType.OperatorMultiply:
-                        case BytecodeType.OperatorDivide:
-                        case BytecodeType.OperatorModulus:
-                            if (rev == null)
-                                throw new InternalException("Left side of operator cannot be null");
-                            if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
-                                throw new InternalException("Right side of operator not found");
-                            output = null;
-                            state = SubComponent.Evaluate(vm, this, ref output);
-                            rev = rev.Value!.Invoke(vm, CodeType.ToString(), output?.Value);
-                            return state;
                         case BytecodeType.Call:
                             // invoke method
                             rev = rev?.Value?.Invoke(vm, Arg); // todo: allow parameters

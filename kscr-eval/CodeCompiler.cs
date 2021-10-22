@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using KScr.Lib;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
@@ -191,14 +192,21 @@ namespace KScr.Eval
                     CompilerLevel = CompilerLevel.Component;
                     break;
                 case TokenType.OperatorPlus:
-                    break;
                 case TokenType.OperatorMinus:
-                    break;
                 case TokenType.OperatorMultiply:
-                    break;
                 case TokenType.OperatorDivide:
-                    break;
                 case TokenType.OperatorModulus:
+                    if (PrevComponent != null && (PrevComponent.Type & StatementComponentType.Expression) != 0)
+                    {
+                        --i;
+                        var compiler = new SubCompiler(this, SubCompilerMode.Operator, sub =>
+                        {
+                            Component = sub;
+                            PushComponent();
+                        });
+                        return compiler;
+                    }
+
                     break;
                 case TokenType.OperatorEquals:
                     if (CompilerLevel == CompilerLevel.Component)
@@ -250,7 +258,8 @@ namespace KScr.Eval
         ParenthesesSquare,
         ParenthesesAccolade,
         ParseTypeParameters,
-        Call
+        Call,
+        Operator
     }
 
     internal  class SubCompiler : StatementComponent, ICompiler
@@ -258,7 +267,7 @@ namespace KScr.Eval
         private readonly ICompiler _parent;
         private readonly SubCompilerMode _mode;
         private readonly Action<SubCompiler> _finishedAction;
-        private readonly TokenType _firstExpected;
+        private readonly TokenType[] _firstAllowed;
         private readonly TokenType? _lastExpected;
         internal TypeRef TargetType = TypeRef.VoidType;
         private int _c;
@@ -270,7 +279,7 @@ namespace KScr.Eval
             _mode = mode;
             _finishedAction = finishedAction;
 
-            _firstExpected = FirstExpected(mode);
+            _firstAllowed = FirstAllowed(mode);
             _lastExpected = LastExpected(mode);
         }
 
@@ -286,8 +295,8 @@ namespace KScr.Eval
             var prev = i - 1 < 0 ? null : tokens[i - 1];
             var next = i + 1 >= tokens.Count ? null : tokens[i + 1];
 
-            if (_c++ == 0 && _mode != SubCompilerMode.Expression && token.Type != _firstExpected)
-                ;//throw new CompilerException($"First expected token was {_firstExpected}; got {token}");
+            if (_c++ == 0 && _mode != SubCompilerMode.Expression && !_firstAllowed.Contains(token.Type))
+                throw new CompilerException($"First allowed tokens were {string.Join(",",_firstAllowed)}; got {token}");
             _finished = token.Type == _lastExpected || next?.Type == TokenType.Terminator;
 
             switch (token.Type)
@@ -423,9 +432,11 @@ namespace KScr.Eval
                 case TokenType.OperatorModulus:
                     if (CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Invalid CompilerLevel for operator Token");
-                    Arg = next.Arg!;
+                    if (_mode != SubCompilerMode.Operator)
+                        throw new CompilerException("Invalid compiler mode for operator Token");
+                    Arg = token.Type.ToString();
                     _statement.Type = Type = StatementComponentType.Provider;
-                    CodeType = MainCompiler.GetCodeType(token.Type);
+                    CodeType = BytecodeType.Call;
                     i++;
                     _finished = true;
                     break;
@@ -445,13 +456,14 @@ namespace KScr.Eval
 
         public IEvaluable Compile(RuntimeBase runtime) => Parent.Compile(runtime);
 
-        private static TokenType FirstExpected(SubCompilerMode mode) => mode switch
+        private static TokenType[] FirstAllowed(SubCompilerMode mode) => mode switch
         {
-            SubCompilerMode.ParenthesesSquare => TokenType.ParSquareOpen,
-            SubCompilerMode.ParenthesesAccolade => TokenType.ParAccOpen,
-            SubCompilerMode.ParseTypeParameters => TokenType.ParDiamondOpen,
-            SubCompilerMode.Expression => TokenType.ParRoundOpen,
-            SubCompilerMode.Call => TokenType.Dot,
+            SubCompilerMode.ParenthesesSquare => new [] { TokenType.ParSquareOpen },
+            SubCompilerMode.ParenthesesAccolade => new [] { TokenType.ParAccOpen },
+            SubCompilerMode.ParseTypeParameters => new [] { TokenType.ParDiamondOpen },
+            SubCompilerMode.Expression => new [] { TokenType.ParRoundOpen },
+            SubCompilerMode.Call => new [] { TokenType.Dot },
+            SubCompilerMode.Operator => new [] { TokenType.OperatorPlus, TokenType.OperatorMinus, TokenType.OperatorMultiply, TokenType.OperatorDivide, TokenType.OperatorModulus },
             _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
         };
 
