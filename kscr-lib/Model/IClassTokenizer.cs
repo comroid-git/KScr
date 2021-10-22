@@ -6,7 +6,7 @@ using KScr.Lib.Store;
 namespace KScr.Lib.Model
 {
     [Flags]
-    public enum ClassTokenType
+    public enum ClassTokenType : uint
     {
         None = 0x0,
         Word = 0x0000_F000,
