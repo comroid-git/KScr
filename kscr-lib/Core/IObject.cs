@@ -16,7 +16,7 @@ namespace KScr.Lib.Core
 
         string ToString(short variant);
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args);
+        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args);
     }
 
     internal sealed class ConstantValue : IObject
@@ -37,10 +37,7 @@ namespace KScr.Lib.Core
             return Value?.ToString(variant) ?? "null";
         }
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args)
-        {
-            return Value?.Invoke(vm, member, args);
-        }
+        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args) => Value?.Invoke(vm, member, args);
     }
 
     public sealed class ReturnValue : IObject
@@ -60,11 +57,8 @@ namespace KScr.Lib.Core
         {
             return Value?.ToString(variant) ?? "null";
         }
-
-        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args)
-        {
-            return Value?.Invoke(vm, member, args);
-        }
+        
+        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args) => Value?.Invoke(vm, member, args);
     }
 
     public sealed class ThrownValue : System.Exception, IObject
@@ -84,10 +78,7 @@ namespace KScr.Lib.Core
         {
             return Value.ToString(variant);
         }
-
-        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args)
-        {
-            return Value?.Invoke(vm, member, args);
-        }
+        
+        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args) => Value?.Invoke(vm, member, args);
     }
 }

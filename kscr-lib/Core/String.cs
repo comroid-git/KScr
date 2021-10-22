@@ -30,8 +30,16 @@ namespace KScr.Lib.Core
             };
         }
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject[] args)
+        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args)
         {
+            if (member.StartsWith("Operator") && args[0] is String other)
+            {
+                switch (member.Substring("Operator".Length))
+                {
+                    case "Plus":
+                        return OpPlus(vm, other);
+                }
+            }
             switch (member)
             {
                 case "toString":
@@ -42,6 +50,8 @@ namespace KScr.Lib.Core
                     throw new NotImplementedException();
             }
         }
+
+        private ObjectRef OpPlus(RuntimeBase vm, String other) => Instance(vm, Str + other.Str);
 
         public static ObjectRef Instance(RuntimeBase vm, string str)
         {
