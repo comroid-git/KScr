@@ -11,6 +11,7 @@ namespace KScr.Lib.Bytecode
         public Package? Parent { get; }
         public string Name { get; }
         public string FullName { get; }
+        public MemberModifier Modifier { get; }
         public IPackageMember GetMember(string name);
         public IPackageMember Add(IPackageMember member);
     }
@@ -20,16 +21,18 @@ namespace KScr.Lib.Bytecode
         public IDictionary<string, IPackageMember> Members { get; } = new ConcurrentDictionary<string, IPackageMember>();
         public Package? Parent { get; }
         public string Name { get; }
+        public MemberModifier Modifier { get; }
         public string FullName => (Parent != null ? Parent?.FullName + '.' : string.Empty) + Name;
 
-        protected AbstractPackageMember() : this(null!, Package.RootPackageName)
+        protected AbstractPackageMember() : this(null!, Package.RootPackageName, MemberModifier.Public | MemberModifier.Static)
         {
         }
 
-        public AbstractPackageMember(Package parent, string name)
+        public AbstractPackageMember(Package parent, string name, MemberModifier modifier)
         {
             Parent = parent;
             Name = name;
+            Modifier = modifier;
         }
 
         public IPackageMember GetMember(string name) => name.Contains('.') ? GetAbsoluteMember(name) : Members[name];

@@ -13,7 +13,7 @@ namespace KScr.Lib.Bytecode
         {
         }
 
-        internal Package(Package parent, string name) : base(parent, name)
+        internal Package(Package parent, string name) : base(parent, name, MemberModifier.Public | MemberModifier.Static)
         {
         }
     }
