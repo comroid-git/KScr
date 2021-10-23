@@ -58,7 +58,7 @@ namespace KScr.Lib.Model
 
     public sealed class ClassToken
     {
-        public ClassTokenType Modifier { get; set; }
+        public ClassTokenType Type { get; set; }
         public string Arg { get; set; }
         public bool Complete { get; set; }
     }

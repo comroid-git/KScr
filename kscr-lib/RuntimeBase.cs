@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
@@ -109,19 +110,23 @@ namespace KScr.Lib
             return CodeCompiler.Compile(this, tokens);
         }
 
-        public IObject? Execute(IEvaluable bytecode, out State state, out long timeµs)
+        public IObject? Execute(ref State state, out long timeµs)
         {
             timeµs = UnixTime();
-            var yield = Execute(bytecode, out state);
+            var yield = Execute(ref state);
             timeµs = UnixTime() - timeµs;
             return yield;
         }
 
-        public IObject? Execute(IEvaluable bytecode, out State state)
+        public IObject? Execute(ref State state)
         {
-            ObjectRef? nil = null;
-            state = bytecode.Evaluate(this, null, ref nil);
-            return nil?.Value;
+            IRuntimeSite? site = Package.RootPackage.FindEntrypoint();
+            ObjectRef? rev = null;
+
+            while (site != null) 
+                site = site.Evaluate(this, ref state, ref rev);
+
+            return rev?.Value;
         }
 
         public ClassRef? FindType(string name)

@@ -15,6 +15,7 @@ namespace KScr.Eval
         public ClassCompilerState State { get; private set; } = ClassCompilerState.Idle;
         private Package _package = Package.RootPackage;
         private Class _class = null!;
+        private MemberModifier Modifier = MemberModifier.None;
 
         public ClassCompiler(IClassCompiler? parent = null)
         {
@@ -69,7 +70,7 @@ namespace KScr.Eval
             { _package = _package.GetOrCreatePackage(name), State = ClassCompilerState.Package };
 
         public IClassCompiler NextClass(string name) => new ClassCompiler(this)
-            { _package = _package, _class = _package.GetOrCreateClass(name), State = ClassCompilerState.Class };
+            { _package = _package, _class = _package.GetOrCreateClass(name, Modifier), State = ClassCompilerState.Class };
 
         public IClassCompiler AcceptToken(RuntimeBase vm, IList<ClassToken> tokens, ref int i)
         {
@@ -80,7 +81,7 @@ namespace KScr.Eval
             var prev = i - 1 < 0 ? null : tokens[i - 1];
             var next = i + 1 >= tokens.Count ? null : tokens[i + 1];
             
-            switch (token.Modifier)
+            switch (token.Type)
             {
                 case ClassTokenType.None:
                     break;
@@ -102,20 +103,21 @@ namespace KScr.Eval
                     break;
                 case ClassTokenType.Implements:
                     break;
-                case ClassTokenType.Public:
-                case ClassTokenType.Internal:
-                case ClassTokenType.Protected:
-                case ClassTokenType.Private:
-                    break;
                 case ClassTokenType.Class:
                 case ClassTokenType.Interface:
                 case ClassTokenType.Enum:
                     break;
+                case ClassTokenType.Public:
+                case ClassTokenType.Internal:
+                case ClassTokenType.Protected:
+                case ClassTokenType.Private:
+                    
                 case ClassTokenType.Static:
-                case ClassTokenType.Dynamic:
-                    break;
+                //case ClassTokenType.Dynamic:
+                    
                 case ClassTokenType.Abstract:
                 case ClassTokenType.Final:
+                    Modifier |= FindModifier(token.Type);
                     break;
                 case ClassTokenType.ParRoundOpen:
                     break;
@@ -137,7 +139,18 @@ namespace KScr.Eval
                     throw new ArgumentOutOfRangeException();
             }
         }
-        
+
+        private MemberModifier FindModifier(ClassTokenType tokenType) => tokenType switch
+        {
+            ClassTokenType.Public => MemberModifier.Public,
+            ClassTokenType.Internal => MemberModifier.Internal,
+            ClassTokenType.Protected => MemberModifier.Protected,
+            ClassTokenType.Private => MemberModifier.Private,
+            ClassTokenType.Static => MemberModifier.Static,
+            ClassTokenType.Abstract => MemberModifier.Abstract,
+            ClassTokenType.Final => MemberModifier.Final,
+            _ => throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, "No MemberModifier available")
+        };
         public IClassCompiler PushElement() => Parent!;
     }
 }

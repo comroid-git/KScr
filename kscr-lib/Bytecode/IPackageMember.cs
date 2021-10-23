@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using KScr.Lib.Exception;
 
 namespace KScr.Lib.Bytecode
@@ -46,11 +47,11 @@ namespace KScr.Lib.Bytecode
             return pkg;
         }
         
-        public Class GetOrCreateClass(string name, Package? parent = null)
+        public Class GetOrCreateClass(string name, MemberModifier mod, Package? parent = null)
         {
             if (Members.TryGetValue(name, out var pm) && pm is Class cls)
                 return cls;
-            Add(cls = new Class(parent ?? Package.RootPackage, name));
+            Add(cls = new Class(parent ?? Package.RootPackage, name, mod));
             return cls;
         }
 
@@ -64,5 +65,8 @@ namespace KScr.Lib.Bytecode
                 return (GetMember(names[i]) as AbstractPackageMember)!.GetAbsoluteMember(names, i + 1);
             throw new InternalException("Member not found: " + string.Join('.', names));
         }
+
+        protected IEnumerable<IPackageMember> All() => new IPackageMember[] { this }.Concat(Members.Values
+            .SelectMany(it => (it as AbstractPackageMember)!.All())).Distinct();
     }
 }

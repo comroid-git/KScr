@@ -25,35 +25,35 @@ namespace KScr.Eval
                 {
                     // parentheses
                     case '(':
-                        token.Modifier |= ClassTokenType.ParRoundOpen;
+                        token.Type |= ClassTokenType.ParRoundOpen;
                         token.Complete = true;
                         break;
                     case ')':
-                        token.Modifier |= ClassTokenType.ParRoundClose;
+                        token.Type |= ClassTokenType.ParRoundClose;
                         token.Complete = true;
                         break;
                     case '[':
-                        token.Modifier |= ClassTokenType.ParSquareOpen;
+                        token.Type |= ClassTokenType.ParSquareOpen;
                         token.Complete = true;
                         break;
                     case ']':
-                        token.Modifier |= ClassTokenType.ParSquareClose;
+                        token.Type |= ClassTokenType.ParSquareClose;
                         token.Complete = true;
                         break;
                     case '{':
-                        token.Modifier |= ClassTokenType.ParAccOpen;
+                        token.Type |= ClassTokenType.ParAccOpen;
                         token.Complete = true;
                         break;
                     case '}':
-                        token.Modifier |= ClassTokenType.ParAccClose;
+                        token.Type |= ClassTokenType.ParAccClose;
                         token.Complete = true;
                         break;
                     case '<':
-                        token.Modifier |= ClassTokenType.ParDiamondOpen;
+                        token.Type |= ClassTokenType.ParDiamondOpen;
                         token.Complete = true;
                         break;
                     case '>':
-                        token.Modifier |= ClassTokenType.ParDiamondClose;
+                        token.Type |= ClassTokenType.ParDiamondClose;
                         token.Complete = true;
                         break;
                     // lexical tokens
@@ -81,60 +81,60 @@ namespace KScr.Eval
             switch (str)
             {
                 case "num":
-                    token.Modifier = ClassTokenType.IdentNum;
+                    token.Type = ClassTokenType.IdentNum;
                     token.Complete = true;
                     break;
                 case "str":
-                    token.Modifier = ClassTokenType.IdentStr;
+                    token.Type = ClassTokenType.IdentStr;
                     token.Complete = true;
                     break;
                 case "void":
-                    token.Modifier = ClassTokenType.IdentVoid;
+                    token.Type = ClassTokenType.IdentVoid;
                     token.Complete = true;
                     break;
                 case "extends":
-                    token.Modifier = ClassTokenType.Extends;
+                    token.Type = ClassTokenType.Extends;
                     token.Complete = true;
                     break;
                 case "implements":
-                    token.Modifier = ClassTokenType.Implements;
+                    token.Type = ClassTokenType.Implements;
                     token.Complete = true;
                     break;
                 case "public":
-                    token.Modifier |= ClassTokenType.Public;
+                    token.Type |= ClassTokenType.Public;
                     break;
                 case "internal":
-                    token.Modifier |= ClassTokenType.Internal;
+                    token.Type |= ClassTokenType.Internal;
                     break;
                 case "protected":
-                    token.Modifier |= ClassTokenType.Protected;
+                    token.Type |= ClassTokenType.Protected;
                     break;
                 case "private":
-                    token.Modifier |= ClassTokenType.Private;
+                    token.Type |= ClassTokenType.Private;
                     break;
                 case "class":
-                    token.Modifier |= ClassTokenType.Class;
+                    token.Type |= ClassTokenType.Class;
                     break;
                 case "interface":
-                    token.Modifier |= ClassTokenType.Interface;
+                    token.Type |= ClassTokenType.Interface;
                     break;
                 case "enum":
-                    token.Modifier |= ClassTokenType.Enum;
+                    token.Type |= ClassTokenType.Enum;
                     break;
                 case "static":
-                    token.Modifier |= ClassTokenType.Static;
+                    token.Type |= ClassTokenType.Static;
                     break;
                 case "dynamic":
-                    token.Modifier |= ClassTokenType.Dynamic;
+                    token.Type |= ClassTokenType.Dynamic;
                     break;
                 case "abstract":
-                    token.Modifier |= ClassTokenType.Abstract;
+                    token.Type |= ClassTokenType.Abstract;
                     break;
                 case "final":
-                    token.Modifier |= ClassTokenType.Final;
+                    token.Type |= ClassTokenType.Final;
                     break;
                 default:
-                    token.Modifier = ClassTokenType.Word;
+                    token.Type = ClassTokenType.Word;
                     token.Arg = str;
                     token.Complete = true;
                     break;

@@ -15,6 +15,7 @@ namespace KScr.Runtime
         private static int Main(string[] args)
         {
             var eval = new KScrRuntime();
+            State state = State.Normal;
 
             if (args.Length == 0)
                 return StdIoMode(eval);
@@ -23,7 +24,7 @@ namespace KScr.Runtime
                     .Select(File.ReadAllText));
             if (fullSource != string.Empty)
             {
-                var yield = HandleSourcecode(eval, fullSource, out var state, out var bytecode, out long time);
+                var yield = HandleSourcecode(eval, fullSource, ref state, out var bytecode, out long time);
                 return HandleExit(state, yield);
             }
 
@@ -70,12 +71,12 @@ namespace KScr.Runtime
                         continue;
                     case "run":
                         ClearEval(runtime);
-                        result = runtime.Execute(full, out state);
+                        result = runtime.Execute(ref state);
                         return HandleExit(state, result);
-                    default:
+                    default: 
                         if (!input.EndsWith(';'))
                             input += ';';
-                        result = HandleSourcecode(runtime, input, out state, out IEvaluable here, out long time);
+                        result = HandleSourcecode(runtime, input, ref state, out IEvaluable here, out long time);
                         bool isnull = result == null;
 
                         string str0 = result?.ToString(0) ?? "null";
@@ -137,13 +138,13 @@ namespace KScr.Runtime
             vm.Clear();
         }
 
-        private static IObject? HandleSourcecode(KScrRuntime runtime, string? input, out State state,
+        private static IObject? HandleSourcecode(KScrRuntime runtime, string? input, ref State state,
             out IEvaluable? here, out long time)
         {
             time = RuntimeBase.UnixTime();
             var tokens = runtime.Tokenize(input!);
             here = runtime.Compile(tokens);
-            var result = runtime.Execute(here, out state);
+            var result = runtime.Execute(ref state);
             time = RuntimeBase.UnixTime() - time;
             return result;
         }

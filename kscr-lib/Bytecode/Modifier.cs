@@ -4,7 +4,7 @@ namespace KScr.Lib.Bytecode
 {
     [Flags]
     public enum MemberModifier {
-        // accessibility keywords
+        None = 0,
         Public = 0x0000_1000,
         Internal = 0x0000_2000,
         Protected = 0x0000_4000,
