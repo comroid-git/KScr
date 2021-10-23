@@ -2,11 +2,7 @@
 {
     public sealed class Class : AbstractPackageMember
     {
-        private Class()
-        {
-        }
-
-        internal Class(Package parent, string name) : base(parent, name)
+        public Class(Package parent, string name, MemberModifier modifier) : base(parent, name, modifier)
         {
         }
     }

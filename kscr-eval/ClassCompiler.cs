@@ -16,7 +16,7 @@ namespace KScr.Eval
         private Package _package = Package.RootPackage;
         private Class _class = null!;
 
-        public ClassCompiler(IClassCompiler? parent)
+        public ClassCompiler(IClassCompiler? parent = null)
         {
             Parent = parent;
         }
@@ -57,7 +57,7 @@ namespace KScr.Eval
             if (_class == null)
                 throw new Exception("unexpected");
             string src = File.ReadAllText(file.FullName);
-            var tokens = new ClassTokenizer().Tokenize(src);
+            var tokens = vm.ClassTokenizer.Tokenize(src);
             IClassCompiler use = this;
             for (int i = 0; i < tokens.Count; i++) 
                 use = use.AcceptToken(vm, tokens, ref i);

@@ -5,13 +5,12 @@ using KScr.Lib.Exception;
 
 namespace KScr.Lib.Bytecode
 {
-    public interface IPackageMember
+    public interface IPackageMember : IModifierContainer
     {
         public IDictionary<string, IPackageMember> Members { get; }
         public Package? Parent { get; }
         public string Name { get; }
         public string FullName { get; }
-        public MemberModifier Modifier { get; }
         public IPackageMember GetMember(string name);
         public IPackageMember Add(IPackageMember member);
     }
