@@ -7,7 +7,7 @@ using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 
-namespace KScr.Eval
+namespace KScr.Compiler.Code
 {
     public sealed class MainCodeCompiler : AbstractCompiler, ICodeCompiler
     {

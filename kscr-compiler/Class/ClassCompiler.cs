@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 
-namespace KScr.Eval
+namespace KScr.Compiler.Class
 {
     public sealed class ClassCompiler : AbstractCompiler, IClassCompiler
     {
         public readonly IClassCompiler? Parent;
-        private Class _class = null!;
+        private Lib.Bytecode.Class _class = null!;
         private Package _package = Package.RootPackage;
         private MemberModifier Modifier = MemberModifier.None;
 
@@ -21,6 +20,14 @@ namespace KScr.Eval
         }
 
         public ClassCompilerState State { get; private set; } = ClassCompilerState.Idle;
+
+        public void CompilePackages(RuntimeBase vm, DirectoryInfo srcDir)
+        {
+            foreach (var dir in srcDir.GetDirectories())
+            {
+                CompilePackage(vm, dir);
+            }
+        }
 
         public Package CompilePackage(RuntimeBase vm, DirectoryInfo dir)
         {
@@ -44,7 +51,7 @@ namespace KScr.Eval
 
         public void CompileClasses(RuntimeBase vm, DirectoryInfo dir)
         {
-            IClassCompiler use = this;
+            ICompiler use = this;
 
             foreach (var clsf in dir.GetFiles("*.kscr"))
             {
@@ -53,15 +60,20 @@ namespace KScr.Eval
             }
         }
 
-        public Class CompileClass(RuntimeBase vm, FileInfo file)
+        public Lib.Bytecode.Class CompileClass(RuntimeBase vm, FileInfo file)
         {
             if (_class == null)
                 throw new Exception("unexpected");
             string src = File.ReadAllText(file.FullName);
             var tokens = vm.ClassTokenizer.Tokenize(src);
-            IClassCompiler use = this;
+            ICompiler use = this;
             for (var i = 0; i < tokens.Count; i++)
-                use = use.AcceptToken(vm, tokens, TODO, TODO, ref i);
+            {
+                var token = tokens[i];
+                var next = tokens.Count < i + 1 ? tokens[i + 1] : null;
+                var prev = i - 1 >= 0 ? tokens[i - 1] : null;
+                use = use.AcceptToken(vm, token, next, prev, ref i);
+            }
 
             return _class;
         }
@@ -103,7 +115,7 @@ namespace KScr.Eval
                     break;
                 case TokenType.Comma:
                     break;
-                case TokenType.Equals:
+                case TokenType.OperatorEquals:
                     break;
                 case TokenType.IdentNum:
                 case TokenType.IdentStr:

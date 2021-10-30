@@ -103,8 +103,10 @@ namespace KScr.Lib
             return this[varctx, key] = new ObjectRef(value?.Type ?? ClassRef.VoidType, value ?? IObject.Null);
         }
 
+        [Obsolete]
         public IList<IToken> Tokenize(string source) => CodeTokenizer.Tokenize(source);
 
+        [Obsolete]
         public IEvaluable Compile(IList<IToken> tokens) => CodeCompiler.Compile(this, tokens);
 
         public IObject? Execute(ref State state, out long timeµs)

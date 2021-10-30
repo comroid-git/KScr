@@ -2,7 +2,7 @@
 using KScr.Lib.Core;
 using KScr.Lib.Model;
 
-namespace KScr.Eval
+namespace KScr.Compiler.Code
 {
     public sealed class CodeTokenizer : AbstractTokenizer
     {

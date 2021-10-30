@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using KScr.Eval;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;

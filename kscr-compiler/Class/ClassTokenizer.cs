@@ -1,6 +1,6 @@
 ﻿using KScr.Lib.Model;
 
-namespace KScr.Eval
+namespace KScr.Compiler.Class
 {
     public sealed class ClassTokenizer : AbstractTokenizer
     {

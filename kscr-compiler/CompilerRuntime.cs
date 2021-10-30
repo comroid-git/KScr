@@ -4,11 +4,11 @@ using KScr.Lib;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 
-namespace KScr.Runtime
+namespace KScr.Compiler
 {
-    public sealed class KScrRuntime : RuntimeBase
+    public sealed class CompilerRuntime : RuntimeBase
     {
-        public override ObjectStore ObjectStore { get; } = new ObjectStore();
+        public override ObjectStore ObjectStore => null!;
         public override ClassStore ClassStore { get; } = new ClassStore();
         public override ITokenizer ClassTokenizer => new ClassTokenizer();
         public override IClassCompiler ClassCompiler => new ClassCompiler();
