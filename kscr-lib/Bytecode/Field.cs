@@ -1,12 +1,14 @@
-﻿using KScr.Lib.Model;
+﻿using System.Collections.Generic;
+using System.Linq;
+using KScr.Lib.Model;
 using KScr.Lib.Store;
 
 namespace KScr.Lib.Bytecode
 {
     public sealed class Field : AbstractClassMember
     {
-        public IEvaluable Getter = null!;
-        public IEvaluable Setter = null!;
+        public Method Getter = null!;
+        public Method Setter = null!;
 
         public Field(Class parent, string name, MemberModifier modifier) : base(parent, name, modifier)
         {
