@@ -15,7 +15,7 @@ namespace KScr.Runtime
         private static int Main(string[] args)
         {
             var eval = new KScrRuntime();
-            State state = State.Normal;
+            var state = State.Normal;
 
             if (args.Length == 0)
                 return StdIoMode(eval);
@@ -73,7 +73,7 @@ namespace KScr.Runtime
                         ClearEval(runtime);
                         result = runtime.Execute(ref state);
                         return HandleExit(state, result);
-                    default: 
+                    default:
                         if (!input.EndsWith(';'))
                             input += ';';
                         result = HandleSourcecode(runtime, input, ref state, out IEvaluable here, out long time);

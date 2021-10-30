@@ -4,7 +4,7 @@ namespace KScr.Lib.Store
 {
     public interface IClassRef
     {
-        ClassTokenType Modifier { get; }
+        TokenType Modifier { get; }
         string FullName { get; }
         long TypeId { get; }
         object? Default { get; }

@@ -5,16 +5,14 @@ using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
-using KScr.Lib.Store;
 
 namespace KScr.Eval
 {
     public sealed class ClassCompiler : IClassCompiler
     {
         public readonly IClassCompiler? Parent;
-        public ClassCompilerState State { get; private set; } = ClassCompilerState.Idle;
-        private Package _package = Package.RootPackage;
         private Class _class = null!;
+        private Package _package = Package.RootPackage;
         private MemberModifier Modifier = MemberModifier.None;
 
         public ClassCompiler(IClassCompiler? parent = null)
@@ -22,20 +20,22 @@ namespace KScr.Eval
             Parent = parent;
         }
 
+        public ClassCompilerState State { get; private set; } = ClassCompilerState.Idle;
+
         public Package CompilePackage(RuntimeBase vm, DirectoryInfo dir)
         {
             IClassCompiler use = this;
-            
+
             // compile package metadata
             // todo
-            
+
             // compile directories as subpackages
             foreach (var subp in dir.GetDirectories())
             {
                 _package.Add((use = use.NextPackage(subp.Name)).CompilePackage(vm, subp));
                 use = use.PushElement();
             }
-            
+
             // compile code if not in root namespace
             if (!_package.IsRoot) // no classes allowed in Root directory
                 CompileClasses(vm, dir);
@@ -60,27 +60,41 @@ namespace KScr.Eval
             string src = File.ReadAllText(file.FullName);
             var tokens = vm.ClassTokenizer.Tokenize(src);
             IClassCompiler use = this;
-            for (int i = 0; i < tokens.Count; i++) 
+            for (var i = 0; i < tokens.Count; i++)
                 use = use.AcceptToken(vm, tokens, ref i);
 
             return _class;
         }
 
-        public IClassCompiler NextPackage(string name) => new ClassCompiler(this)
-            { _package = _package.GetOrCreatePackage(name), State = ClassCompilerState.Package };
+        public IClassCompiler NextPackage(string name)
+        {
+            return new ClassCompiler(this)
+                { _package = _package.GetOrCreatePackage(name), State = ClassCompilerState.Package };
+        }
 
-        public IClassCompiler NextClass(string name) => new ClassCompiler(this)
-            { _package = _package, _class = _package.GetOrCreateClass(name, Modifier), State = ClassCompilerState.Class };
+        public IClassCompiler NextClass(string name)
+        {
+            return new ClassCompiler(this)
+            {
+                _package = _package, _class = _package.GetOrCreateClass(name, Modifier),
+                State = ClassCompilerState.Class
+            };
+        }
+
+        public IClassCompiler PushElement()
+        {
+            return Parent!;
+        }
 
         public IClassCompiler AcceptToken(RuntimeBase vm, IList<ClassToken> tokens, ref int i)
         {
             if (State != ClassCompilerState.Class)
                 throw new CompilerException("Invalid compiler state: " + State);
-            
+
             var token = tokens[i];
             var prev = i - 1 < 0 ? null : tokens[i - 1];
             var next = i + 1 >= tokens.Count ? null : tokens[i + 1];
-            
+
             switch (token.Type)
             {
                 case ClassTokenType.None:
@@ -111,10 +125,10 @@ namespace KScr.Eval
                 case ClassTokenType.Internal:
                 case ClassTokenType.Protected:
                 case ClassTokenType.Private:
-                    
+
                 case ClassTokenType.Static:
                 //case ClassTokenType.Dynamic:
-                    
+
                 case ClassTokenType.Abstract:
                 case ClassTokenType.Final:
                     Modifier |= FindModifier(token.Type);
@@ -140,17 +154,19 @@ namespace KScr.Eval
             }
         }
 
-        private MemberModifier FindModifier(ClassTokenType tokenType) => tokenType switch
+        private MemberModifier FindModifier(ClassTokenType tokenType)
         {
-            ClassTokenType.Public => MemberModifier.Public,
-            ClassTokenType.Internal => MemberModifier.Internal,
-            ClassTokenType.Protected => MemberModifier.Protected,
-            ClassTokenType.Private => MemberModifier.Private,
-            ClassTokenType.Static => MemberModifier.Static,
-            ClassTokenType.Abstract => MemberModifier.Abstract,
-            ClassTokenType.Final => MemberModifier.Final,
-            _ => throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, "No MemberModifier available")
-        };
-        public IClassCompiler PushElement() => Parent!;
+            return tokenType switch
+            {
+                ClassTokenType.Public => MemberModifier.Public,
+                ClassTokenType.Internal => MemberModifier.Internal,
+                ClassTokenType.Protected => MemberModifier.Protected,
+                ClassTokenType.Private => MemberModifier.Private,
+                ClassTokenType.Static => MemberModifier.Static,
+                ClassTokenType.Abstract => MemberModifier.Abstract,
+                ClassTokenType.Final => MemberModifier.Final,
+                _ => throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, "No MemberModifier available")
+            };
+        }
     }
 }

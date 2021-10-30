@@ -1,79 +1,67 @@
-﻿using System;
-using System.Collections.Generic;
-using KScr.Lib.Bytecode;
-using KScr.Lib.Model;
+﻿using KScr.Lib.Model;
 
 namespace KScr.Eval
 {
-    public sealed class ClassTokenizer : IClassTokenizer
+    public sealed class ClassTokenizer : AbstractTokenizer
     {
-
-        public List<ClassToken> Tokenize(string source)
+        private ClassToken token
         {
-            ClassToken token = new ClassToken();
-            List<ClassToken> tokens = new List<ClassToken>();
-            var len = source.Length;
-            string str = "";
-
-            for (var i = 0; i < len; i++)
-            {
-                char c = source[i];
-                char n = i + 1 < len ? source[i + 1] : ' ';
-                char p = i - 1 > 0 ? source[i - 1] : ' ';
-
-                switch (c)
-                {
-                    // parentheses
-                    case '(':
-                        token.Type |= ClassTokenType.ParRoundOpen;
-                        token.Complete = true;
-                        break;
-                    case ')':
-                        token.Type |= ClassTokenType.ParRoundClose;
-                        token.Complete = true;
-                        break;
-                    case '[':
-                        token.Type |= ClassTokenType.ParSquareOpen;
-                        token.Complete = true;
-                        break;
-                    case ']':
-                        token.Type |= ClassTokenType.ParSquareClose;
-                        token.Complete = true;
-                        break;
-                    case '{':
-                        token.Type |= ClassTokenType.ParAccOpen;
-                        token.Complete = true;
-                        break;
-                    case '}':
-                        token.Type |= ClassTokenType.ParAccClose;
-                        token.Complete = true;
-                        break;
-                    case '<':
-                        token.Type |= ClassTokenType.ParDiamondOpen;
-                        token.Complete = true;
-                        break;
-                    case '>':
-                        token.Type |= ClassTokenType.ParDiamondClose;
-                        token.Complete = true;
-                        break;
-                    // lexical tokens
-                    default:
-                        LexicalToken(ref token, ref str, c,n,p);
-                        break;
-                }
-
-                if (token.Complete)
-                {
-                    tokens.Add(token);
-                    token = new ClassToken();
-                    str = "";
-                }
-            }
-
-            return tokens;
+            get => (Token as ClassToken)!;
+            set => Token = value;
         }
 
-        private void LexicalToken(ref ClassToken token, ref string str, char c, char n, char p)
+        public override bool PushToken(ref IToken? token)
+        {
+            return base.PushToken(ref token) && (Token = new ClassToken()) != null;
+        }
+
+        public override IToken? Accept(char c, char n, char p, ref int i, ref string str)
+        {
+            switch (c)
+            {
+                // parentheses
+                case '(':
+                    token.Type = TokenType.ParRoundOpen;
+                    token.Complete = true;
+                    break;
+                case ')':
+                    token.Type = TokenType.ParRoundClose;
+                    token.Complete = true;
+                    break;
+                case '[':
+                    token.Type = TokenType.ParSquareOpen;
+                    token.Complete = true;
+                    break;
+                case ']':
+                    token.Type = TokenType.ParSquareClose;
+                    token.Complete = true;
+                    break;
+                case '{':
+                    token.Type = TokenType.ParAccOpen;
+                    token.Complete = true;
+                    break;
+                case '}':
+                    token.Type = TokenType.ParAccClose;
+                    token.Complete = true;
+                    break;
+                case '<':
+                    token.Type = TokenType.ParDiamondOpen;
+                    token.Complete = true;
+                    break;
+                case '>':
+                    token.Type = TokenType.ParDiamondClose;
+                    token.Complete = true;
+                    break;
+                // lexical tokens
+                default:
+                    LexicalToken(ref str, c, n, p);
+                    break;
+            }
+
+            return token;
+        }
+
+        private void LexicalToken(ref string str, char c, char n, char p)
         {
             if (!char.IsWhiteSpace(c))
                 str += c;
@@ -81,60 +69,60 @@ namespace KScr.Eval
             switch (str)
             {
                 case "num":
-                    token.Type = ClassTokenType.IdentNum;
+                    token.Type = TokenType.IdentNum;
                     token.Complete = true;
                     break;
                 case "str":
-                    token.Type = ClassTokenType.IdentStr;
+                    token.Type = TokenType.IdentStr;
                     token.Complete = true;
                     break;
                 case "void":
-                    token.Type = ClassTokenType.IdentVoid;
+                    token.Type = TokenType.IdentVoid;
                     token.Complete = true;
                     break;
                 case "extends":
-                    token.Type = ClassTokenType.Extends;
+                    token.Type = TokenType.Extends;
                     token.Complete = true;
                     break;
                 case "implements":
-                    token.Type = ClassTokenType.Implements;
+                    token.Type = TokenType.Implements;
                     token.Complete = true;
                     break;
                 case "public":
-                    token.Type |= ClassTokenType.Public;
+                    token.Type |= TokenType.Public;
                     break;
                 case "internal":
-                    token.Type |= ClassTokenType.Internal;
+                    token.Type |= TokenType.Internal;
                     break;
                 case "protected":
-                    token.Type |= ClassTokenType.Protected;
+                    token.Type |= TokenType.Protected;
                     break;
                 case "private":
-                    token.Type |= ClassTokenType.Private;
+                    token.Type |= TokenType.Private;
                     break;
                 case "class":
-                    token.Type |= ClassTokenType.Class;
+                    token.Type |= TokenType.Class;
                     break;
                 case "interface":
-                    token.Type |= ClassTokenType.Interface;
+                    token.Type |= TokenType.Interface;
                     break;
                 case "enum":
-                    token.Type |= ClassTokenType.Enum;
+                    token.Type |= TokenType.Enum;
                     break;
                 case "static":
-                    token.Type |= ClassTokenType.Static;
+                    token.Type |= TokenType.Static;
                     break;
                 case "dynamic":
-                    token.Type |= ClassTokenType.Dynamic;
+                    token.Type |= TokenType.Dynamic;
                     break;
                 case "abstract":
-                    token.Type |= ClassTokenType.Abstract;
+                    token.Type |= TokenType.Abstract;
                     break;
                 case "final":
-                    token.Type |= ClassTokenType.Final;
+                    token.Type |= TokenType.Final;
                     break;
                 default:
-                    token.Type = ClassTokenType.Word;
+                    token.Type = TokenType.Word;
                     token.Arg = str;
                     token.Complete = true;
                     break;

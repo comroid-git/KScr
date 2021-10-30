@@ -120,10 +120,10 @@ namespace KScr.Lib
 
         public IObject? Execute(ref State state)
         {
-            IRuntimeSite? site = Package.RootPackage.FindEntrypoint();
+            var site = Package.RootPackage.FindEntrypoint();
             ObjectRef? rev = null;
 
-            while (site != null) 
+            while (site != null)
                 site = site.Evaluate(this, ref state, ref rev);
 
             return rev?.Value;

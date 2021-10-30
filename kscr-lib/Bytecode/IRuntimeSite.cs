@@ -1,5 +1,4 @@
-﻿using KScr.Lib.Model;
-using KScr.Lib.Store;
+﻿using KScr.Lib.Store;
 
 namespace KScr.Lib.Bytecode
 {

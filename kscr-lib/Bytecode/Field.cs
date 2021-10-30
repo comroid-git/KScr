@@ -7,7 +7,7 @@ namespace KScr.Lib.Bytecode
     {
         public IEvaluable Getter = null!;
         public IEvaluable Setter = null!;
-        
+
         public Field(Class parent, string name, MemberModifier modifier) : base(parent, name, modifier)
         {
         }

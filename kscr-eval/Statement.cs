@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
 using KScr.Lib;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;

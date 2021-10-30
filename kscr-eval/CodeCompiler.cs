@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using KScr.Lib;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
@@ -33,6 +32,11 @@ namespace KScr.Eval
             for (var i = 0; i < len; i++)
                 use = use.AcceptToken(runtime, tokens, ref i);
             return use.Compile(runtime);
+        }
+
+        public IEvaluable Compile(RuntimeBase runtime)
+        {
+            return ExecutableCode;
         }
 
         // fixme proposal: allow precompiler code to generate tokens yourself
@@ -108,10 +112,12 @@ namespace KScr.Eval
                     var sub1 = new SubCodeCompiler(this, SubCompilerMode.Expression, sub =>
                     {
                         if (!_statement.TargetType.CanHold(sub.TargetType))
-                            throw new CompilerException($"Incompatible expression type: {sub.TargetType}; expected type: {_statement.TargetType}");
+                            throw new CompilerException(
+                                $"Incompatible expression type: {sub.TargetType}; expected type: {_statement.TargetType}");
                         // todo: is this old?
                         //if (next?.Type == CodeTokenType.Dot)
-                        if (next?.Type != CodeTokenType.Terminator || next?.Type != CodeTokenType.ParRoundClose) {
+                        if (next?.Type != CodeTokenType.Terminator || next?.Type != CodeTokenType.ParRoundClose)
+                        {
                             Component = sub;
                             PushComponent();
                         }
@@ -212,11 +218,6 @@ namespace KScr.Eval
             return this;
         }
 
-        public IEvaluable Compile(RuntimeBase runtime)
-        {
-            return ExecutableCode;
-        }
-
         private void PushStatement()
         {
             ExecutableCode.Main.Add(_statement);
@@ -235,15 +236,18 @@ namespace KScr.Eval
             Component = new StatementComponent();
         }
 
-        public static BytecodeType GetCodeType(CodeTokenType tokenType) => tokenType switch
+        public static BytecodeType GetCodeType(CodeTokenType tokenType)
         {
-            CodeTokenType.OperatorPlus => BytecodeType.OperatorPlus,
-            CodeTokenType.OperatorMinus => BytecodeType.OperatorMinus,
-            CodeTokenType.OperatorMultiply => BytecodeType.OperatorMultiply,
-            CodeTokenType.OperatorDivide => BytecodeType.OperatorDivide,
-            CodeTokenType.OperatorModulus => BytecodeType.OperatorModulus,
-            _ => throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, null)
-        };
+            return tokenType switch
+            {
+                CodeTokenType.OperatorPlus => BytecodeType.OperatorPlus,
+                CodeTokenType.OperatorMinus => BytecodeType.OperatorMinus,
+                CodeTokenType.OperatorMultiply => BytecodeType.OperatorMultiply,
+                CodeTokenType.OperatorDivide => BytecodeType.OperatorDivide,
+                CodeTokenType.OperatorModulus => BytecodeType.OperatorModulus,
+                _ => throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, null)
+            };
+        }
     }
 
     public enum SubCompilerMode
@@ -288,6 +292,13 @@ namespace KScr.Eval
             throw new NotSupportedException("A SubCompiler cannot compile a complete list of tokens");
         }
 
+        public ICodeCompiler Parent { get; }
+
+        public IEvaluable Compile(RuntimeBase runtime)
+        {
+            return Parent.Compile(runtime);
+        }
+
         public ICodeCompiler AcceptToken(RuntimeBase vm, IList<CodeToken> tokens, ref int i)
         {
             var token = tokens[i];
@@ -295,7 +306,8 @@ namespace KScr.Eval
             var next = i + 1 >= tokens.Count ? null : tokens[i + 1];
 
             if (_c++ == 0 && _mode != SubCompilerMode.Expression && !_firstAllowed.Contains(token.Type))
-                throw new CompilerException($"First allowed tokens were {string.Join(",",_firstAllowed)}; got {token}");
+                throw new CompilerException(
+                    $"First allowed tokens were {string.Join(",", _firstAllowed)}; got {token}");
             _finished = token.Type == _lastExpected || next?.Type == CodeTokenType.Terminator;
 
             switch (token.Type)
@@ -459,30 +471,26 @@ namespace KScr.Eval
             return this;
         }
 
-        public ICodeCompiler Parent { get; }
-
-        public IEvaluable Compile(RuntimeBase runtime)
+        private static CodeTokenType[] FirstAllowed(SubCompilerMode mode)
         {
-            return Parent.Compile(runtime);
-        }
-
-        private static CodeTokenType[] FirstAllowed(SubCompilerMode mode) => mode switch
-        {
-            SubCompilerMode.ParenthesesSquare => new [] { CodeTokenType.ParSquareOpen },
-            SubCompilerMode.ParenthesesAccolade => new [] { CodeTokenType.ParAccOpen },
-            SubCompilerMode.ParseTypeParameters => new [] { CodeTokenType.ParDiamondOpen },
-            SubCompilerMode.Expression => new [] { CodeTokenType.ParRoundOpen },
-            SubCompilerMode.Call => new [] { CodeTokenType.Dot },
-            SubCompilerMode.Operator => new []
+            return mode switch
             {
-                CodeTokenType.OperatorPlus,
-                CodeTokenType.OperatorMinus, 
-                CodeTokenType.OperatorMultiply,
-                CodeTokenType.OperatorDivide, 
-                CodeTokenType.OperatorModulus
-            },
-            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
-        };
+                SubCompilerMode.ParenthesesSquare => new[] { CodeTokenType.ParSquareOpen },
+                SubCompilerMode.ParenthesesAccolade => new[] { CodeTokenType.ParAccOpen },
+                SubCompilerMode.ParseTypeParameters => new[] { CodeTokenType.ParDiamondOpen },
+                SubCompilerMode.Expression => new[] { CodeTokenType.ParRoundOpen },
+                SubCompilerMode.Call => new[] { CodeTokenType.Dot },
+                SubCompilerMode.Operator => new[]
+                {
+                    CodeTokenType.OperatorPlus,
+                    CodeTokenType.OperatorMinus,
+                    CodeTokenType.OperatorMultiply,
+                    CodeTokenType.OperatorDivide,
+                    CodeTokenType.OperatorModulus
+                },
+                _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+            };
+        }
 
         private static CodeTokenType? LastExpected(SubCompilerMode mode)
         {
