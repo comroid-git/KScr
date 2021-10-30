@@ -5,7 +5,7 @@ using KScr.Lib.Store;
 
 namespace KScr.Lib.Bytecode
 {
-    public class ExecutableCode : IStatement<Statement>
+    public class ExecutableCode : AbstractBytecode, IStatement<Statement>
     {
         public StatementComponentType Type => StatementComponentType.Code;
         public IClassRef TargetType => ClassRef.VoidType;
@@ -38,5 +38,7 @@ namespace KScr.Lib.Bytecode
             if (here is ExecutableCode bc)
                 Main.AddRange(bc.Main);
         }
+
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
@@ -8,7 +9,7 @@ using String = KScr.Lib.Core.String;
 
 namespace KScr.Lib.Bytecode
 {
-    public class Statement : IStatement<IStatementComponent>
+    public class Statement : AbstractBytecode, IStatement<IStatementComponent>
     {
         public StatementComponentType Type { get; internal set; }
         public IClassRef TargetType { get; internal set; } = ClassRef.VoidType;
@@ -34,9 +35,11 @@ namespace KScr.Lib.Bytecode
 
             return state;
         }
+
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main.Cast<AbstractBytecode>();
     }
 
-    public class StatementComponent : IStatementComponent
+    public class StatementComponent : AbstractBytecode, IStatementComponent
     {
         public Statement Statement { get; internal set; } = null!;
         public VariableContext VariableContext { get; internal set; }
@@ -131,5 +134,7 @@ namespace KScr.Lib.Bytecode
 
             return State.Normal;
         }
+
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => SubComponent != null ? new []{ SubComponent } : Array.Empty<AbstractBytecode>();
     }
 }

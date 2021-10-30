@@ -1,11 +1,12 @@
-﻿using KScr.Lib.Model;
+﻿using System.Collections.Generic;
+using KScr.Lib.Model;
 using KScr.Lib.Store;
 
 namespace KScr.Lib.Bytecode
 {
     public sealed class Method : AbstractClassMember
     {
-        public IEvaluable Body = null!;
+        public ExecutableCode Body = null!;
 
         public Method(Class parent, string name, MemberModifier modifier) : base(parent, name, modifier)
         {
@@ -16,5 +17,7 @@ namespace KScr.Lib.Bytecode
             state = Body.Evaluate(vm, null, ref rev);
             return null;
         }
+
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => new []{ Body };
     }
 }

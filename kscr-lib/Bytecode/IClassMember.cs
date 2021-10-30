@@ -1,4 +1,5 @@
-﻿using KScr.Lib.Store;
+﻿using System.Collections.Generic;
+using KScr.Lib.Store;
 
 namespace KScr.Lib.Bytecode
 {
@@ -9,7 +10,7 @@ namespace KScr.Lib.Bytecode
         public string FullName { get; }
     }
 
-    public abstract class AbstractClassMember : IClassMember
+    public abstract class AbstractClassMember : AbstractBytecode, IClassMember
     {
         protected AbstractClassMember(Class parent, string name, MemberModifier modifier)
         {

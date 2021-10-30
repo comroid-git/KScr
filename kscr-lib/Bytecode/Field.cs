@@ -18,5 +18,7 @@ namespace KScr.Lib.Bytecode
         {
             return (alt == 1 ? Setter : Getter).Evaluate(vm, ref state, ref rev);
         }
+
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => new[] { Getter, Setter };
     }
 }

@@ -15,7 +15,7 @@ namespace KScr.Lib.Bytecode
         public IPackageMember Add(IPackageMember member);
     }
 
-    public abstract class AbstractPackageMember : IPackageMember
+    public abstract class AbstractPackageMember : AbstractBytecode, IPackageMember
     {
         protected AbstractPackageMember() : this(null!, Package.RootPackageName,
             MemberModifier.Public | MemberModifier.Static)
@@ -28,6 +28,8 @@ namespace KScr.Lib.Bytecode
             Name = name;
             Modifier = modifier;
         }
+
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => Members.Values.Cast<AbstractBytecode>();
 
         public IDictionary<string, IPackageMember> Members { get; } =
             new ConcurrentDictionary<string, IPackageMember>();
