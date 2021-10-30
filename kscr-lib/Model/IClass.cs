@@ -1,10 +1,11 @@
-﻿using KScr.Lib.Model;
+﻿using KScr.Lib.Bytecode;
+using KScr.Lib.Model;
 
 namespace KScr.Lib.Store
 {
     public interface IClassRef
     {
-        TokenType Modifier { get; }
+        MemberModifier Modifier { get; }
         string FullName { get; }
         long TypeId { get; }
         object? Default { get; }

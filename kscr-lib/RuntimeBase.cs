@@ -35,9 +35,9 @@ namespace KScr.Lib
             set => ObjectStore[Context, varctx, name] = value;
         }
 
-        public abstract ICodeTokenizer CodeTokenizer { get; }
+        public abstract ITokenizer CodeTokenizer { get; }
+        public abstract ITokenizer ClassTokenizer { get; }
         public abstract ICodeCompiler CodeCompiler { get; }
-        public abstract IClassTokenizer ClassTokenizer { get; }
         public abstract IClassCompiler ClassCompiler { get; }
 
         public ObjectRef ConstantVoid =>
@@ -100,15 +100,9 @@ namespace KScr.Lib
             return this[varctx, key] = new ObjectRef(value?.Type ?? ClassRef.VoidType, value ?? IObject.Null);
         }
 
-        public IList<CodeToken> Tokenize(string source)
-        {
-            return CodeTokenizer.Tokenize(source);
-        }
+        public IList<IToken> Tokenize(string source) => CodeTokenizer.Tokenize(source);
 
-        public IEvaluable Compile(IList<CodeToken> tokens)
-        {
-            return CodeCompiler.Compile(this, tokens);
-        }
+        public IEvaluable Compile(IList<IToken> tokens) => CodeCompiler.Compile(this, tokens);
 
         public IObject? Execute(ref State state, out long timeµs)
         {

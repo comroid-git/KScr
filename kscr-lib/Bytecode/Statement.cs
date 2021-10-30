@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using KScr.Lib;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 using String = KScr.Lib.Core.String;
 
-namespace KScr.Eval
+namespace KScr.Lib.Bytecode
 {
     public class Statement : IStatement<IStatementComponent>
     {

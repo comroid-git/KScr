@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using KScr.Lib;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
@@ -8,7 +9,7 @@ using KScr.Lib.Store;
 
 namespace KScr.Eval
 {
-    public sealed class MainCodeCompiler : ICodeCompiler
+    public sealed class MainCodeCompiler : AbstractCompiler, ICodeCompiler
     {
         internal readonly ExecutableCode ExecutableCode = new ExecutableCode();
         private Statement _statement = new Statement();
@@ -25,35 +26,30 @@ namespace KScr.Eval
 
         public CompilerLevel CompilerLevel { get; private set; } = CompilerLevel.Statement;
 
-        public IEvaluable Compile(RuntimeBase runtime, IList<CodeToken> tokens)
+        public IRuntimeSite Compile(RuntimeBase runtime, IList<IToken> tokens)
         {
-            int len = tokens.Count;
-            ICodeCompiler use = this;
-            for (var i = 0; i < len; i++)
-                use = use.AcceptToken(runtime, tokens, ref i);
-            return use.Compile(runtime);
         }
 
-        public IEvaluable Compile(RuntimeBase runtime)
+        public override IRuntimeSite Compile(RuntimeBase runtime)
         {
             return ExecutableCode;
         }
 
         // fixme proposal: allow precompiler code to generate tokens yourself
-        public ICodeCompiler AcceptToken(RuntimeBase vm, IList<CodeToken> tokens, ref int i)
+        public override ICompiler AcceptToken(RuntimeBase vm, IToken token1, IToken? next1, IToken? prev1, ref int i)
         {
-            var token = tokens[i];
-            var prev = i - 1 < 0 ? null : tokens[i - 1];
-            var next = i + 1 >= tokens.Count ? null : tokens[i + 1];
+            var token = token1[i];
+            var prev = i - 1 < 0 ? null : token1[i - 1];
+            var next = i + 1 >= token1.Count ? null : token1[i + 1];
 
             switch (token.Type)
             {
-                case CodeTokenType.None:
+                case TokenType.None:
                     break;
-                case CodeTokenType.Terminator:
+                case TokenType.Terminator:
                     PushStatement();
                     break;
-                case CodeTokenType.Dot:
+                case TokenType.Dot:
                     if (PrevComponent != null && (PrevComponent.Type & StatementComponentType.Expression) != 0)
                     {
                         --i;
@@ -66,11 +62,11 @@ namespace KScr.Eval
                     }
 
                     break;
-                case CodeTokenType.Colon:
+                case TokenType.Colon:
                     break;
-                case CodeTokenType.Comma:
+                case TokenType.Comma:
                     break;
-                case CodeTokenType.Word:
+                case TokenType.Word:
                     // find type or just store word as arg because we cant use it here
                     Component.Arg = token.Arg!;
                     if (CompilerLevel == CompilerLevel.Statement)
@@ -83,7 +79,7 @@ namespace KScr.Eval
                     PushComponent();
 
                     break;
-                case CodeTokenType.Return:
+                case TokenType.Return:
                     if (CompilerLevel != CompilerLevel.Statement)
                         throw new CompilerException("Unexpected return statement");
                     _statement.Type = Component.Type = StatementComponentType.Code;
@@ -98,14 +94,14 @@ namespace KScr.Eval
                     });
                     Component.SubComponent = rtnExpr;
                     return rtnExpr;
-                case CodeTokenType.Throw:
+                case TokenType.Throw:
                     break;
-                case CodeTokenType.LiteralNum:
-                case CodeTokenType.LiteralStr:
-                case CodeTokenType.LiteralTrue:
-                case CodeTokenType.LiteralFalse:
-                case CodeTokenType.LiteralNull:
-                case CodeTokenType.ParRoundOpen:
+                case TokenType.LiteralNum:
+                case TokenType.LiteralStr:
+                case TokenType.LiteralTrue:
+                case TokenType.LiteralFalse:
+                case TokenType.LiteralNull:
+                case TokenType.ParRoundOpen:
                     --i;
                     CompilerLevel = CompilerLevel.Component;
                     Component.Type = StatementComponentType.Expression;
@@ -115,8 +111,8 @@ namespace KScr.Eval
                             throw new CompilerException(
                                 $"Incompatible expression type: {sub.TargetType}; expected type: {_statement.TargetType}");
                         // todo: is this old?
-                        //if (next?.Type == CodeTokenType.Dot)
-                        if (next?.Type != CodeTokenType.Terminator || next?.Type != CodeTokenType.ParRoundClose)
+                        //if (next?.Type == TokenType.Dot)
+                        if (next?.Type != TokenType.Terminator || next?.Type != TokenType.ParRoundClose)
                         {
                             Component = sub;
                             PushComponent();
@@ -130,25 +126,25 @@ namespace KScr.Eval
                     };
                     Component.SubComponent = sub1;
                     return sub1;
-                case CodeTokenType.ParRoundClose:
+                case TokenType.ParRoundClose:
                     break;
-                case CodeTokenType.ParSquareOpen:
+                case TokenType.ParSquareOpen:
                     --i;
                     return new SubCodeCompiler(this, SubCompilerMode.ParenthesesSquare, sub => { });
                     break;
-                case CodeTokenType.ParSquareClose:
+                case TokenType.ParSquareClose:
                     break;
-                case CodeTokenType.ParAccOpen:
+                case TokenType.ParAccOpen:
                     --i;
                     return new SubCodeCompiler(this, SubCompilerMode.ParenthesesAccolade, sub => { });
                     break;
-                case CodeTokenType.ParAccClose:
+                case TokenType.ParAccClose:
                     break;
-                case CodeTokenType.ParDiamondOpen:
+                case TokenType.ParDiamondOpen:
                     break;
-                case CodeTokenType.ParDiamondClose:
+                case TokenType.ParDiamondClose:
                     break;
-                case CodeTokenType.IdentNum:
+                case TokenType.IdentNum:
                     // todo:
                     // expect generic type parameters and compile them;
                     // THEN assign them here
@@ -161,25 +157,25 @@ namespace KScr.Eval
                         _statement.TargetType = sub.TargetType;
                         CompilerLevel = CompilerLevel.Component;
                     });
-                case CodeTokenType.IdentStr:
+                case TokenType.IdentStr:
                     if (CompilerLevel != CompilerLevel.Statement)
                         throw new CompilerException($"Illegal Identifier {token.Type} at index {i}");
                     _statement.Type = Component.Type = StatementComponentType.Declaration;
                     _statement.TargetType = ClassRef.StringType;
                     CompilerLevel = CompilerLevel.Component;
                     break;
-                case CodeTokenType.IdentVoid:
+                case TokenType.IdentVoid:
                     if (CompilerLevel != CompilerLevel.Statement)
                         throw new CompilerException($"Illegal Identifier {token.Type} at index {i}");
                     _statement.Type = Component.Type = StatementComponentType.Declaration;
                     _statement.TargetType = ClassRef.VoidType;
                     CompilerLevel = CompilerLevel.Component;
                     break;
-                case CodeTokenType.OperatorPlus:
-                case CodeTokenType.OperatorMinus:
-                case CodeTokenType.OperatorMultiply:
-                case CodeTokenType.OperatorDivide:
-                case CodeTokenType.OperatorModulus:
+                case TokenType.OperatorPlus:
+                case TokenType.OperatorMinus:
+                case TokenType.OperatorMultiply:
+                case TokenType.OperatorDivide:
+                case TokenType.OperatorModulus:
                     if (PrevComponent != null && (PrevComponent.Type & StatementComponentType.Expression) != 0)
                     {
                         --i;
@@ -192,10 +188,10 @@ namespace KScr.Eval
                     }
 
                     break;
-                case CodeTokenType.OperatorEquals:
+                case TokenType.OperatorEquals:
                     if (CompilerLevel == CompilerLevel.Component)
                         // next token may not be null here
-                        if (next!.Type != CodeTokenType.OperatorEquals)
+                        if (next!.Type != TokenType.OperatorEquals)
                         {
                             // is assignment
                             Component.Type = StatementComponentType.Code;
@@ -236,15 +232,15 @@ namespace KScr.Eval
             Component = new StatementComponent();
         }
 
-        public static BytecodeType GetCodeType(CodeTokenType tokenType)
+        public static BytecodeType GetCodeType(TokenType tokenType)
         {
             return tokenType switch
             {
-                CodeTokenType.OperatorPlus => BytecodeType.OperatorPlus,
-                CodeTokenType.OperatorMinus => BytecodeType.OperatorMinus,
-                CodeTokenType.OperatorMultiply => BytecodeType.OperatorMultiply,
-                CodeTokenType.OperatorDivide => BytecodeType.OperatorDivide,
-                CodeTokenType.OperatorModulus => BytecodeType.OperatorModulus,
+                TokenType.OperatorPlus => BytecodeType.OperatorPlus,
+                TokenType.OperatorMinus => BytecodeType.OperatorMinus,
+                TokenType.OperatorMultiply => BytecodeType.OperatorMultiply,
+                TokenType.OperatorDivide => BytecodeType.OperatorDivide,
+                TokenType.OperatorModulus => BytecodeType.OperatorModulus,
                 _ => throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, null)
             };
         }
@@ -263,8 +259,8 @@ namespace KScr.Eval
     internal class SubCodeCompiler : StatementComponent, ICodeCompiler
     {
         private readonly Action<SubCodeCompiler> _finishedAction;
-        private readonly CodeTokenType[] _firstAllowed;
-        private readonly CodeTokenType? _lastExpected;
+        private readonly TokenType[] _firstAllowed;
+        private readonly TokenType? _lastExpected;
         private readonly SubCompilerMode _mode;
         private int _c;
         private bool _finished;
@@ -287,39 +283,39 @@ namespace KScr.Eval
 
         public CompilerLevel CompilerLevel => Parent.CompilerLevel;
 
-        public IEvaluable Compile(RuntimeBase runtime, IList<CodeToken> tokens)
+        public IRuntimeSite Compile(RuntimeBase runtime, IList<IToken> tokens)
         {
             throw new NotSupportedException("A SubCompiler cannot compile a complete list of tokens");
         }
 
         public ICodeCompiler Parent { get; }
 
-        public IEvaluable Compile(RuntimeBase runtime)
+        public IRuntimeSite Compile(RuntimeBase runtime)
         {
             return Parent.Compile(runtime);
         }
 
-        public ICodeCompiler AcceptToken(RuntimeBase vm, IList<CodeToken> tokens, ref int i)
+        public ICompiler AcceptToken(RuntimeBase vm, IToken token1, IToken? next1, IToken? prev1, ref int i)
         {
-            var token = tokens[i];
-            var prev = i - 1 < 0 ? null : tokens[i - 1];
-            var next = i + 1 >= tokens.Count ? null : tokens[i + 1];
+            var token = token1[i];
+            var prev = i - 1 < 0 ? null : token1[i - 1];
+            var next = i + 1 >= token1.Count ? null : token1[i + 1];
 
             if (_c++ == 0 && _mode != SubCompilerMode.Expression && !_firstAllowed.Contains(token.Type))
                 throw new CompilerException(
                     $"First allowed tokens were {string.Join(",", _firstAllowed)}; got {token}");
-            _finished = token.Type == _lastExpected || next?.Type == CodeTokenType.Terminator;
+            _finished = token.Type == _lastExpected || next?.Type == TokenType.Terminator;
 
             switch (token.Type)
             {
-                case CodeTokenType.None:
+                case TokenType.None:
                     break;
-                case CodeTokenType.Terminator:
+                case TokenType.Terminator:
                     break;
-                case CodeTokenType.Dot:
+                case TokenType.Dot:
                     if (CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Invalid CompilerLevel for dot Token");
-                    if (!(next is { Type: CodeTokenType.Word }))
+                    if (!(next is { Type: TokenType.Word }))
                         throw new CompilerException("Unexpected token; dot must be followed by a word");
                     Arg = next.Arg!;
                     _statement.Type = Type = StatementComponentType.Provider;
@@ -327,11 +323,11 @@ namespace KScr.Eval
                     i++;
                     _finished = true;
                     break;
-                case CodeTokenType.Colon:
+                case TokenType.Colon:
                     break;
-                case CodeTokenType.Comma:
+                case TokenType.Comma:
                     break;
-                case CodeTokenType.Word:
+                case TokenType.Word:
                     switch (_mode)
                     {
                         case SubCompilerMode.Expression:
@@ -353,34 +349,34 @@ namespace KScr.Eval
                     }
 
                     break;
-                case CodeTokenType.Return:
+                case TokenType.Return:
                     break;
-                case CodeTokenType.Throw:
+                case TokenType.Throw:
                     break;
-                case CodeTokenType.ParRoundOpen:
+                case TokenType.ParRoundOpen:
                     break;
-                case CodeTokenType.ParRoundClose:
+                case TokenType.ParRoundClose:
                     break;
-                case CodeTokenType.ParSquareOpen:
+                case TokenType.ParSquareOpen:
                     break;
-                case CodeTokenType.ParSquareClose:
+                case TokenType.ParSquareClose:
                     break;
-                case CodeTokenType.ParAccOpen:
+                case TokenType.ParAccOpen:
                     break;
-                case CodeTokenType.ParAccClose:
+                case TokenType.ParAccClose:
                     break;
-                case CodeTokenType.ParDiamondOpen:
+                case TokenType.ParDiamondOpen:
                     // expect a set of generic type parameters or definitions
                     break;
-                case CodeTokenType.ParDiamondClose:
+                case TokenType.ParDiamondClose:
                     break;
-                case CodeTokenType.IdentNum:
+                case TokenType.IdentNum:
                     break;
-                case CodeTokenType.IdentStr:
+                case TokenType.IdentStr:
                     break;
-                case CodeTokenType.IdentVoid:
+                case TokenType.IdentVoid:
                     break;
-                case CodeTokenType.LiteralNum:
+                case TokenType.LiteralNum:
                     if (Parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected numeric literal at index " + i);
                     var num = Numeric.Compile(vm, token.Arg!);
@@ -391,10 +387,10 @@ namespace KScr.Eval
                     Arg = num.Value?.ToString(IObject.ToString_LongName) ?? token.Arg!;
                     TargetType = num.Type;
                     // todo: again; is this old????
-                    //_finished = next?.Type == CodeTokenType.Dot;
-                    _finished = next?.Type != CodeTokenType.Terminator || next?.Type != CodeTokenType.ParRoundClose;
+                    //_finished = next?.Type == TokenType.Dot;
+                    _finished = next?.Type != TokenType.Terminator || next?.Type != TokenType.ParRoundClose;
                     break;
-                case CodeTokenType.LiteralStr:
+                case TokenType.LiteralStr:
                     if (Parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected string literal at index " + i);
                     if (!Statement.TargetType.CanHold(ClassRef.StringType))
@@ -403,9 +399,9 @@ namespace KScr.Eval
                     CodeType = BytecodeType.LiteralString;
                     Arg = token.Arg!;
                     TargetType = ClassRef.StringType;
-                    _finished = next?.Type != CodeTokenType.Terminator || next?.Type != CodeTokenType.ParRoundClose;
+                    _finished = next?.Type != TokenType.Terminator || next?.Type != TokenType.ParRoundClose;
                     break;
-                case CodeTokenType.LiteralTrue:
+                case TokenType.LiteralTrue:
                     if (Parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected bool literal at index " + i);
                     if (!Statement.TargetType.CanHold(ClassRef.NumericShortType))
@@ -414,11 +410,11 @@ namespace KScr.Eval
                     CodeType = BytecodeType.LiteralTrue;
                     Arg = token.Arg!;
                     TargetType = ClassRef.NumericShortType;
-                    _finished = next?.Type == CodeTokenType.Dot;
+                    _finished = next?.Type == TokenType.Dot;
                     TargetType = ClassRef.NumericShortType;
-                    _finished = next?.Type != CodeTokenType.Terminator || next?.Type != CodeTokenType.ParRoundClose;
+                    _finished = next?.Type != TokenType.Terminator || next?.Type != TokenType.ParRoundClose;
                     break;
-                case CodeTokenType.LiteralFalse:
+                case TokenType.LiteralFalse:
                     if (Parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected bool literal at index " + i);
                     if (!Statement.TargetType.CanHold(ClassRef.NumericShortType))
@@ -427,11 +423,11 @@ namespace KScr.Eval
                     CodeType = BytecodeType.LiteralFalse;
                     Arg = token.Arg!;
                     TargetType = ClassRef.NumericShortType;
-                    _finished = next?.Type == CodeTokenType.Dot;
+                    _finished = next?.Type == TokenType.Dot;
                     TargetType = ClassRef.NumericShortType;
-                    _finished = next?.Type != CodeTokenType.Terminator || next?.Type != CodeTokenType.ParRoundClose;
+                    _finished = next?.Type != TokenType.Terminator || next?.Type != TokenType.ParRoundClose;
                     break;
-                case CodeTokenType.LiteralNull:
+                case TokenType.LiteralNull:
                     if (Parent.CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Unexpected null literal at index " + i);
                     if (!Statement.TargetType.CanHold(ClassRef.VoidType))
@@ -440,14 +436,14 @@ namespace KScr.Eval
                     CodeType = BytecodeType.Null;
                     Arg = token.Arg!;
                     TargetType = ClassRef.VoidType;
-                    //_finished = next?.Type == CodeTokenType.Dot;
-                    _finished = next?.Type != CodeTokenType.Terminator || next?.Type != CodeTokenType.ParRoundClose;
+                    //_finished = next?.Type == TokenType.Dot;
+                    _finished = next?.Type != TokenType.Terminator || next?.Type != TokenType.ParRoundClose;
                     break;
-                case CodeTokenType.OperatorPlus:
-                case CodeTokenType.OperatorMinus:
-                case CodeTokenType.OperatorMultiply:
-                case CodeTokenType.OperatorDivide:
-                case CodeTokenType.OperatorModulus:
+                case TokenType.OperatorPlus:
+                case TokenType.OperatorMinus:
+                case TokenType.OperatorMultiply:
+                case TokenType.OperatorDivide:
+                case TokenType.OperatorModulus:
                     if (CompilerLevel != CompilerLevel.Component)
                         throw new CompilerException("Invalid CompilerLevel for operator Token");
                     if (_mode != SubCompilerMode.Operator)
@@ -458,7 +454,7 @@ namespace KScr.Eval
                     i++;
                     _finished = true;
                     break;
-                case CodeTokenType.OperatorEquals:
+                case TokenType.OperatorEquals:
                     break;
             }
 
@@ -471,35 +467,35 @@ namespace KScr.Eval
             return this;
         }
 
-        private static CodeTokenType[] FirstAllowed(SubCompilerMode mode)
+        private static TokenType[] FirstAllowed(SubCompilerMode mode)
         {
             return mode switch
             {
-                SubCompilerMode.ParenthesesSquare => new[] { CodeTokenType.ParSquareOpen },
-                SubCompilerMode.ParenthesesAccolade => new[] { CodeTokenType.ParAccOpen },
-                SubCompilerMode.ParseTypeParameters => new[] { CodeTokenType.ParDiamondOpen },
-                SubCompilerMode.Expression => new[] { CodeTokenType.ParRoundOpen },
-                SubCompilerMode.Call => new[] { CodeTokenType.Dot },
+                SubCompilerMode.ParenthesesSquare => new[] { TokenType.ParSquareOpen },
+                SubCompilerMode.ParenthesesAccolade => new[] { TokenType.ParAccOpen },
+                SubCompilerMode.ParseTypeParameters => new[] { TokenType.ParDiamondOpen },
+                SubCompilerMode.Expression => new[] { TokenType.ParRoundOpen },
+                SubCompilerMode.Call => new[] { TokenType.Dot },
                 SubCompilerMode.Operator => new[]
                 {
-                    CodeTokenType.OperatorPlus,
-                    CodeTokenType.OperatorMinus,
-                    CodeTokenType.OperatorMultiply,
-                    CodeTokenType.OperatorDivide,
-                    CodeTokenType.OperatorModulus
+                    TokenType.OperatorPlus,
+                    TokenType.OperatorMinus,
+                    TokenType.OperatorMultiply,
+                    TokenType.OperatorDivide,
+                    TokenType.OperatorModulus
                 },
                 _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
             };
         }
 
-        private static CodeTokenType? LastExpected(SubCompilerMode mode)
+        private static TokenType? LastExpected(SubCompilerMode mode)
         {
             return mode switch
             {
-                SubCompilerMode.ParenthesesSquare => CodeTokenType.ParSquareClose,
-                SubCompilerMode.ParenthesesAccolade => CodeTokenType.ParAccClose,
-                SubCompilerMode.ParseTypeParameters => CodeTokenType.ParDiamondClose,
-                SubCompilerMode.Expression => CodeTokenType.ParRoundClose,
+                SubCompilerMode.ParenthesesSquare => TokenType.ParSquareClose,
+                SubCompilerMode.ParenthesesAccolade => TokenType.ParAccClose,
+                SubCompilerMode.ParseTypeParameters => TokenType.ParDiamondClose,
+                SubCompilerMode.Expression => TokenType.ParRoundClose,
                 _ => null
             };
         }

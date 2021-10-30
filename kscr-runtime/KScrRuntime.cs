@@ -9,9 +9,9 @@ namespace KScr.Runtime
     {
         public override ObjectStore ObjectStore { get; } = new ObjectStore();
         public override ClassStore ClassStore { get; } = new ClassStore();
-        public override ICodeTokenizer CodeTokenizer { get; } = new CodeTokenizer();
+        public override ITokenizer CodeTokenizer { get; } = new CodeTokenizer();
+        public override ITokenizer ClassTokenizer { get; } = new ClassTokenizer();
         public override ICodeCompiler CodeCompiler { get; } = new MainCodeCompiler();
-        public override IClassTokenizer ClassTokenizer { get; } = new ClassTokenizer();
         public override IClassCompiler ClassCompiler { get; } = new ClassCompiler();
     }
 }

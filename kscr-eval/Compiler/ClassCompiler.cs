@@ -8,7 +8,7 @@ using KScr.Lib.Model;
 
 namespace KScr.Eval
 {
-    public sealed class ClassCompiler : IClassCompiler
+    public sealed class ClassCompiler : AbstractCompiler, IClassCompiler
     {
         public readonly IClassCompiler? Parent;
         private Class _class = null!;
@@ -61,7 +61,7 @@ namespace KScr.Eval
             var tokens = vm.ClassTokenizer.Tokenize(src);
             IClassCompiler use = this;
             for (var i = 0; i < tokens.Count; i++)
-                use = use.AcceptToken(vm, tokens, ref i);
+                use = use.AcceptToken(vm, tokens, TODO, TODO, ref i);
 
             return _class;
         }
@@ -86,85 +86,86 @@ namespace KScr.Eval
             return Parent!;
         }
 
-        public IClassCompiler AcceptToken(RuntimeBase vm, IList<ClassToken> tokens, ref int i)
+        public override ICompiler AcceptToken(RuntimeBase vm, IToken token, IToken? next, IToken? prev, ref int i)
         {
             if (State != ClassCompilerState.Class)
                 throw new CompilerException("Invalid compiler state: " + State);
 
-            var token = tokens[i];
-            var prev = i - 1 < 0 ? null : tokens[i - 1];
-            var next = i + 1 >= tokens.Count ? null : tokens[i + 1];
-
             switch (token.Type)
             {
-                case ClassTokenType.None:
+                case TokenType.None:
                     break;
-                case ClassTokenType.Word:
+                case TokenType.Word:
                     break;
-                case ClassTokenType.Dot:
+                case TokenType.Dot:
                     break;
-                case ClassTokenType.Colon:
+                case TokenType.Colon:
                     break;
-                case ClassTokenType.Comma:
+                case TokenType.Comma:
                     break;
-                case ClassTokenType.Equals:
+                case TokenType.Equals:
                     break;
-                case ClassTokenType.IdentNum:
-                case ClassTokenType.IdentStr:
-                case ClassTokenType.IdentVoid:
+                case TokenType.IdentNum:
+                case TokenType.IdentStr:
+                case TokenType.IdentVoid:
                     break;
-                case ClassTokenType.Extends:
+                case TokenType.Extends:
                     break;
-                case ClassTokenType.Implements:
+                case TokenType.Implements:
                     break;
-                case ClassTokenType.Class:
-                case ClassTokenType.Interface:
-                case ClassTokenType.Enum:
+                case TokenType.Class:
+                case TokenType.Interface:
+                case TokenType.Enum:
                     break;
-                case ClassTokenType.Public:
-                case ClassTokenType.Internal:
-                case ClassTokenType.Protected:
-                case ClassTokenType.Private:
+                case TokenType.Public:
+                case TokenType.Internal:
+                case TokenType.Protected:
+                case TokenType.Private:
 
-                case ClassTokenType.Static:
-                //case ClassTokenType.Dynamic:
+                case TokenType.Static:
+                //case TokenType.Dynamic:
 
-                case ClassTokenType.Abstract:
-                case ClassTokenType.Final:
+                case TokenType.Abstract:
+                case TokenType.Final:
                     Modifier |= FindModifier(token.Type);
                     break;
-                case ClassTokenType.ParRoundOpen:
+                case TokenType.ParRoundOpen:
                     break;
-                case ClassTokenType.ParRoundClose:
+                case TokenType.ParRoundClose:
                     break;
-                case ClassTokenType.ParSquareOpen:
+                case TokenType.ParSquareOpen:
                     break;
-                case ClassTokenType.ParSquareClose:
+                case TokenType.ParSquareClose:
                     break;
-                case ClassTokenType.ParAccOpen:
+                case TokenType.ParAccOpen:
                     break;
-                case ClassTokenType.ParAccClose:
+                case TokenType.ParAccClose:
                     break;
-                case ClassTokenType.ParDiamondOpen:
+                case TokenType.ParDiamondOpen:
                     break;
-                case ClassTokenType.ParDiamondClose:
+                case TokenType.ParDiamondClose:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        private MemberModifier FindModifier(ClassTokenType tokenType)
+        public override IRuntimeSite Compile(RuntimeBase vm)
+        {
+            return _class;
+        }
+
+        private MemberModifier FindModifier(TokenType tokenType)
         {
             return tokenType switch
             {
-                ClassTokenType.Public => MemberModifier.Public,
-                ClassTokenType.Internal => MemberModifier.Internal,
-                ClassTokenType.Protected => MemberModifier.Protected,
-                ClassTokenType.Private => MemberModifier.Private,
-                ClassTokenType.Static => MemberModifier.Static,
-                ClassTokenType.Abstract => MemberModifier.Abstract,
-                ClassTokenType.Final => MemberModifier.Final,
+                TokenType.Public => MemberModifier.Public,
+                TokenType.Internal => MemberModifier.Internal,
+                TokenType.Protected => MemberModifier.Protected,
+                TokenType.Private => MemberModifier.Private,
+                TokenType.Static => MemberModifier.Static,
+                TokenType.Abstract => MemberModifier.Abstract,
+                TokenType.Final => MemberModifier.Final,
                 _ => throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, "No MemberModifier available")
             };
         }

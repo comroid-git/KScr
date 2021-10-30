@@ -1,5 +1,6 @@
 ﻿using System;
 using KScr.Lib.Core;
+using KScr.Lib.Model;
 
 namespace KScr.Lib.Store
 {
@@ -14,37 +15,37 @@ namespace KScr.Lib.Store
     public sealed class ClassRef : IClassRef
     {
         public static readonly ClassRef VoidType = new ClassRef("void",
-            ClassTokenType.Public | ClassTokenType.Static | ClassTokenType.Final | ClassTokenType.Class, null);
+            TokenType.Public | TokenType.Static | TokenType.Final | TokenType.Class, null);
 
         public static readonly ClassRef StringType = new ClassRef("str",
-            ClassTokenType.Public | ClassTokenType.Static | ClassTokenType.Final | ClassTokenType.Class, "");
+            TokenType.Public | TokenType.Static | TokenType.Final | TokenType.Class, "");
 
         public static readonly ClassRef NumericByteType = new ClassRef("num<byte>",
-            ClassTokenType.Public | ClassTokenType.Static | ClassTokenType.Final | ClassTokenType.Class, (byte)0);
+            TokenType.Public | TokenType.Static | TokenType.Final | TokenType.Class, (byte)0);
 
         public static readonly ClassRef NumericShortType = new ClassRef("num<short>",
-            ClassTokenType.Public | ClassTokenType.Static | ClassTokenType.Final | ClassTokenType.Class, (short)0);
+            TokenType.Public | TokenType.Static | TokenType.Final | TokenType.Class, (short)0);
 
         public static readonly ClassRef NumericIntegerType = new ClassRef("num<int>",
-            ClassTokenType.Public | ClassTokenType.Static | ClassTokenType.Final | ClassTokenType.Class, 0);
+            TokenType.Public | TokenType.Static | TokenType.Final | TokenType.Class, 0);
 
         public static readonly ClassRef NumericLongType = new ClassRef("num<long>",
-            ClassTokenType.Public | ClassTokenType.Static | ClassTokenType.Final | ClassTokenType.Class, (long)0);
+            TokenType.Public | TokenType.Static | TokenType.Final | TokenType.Class, (long)0);
 
         public static readonly ClassRef NumericFloatType = new ClassRef("num<float>",
-            ClassTokenType.Public | ClassTokenType.Static | ClassTokenType.Final | ClassTokenType.Class, (float)0);
+            TokenType.Public | TokenType.Static | TokenType.Final | TokenType.Class, (float)0);
 
         public static readonly ClassRef NumericDoubleType = new ClassRef("num<double>",
-            ClassTokenType.Public | ClassTokenType.Static | ClassTokenType.Final | ClassTokenType.Class, (double)0);
+            TokenType.Public | TokenType.Static | TokenType.Final | TokenType.Class, (double)0);
 
-        private ClassRef(string fullName, ClassTokenType modifier, object? constDefault)
+        private ClassRef(string fullName, TokenType modifier, object? constDefault)
         {
             FullName = fullName;
             Modifier = modifier;
             Default = constDefault;
         }
 
-        public ClassTokenType Modifier { get; }
+        public TokenType Modifier { get; }
         public string FullName { get; }
         public long TypeId => RuntimeBase.GetHashCode64(FullName);
         public object? Default { get; }

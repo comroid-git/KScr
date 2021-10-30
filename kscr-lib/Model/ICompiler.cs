@@ -6,13 +6,30 @@ namespace KScr.Lib.Model
 {
     public interface ICompiler
     {
-        ICompiler AcceptToken(RuntimeBase vm, IList<IToken> tokens, ref int i);
+        IRuntimeSite Compile(RuntimeBase vm, IList<IToken> tokens);
+        ICompiler AcceptToken(RuntimeBase vm, IToken token, IToken? next, IToken? prev, ref int i);
+        IRuntimeSite Compile(RuntimeBase vm);
     }
 
-    public enum CompilerLevel
+    public abstract class AbstractCompiler : ICompiler
     {
-        Statement, // expression, declaration, return, throw, if, while, ...
-        Component // parentheses, generic types, ...
+        public IRuntimeSite Compile(RuntimeBase vm, IList<IToken> tokens) {
+            int len = tokens.Count;
+            ICompiler use = this;
+            for (var i = 0; i < len; i++)
+            {
+                var token = tokens[i];
+                var next = i + 1 >= tokens.Count ? null : tokens[i + 1];
+                var prev = i - 1 < 0 ? null : tokens[i - 1];
+                use = use.AcceptToken(vm, token, next, prev, ref i);
+            }
+
+            return use.Compile(vm);
+        }
+
+        public abstract ICompiler AcceptToken(RuntimeBase vm, IToken token, IToken? next, IToken? prev, ref int i);
+
+        public abstract IRuntimeSite Compile(RuntimeBase vm);
     }
 
     public interface ICodeCompiler : ICompiler
@@ -20,16 +37,9 @@ namespace KScr.Lib.Model
         public ICodeCompiler? Parent { get; }
         public IStatement<IStatementComponent> Statement { get; }
         public CompilerLevel CompilerLevel { get; }
-        public IEvaluable Compile(RuntimeBase runtime, IList<CodeToken> tokens);
+        public IEvaluable Compile(RuntimeBase runtime, IList<IToken> tokens);
 
         public IEvaluable Compile(RuntimeBase runtime);
-    }
-
-    public enum ClassCompilerState
-    {
-        Idle,
-        Package,
-        Class
     }
 
     public interface IClassCompiler : ICompiler
@@ -41,5 +51,18 @@ namespace KScr.Lib.Model
         public IClassCompiler NextPackage(string name);
         public IClassCompiler NextClass(string name);
         public IClassCompiler PushElement();
+    }
+
+    public enum CompilerLevel
+    {
+        Statement, // expression, declaration, return, throw, if, while, ...
+        Component // parentheses, generic types, ...
+    }
+
+    public enum ClassCompilerState
+    {
+        Idle,
+        Package,
+        Class
     }
 }

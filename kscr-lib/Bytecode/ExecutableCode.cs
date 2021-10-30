@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using KScr.Lib;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 
-namespace KScr.Eval
+namespace KScr.Lib.Bytecode
 {
     public class ExecutableCode : IStatement<Statement>
     {
