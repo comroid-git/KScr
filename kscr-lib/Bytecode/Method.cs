@@ -15,6 +15,7 @@ namespace KScr.Lib.Bytecode
         public override IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
         {
             state = Body.Evaluate(vm, null, ref rev);
+            return null;
         }
     }
 }
