@@ -13,14 +13,14 @@ namespace KScr.Lib.Bytecode
         {
         }
 
-        public IDictionary<string, IClassMember> DeclaredMembers { get; } =
-            new ConcurrentDictionary<string, IClassMember>();
+        public IDictionary<string, IClassMember?> DeclaredMembers { get; } =
+            new ConcurrentDictionary<string, IClassMember?>();
 
         public MemberModifier Modifier { get; }
         public long TypeId { get; }
         public object? Default { get; }
 
         public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0) =>
-            DeclaredMembers[StaticInitializer].Evaluate(vm, ref state, ref rev, alt);
+            DeclaredMembers[StaticInitializer]?.Evaluate(vm, ref state, ref rev, alt);
     }
 }
