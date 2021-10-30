@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "kscr-runtime", "kscr-runtim
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "kscr-lib", "kscr-lib\kscr-lib.csproj", "{A6218D05-C633-4950-A29F-BACCF941FADB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kscr-eval", "kscr-eval\kscr-eval.csproj", "{D9001348-768B-4937-AC4A-D220F5705F6C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kscr-compiler", "kscr-compiler\kscr-compiler.csproj", "{3F673941-7FC3-41FE-9377-0FF1B9275848}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{A6218D05-C633-4950-A29F-BACCF941FADB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6218D05-C633-4950-A29F-BACCF941FADB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6218D05-C633-4950-A29F-BACCF941FADB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D9001348-768B-4937-AC4A-D220F5705F6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D9001348-768B-4937-AC4A-D220F5705F6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D9001348-768B-4937-AC4A-D220F5705F6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D9001348-768B-4937-AC4A-D220F5705F6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F673941-7FC3-41FE-9377-0FF1B9275848}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F673941-7FC3-41FE-9377-0FF1B9275848}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F673941-7FC3-41FE-9377-0FF1B9275848}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F673941-7FC3-41FE-9377-0FF1B9275848}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

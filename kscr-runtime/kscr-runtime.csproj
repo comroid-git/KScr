@@ -11,7 +11,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\kscr-eval\kscr-eval.csproj"/>
+      <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj" />
+      <ProjectReference Include="..\kscr-lib\kscr-lib.csproj" />
     </ItemGroup>
 
 </Project>
