@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
+using KScr.Lib.Model;
 
 namespace KScr.Lib.Store
 {

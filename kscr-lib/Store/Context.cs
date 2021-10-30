@@ -2,7 +2,7 @@
 
 namespace KScr.Lib.Store
 {
-    public enum VariableContext
+    public enum VariableContext : byte
     {
         Local,
         This,

@@ -1,14 +1,12 @@
 ﻿using KScr.Lib.Bytecode;
-using KScr.Lib.Model;
 
-namespace KScr.Lib.Store
+namespace KScr.Lib.Model
 {
     public interface IClassRef
     {
         MemberModifier Modifier { get; }
         string FullName { get; }
         long TypeId { get; }
-        object? Default { get; }
 
         bool CanHold(IClassRef? type)
         {

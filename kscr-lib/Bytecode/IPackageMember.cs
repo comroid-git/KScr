@@ -35,8 +35,8 @@ namespace KScr.Lib.Bytecode
             new ConcurrentDictionary<string, IPackageMember>();
 
         public Package? Parent { get; }
-        public string Name { get; }
-        public MemberModifier Modifier { get; }
+        public string Name { get; protected set; }
+        public MemberModifier Modifier { get; protected set; }
         public string FullName => (Parent != null ? Parent?.FullName + '.' : string.Empty) + Name;
 
         public IPackageMember GetMember(string name)

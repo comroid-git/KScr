@@ -3,7 +3,7 @@
 namespace KScr.Lib.Bytecode
 {
     [Flags]
-    public enum MemberModifier
+    public enum MemberModifier : uint
     {
         None = 0,
         Public = 0x0000_1000,

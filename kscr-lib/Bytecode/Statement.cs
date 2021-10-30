@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
@@ -37,6 +38,33 @@ namespace KScr.Lib.Bytecode
         }
 
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main.Cast<AbstractBytecode>();
+        public override void Write(Stream stream)
+        {
+            stream.Write(BitConverter.GetBytes((byte)Type));
+            stream.Write(BitConverter.GetBytes(TargetType.TypeId));
+            stream.Write(BitConverter.GetBytes(Main.Count));
+            foreach (var component in Main)
+                (component as AbstractBytecode)!.Write(stream);
+        }
+
+        public override void Load(RuntimeBase vm, byte[] data, ref int index)
+        {
+            Main.Clear();
+            
+            Type = (StatementComponentType) data[index];
+            index += 1;
+            TargetType = vm.ClassStore.FindType(BitConverter.ToInt64(data, index));
+            index += 8;
+            int len = BitConverter.ToInt32(data, index);
+            index += 4;
+            StatementComponent stmt;
+            for (int i = 0; i < len; i++)
+            {
+                stmt = new StatementComponent();
+                stmt.Load(vm, data, ref index);
+                Main.Add(stmt);
+            }
+        }
     }
 
     public class StatementComponent : AbstractBytecode, IStatementComponent
@@ -136,5 +164,52 @@ namespace KScr.Lib.Bytecode
         }
 
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => SubComponent != null ? new []{ SubComponent } : Array.Empty<AbstractBytecode>();
+        
+        public override void Write(Stream stream)
+        {
+            stream.Write(BitConverter.GetBytes((byte)Type));
+            stream.Write(BitConverter.GetBytes((byte)VariableContext));
+            stream.Write(BitConverter.GetBytes((uint)CodeType));
+            stream.Write(BitConverter.GetBytes(Arg.Length));
+            stream.Write(RuntimeBase.Encoding.GetBytes(Arg));
+            bool b;
+            stream.Write(BitConverter.GetBytes(b = SubComponent != null));
+            if (b)
+                SubComponent!.Write(stream);
+        }
+
+        public override void Load(RuntimeBase vm, byte[] data, ref int index)
+        {
+            _Load(vm, data, ref index, out var sct, out var vct, out var bty, out var arg, out var sub);
+            Type = sct;
+            VariableContext = vct;
+            CodeType = bty;
+            Arg = arg;
+            SubComponent = sub;
+        }
+
+        private static void _Load(RuntimeBase vm, byte[] data, ref int index, out StatementComponentType sct, out VariableContext vct, out BytecodeType bty, out string arg, out StatementComponent? sub)
+        {
+            sct = (StatementComponentType)data[index];
+            index += 1;
+            vct = (VariableContext)data[index];
+            index += 1;
+            bty = (BytecodeType)BitConverter.ToUInt32(data, index);
+            index += 4;
+            int len = BitConverter.ToInt32(data, index);
+            index += 4;
+            arg = RuntimeBase.Encoding.GetString(data, index, len);
+            index += len;
+            if (BitConverter.ToBoolean(data, index++))
+                sub = Read(vm, data, index);
+            else sub = null;
+        }
+
+        private static StatementComponent Read(RuntimeBase vm, byte[] data, int index)
+        {
+            var comp = new StatementComponent();
+            comp.Load(vm, data, ref index);
+            return comp;
+        }
     }
 }

@@ -1,42 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace KScr.Lib.Bytecode
 {
-    public enum BytecodeMemberType
-    {
-        Class,
-        ClassMember,
-        Code
-    }
-    
     public abstract class AbstractBytecode
     {
+        protected static readonly byte[] NewLineBytes = RuntimeBase.Encoding.GetBytes("\n");
         protected abstract IEnumerable<AbstractBytecode> BytecodeMembers { get; }
-        protected abstract BytecodeMemberType Type { get; }
-        protected abstract byte[] ToBytes();
-        protected abstract void ReadBytes(byte[] data);
+        public abstract void Write(Stream stream);
 
-        public void Read(string path)
+        public virtual void Load(RuntimeBase vm, byte[] data)
         {
+            for (var i = 0; i < data.Length; i++) 
+                Load(vm, data, ref i);
         }
 
-        public void Write(string path)
-        {
-            foreach (var member in BytecodeMembers)
-            {
-                
-            }
-        }
-
-        protected void Write(StreamWriter stream)
-        {
-            byte[] body = ToBytes();
-            int len = body.Length;
-            
-            stream.Write(Type);
-            stream.Write(len);
-            stream.Write(body);
-        }
+        public virtual void Load(RuntimeBase vm, byte[] data, ref int index) {}
     }
 }

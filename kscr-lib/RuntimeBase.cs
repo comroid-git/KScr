@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
@@ -17,6 +18,8 @@ namespace KScr.Lib
 
     public abstract class RuntimeBase
     {
+        public static Encoding Encoding = Encoding.ASCII;
+        
         private uint _lastObjId = 0xF;
 
         static RuntimeBase()

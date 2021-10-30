@@ -19,5 +19,13 @@ namespace KScr.Lib.Bytecode
         }
 
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => new []{ Body };
+        public override ClassMemberType Type => ClassMemberType.Method;
+
+        public override void Load(RuntimeBase vm, byte[] data, ref int i)
+        {
+            Body.Load(vm, data, ref i);
+        }
+
+        public static Method Read(RuntimeBase vm, Class parent, byte[] data, ref int i) => (AbstractClassMember.Read(vm, parent, data, ref i) as Method)!;
     }
 }
