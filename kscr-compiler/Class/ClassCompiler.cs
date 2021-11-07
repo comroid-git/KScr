@@ -80,6 +80,8 @@ namespace KScr.Compiler.Class
                     
                     break;
             }
+
+            return this;
         }
     }
 
