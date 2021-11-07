@@ -73,7 +73,7 @@ namespace KScr.Lib.Model
         bool PushToken();
         bool PushToken(IToken? token);
         bool PushToken(ref IToken? token);
-        IList<IToken> Tokenize(string source);
+        IList<IToken> Tokenize(RuntimeBase vm, string source);
         IToken? Accept(char c, char n, char p, ref int i, ref string str);
     }
 

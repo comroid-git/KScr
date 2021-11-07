@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using KScr.Lib;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
 
@@ -28,7 +29,7 @@ namespace KScr.Compiler
             return true;
         }
 
-        public IList<IToken> Tokenize(string source)
+        public IList<IToken> Tokenize(RuntimeBase vm, string source)
         {
             int len = source.Length;
             string str = "";

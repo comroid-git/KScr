@@ -39,8 +39,8 @@ namespace KScr.Lib
         }
 
         public abstract ITokenizer Tokenizer { get; }
-        public abstract ICodeCompiler CodeCompiler { get; }
-        public abstract IClassCompiler ClassCompiler { get; }
+        public abstract ICompiler CodeCompiler { get; }
+        public abstract ICompiler ClassCompiler { get; }
 
         public ObjectRef ConstantVoid =>
             ComputeObject(VariableContext.Absolute, Numeric.CreateKey(-1), () => IObject.Null);
@@ -101,12 +101,6 @@ namespace KScr.Lib
         {
             return this[varctx, key] = new ObjectRef(value?.Type ?? ClassRef.VoidType, value ?? IObject.Null);
         }
-
-        [Obsolete]
-        public IList<IToken> Tokenize(string source) => CodeTokenizer.Tokenize(source);
-
-        [Obsolete]
-        public IEvaluable Compile(IList<IToken> tokens) => CodeCompiler.Compile(this, tokens);
 
         public IObject? Execute(ref State state, out long timeµs)
         {

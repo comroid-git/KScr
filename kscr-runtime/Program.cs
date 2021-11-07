@@ -142,8 +142,10 @@ namespace KScr.Runtime
             out IEvaluable? here, out long time)
         {
             time = RuntimeBase.UnixTime();
-            var tokens = runtime.Tokenize(input!);
-            here = runtime.Compile(tokens);
+            var tokens = runtime.Tokenizer.Tokenize(runtime, input!);
+            // todo: fix "live" compilation
+            // here = runtime.CodeCompiler.Compile(runtime, new CompilerContext());
+            here = null!;
             var result = runtime.Execute(ref state);
             time = RuntimeBase.UnixTime() - time;
             return result;
