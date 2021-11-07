@@ -1,29 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using KScr.Lib.Bytecode;
+using KScr.Lib.Exception;
 
 namespace KScr.Lib.Model
 {
     public enum CompilerType
     {
         // class compiler types
-        Package, // dir-level compiler
-        Class,   // file-level compiler
+        Package = 1, // dir-level compiler
+        Class = 2,   // file-level compiler
         
         // code compiler types
-        CodeStatement, // statement component compiler
-        CodeExpression // expression component compiler
+        CodeStatement = 10, // statement component compiler
+        CodeExpression = 11 // expression component compiler
     }
     
     public sealed class CompilerContext
     {
-        public CompilerContext(IList<IToken> tokens, Package package) : this(null, CompilerType.Package, tokens, package, null!, null!) {}
+        public CompilerContext() : this(null, CompilerType.Package, null!, Package.RootPackage, null!, null!) {}
         public CompilerContext(CompilerContext ctx, Package package) : this(ctx, CompilerType.Package, ctx.Tokens, package, null!, null!) {}
-        public CompilerContext(CompilerContext ctx, Class @class) : this(ctx, CompilerType.Class, ctx.Tokens, ctx.Package, @class, null!) {}
-        public CompilerContext(CompilerContext ctx, CompilerType type) : this(ctx, type, ctx.Tokens, ctx.Package, ctx.Class, new ExecutableCode()) {}
-        
+        public CompilerContext(CompilerContext ctx, Class @class, IList<IToken> tokens, [Range(10, 19)] CompilerType type) : this(ctx, type, tokens, ctx.Package, @class, null!) {}
+        public CompilerContext(CompilerContext ctx, IList<IToken> tokens, [Range(10, 19)] CompilerType type) : this(ctx, type, tokens, ctx.Package, ctx.Class, new ExecutableCode()) {}
+
         private CompilerContext(
             CompilerContext? parent,
             CompilerType type,
@@ -71,9 +74,9 @@ namespace KScr.Lib.Model
                 ComponentIndex = 0;
             }
         }
-
         public Statement? NextStatement => ExecutableCode.Main.Count < StatementIndex + 1 ? ExecutableCode.Main[StatementIndex + 1] : null;
         public Statement? PrevStatement => StatementIndex - 1 >= 0 ? ExecutableCode.Main[StatementIndex - 1] : null;
+        
         public StatementComponent Component
         {
             get => Statement.Main[ComponentIndex];
@@ -83,21 +86,25 @@ namespace KScr.Lib.Model
                 ComponentIndex += 1;
             }
         }
-
         public StatementComponent? NextComponent => Statement.Main.Count < ComponentIndex + 1 ? Statement.Main[ComponentIndex + 1] : null;
         public StatementComponent? PrevComponent => ComponentIndex - 1 >= 0 ? Statement.Main[ComponentIndex - 1] : null;
     }
     
     public interface ICompiler
     {
-        CompilerContext Compile(RuntimeBase vm, IList<IToken> tokens);
-        ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx);
+        ICompiler? Parent { get; }
+
+        // compile at package level. context is created from root package
+        CompilerContext Compile(RuntimeBase vm, DirectoryInfo dir);
+        // compile at class level. context type must be class-level
+        CompilerContext Compile(RuntimeBase vm, CompilerContext context, IList<IToken> tokens);
+        ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext context);
     }
 
     public abstract class AbstractCompiler : ICompiler
     {
-        protected CompilerContext? _context;
-
+        public const string FileAppendix = ".kscr";
+        
         protected AbstractCompiler(ICompiler? parent = null)
         {
             Parent = parent;
@@ -105,63 +112,104 @@ namespace KScr.Lib.Model
 
         public ICompiler? Parent { get; }
 
-        public CompilerContext Context => _context!;
-
-        public CompilerContext Compile(RuntimeBase vm, IList<IToken> tokens)
+        public CompilerContext Compile(RuntimeBase vm, DirectoryInfo dir)
         {
-            if (_context?.Type != CompilerType.Package)
-                _context = new CompilerContext(tokens, Package.RootPackage);
+            var context = new CompilerContext();
+
+            CompilePackage(vm, dir, ref context);
             
-            int len = Context.Tokens.Count;
-            ICompiler use = this;
-            while (Context.TokenIndex < len)
+            return context;
+        }
+
+        private void CompilePackage(RuntimeBase vm, DirectoryInfo dir, ref CompilerContext context)
+        {
+            foreach (var subDir in dir.EnumerateDirectories())
             {
-                use = use.AcceptToken(vm, ref _context) ?? Parent!;
-                Context.TokenIndex += 1;
+                var pkg = new Package(context.Package, subDir.Name);
+                var prev = context;
+                context = new CompilerContext(context, pkg);
+                CompilePackage(vm, subDir, ref context);
+                context = prev;
             }
 
-            return Context;
+            foreach (var subFile in dir.EnumerateFiles('*'+FileAppendix)) 
+                CompileClass(vm, subFile, ref context);
+        }
+
+        private void CompileClass(RuntimeBase vm, FileInfo file, ref CompilerContext context)
+        {
+            var source = File.ReadAllText(file.FullName);
+            var tokens = vm.Tokenizer.Tokenize(vm, source ?? throw new FileNotFoundException("Source file not found: " + file.FullName));
+            string clsName = file.Name.Substring(0, file.Name.Length - FileAppendix.Length);
+            var cls = context.Package.GetOrCreateClass(clsName, FindClassModifiers(tokens, clsName, ref context.TokenIndex), context.Package);
+            var prev = context;
+            context = new CompilerContext(context, cls, tokens, CompilerType.Class);
+            ICompiler use = vm.ClassCompiler;
+            CompilerLoop(vm, ref use, ref context);
+            context = prev;
+        }
+
+        private static MemberModifier FindClassModifiers(IList<IToken> tokens, string clsName, ref int i)
+        {
+            var mod = MemberModifier.Protected;
+
+            switch (tokens[i].Type)
+            {
+                case TokenType.Public:
+                    mod = MemberModifier.Public;
+                    i+=1;
+                    break;
+                case TokenType.Internal:
+                    mod = MemberModifier.Internal;
+                    i+=1;
+                    break;
+                case TokenType.Private:
+                    mod = MemberModifier.Private;
+                    i+=1;
+                    break;
+            }
+
+            if (tokens[i].Type == TokenType.Static)
+            {
+                mod |= MemberModifier.Static;
+                i+=1;
+            }
+
+            switch (tokens[i].Type)
+            {
+                case TokenType.Final:
+                    mod |= MemberModifier.Final;
+                    i+=1;
+                    break;
+                case TokenType.Abstract:
+                    mod |= MemberModifier.Abstract;
+                    i+=1;
+                    break;
+            }
+
+            if (tokens[i].Type != TokenType.Word || tokens[i].Arg != clsName)
+                throw new CompilerException("Declared Class name was not found or mismatches File name");
+
+            return mod;
+        }
+
+        public CompilerContext Compile(RuntimeBase vm, CompilerContext context, IList<IToken> tokens)
+        {
+            ICompiler use = this;
+            context = new CompilerContext(context, tokens, context.Type);
+            CompilerLoop(vm, ref use, ref context);
+            return context;
+        }
+
+        protected static void CompilerLoop(RuntimeBase vm, ref ICompiler use, ref CompilerContext context)
+        {
+            while (context.TokenIndex < context.Tokens.Count)
+            {
+                use = use.AcceptToken(vm, ref context) ?? use.Parent!;
+                context.TokenIndex += 1;
+            }
         }
 
         public abstract ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx);
     }
-    
-    #region Obsolete
-    [Obsolete]
-    public enum CompilerLevel
-    {
-        Statement, // expression, declaration, return, throw, if, while, ...
-        Component // parentheses, generic types, ...
-    }
-
-    [Obsolete]
-    public enum ClassCompilerState
-    {
-        Idle,
-        Package,
-        Class
-    }
-
-    [Obsolete]
-    public interface ICodeCompiler : ICompiler
-    {
-        public ICodeCompiler? Parent { get; }
-        public IStatement<IStatementComponent> Statement { get; }
-        public CompilerLevel CompilerLevel { get; }
-
-        public IEvaluable Compile(RuntimeBase runtime);
-    }
-
-    [Obsolete]
-    public interface IClassCompiler : ICompiler
-    {
-        public ClassCompilerState State { get; }
-        public Package CompilePackage(RuntimeBase vm, DirectoryInfo dir);
-        public void CompileClasses(RuntimeBase vm, DirectoryInfo dir);
-        public Class CompileClass(RuntimeBase vm, FileInfo file);
-        public IClassCompiler NextPackage(string name);
-        public IClassCompiler NextClass(string name);
-        public IClassCompiler PushElement();
-    } 
-    #endregion
 }
