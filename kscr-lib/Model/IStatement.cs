@@ -5,7 +5,7 @@ using KScr.Lib.Store;
 namespace KScr.Lib.Model
 {
     [Flags]
-    public enum StatementComponentType : byte
+    public enum StatementComponentType : ushort
     {
         // basetypes
 
@@ -18,6 +18,10 @@ namespace KScr.Lib.Model
         // - num x          (-> standard numeric declaration)
         // - str v          (-> standard string declaration)
         Declaration = 0x20,
+        
+        // setter-operation
+        // - [setter] = [expression];
+        Setter = 0x100,
 
         // pipe base node
         // - pipe<num> x    (-> standard pipe declaration)

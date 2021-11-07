@@ -14,10 +14,12 @@ namespace KScr.Lib.Model
         // class compiler types
         Package = 1, // dir-level compiler
         Class = 2,   // file-level compiler
+        ParameterDefintion = 3, // parameterdefinition
         
         // code compiler types
         CodeStatement = 10, // statement component compiler
-        CodeExpression = 11 // expression component compiler
+        CodeExpression = 11, // expression component compiler
+        CodeParameterExpression = 15 // method parameter expression compiler 
     }
     
     public sealed class CompilerContext
@@ -84,7 +86,7 @@ namespace KScr.Lib.Model
             set
             {
                 if (StatementIndex == -1)
-                    throw new ThreadStateException("No statement defined");
+                    Statement = new Statement();
                 (value.Statement = Statement).Main.Add(value);
                 ComponentIndex += 1;
             }

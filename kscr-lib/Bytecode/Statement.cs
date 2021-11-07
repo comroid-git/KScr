@@ -51,8 +51,8 @@ namespace KScr.Lib.Bytecode
         {
             Main.Clear();
             
-            Type = (StatementComponentType) data[index];
-            index += 1;
+            Type = (StatementComponentType) BitConverter.ToInt16(data, index);
+            index += 2;
             TargetType = vm.ClassStore.FindType(BitConverter.ToInt64(data, index));
             index += 8;
             int len = BitConverter.ToInt32(data, index);
@@ -121,9 +121,9 @@ namespace KScr.Lib.Bytecode
                             if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new InternalException("Invalid assignment; no Expression found");
                             output = null;
-                            var state1 = SubComponent.Evaluate(vm, this, ref output);
+                            state = SubComponent.Evaluate(vm, this, ref output);
                             rev.Value = output?.Value;
-                            return state1;
+                            return state;
                         case BytecodeType.Return:
                             // return
                             if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
@@ -150,14 +150,16 @@ namespace KScr.Lib.Bytecode
                     }
 
                     break;
-                case StatementComponentType.Consumer:
-                    switch (CodeType)
-                    {
-                        case BytecodeType.Assignment:
-                            // write value
-                            rev!.Value = vm[VariableContext, Arg]!.Value;
-                            break;
-                    }
+                case StatementComponentType.Setter:
+                    // assignment
+                    if (rev == null)
+                        throw new InternalException("Invalid assignment; missing variable name");
+                    if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
+                        throw new InternalException("Invalid assignment; no Expression found");
+                    output = null;
+                    state = SubComponent.Evaluate(vm, this, ref output);
+                    rev.Value = output?.Value;
+                    return state;
 
                     break;
                 case StatementComponentType.Emitter:
