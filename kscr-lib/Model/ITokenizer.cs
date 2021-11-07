@@ -83,53 +83,6 @@ namespace KScr.Lib.Model
         string? Arg { get; }
     }
 
-    public abstract class AbstractTokenizer : ITokenizer
-    {
-        protected IToken? Token;
-        private readonly List<IToken> Tokens = new List<IToken>();
-
-        public bool PushToken()
-        {
-            return PushToken(ref Token);
-        }
-
-        public bool PushToken(IToken? token)
-        {
-            return PushToken(ref token);
-        }
-
-        public virtual bool PushToken(ref IToken? token)
-        {
-            if (token == null)
-                return false;
-            Tokens.Add(token);
-            return true;
-        }
-
-        public IList<IToken> Tokenize(string source)
-        {
-            int len = source.Length;
-            string str = "";
-
-            for (var i = 0; i < len; i++)
-            {
-                char c = source[i];
-                char n = i + 1 < len ? source[i + 1] : ' ';
-                char p = i - 1 > 0 ? source[i - 1] : ' ';
-                Token = (Accept(c, n, p, ref i, ref str) as ClassToken)!;
-
-                if (!(Token as AbstractToken)!.Complete) 
-                    continue;
-                PushToken();
-                str = "";
-            }
-
-            return Tokens;
-        }
-
-        public abstract IToken? Accept(char c, char n, char p, ref int i, ref string str);
-    }
-
     public abstract class AbstractToken : IToken
     {
         public bool Complete;
@@ -156,9 +109,9 @@ namespace KScr.Lib.Model
         }
     }
 
-    public sealed class CodeToken : AbstractToken
+    public sealed class Token : AbstractToken
     {
-        public CodeToken(TokenType type = TokenType.None, string arg = null!) : base(type, arg)
+        public Token(TokenType type = TokenType.None, string arg = null!) : base(type, arg)
         {
         }
     }
