@@ -12,8 +12,8 @@ namespace KScr.Lib.Bytecode
 {
     public class Statement : AbstractBytecode, IStatement<StatementComponent>
     {
-        public StatementComponentType Type { get; internal set; }
-        public IClassRef TargetType { get; internal set; } = Class.VoidType;
+        public StatementComponentType Type { get; set; }
+        public IClassRef TargetType { get; set; } = Class.VoidType;
         public List<StatementComponent> Main { get; } = new List<StatementComponent>();
 
         public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
@@ -69,12 +69,12 @@ namespace KScr.Lib.Bytecode
 
     public class StatementComponent : AbstractBytecode, IStatementComponent
     {
-        public Statement Statement { get; internal set; } = null!;
-        public VariableContext VariableContext { get; internal set; }
-        public string Arg { get; internal set; } = string.Empty;
+        public Statement Statement { get; set; } = null!;
+        public VariableContext VariableContext { get; set; }
+        public string Arg { get; set; } = string.Empty;
         public StatementComponent? SubComponent { get; set; }
-        public StatementComponentType Type { get; internal set; }
-        public BytecodeType CodeType { get; internal set; } = BytecodeType.Terminator;
+        public StatementComponentType Type { get; set; }
+        public BytecodeType CodeType { get; set; } = BytecodeType.Terminator;
 
         public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
         {

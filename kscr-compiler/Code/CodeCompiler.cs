@@ -1,4 +1,5 @@
 ﻿using KScr.Lib;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Model;
 
 namespace KScr.Compiler.Code
@@ -27,7 +28,11 @@ namespace KScr.Compiler.Code
                 case TokenType.IdentVoid:
                 case TokenType.IdentNum:
                 case TokenType.IdentStr:
-                    
+                    ctx.Statement = new Statement();
+                    ctx.Component = new StatementComponent
+                    {
+                        
+                    };
                     ctx.TokenIndex += 1;
                     break;
                 case TokenType.ParAccClose:

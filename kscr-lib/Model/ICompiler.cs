@@ -72,7 +72,7 @@ namespace KScr.Lib.Model
             {
                 ExecutableCode.Main.Add(value);
                 StatementIndex += 1;
-                ComponentIndex = 0;
+                ComponentIndex = -1;
             }
         }
         public Statement? NextStatement => ExecutableCode.Main.Count < StatementIndex + 1 ? ExecutableCode.Main[StatementIndex + 1] : null;
@@ -83,7 +83,7 @@ namespace KScr.Lib.Model
             get => Statement.Main[ComponentIndex];
             set
             {
-                Statement.Main.Add(value);
+                (value.Statement = Statement).Main.Add(value);
                 ComponentIndex += 1;
             }
         }
