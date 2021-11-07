@@ -10,9 +10,8 @@ namespace KScr.Compiler
     {
         public override ObjectStore ObjectStore => null!;
         public override ClassStore ClassStore { get; } = new ClassStore();
-        public override ITokenizer ClassTokenizer => new ClassTokenizer();
+        public override ITokenizer Tokenizer => new Tokenizer();
         public override IClassCompiler ClassCompiler => new ClassCompiler();
-        public override ITokenizer CodeTokenizer => new CodeTokenizer();
         public override ICodeCompiler CodeCompiler => new MainCodeCompiler();
     }
 }

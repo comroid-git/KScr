@@ -38,8 +38,7 @@ namespace KScr.Lib
             set => ObjectStore[Context, varctx, name] = value;
         }
 
-        public abstract ITokenizer CodeTokenizer { get; }
-        public abstract ITokenizer ClassTokenizer { get; }
+        public abstract ITokenizer Tokenizer { get; }
         public abstract ICodeCompiler CodeCompiler { get; }
         public abstract IClassCompiler ClassCompiler { get; }
 
