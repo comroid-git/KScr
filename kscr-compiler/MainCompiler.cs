@@ -3,6 +3,7 @@ using System.IO;
 using CommandLine;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
+using KScr.Lib.Model;
 
 namespace KScr.Compiler
 {
@@ -18,12 +19,8 @@ namespace KScr.Compiler
     {
         public static void Compile(RuntimeBase vm, DirectoryInfo sourceDir, DirectoryInfo outputDir)
         {
-            var compiler = vm.ClassCompiler;
-            
-            foreach (var pkg in sourceDir.EnumerateDirectories())
-            {
-                compiler.CompilePackage(vm, pkg);
-            }
+            vm.ClassCompiler.Compile(vm, sourceDir);
+            Package.RootPackage.Write(outputDir);
         }
 
         public static void Run(CompilerArgs args)
