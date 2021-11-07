@@ -16,19 +16,22 @@ namespace KScr.Lib.Bytecode
 
         public static readonly Class StringType = new Class(Package.RootPackage,"str",LibClassModifier);
 
+        public static readonly Class NumericType = new Class(Package.RootPackage,"num",LibClassModifier);
+        [Obsolete]
         public static readonly Class NumericByteType = new Class(Package.RootPackage,"num<byte>",LibClassModifier);
-
+        [Obsolete]
         public static readonly Class NumericShortType = new Class(Package.RootPackage,"num<short>",LibClassModifier);
-
+        [Obsolete]
         public static readonly Class NumericIntegerType = new Class(Package.RootPackage,"num<int>",LibClassModifier);
-
+        [Obsolete]
         public static readonly Class NumericLongType = new Class(Package.RootPackage,"num<long>",LibClassModifier);
-
+        [Obsolete]
         public static readonly Class NumericFloatType = new Class(Package.RootPackage,"num<float>",LibClassModifier);
-
+        [Obsolete]
         public static readonly Class NumericDoubleType = new Class(Package.RootPackage,"num<double>",LibClassModifier);
         public const string StaticInitializer = "initializer_static";
-        public static Class NumericType(NumericMode mode)
+        [Obsolete]
+        public static Class _NumericType(NumericMode mode)
         {
             return mode switch
             {

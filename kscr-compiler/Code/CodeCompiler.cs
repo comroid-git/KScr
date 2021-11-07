@@ -1,5 +1,6 @@
 ﻿using KScr.Lib;
 using KScr.Lib.Bytecode;
+using KScr.Lib.Exception;
 using KScr.Lib.Model;
 
 namespace KScr.Compiler.Code
@@ -26,14 +27,31 @@ namespace KScr.Compiler.Code
             switch (ctx.Token.Type)
             {
                 case TokenType.IdentVoid:
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.VoidType);
+                    break;
                 case TokenType.IdentNum:
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.NumericType);
+                    break;
                 case TokenType.IdentStr:
-                    ctx.Statement = new Statement();
-                    ctx.Component = new StatementComponent
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.StringType);
+                    break;
+                case TokenType.OperatorEquals:
+                    if (ctx.Statement.Type == StatementComponentType.Declaration)
                     {
-                        
-                    };
-                    ctx.TokenIndex += 1;
+                        // assignment
+                        ctx.Component = new StatementComponent
+                        {
+                            Type = StatementComponentType.Consumer,
+                            CodeType = BytecodeType.Assignment
+                        };
+                    
+                        // compile expression
+                        ICompiler sub = new ExpressionCompiler(this);
+                        var subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
+                        CompilerLoop(vm, ref sub, ref subctx);
+                        ctx.Component.SubComponent = subctx.Component;
+                    }
+
                     break;
                 case TokenType.ParAccClose:
                     _active = false;
@@ -41,6 +59,23 @@ namespace KScr.Compiler.Code
             }
 
             return this;
+        }
+
+        private static void CompileDeclaration(CompilerContext ctx, Lib.Bytecode.Class targetType)
+        {
+            if (ctx.NextToken?.Type != TokenType.Word)
+                throw new CompilerException("Invalid declaration; missing variable name");
+
+            ctx.Statement = new Statement
+            {
+                Type = StatementComponentType.Declaration,
+                TargetType = targetType
+            };
+            ctx.Component = new StatementComponent
+            {
+                Arg = ctx.NextToken!.Arg!
+            };
+            ctx.TokenIndex += 1;
         }
     }
     

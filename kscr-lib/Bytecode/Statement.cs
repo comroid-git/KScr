@@ -151,7 +151,15 @@ namespace KScr.Lib.Bytecode
 
                     break;
                 case StatementComponentType.Consumer:
-                    throw new NotImplementedException();
+                    switch (CodeType)
+                    {
+                        case BytecodeType.Assignment:
+                            // write value
+                            rev!.Value = vm[VariableContext, Arg]!.Value;
+                            break;
+                    }
+
+                    break;
                 case StatementComponentType.Emitter:
                     throw new NotImplementedException();
                 case StatementComponentType.Lambda:

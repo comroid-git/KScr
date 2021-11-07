@@ -83,6 +83,8 @@ namespace KScr.Lib.Model
             get => Statement.Main[ComponentIndex];
             set
             {
+                if (StatementIndex == -1)
+                    throw new ThreadStateException("No statement defined");
                 (value.Statement = Statement).Main.Add(value);
                 ComponentIndex += 1;
             }

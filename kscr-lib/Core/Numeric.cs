@@ -73,7 +73,7 @@ namespace KScr.Lib.Core
 
         public long ObjectId => RuntimeBase.CombineHash(_objId, CreateKey(StringValue));
         public bool Primitive => true;
-        public Class Type => Class.NumericType(Mode);
+        public Class Type => Class._NumericType(Mode);
 
         public string ToString(short variant)
         {
