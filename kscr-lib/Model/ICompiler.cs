@@ -25,7 +25,8 @@ namespace KScr.Lib.Model
         public CompilerContext() : this(null, CompilerType.Package, null!, Package.RootPackage, null!, null!) {}
         public CompilerContext(CompilerContext ctx, Package package) : this(ctx, CompilerType.Package, ctx.Tokens, package, null!, null!) {}
         public CompilerContext(CompilerContext ctx, Class @class, IList<IToken> tokens, [Range(10, 19)] CompilerType type) : this(ctx, type, tokens, ctx.Package, @class, null!) {}
-        public CompilerContext(CompilerContext ctx, IList<IToken> tokens, [Range(10, 19)] CompilerType type) : this(ctx, type, tokens, ctx.Package, ctx.Class, new ExecutableCode()) {}
+        public CompilerContext(CompilerContext ctx, IList<IToken> tokens, [Range(10, 19)] CompilerType type) : this(ctx, type, tokens, ctx.Package, ctx.Class, null!) {}
+        public CompilerContext(CompilerContext ctx, CompilerType type) : this(ctx, type, ctx.Tokens, ctx.Package, ctx.Class, new ExecutableCode()) {}
 
         private CompilerContext(
             CompilerContext? parent,
@@ -93,6 +94,7 @@ namespace KScr.Lib.Model
     public interface ICompiler
     {
         ICompiler? Parent { get; }
+        bool Active { get; }
 
         // compile at package level. context is created from root package
         CompilerContext Compile(RuntimeBase vm, DirectoryInfo dir);
@@ -111,6 +113,7 @@ namespace KScr.Lib.Model
         }
 
         public ICompiler? Parent { get; }
+        public virtual bool Active => true;
 
         public CompilerContext Compile(RuntimeBase vm, DirectoryInfo dir)
         {
@@ -203,11 +206,22 @@ namespace KScr.Lib.Model
 
         protected static void CompilerLoop(RuntimeBase vm, ref ICompiler use, ref CompilerContext context)
         {
-            while (context.TokenIndex < context.Tokens.Count)
+            while (context.TokenIndex < context.Tokens.Count && use.Active)
             {
                 use = use.AcceptToken(vm, ref context) ?? use.Parent!;
                 context.TokenIndex += 1;
             }
+        }
+
+        protected static string FindCompoundWord(CompilerContext ctx, TokenType delimiter = TokenType.Whitespace)
+        {
+            string str = "";
+            while (ctx.Token.Type != delimiter)
+            {
+                str += ctx.Token.String();
+                ctx.TokenIndex += 1;
+            }
+            return str;
         }
 
         public abstract ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx);

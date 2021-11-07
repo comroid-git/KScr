@@ -13,7 +13,7 @@ namespace KScr.Lib.Bytecode
     public class Statement : AbstractBytecode, IStatement<StatementComponent>
     {
         public StatementComponentType Type { get; internal set; }
-        public IClassRef TargetType { get; internal set; } = ClassRef.VoidType;
+        public IClassRef TargetType { get; internal set; } = Class.VoidType;
         public List<StatementComponent> Main { get; } = new List<StatementComponent>();
 
         public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)

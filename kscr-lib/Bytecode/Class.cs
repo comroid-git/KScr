@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using KScr.Lib.Core;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 
@@ -10,7 +11,36 @@ namespace KScr.Lib.Bytecode
 {
     public sealed class Class : AbstractPackageMember, IClassRef, IRuntimeSite
     {
+        private const MemberModifier LibClassModifier = MemberModifier.Public | MemberModifier.Static | MemberModifier.Final;
+        public static readonly Class VoidType = new Class(Package.RootPackage, "void", LibClassModifier);
+
+        public static readonly Class StringType = new Class(Package.RootPackage,"str",LibClassModifier);
+
+        public static readonly Class NumericByteType = new Class(Package.RootPackage,"num<byte>",LibClassModifier);
+
+        public static readonly Class NumericShortType = new Class(Package.RootPackage,"num<short>",LibClassModifier);
+
+        public static readonly Class NumericIntegerType = new Class(Package.RootPackage,"num<int>",LibClassModifier);
+
+        public static readonly Class NumericLongType = new Class(Package.RootPackage,"num<long>",LibClassModifier);
+
+        public static readonly Class NumericFloatType = new Class(Package.RootPackage,"num<float>",LibClassModifier);
+
+        public static readonly Class NumericDoubleType = new Class(Package.RootPackage,"num<double>",LibClassModifier);
         public const string StaticInitializer = "initializer_static";
+        public static Class NumericType(NumericMode mode)
+        {
+            return mode switch
+            {
+                NumericMode.Byte => Class.NumericByteType,
+                NumericMode.Short => Class.NumericShortType,
+                NumericMode.Int => Class.NumericIntegerType,
+                NumericMode.Long => Class.NumericLongType,
+                NumericMode.Float => Class.NumericFloatType,
+                NumericMode.Double => Class.NumericDoubleType,
+                _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+            };
+        }
         
         public Class(Package parent, string name, MemberModifier? modifier = null) : base(parent, name, modifier ?? MemberModifier.Public)
         {

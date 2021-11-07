@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 using KScr.Lib.Store;
 
@@ -72,7 +73,7 @@ namespace KScr.Lib.Core
 
         public long ObjectId => RuntimeBase.CombineHash(_objId, CreateKey(StringValue));
         public bool Primitive => true;
-        public ClassRef Type => ClassRef.NumericType(Mode);
+        public Class Type => Class.NumericType(Mode);
 
         public string ToString(short variant)
         {

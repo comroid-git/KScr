@@ -1,4 +1,5 @@
 ﻿using System;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 using KScr.Lib.Store;
 
@@ -18,7 +19,7 @@ namespace KScr.Lib.Core
         public long ObjectId { get; }
 
         public bool Primitive => true;
-        public ClassRef Type => ClassRef.StringType;
+        public Class Type => Class.StringType;
 
         public string ToString(short variant)
         {

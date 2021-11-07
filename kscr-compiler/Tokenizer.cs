@@ -86,12 +86,17 @@ namespace KScr.Compiler
             if (isLineComment)
                 return null;
 
+            IToken? buf;
             bool isWhitespace = c == ' ';
+            if (isWhitespace)
+            {
+                buf = new Token{Complete = true};
+                PushToken(ref buf);
+            }
 
             if (isWhitespace && !isStringLiteral)
                 token.Complete = true;
 
-            IToken? buf;
             switch (c)
             {
                 // terminator

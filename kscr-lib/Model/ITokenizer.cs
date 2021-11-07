@@ -6,7 +6,7 @@ namespace KScr.Lib.Model
     [Flags]
     public enum TokenType : uint
     {
-        None = 0x0000_00,
+        Whitespace = 0x0000_00,
 
         Terminator = 0x0101_01,
         Word = 0x0101_10,
@@ -68,6 +68,57 @@ namespace KScr.Lib.Model
         Final = 0x020F_20
     }
 
+    public static class TokenExtensios
+    {
+        public static string String(this IToken token) => token.Type switch
+        {
+            TokenType.Whitespace => " ",
+            TokenType.Terminator => ";",
+            TokenType.Word => token.Arg!,
+            TokenType.Return => "return",
+            TokenType.Throw => "throw",
+            TokenType.Dot => ".",
+            TokenType.Colon => "'",
+            TokenType.Comma => ",",
+            TokenType.ParRoundOpen => "(",
+            TokenType.ParRoundClose => ")",
+            TokenType.ParSquareOpen => "[",
+            TokenType.ParSquareClose => "]",
+            TokenType.ParAccOpen => "{",
+            TokenType.ParAccClose => "}",
+            TokenType.ParDiamondOpen => "<",
+            TokenType.ParDiamondClose => ">",
+            TokenType.IdentVoid => "void",
+            TokenType.IdentNum => "num",
+            TokenType.IdentStr => "str",
+            TokenType.LiteralNull => "null",
+            TokenType.LiteralNum => "num",
+            TokenType.LiteralTrue => "true",
+            TokenType.LiteralFalse => "false",
+            TokenType.LiteralStr => "str",
+            TokenType.OperatorPlus => "+",
+            TokenType.OperatorMinus => "-",
+            TokenType.OperatorMultiply => "*",
+            TokenType.OperatorDivide => "/",
+            TokenType.OperatorModulus => "%",
+            TokenType.OperatorEquals => "=",
+            TokenType.Extends => "extends",
+            TokenType.Implements => "implements",
+            TokenType.Public => "public",
+            TokenType.Internal => "internal",
+            TokenType.Protected => "protected",
+            TokenType.Private => "private",
+            TokenType.Class => "class",
+            TokenType.Interface => "interface",
+            TokenType.Enum => "enum",
+            TokenType.Static => "static",
+            TokenType.Dynamic => "dynamic",
+            TokenType.Abstract => "abstract",
+            TokenType.Final => "final",
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
     public interface ITokenizer
     {
         bool PushToken();
@@ -87,7 +138,7 @@ namespace KScr.Lib.Model
     {
         public bool Complete;
 
-        public AbstractToken(TokenType type = TokenType.None, string arg = null!)
+        public AbstractToken(TokenType type = TokenType.Whitespace, string arg = null!)
         {
             Type = type;
             Arg = arg;
@@ -104,14 +155,14 @@ namespace KScr.Lib.Model
 
     public sealed class ClassToken : AbstractToken
     {
-        public ClassToken(TokenType type = TokenType.None, string arg = null!) : base(type, arg)
+        public ClassToken(TokenType type = TokenType.Whitespace, string arg = null!) : base(type, arg)
         {
         }
     }
 
     public sealed class Token : AbstractToken
     {
-        public Token(TokenType type = TokenType.None, string arg = null!) : base(type, arg)
+        public Token(TokenType type = TokenType.Whitespace, string arg = null!) : base(type, arg)
         {
         }
     }

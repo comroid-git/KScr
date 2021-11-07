@@ -1,4 +1,6 @@
 ﻿
+using KScr.Compiler.Class;
+using KScr.Compiler.Code;
 using KScr.Lib;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
