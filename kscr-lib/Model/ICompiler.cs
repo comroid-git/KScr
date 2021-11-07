@@ -35,8 +35,8 @@ namespace KScr.Lib.Model
             Package package,
             Class @class,
             ExecutableCode executableCode, 
-            int statementIndex = 0, 
-            int componentIndex = 0)
+            int statementIndex = -1, 
+            int componentIndex = -1)
         {
             Parent = parent;
             Type = type;
@@ -147,7 +147,7 @@ namespace KScr.Lib.Model
             var cls = context.Package.GetOrCreateClass(clsName, FindClassModifiers(tokens, clsName, ref context.TokenIndex), context.Package);
             var prev = context;
             context = new CompilerContext(context, cls, tokens, CompilerType.Class);
-            ICompiler use = vm.ClassCompiler;
+            ICompiler use = vm.Compiler;
             CompilerLoop(vm, ref use, ref context);
             context = prev;
         }

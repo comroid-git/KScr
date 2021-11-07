@@ -19,7 +19,7 @@ namespace KScr.Compiler
     {
         public static void Compile(RuntimeBase vm, DirectoryInfo sourceDir, DirectoryInfo outputDir)
         {
-            vm.ClassCompiler.Compile(vm, sourceDir);
+            vm.Compiler.Compile(vm, sourceDir);
             Package.RootPackage.Write(outputDir);
         }
 

@@ -10,7 +10,7 @@ namespace KScr.Lib.Bytecode
     public class ExecutableCode : AbstractBytecode, IStatement<Statement>
     {
         public StatementComponentType Type => StatementComponentType.Code;
-        public IClassRef TargetType { get; protected set; } = ClassRef.VoidType;
+        public IClassRef TargetType { get; protected set; } = Class.VoidType;
 
         public List<Statement> Main { get; } = new List<Statement>();
 

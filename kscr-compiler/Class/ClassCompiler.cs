@@ -72,7 +72,7 @@ namespace KScr.Compiler.Class
                         break;
                     
                     // compile method body
-                    sub = vm.CodeCompiler;
+                    sub = new StatementCompiler(this);
                     ctx = new CompilerContext(ctx, CompilerType.CodeStatement);
                     CompilerLoop(vm, ref sub, ref ctx);
                     method.Body = ctx.ExecutableCode;

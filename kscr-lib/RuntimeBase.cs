@@ -39,8 +39,7 @@ namespace KScr.Lib
         }
 
         public abstract ITokenizer Tokenizer { get; }
-        public abstract ICompiler CodeCompiler { get; }
-        public abstract ICompiler ClassCompiler { get; }
+        public abstract ICompiler Compiler { get; }
 
         public ObjectRef ConstantVoid =>
             ComputeObject(VariableContext.Absolute, Numeric.CreateKey(-1), () => IObject.Null);
@@ -99,7 +98,7 @@ namespace KScr.Lib
 
         public ObjectRef PutObject(VariableContext varctx, string key, IObject? value)
         {
-            return this[varctx, key] = new ObjectRef(value?.Type ?? ClassRef.VoidType, value ?? IObject.Null);
+            return this[varctx, key] = new ObjectRef(value?.Type ?? Class.VoidType, value ?? IObject.Null);
         }
 
         public IObject? Execute(ref State state, out long timeµs)
@@ -121,26 +120,26 @@ namespace KScr.Lib
             return rev?.Value;
         }
 
-        public ClassRef? FindType(string name)
+        public Class? FindType(string name)
         {
             switch (name)
             {
                 case "byte":
-                    return ClassRef.NumericByteType;
+                    return Class.NumericByteType;
                 case "short":
-                    return ClassRef.NumericShortType;
+                    return Class.NumericShortType;
                 case "int":
-                    return ClassRef.NumericIntegerType;
+                    return Class.NumericIntegerType;
                 case "long":
-                    return ClassRef.NumericLongType;
+                    return Class.NumericLongType;
                 case "float":
-                    return ClassRef.NumericFloatType;
+                    return Class.NumericFloatType;
                 case "double":
-                    return ClassRef.NumericDoubleType;
+                    return Class.NumericDoubleType;
                 case "str":
-                    return ClassRef.StringType;
+                    return Class.StringType;
                 case "void":
-                    return ClassRef.VoidType;
+                    return Class.VoidType;
             }
 
             return null; // todo;

@@ -24,6 +24,12 @@ namespace KScr.Compiler.Code
         {
             switch (ctx.Token.Type)
             {
+                case TokenType.IdentVoid:
+                case TokenType.IdentNum:
+                case TokenType.IdentStr:
+                    
+                    ctx.TokenIndex += 1;
+                    break;
                 case TokenType.ParAccClose:
                     _active = false;
                     return Parent;
@@ -35,6 +41,11 @@ namespace KScr.Compiler.Code
     
     public class ExpressionCompiler : AbstractCodeCompiler
     {
+        private enum Mode
+        {
+            Parentheses
+        }
+        
         public ExpressionCompiler(ICompiler parent) : base(parent)
         {
         }
