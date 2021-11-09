@@ -151,8 +151,21 @@ namespace KScr.Lib.Bytecode
                             rev = vm[VariableContext, Arg];
                             break;
                         case BytecodeType.Call:
-                            // invoke method
-                            rev = rev?.Value?.Invoke(vm, Arg); // todo: allow parameters
+                            // invoke member
+                            if (rev == null)
+                                throw new InternalException("Invalid call; no target found");
+                            if (rev.Type.DeclaredMembers[Arg].Type == ClassMemberType.Method)
+                            {
+                                if (SubComponent == null || (SubComponent.Type & StatementComponentType.Code) == 0)
+                                    throw new InternalException("Invalid method call; no parameters found");
+                                else
+                                {
+                                    output = null;
+                                    SubComponent.Evaluate(vm, null, ref output);
+                                }
+                            }
+
+                            rev = rev.Value?.Invoke(vm, Arg); // todo: allow parameters
                             break;
                     }
 

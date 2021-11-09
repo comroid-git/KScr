@@ -1,4 +1,5 @@
-﻿using KScr.Lib.Bytecode;
+﻿using System.Collections.Generic;
+using KScr.Lib.Bytecode;
 
 namespace KScr.Lib.Model
 {
@@ -7,6 +8,7 @@ namespace KScr.Lib.Model
         MemberModifier Modifier { get; }
         string FullName { get; }
         long TypeId { get; }
+        IDictionary<string, IClassMember> DeclaredMembers { get; }
 
         bool CanHold(IClassRef? type)
         {
