@@ -193,7 +193,7 @@ namespace KScr.Lib.Bytecode
             return State.Normal;
         }
 
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers => SubComponent != null ? new []{ SubComponent } : Array.Empty<AbstractBytecode>();
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => SubComponent != null ? new []{ SubComponent } : System.Array.Empty<AbstractBytecode>();
         
         public override void Write(Stream stream)
         {
