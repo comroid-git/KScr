@@ -17,41 +17,4 @@ namespace KScr.Lib.Store
         {
         }
     }
-
-    [Obsolete]
-    public sealed class ClassRef : IClassRef
-    {
-
-        private ClassRef(string fullName, MemberModifier modifier, object? constDefault)
-        {
-            FullName = fullName;
-            Modifier = modifier;
-            Default = constDefault;
-        }
-
-        public MemberModifier Modifier { get; }
-        public string FullName { get; }
-        public long TypeId => RuntimeBase.GetHashCode64(FullName);
-        public object? Default { get; }
-
-
-        public override string ToString()
-        {
-            return FullName;
-        }
-
-        #region Equality Overrides
-
-        public override bool Equals(object? obj)
-        {
-            return obj is ClassRef other && FullName == other.FullName;
-        }
-
-        public override int GetHashCode()
-        {
-            return FullName.GetHashCode();
-        }
-
-        #endregion
-    }
 }
