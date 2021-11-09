@@ -101,6 +101,9 @@ namespace KScr.Lib.Bytecode
                         case BytecodeType.Null:
                             rev = vm.ConstantVoid;
                             return State.Normal;
+                        case BytecodeType.Expression:
+                            rev = vm.Context.This;
+                            return State.Normal;
                     }
 
                     return State.Normal;

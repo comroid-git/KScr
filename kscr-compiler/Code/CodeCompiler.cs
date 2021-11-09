@@ -52,6 +52,13 @@ namespace KScr.Compiler.Code
                         Arg = ctx.Token.Arg!
                     };
                     break;
+                case TokenType.This:
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Provider,
+                        VariableContext = VariableContext.This
+                    };
+                    break;
                 case TokenType.OperatorPlus:
                 case TokenType.OperatorMinus:
                 case TokenType.OperatorMultiply:

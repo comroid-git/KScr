@@ -208,6 +208,9 @@ namespace KScr.Compiler
                     PushToken(new Token(TokenType.ParRoundOpen) { Complete = true });
                     artParLevel++;
                     return;
+                case "this":
+                    PushToken(new Token(TokenType.This) { Complete = true });
+                    return;
                 case "num":
                     token = new Token(TokenType.IdentNum) { Complete = true };
                     break;

@@ -12,6 +12,7 @@ namespace KScr.Lib.Model
         Word = 0x0101_10,
         Return = 0x0101_20,
         Throw = 0x0101_21,
+        This = 0x0101_22,
 
         Dot = 0x0102_10,
         Colon = 0x0102_20,
