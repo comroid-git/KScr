@@ -15,6 +15,7 @@ namespace KScr.Lib.Bytecode
         public static readonly Class VoidType = new Class(Package.RootPackage, "void", LibClassModifier);
         public static readonly Class StringType = new Class(Package.RootPackage,"str",LibClassModifier);
         public static readonly Class NumericType = new Class(Package.RootPackage,"num",LibClassModifier);
+        [Obsolete]
         public static readonly Class ArrayType = new Class(Package.RootPackage, "array", LibClassModifier);
         [Obsolete]
         public static readonly Class NumericByteType = new Class(Package.RootPackage,"num<byte>",LibClassModifier);

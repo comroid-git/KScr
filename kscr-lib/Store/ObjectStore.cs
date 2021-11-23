@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
@@ -54,37 +55,42 @@ namespace KScr.Lib.Store
 
     public sealed class ObjectRef
     {
-        private IObject? _value;
+        private readonly IObject?[] _stack;
 
-        public ObjectRef(IClassRef type) : this(type, null)
+        public ObjectRef(IClassRef type, IObject? value) : this(type)
         {
+            Value = value;
         }
 
-        public ObjectRef(IClassRef type, IObject? value)
+        public ObjectRef(IClassRef type, [Range(1, int.MaxValue)] int len = 1)
         {
+            if (len < 1)
+                throw new ArgumentOutOfRangeException(nameof(len), len, "Invalid ObjectRef size");
+            
             Type = type;
-            _value = value;
+            _stack = new IObject?[len];
         }
 
-        public IClassRef Type { get; }
+        public readonly IClassRef Type;
 
+        public int Length => _stack.Length;
+        public IObject?[] Stack => _stack;
         public IObject? Value
         {
-            get => _value;
+            get => Stack[0];
             set
             {
                 bool canHold = Type.CanHold(value?.Type);
                 if (canHold)
-                    _value = value;
+                    Stack[0] = value;
                 else
                     throw new InternalException("Invalid Type (" + value?.Type + ") assigned to reference of type " +
                                                 Type);
             }
         }
 
-        public override string ToString()
-        {
-            return Type + ": " + Value;
-        }
+        public override string ToString() => Length > 1
+            ? Type + "" + string.Join(",", _stack.Select(it => it?.ToString()))
+            : Type + ": " + Value;
     }
 }

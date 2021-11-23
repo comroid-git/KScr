@@ -1,9 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Store;
 
 namespace KScr.Lib.Core
 {
+    [Obsolete]
     public sealed class Array : IObject
     {
         public Array(RuntimeBase vm, int len) : this(vm, new ObjectRef[len])
