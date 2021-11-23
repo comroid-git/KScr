@@ -76,7 +76,7 @@ namespace KScr.Lib.Bytecode
         public StatementComponentType Type { get; set; }
         public BytecodeType CodeType { get; set; } = BytecodeType.Terminator;
 
-        public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
+        public virtual State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
         {
             ObjectRef? output;
             State state;
@@ -154,18 +154,27 @@ namespace KScr.Lib.Bytecode
                             // invoke member
                             if (rev == null)
                                 throw new InternalException("Invalid call; no target found");
-                            if (rev.Type.DeclaredMembers[Arg].Type == ClassMemberType.Method)
+                            if (rev.Type.DeclaredMembers[Arg] is Method mtd)
                             {
-                                if (SubComponent == null || (SubComponent.Type & StatementComponentType.Code) == 0)
+                                if (!(SubComponent is MethodParameterComponent mpc) ||
+                                    (SubComponent.Type & StatementComponentType.Code) == 0)
                                     throw new InternalException("Invalid method call; no parameters found");
                                 else
                                 {
                                     output = null;
-                                    SubComponent.Evaluate(vm, null, ref output);
+                                    State mstate = State.Normal;
+                                    if (mtd.IsStatic())
+                                        vm.Context.Refocus(mtd.Parent, mtd.Parent.TypeId);
+                                    else vm.Context.Refocus(rev, mtd.Parent.TypeId);
+                                    mpc.Evaluate(vm, null, ref output);
+                                    mtd.Evaluate(vm, ref mstate, ref output); // todo inspect
+                                    vm.Context.RevertFocus();
+                                    rev = output;
+                                    //mpc.Evaluate(vm, null, ref output);
                                 }
                             }
-
-                            rev = rev.Value?.Invoke(vm, Arg); // todo: allow parameters
+                            else throw new System.Exception("Invalid state; not a method");
+                            
                             break;
                     }
 
@@ -240,6 +249,14 @@ namespace KScr.Lib.Bytecode
             var comp = new StatementComponent();
             comp.Load(vm, data, ref index);
             return comp;
+        }
+    }
+
+    public class MethodParameterComponent : StatementComponent
+    {
+        public override State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
+        {
+            return base.Evaluate(vm, prev, ref rev);
         }
     }
 }

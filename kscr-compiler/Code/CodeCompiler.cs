@@ -34,7 +34,6 @@ namespace KScr.Compiler.Code
                     if (ctx.NextToken?.Type == TokenType.ParRoundOpen)
                     {
                         // method call, parse parameter expressions
-                        ctx.TokenIndex += 1;
                         ICompiler sub = new ParameterExpressionCompiler(this);
                         var subctx = new CompilerContext(ctx, CompilerType.CodeParameterExpression);
                         CompilerLoop(vm, ref sub, ref subctx);

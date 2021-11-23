@@ -1,4 +1,5 @@
-﻿using KScr.Lib.Model;
+﻿using KScr.Lib;
+using KScr.Lib.Model;
 
 namespace KScr.Compiler.Code
 {
@@ -7,6 +8,13 @@ namespace KScr.Compiler.Code
         public ParameterExpressionCompiler(ICompiler parent) : base(parent)
         {
             // todo
+        }
+
+        public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
+        {
+            
+            
+            return base.AcceptToken(vm, ref ctx);
         }
     }
 }
