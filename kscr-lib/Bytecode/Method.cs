@@ -1,12 +1,21 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 
 namespace KScr.Lib.Bytecode
 {
+    public struct MethodParameter
+    {
+        public IClassRef Type;
+        public string Name;
+    }
+    
     public sealed class Method : AbstractClassMember
     {
         public ExecutableCode Body = null!;
+
+        public MethodParameter[] Parameters { get; set; } = Array.Empty<MethodParameter>();
 
         public Method(Class parent, string name, MemberModifier modifier) : base(parent, name, modifier)
         {
