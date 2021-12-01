@@ -5,17 +5,17 @@ using KScr.Lib.Store;
 
 namespace KScr.Lib.Bytecode
 {
-    public struct MethodParameter
+    public class MethodParameter
     {
-        public IClassRef Type;
-        public string Name;
+        public IClassRef Type { get; set; }
+        public string Name { get; set; }
     }
     
     public sealed class Method : AbstractClassMember
     {
         public ExecutableCode Body = null!;
 
-        public MethodParameter[] Parameters { get; set; } = Array.Empty<MethodParameter>();
+        public List<MethodParameter> Parameters { get; } = new List<MethodParameter>();
 
         public Method(Class parent, string name, MemberModifier modifier) : base(parent, name, modifier)
         {
