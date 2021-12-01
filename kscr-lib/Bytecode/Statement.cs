@@ -162,12 +162,13 @@ namespace KScr.Lib.Bytecode
                                 else
                                 {
                                     output = new ObjectRef(Class.VoidType, mtd.Parameters.Length);
-                                    State mstate = State.Normal;
-                                    mpc.Evaluate(vm, null, ref output);
+                                    state = mpc.Evaluate(vm, null, ref output);
+                                    if (state != State.Normal)
+                                        throw new InternalException("Invalid state after evaluating method parameters");
                                     if (mtd.IsStatic())
                                         vm.Context.Refocus(mtd.Parent, mtd.Parent.TypeId);
                                     else vm.Context.Refocus(rev, mtd.Parent.TypeId);
-                                    mtd.Evaluate(vm, ref mstate, ref output); // todo inspect
+                                    mtd.Evaluate(vm, ref state, ref output); // todo inspect
                                     vm.Context.RevertFocus();
                                     rev = output;
                                     //mpc.Evaluate(vm, null, ref output);
