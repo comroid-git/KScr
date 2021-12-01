@@ -135,7 +135,7 @@ namespace KScr.Runtime
         private static void ClearEval(KScrRuntime runtime)
         {
             Console.Clear();
-            vm.Clear();
+            runtime.Clear();
         }
 
         private static IObject? HandleSourcecode(KScrRuntime runtime, string? input, ref State state,
