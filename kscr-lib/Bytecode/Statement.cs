@@ -161,7 +161,7 @@ namespace KScr.Lib.Bytecode
                                     throw new InternalException("Invalid method call; no parameters found");
                                 else
                                 {
-                                    output = null;
+                                    output = new ObjectRef(Class.VoidType, mtd.Parameters.Length);
                                     State mstate = State.Normal;
                                     if (mtd.IsStatic())
                                         vm.Context.Refocus(mtd.Parent, mtd.Parent.TypeId);
