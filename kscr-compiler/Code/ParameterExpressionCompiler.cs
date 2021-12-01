@@ -1,20 +1,40 @@
 ﻿using KScr.Lib;
+using KScr.Lib.Bytecode;
+using KScr.Lib.Exception;
 using KScr.Lib.Model;
 
 namespace KScr.Compiler.Code
 {
-    public sealed class ParameterExpressionCompiler : AbstractCodeCompiler
+    public sealed class ParameterExpressionCompiler : AbstractCompiler
     {
         public ParameterExpressionCompiler(ICompiler parent) : base(parent)
         {
-            // todo
         }
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
-            
-            
-            return base.AcceptToken(vm, ref ctx);
+            MethodParameterComponent mpc;
+            ctx.Component = mpc = new MethodParameterComponent
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.ParameterExpression
+            };
+            //ctx.TokenIndex -= 1;
+
+            while (ctx.Token.Type != TokenType.ParRoundClose)
+            {
+                ICompiler sub = new ExpressionCompiler(this, TokenType.Comma);
+                CompilerContext subctx = new CompilerContext(ctx, CompilerType.CodeParameterExpression);
+                CompilerLoop(vm, ref sub, ref subctx);
+                mpc.Expressions.Add(subctx.Component);
+                ctx.TokenIndex = subctx.TokenIndex;
+
+                if (ctx.Token.Type != TokenType.Comma)
+                    throw new CompilerException("Invalid expression delimiter in Method parameters; comma expected");
+                ctx.TokenIndex += 1;
+            }
+
+            return Parent;
         }
     }
 }
