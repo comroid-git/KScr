@@ -161,7 +161,7 @@ namespace KScr.Lib.Bytecode
                                     throw new InternalException("Invalid method call; no parameters found");
                                 else
                                 {
-                                    output = new ObjectRef(Class.VoidType, mtd.Parameters.Length);
+                                    output = new ObjectRef(Class.VoidType, mtd.Parameters.Count);
                                     state = mpc.Evaluate(vm, null, ref output);
                                     if (state != State.Normal)
                                         throw new InternalException("Invalid state after evaluating method parameters");
