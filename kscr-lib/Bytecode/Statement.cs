@@ -252,14 +252,4 @@ namespace KScr.Lib.Bytecode
             return comp;
         }
     }
-
-    public class MethodParameterComponent : StatementComponent
-    {
-        public readonly List<StatementComponent> Expressions = new List<StatementComponent>();
-        
-        public override State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
-        {
-            return base.Evaluate(vm, prev, ref rev);
-        }
-    }
 }
