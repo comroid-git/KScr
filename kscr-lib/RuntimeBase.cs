@@ -142,7 +142,7 @@ namespace KScr.Lib
                     return Class.VoidType;
             }
 
-            return null; // todo;
+            return ClassStore.FindType(GetHashCode64(name));
         }
     }
 }
