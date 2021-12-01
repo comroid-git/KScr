@@ -159,20 +159,17 @@ namespace KScr.Lib.Bytecode
                                 if (!(SubComponent is MethodParameterComponent mpc) ||
                                     (SubComponent.Type & StatementComponentType.Code) == 0)
                                     throw new InternalException("Invalid method call; no parameters found");
-                                else
-                                {
-                                    output = new ObjectRef(Class.VoidType, mtd.Parameters.Count);
-                                    state = mpc.Evaluate(vm, null, ref output);
-                                    if (state != State.Normal)
-                                        throw new InternalException("Invalid state after evaluating method parameters");
-                                    if (mtd.IsStatic())
-                                        vm.Context.Refocus(mtd.Parent, mtd.Parent.TypeId);
-                                    else vm.Context.Refocus(rev, mtd.Parent.TypeId);
-                                    mtd.Evaluate(vm, ref state, ref output); // todo inspect
-                                    vm.Context.RevertFocus();
-                                    rev = output;
-                                    //mpc.Evaluate(vm, null, ref output);
-                                }
+                                output = new ObjectRef(Class.VoidType, mtd.Parameters.Count);
+                                state = mpc.Evaluate(vm, null, ref output);
+                                if (state != State.Normal)
+                                    throw new InternalException("Invalid state after evaluating method parameters");
+                                if (mtd.IsStatic())
+                                    vm.Context.Refocus(mtd.Parent, mtd.Parent.TypeId);
+                                else vm.Context.Refocus(rev, mtd.Parent.TypeId);
+                                mtd.Evaluate(vm, ref state, ref output); // todo inspect
+                                vm.Context.RevertFocus();
+                                rev = output;
+                                //mpc.Evaluate(vm, null, ref output);
                             }
                             else throw new System.Exception("Invalid state; not a method");
                             
