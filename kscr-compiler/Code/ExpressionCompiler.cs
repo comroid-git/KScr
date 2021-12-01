@@ -8,8 +8,11 @@ namespace KScr.Compiler.Code
 {
     public class ExpressionCompiler : AbstractCodeCompiler
     {
-        public ExpressionCompiler(ICompiler parent) : base(parent)
+        private readonly TokenType _terminator;
+
+        public ExpressionCompiler(ICompiler parent, TokenType terminator = TokenType.Terminator) : base(parent)
         {
+            _terminator = terminator;
         }
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
@@ -82,7 +85,7 @@ namespace KScr.Compiler.Code
                     return Parent;
             }
 
-            return base.AcceptToken(vm, ref ctx);
+            return ctx.NextToken?.Type == _terminator ? Parent : base.AcceptToken(vm, ref ctx);
         }
     }
 }
