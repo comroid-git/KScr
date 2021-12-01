@@ -29,7 +29,7 @@ namespace KScr.Lib.Bytecode
             {
                 ObjectRef val = new ObjectRef(Class.VoidType);
                 Expressions[i].Evaluate(vm, null, ref val!);
-                rev.Stack[i] = val.Value;
+                rev[i] = val.Value;
             }
             
             return State.Normal;

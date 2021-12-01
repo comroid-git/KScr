@@ -75,18 +75,25 @@ namespace KScr.Lib.Store
 
         public int Length => _stack.Length;
         public IObject?[] Stack => _stack;
-        public IObject? Value
+
+        public IObject? this[int i]
         {
-            get => Stack[0];
-            set
+            get => Stack[i];
+            set 
             {
                 bool canHold = Type.CanHold(value?.Type);
                 if (canHold)
-                    Stack[0] = value;
+                    Stack[i] = value;
                 else
-                    throw new InternalException("Invalid Type (" + value?.Type + ") assigned to reference of type " +
-                                                Type);
+                    throw new InternalException("Invalid Type (" + value?.Type + ") assigned to reference of type " + Type);
+                
             }
+        }
+        
+        public IObject? Value
+        {
+            get => this[0];
+            set => this[0] = value;
         }
 
         public override string ToString() => Length > 1
