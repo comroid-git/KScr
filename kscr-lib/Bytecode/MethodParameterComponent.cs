@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
@@ -8,7 +9,17 @@ namespace KScr.Lib.Bytecode
     public class MethodParameterComponent : StatementComponent
     {
         public readonly List<StatementComponent> Expressions = new List<StatementComponent>();
-        
+
+        public override void Write(Stream stream)
+        {
+            // todo
+        }
+
+        public override void Load(RuntimeBase vm, byte[] data, ref int index)
+        {
+            // todo
+        }
+
         public override State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
         {
             if (Expressions.Count != rev!.Length)
