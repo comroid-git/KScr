@@ -5,40 +5,63 @@ using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
+using KScr.Lib.Store;
+using Array = System.Array;
 
 namespace KScr.Runtime
 {
     internal class Program
     {
-        private static readonly KScrRuntime vm = new KScrRuntime();
+        private static readonly KScrRuntime VM = new KScrRuntime();
+        private static readonly string DefaultOutput = Path.Combine(Directory.GetCurrentDirectory(), "build", "compile");
 
         private static int Main(string[] args)
         {
-            var eval = new KScrRuntime();
-            var state = State.Normal;
-
             if (args.Length == 0)
-                return StdIoMode(eval);
-            string fullSource = string.Join('\n',
-                args.Where(it => it.EndsWith(".kscr"))
-                    .Select(File.ReadAllText));
-            if (fullSource != string.Empty)
+                return StdIoMode(VM);
+            
+            State state = State.Normal;
+            IObject yield = VM.ConstantVoid.Value!;
+            string[] files = new string[args.Length - 1];
+            Array.Copy(args, 1, files, 0, files.Length);
+
+            switch (args[0])
             {
-                var yield = HandleSourcecode(eval, fullSource, ref state, out var bytecode, out long time);
-                return HandleExit(state, yield);
+                case "compile":
+                    Compile(VM, files);
+                    WriteClasses(DefaultOutput);
+                    break;
+                case "execute":
+                    Compile(VM, files);
+                    yield = Run(VM, ref state);
+                    break;
+                case "run":
+                    var classpath = args.Length >= 2 ? args[1] : Path.Combine(Directory.GetCurrentDirectory(), "bin");
+                    Package.Read(VM, new DirectoryInfo(classpath));
+                    yield = Run(VM, ref state);
+                    break;
             }
 
-            Console.WriteLine("Uh-oh, I really don't know what this is: [" + string.Join(',', args) + ']');
-            PressToExit();
-            return -1;
+            return HandleExit(state, yield);
         }
 
-        private static void PressToExit()
+        private static CompilerContext Compile(RuntimeBase vm, string[] sourcepath)
         {
-            Console.WriteLine("Press any key to exit...");
-            Console.Read();
+            var sourcecode = string.Join('\n', sourcepath
+                .Where(path => path.EndsWith(".kscr"))
+                .Where(File.Exists)
+                .Select(File.ReadAllText));
+            var tokens = vm.Tokenizer.Tokenize(vm, sourcecode);
+            var ctx = new CompilerContext();
+
+            return vm.Compiler.Compile(vm, ctx, tokens);
         }
 
+        private static void WriteClasses(string output) => Package.RootPackage.Write(new DirectoryInfo(output));
+
+        private static IObject Run(RuntimeBase vm, ref State state) => vm.Execute(ref state) ?? vm.ConstantVoid.Value!;
+
+        [Obsolete]
         private static int StdIoMode(KScrRuntime runtime)
         {
             runtime.StdIoMode = true;
@@ -132,12 +155,19 @@ namespace KScr.Runtime
             };
         }
 
+        private static void PressToExit()
+        {
+            Console.WriteLine("Press any key to exit...");
+            Console.Read();
+        }
+
         private static void ClearEval(KScrRuntime runtime)
         {
             Console.Clear();
             runtime.Clear();
         }
 
+        [Obsolete]
         private static IObject? HandleSourcecode(KScrRuntime runtime, string? input, ref State state,
             out IEvaluable? here, out long time)
         {
