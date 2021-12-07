@@ -12,5 +12,7 @@ public class FileIO {
         file >> text;
         stdio << "Text read: ";
         stdio << text;
+
+        file.delete();
     }
 }
