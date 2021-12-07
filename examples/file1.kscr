@@ -1,0 +1,16 @@
+public class FileIO {
+    public static void main() {
+        void file = new File("file.txt");
+
+        stdio << "Enter text to be written to the file: "
+        stdio >> str text;
+
+        file << text;
+        stdio << "Text written";
+        text = "";
+
+        file >> text;
+        stdio << "Text read; ";
+        stdio << text;
+    }
+}
