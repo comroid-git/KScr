@@ -7,10 +7,10 @@ public class FileIO {
 
         file << text;
         text = "";
-        stdio << "Text written; buffer cleared";
+        stdio << "\nText written; buffer cleared";
 
         file >> text;
-        stdio << "Text read: ";
+        stdio << "\nText read: ";
         stdio << text;
 
         file.delete();
