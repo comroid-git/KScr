@@ -27,16 +27,8 @@ public class ToStringTest {
         // invokes numeric '5' on every access to obj.x
         obj.y << 5;
         
-        stdio << "X = ";
-        stdio << obj.toString(0);
-        stdio << "\n";
-        
-        stdio << "Y = ";
-        stdio << obj.toString(1);
-        stdio << "\n";
-        
-        stdio << "Z = ";
-        stdio << obj.toString(2);
-        stdio << "\n";
+        stdio << "X = " << obj.toString(0) << "\n";
+        stdio << "Y = " << obj.toString(1) << "\n";
+        stdio << "Z = " << obj.toString(2) << "\n";
     }
 }
