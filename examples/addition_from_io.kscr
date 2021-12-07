@@ -1,6 +1,6 @@
 public class AdditionFromIO {
     public static void main() {
-        stdio << "Operation: A + B"
+        stdio << "Operation: (A + B) * C"
 
         stdio << "\nEnter number A: "
         stdio >> num a;
@@ -8,7 +8,10 @@ public class AdditionFromIO {
         stdio << "\nEnter number B: "
         stdio >> num b;
 
+        stdio << "\nEnter integer factor C: "
+        stdio >> num<int> c;
+
         stdio << "\nResult: "
-        stdio << (a + b);
+        stdio << ((a + b) * c);
     }
 }
