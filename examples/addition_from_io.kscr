@@ -1,0 +1,14 @@
+public class AdditionFromIO {
+    public static void main() {
+        stdio << "Operation: A + B"
+
+        stdio << "\nEnter number A: "
+        stdio >> num a;
+
+        stdio << "\nEnter number B: "
+        stdio >> num b;
+
+        stdio << "\nResult: "
+        stdio << (a + b);
+    }
+}
