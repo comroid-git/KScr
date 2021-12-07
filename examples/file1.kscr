@@ -12,8 +12,7 @@ public class FileIO {
         stdio << "\nText written; buffer cleared";
 
         file >> text;
-        stdio << "\nText read: ";
-        stdio << text;
+        stdio << "\nText read: " << text;
 
         file.delete();
     }
