@@ -1,6 +1,6 @@
 public class FileIO {
     public static void main() {
-        void file = new File("file.txt");
+        pipe file = File.open("file.txt");
 
         stdio << "Enter text to be written to the file: "
         stdio >> str text;
@@ -10,7 +10,7 @@ public class FileIO {
         stdio << "Text written; buffer cleared";
 
         file >> text;
-        stdio << "Text read; ";
+        stdio << "Text read: ";
         stdio << text;
     }
 }
