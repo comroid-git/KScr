@@ -6,8 +6,8 @@ public class FileIO {
         stdio >> str text;
 
         file << text;
-        stdio << "Text written";
         text = "";
+        stdio << "Text written; buffer cleared";
 
         file >> text;
         stdio << "Text read; ";
