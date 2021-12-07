@@ -1,0 +1,42 @@
+public class SomeObject {
+    private num x;
+    private num y;
+    // the result of z will ALWAYS be up-to-date with the values of x and y 
+    private num z << x + y;
+    
+    public str toString(num alt) {
+        if (alt == 0) {
+            return x;
+        }
+        if (alt == 1) {
+            return y;
+        }
+        if (alt == 2) {
+            return z;
+        }
+        return "invalid alternative";
+    }
+}
+
+public class ToStringTest {
+    public static void main() {
+        void obj = new SomeObject();
+        
+        // invokes numeric '3' on every access to obj.x
+        obj.x << 3;
+        // invokes numeric '5' on every access to obj.x
+        obj.y << 5;
+        
+        stdio << "X = ";
+        stdio << obj.toString(0);
+        stdio << "\n";
+        
+        stdio << "Y = ";
+        stdio << obj.toString(1);
+        stdio << "\n";
+        
+        stdio << "Z = ";
+        stdio << obj.toString(2);
+        stdio << "\n";
+    }
+}
