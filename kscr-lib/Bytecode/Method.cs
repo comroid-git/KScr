@@ -35,6 +35,6 @@ namespace KScr.Lib.Bytecode
             Body.Load(vm, data, ref i);
         }
 
-        public static Method Read(RuntimeBase vm, Class parent, byte[] data, ref int i) => (AbstractClassMember.Read(vm, parent, data, ref i) as Method)!;
+        public new static Method Read(RuntimeBase vm, Class parent, byte[] data, ref int i) => (AbstractClassMember.Read(vm, parent, data, ref i) as Method)!;
     }
 }

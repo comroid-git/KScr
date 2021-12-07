@@ -29,6 +29,6 @@ namespace KScr.Lib.Bytecode
             Setter = Method.Read(vm, Parent, data, ref i);
         }
 
-        public static Field Read(RuntimeBase vm, Class parent, byte[] data, ref int i) => (AbstractClassMember.Read(vm, parent, data, ref i) as Field)!;
+        public new static Field Read(RuntimeBase vm, Class parent, byte[] data, ref int i) => (AbstractClassMember.Read(vm, parent, data, ref i) as Field)!;
     }
 }
