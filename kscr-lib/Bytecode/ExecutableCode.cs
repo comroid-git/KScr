@@ -14,7 +14,7 @@ namespace KScr.Lib.Bytecode
 
         public List<Statement> Main { get; } = new List<Statement>();
 
-        public State Evaluate(RuntimeBase vm, IEvaluable? _, ref ObjectRef? output)
+        public State Evaluate(RuntimeBase vm, IEvaluable? _, ref ObjectRef output)
         {
             ObjectRef? rev = null;
             Statement? prev = null;

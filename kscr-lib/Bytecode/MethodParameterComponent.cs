@@ -20,7 +20,7 @@ namespace KScr.Lib.Bytecode
             // todo
         }
 
-        public override State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
+        public override State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
         {
             if (Expressions.Count != rev!.Length)
                 throw new InternalException("Invalid method parameter expression count; expected " + rev.Length);
@@ -29,7 +29,7 @@ namespace KScr.Lib.Bytecode
             {
                 ObjectRef val = new ObjectRef(Class.VoidType);
                 Expressions[i].Evaluate(vm, null, ref val!);
-                rev[i] = val.Value;
+                rev[vm, i] = val.Value;
             }
             
             return State.Normal;

@@ -16,7 +16,7 @@ namespace KScr.Lib.Bytecode
         public IClassRef TargetType { get; set; } = Class.VoidType;
         public List<StatementComponent> Main { get; } = new List<StatementComponent>();
 
-        public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
+        public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
         {
             var state = State.Normal;
 
@@ -76,7 +76,7 @@ namespace KScr.Lib.Bytecode
         public StatementComponentType Type { get; set; }
         public BytecodeType CodeType { get; set; } = BytecodeType.Terminator;
 
-        public virtual State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef? rev)
+        public virtual State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
         {
             ObjectRef? output;
             State state;
@@ -100,6 +100,9 @@ namespace KScr.Lib.Bytecode
                             return State.Normal;
                         case BytecodeType.Null:
                             rev = vm.ConstantVoid;
+                            return State.Normal;
+                        case BytecodeType.StdioExpression:
+                            rev = vm.StdioRef;
                             return State.Normal;
                     }
 

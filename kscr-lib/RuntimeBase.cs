@@ -4,8 +4,10 @@ using System.Globalization;
 using System.Text;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
+using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
+using String = KScr.Lib.Core.String;
 
 namespace KScr.Lib
 {
@@ -49,6 +51,49 @@ namespace KScr.Lib
 
         public ObjectRef ConstantTrue =>
             ComputeObject(VariableContext.Absolute, Numeric.CreateKey(1), () => Numeric.One);
+        
+        public ObjectRef StdioRef { get; } = new StandardIORef();
+
+        public sealed class StandardIORef : ObjectRef
+        {
+            public StandardIORef() : base(Class.StringType, 0)
+            {
+            }
+
+            public override IEvaluable? ReadAccessor
+            {
+                get => new StdioReader();
+                set => throw new InternalException("Cannot reassign stdio ReadAccessor");
+            }
+
+            public override IEvaluable? WriteAccessor
+            {
+                get => new StdioWriter();
+                set => throw new InternalException("Cannot reassign stdio WriteAccessor");
+            }
+
+            private sealed class StdioWriter : IEvaluable
+            {
+                public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
+                {
+                    var txt = rev.Value!.ToString(IObject.ToString_ShortName);
+                    Console.WriteLine(txt);
+                    return State.Normal;
+                }
+            }
+            
+            private sealed class StdioReader : IEvaluable
+            {
+                public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
+                {
+                    if (rev.Length != 1 || !rev.Type.CanHold(Class.StringType))
+                        throw new InternalException("Invalid reference to write string into: " + rev);
+                    var txt = Console.ReadLine()!;
+                    rev = String.Instance(vm, txt);
+                    return State.Normal;
+                }
+            }
+        }
 
         public bool StdIoMode { get; set; } = false;
 

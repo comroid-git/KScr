@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
@@ -53,10 +54,8 @@ namespace KScr.Lib.Store
         }
     }
 
-    public sealed class ObjectRef
+    public class ObjectRef
     {
-        private readonly IObject?[] _stack;
-
         public ObjectRef(IClassRef type, IObject? value) : this(type)
         {
             Value = value;
@@ -68,36 +67,66 @@ namespace KScr.Lib.Store
                 throw new ArgumentOutOfRangeException(nameof(len), len, "Invalid ObjectRef size");
             
             Type = type;
-            _stack = new IObject?[len];
+            Stack = new IObject?[len];
         }
 
         public readonly IClassRef Type;
+        public readonly IObject?[] Stack;
+        
+        public int Length => Stack.Length;
+        public bool IsPipe => ReadAccessor != null || WriteAccessor != null;
+        public virtual IEvaluable? ReadAccessor { get; set; }
+        public virtual IEvaluable? WriteAccessor { get; set; }
 
-        public int Length => _stack.Length;
-        public IObject?[] Stack => _stack;
-
-        public IObject? this[int i]
+        public IObject? this[RuntimeBase vm, int i]
         {
-            get => Stack[i];
-            set 
+            get
             {
-                bool canHold = Type.CanHold(value?.Type);
-                if (canHold)
-                    Stack[i] = value;
-                else
-                    throw new InternalException("Invalid Type (" + value?.Type + ") assigned to reference of type " + Type);
-                
+                if (ReadAccessor != null)
+                {
+                    ObjectRef output = Numeric.Constant(vm, i);
+                    ReadAccessor!.Evaluate(vm, null, ref output!);
+                    return output.Value;
+                }
+                else return Stack[i];
+            }
+            set
+            {
+                CheckTypeCompat(value!.Type);
+                if (WriteAccessor != null)
+                {
+                    ObjectRef output = new ObjectRef(Class.VoidType) { Value = value };
+                    WriteAccessor!.Evaluate(vm, null, ref output!);
+                } 
+                else InsertToStack(i, value);
             }
         }
-        
+
         public IObject? Value
         {
-            get => this[0];
-            set => this[0] = value;
+            get => Stack[0];
+            set
+            {
+                CheckTypeCompat(value!.Type);
+                InsertToStack(0, value);
+            }
         }
 
         public override string ToString() => Length > 1
-            ? Type + "" + string.Join(",", _stack.Select(it => it?.ToString()))
+            ? Type + "" + string.Join(",", Stack.Select(it => it?.ToString()))
             : Type + ": " + Value;
+
+        private void CheckTypeCompat(IClassRef other)
+        {
+            if (!Type.CanHold(other))
+                throw new InternalException("Invalid Type (" + other + ") assigned to reference of type " + Type);
+        }
+
+        private void InsertToStack(int i, IObject? value)
+        {
+            if (IsPipe)
+                throw new InvalidOperationException("Cannot insert value inte pipe");
+            Stack[i] = value;
+        }
     }
 }
