@@ -64,7 +64,6 @@ namespace KScr.Compiler.Class
                     sub = new ParameterDefinitionCompiler(this, method);
                     ctx = new CompilerContext(ctx, CompilerType.ParameterDefintion);
                     CompilerLoop(vm, ref sub, ref ctx);
-                    method.Body = ctx.ExecutableCode;
                     ctx = ctx.Parent!;
 
                     break;
