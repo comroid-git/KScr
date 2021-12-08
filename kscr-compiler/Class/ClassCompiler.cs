@@ -62,6 +62,7 @@ namespace KScr.Compiler.Class
                     // compile parameter definition
                     method = new Method(ctx.Class, memberName!, modifier!.Value);
                     sub = new ParameterDefinitionCompiler(this, method);
+                    ctx = new CompilerContext(ctx, CompilerType.ParameterDefintion);
                     CompilerLoop(vm, ref sub, ref ctx);
                     method.Body = ctx.ExecutableCode;
                     ctx = ctx.Parent!;
