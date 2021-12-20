@@ -1,0 +1,5 @@
+package System.Annotation;
+
+public annotation Contract {
+    str value;
+}

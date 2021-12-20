@@ -1,0 +1,8 @@
+package System.Enumerable;
+
+public interface Set<T> extends List<T> {
+    @Override
+    protected bool canAdd(T value) {
+        return find(value) == false;
+    }
+}

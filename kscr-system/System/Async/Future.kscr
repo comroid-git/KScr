@@ -1,0 +1,5 @@
+package System.Async;
+
+public class Future<T> {
+    private T value;
+}

@@ -1,0 +1,4 @@
+package System.Enumerable;
+
+public interface Matrix<K<n = 1>, V> extends Collection<K, V> {
+}

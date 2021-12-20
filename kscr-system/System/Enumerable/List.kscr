@@ -1,0 +1,11 @@
+package System.Enumerable;
+
+public interface List<T> extends Collection<T> {
+    bool add(T? value) {
+        return canAdd(value) && set(Length, value) != value;
+    }
+
+    protected bool canAdd(T? value) {
+        return value != null;
+    }
+}
