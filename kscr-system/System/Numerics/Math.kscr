@@ -1,0 +1,5 @@
+package System.Numerics;
+
+public final class Math {
+    
+}
