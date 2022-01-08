@@ -5,7 +5,7 @@ public class Vector<n = 3> extends num<n> {
     public num Y << this(1);
     public num Z << this(2);
     public num W << this(3);
-    public num<float> Magnitude << magnitude;
+    public float Magnitude << magnitude;
     public Vector<n> Normalized << normalize;
 
     public str toString(short variant) {

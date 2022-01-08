@@ -1,0 +1,4 @@
+package System.Time;
+
+public final class DateTime extends Date, Time {
+}

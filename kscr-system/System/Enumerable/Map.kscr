@@ -1,0 +1,4 @@
+package System.Enumerable;
+
+public interface Map<K, V> extends Matrix<K, V> {
+}
