@@ -40,6 +40,9 @@ namespace KScr.Runtime
                     Package.Read(VM, new DirectoryInfo(classpath));
                     yield = Run(VM, ref state);
                     break;
+                default:
+                    Console.WriteLine("Invalid arguments: " + string.Join(' ', args));
+                    break;
             }
 
             return HandleExit(state, yield);
