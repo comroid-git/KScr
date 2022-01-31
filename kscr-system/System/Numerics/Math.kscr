@@ -7,5 +7,16 @@ public final class Math {
 
     public static native double cos(num x);
 
-    public static native <n> num<n> sqrt(num<n> x);
+    public static native double tan(num x);
+
+    public static native num sqrt(num x);
+
+    public static <n> num<n> sqrt(num<n> x) => x >> sqrt;
+
+    public static <n> num<n> pow(num<n> x, num y) => x >> (value) -> {
+        num start = value;
+        fori (1, y + 1)
+            value *= ;
+        return value;
+    };
 }
