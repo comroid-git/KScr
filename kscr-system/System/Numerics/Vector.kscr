@@ -1,6 +1,6 @@
 package System.Numerics;
 
-public class Vector<n = 3> extends num<n> {
+public class Vector<n = 3, T = float> extends num<n, T> {
     public num X << this(0);
     public num Y << this(1);
     public num Z << this(2);
@@ -16,13 +16,13 @@ public class Vector<n = 3> extends num<n> {
     }
 
     private float magnitude() {
-        float square = 0;
+        T square = 0;
         fori (0, n)
             square += this(i) ^ 2;
         return Math.sqrt(square);
     }
 
-    private Vector<n> normalize() {
+    private Vector<n, T> normalize() {
         return this / Magnitude;
     }
 }
