@@ -1,5 +1,11 @@
 package System.Numerics;
 
 public final class Math {
-    
+    public static final double Pi = 3.14159265359;
+
+    public static native double sin(num x);
+
+    public static native double cos(num x);
+
+    public static native <n> num<n> sqrt(num<n> x);
 }
