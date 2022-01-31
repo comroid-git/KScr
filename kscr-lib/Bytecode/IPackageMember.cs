@@ -8,6 +8,7 @@ namespace KScr.Lib.Bytecode
     public interface IPackageMember : IModifierContainer
     {
         public IDictionary<string, IPackageMember> Members { get; }
+        public bool IsRoot { get; }
         public Package? Parent { get; }
         public string Name { get; }
         public string FullName { get; }
@@ -34,10 +35,12 @@ namespace KScr.Lib.Bytecode
         public IDictionary<string, IPackageMember> Members { get; } =
             new ConcurrentDictionary<string, IPackageMember>();
 
+        public bool IsRoot => Name == Package.RootPackageName;
+
         public Package? Parent { get; }
         public string Name { get; protected set; }
         public MemberModifier Modifier { get; protected set; }
-        public string FullName => (Parent != null ? Parent?.FullName + '.' : string.Empty) + Name;
+        public string FullName => (IsRoot ? "" : Parent != null ? Parent?.FullName + '.' : string.Empty) + Name;
 
         public IPackageMember GetMember(string name)
         {

@@ -56,7 +56,7 @@ namespace KScr.Lib
 
         public sealed class StandardIORef : ObjectRef
         {
-            public StandardIORef() : base(Class.StringType, 0)
+            public StandardIORef() : base(Class.StringType)
             {
             }
 

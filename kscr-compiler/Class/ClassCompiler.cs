@@ -1,4 +1,5 @@
-﻿using KScr.Compiler.Code;
+﻿using System;
+using KScr.Compiler.Code;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
@@ -17,6 +18,35 @@ namespace KScr.Compiler.Class
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
+            if (ctx.Type == CompilerType.Package && ctx.Token.Type == TokenType.Package)
+            {
+                // set up compiler for single class compilation
+                string pkgName = "";
+                do
+                {
+                    ctx.TokenIndex += 2;
+                    pkgName += '.' + ctx.Token.Arg;
+                } while (ctx.NextToken!.Type == TokenType.Dot);
+                pkgName = pkgName.Substring(1);
+                if (ctx.Package.FullName != pkgName)
+                    throw new CompilerException("Invalid package name");
+                
+
+                // find class modifiers & name
+                MemberModifier cmod = MemberModifier.None;
+                while (ctx.Token.Type != TokenType.Class)
+                {
+                    MemberModifier? mod = ctx.Token.Type.Modifier();
+                    if (mod != null)
+                        cmod |= mod.Value;
+                    ctx.SkipTrailingTokens();
+                }
+                ctx.TokenIndex += 2;
+                string cname = ctx.PrevToken!.Arg!;
+                if (cname != ctx.Class.Name)
+                    throw new CompilerException("Invalid class name");
+            }
+            
             if (ctx.Type != CompilerType.Class)
                 return Parent;
 
@@ -35,7 +65,7 @@ namespace KScr.Compiler.Class
                 case TokenType.Abstract:
                 case TokenType.Final:
                 case TokenType.Static:
-                    var mod = ctx.Token.Type.Modifier();
+                    var mod = ctx.Token.Type.Modifier() ?? MemberModifier.Protected;
                     if (modifier == null)
                         modifier = mod;
                     else modifier |= mod;
@@ -61,9 +91,8 @@ namespace KScr.Compiler.Class
 
                     // compile parameter definition
                     method = new Method(ctx.Class, memberName!, modifier!.Value);
-                    sub = new ParameterDefinitionCompiler(this, method);
                     ctx = new CompilerContext(ctx, CompilerType.ParameterDefintion);
-                    CompilerLoop(vm, ref sub, ref ctx);
+                    CompilerLoop(vm, new ParameterDefinitionCompiler(this, method), ref ctx);
                     ctx = ctx.Parent!;
 
                     break;
@@ -72,9 +101,8 @@ namespace KScr.Compiler.Class
                         break;
                     
                     // compile method body
-                    sub = new StatementCompiler(this);
                     ctx = new CompilerContext(ctx, CompilerType.CodeStatement);
-                    CompilerLoop(vm, ref sub, ref ctx);
+                    CompilerLoop(vm, new StatementCompiler(this), ref ctx);
                     method.Body = ctx.ExecutableCode;
                     ctx = ctx.Parent!;
                     

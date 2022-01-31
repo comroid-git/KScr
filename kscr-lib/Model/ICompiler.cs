@@ -64,7 +64,7 @@ namespace KScr.Lib.Model
         public int ComponentIndex;
 
         public IToken Token => Tokens[TokenIndex]; 
-        public IToken? NextToken => Tokens.Count < TokenIndex + 1 ? Tokens[TokenIndex + 1] : null; 
+        public IToken? NextToken => Tokens.Count > TokenIndex + 1 ? Tokens[TokenIndex + 1] : null; 
         public IToken? PrevToken => TokenIndex - 1 >= 0 ? Tokens[TokenIndex - 1] : null; 
         
         public Statement Statement
@@ -93,6 +93,24 @@ namespace KScr.Lib.Model
         }
         public StatementComponent? NextComponent => Statement.Main.Count < ComponentIndex + 1 ? Statement.Main[ComponentIndex + 1] : null;
         public StatementComponent? PrevComponent => ComponentIndex - 1 >= 0 ? Statement.Main[ComponentIndex - 1] : null;
+
+        public override string ToString()
+        {
+            return $"CompilerContext<{Type};{PrevToken?.Type},{Token.Type},{NextToken?.Type};{Class.FullName}>";
+        }
+
+        public int SkipTrailingTokens(TokenType type = TokenType.Whitespace)
+        {
+            for (int i = 0; Token.Type == type && i < Tokens.Count; i++)
+                if (++TokenIndex > Tokens.Count)
+                {
+                    TokenIndex--;
+                    return -1;
+                }
+                else if (Token.Type != type)
+                    return i;
+            return -1;
+        }
     }
     
     public interface ICompiler
@@ -151,14 +169,22 @@ namespace KScr.Lib.Model
             var cls = context.Package.GetOrCreateClass(clsName, FindClassModifiers(tokens, clsName, ref context.TokenIndex), context.Package);
             var prev = context;
             context = new CompilerContext(context, cls, tokens, CompilerType.Class);
-            ICompiler use = vm.Compiler;
-            CompilerLoop(vm, ref use, ref context);
+            CompilerLoop(vm, vm.Compiler, ref context);
             context = prev;
         }
 
-        private static MemberModifier FindClassModifiers(IList<IToken> tokens, string clsName, ref int i)
+        private static MemberModifier FindClassModifiers(IList<IToken> tokens, string clsName)
+        {
+            string name = "";
+            return FindClassModifiers(tokens, clsName, ref name);
+        }
+
+        private static MemberModifier FindClassModifiers(IList<IToken> tokens, string? clsName, ref string name)
         {
             var mod = MemberModifier.Protected;
+            int i = 0;
+            
+            // fixme todo !!!
 
             switch (tokens[i].Type)
             {
@@ -194,21 +220,25 @@ namespace KScr.Lib.Model
                     break;
             }
 
-            if (tokens[i].Type != TokenType.Word || tokens[i].Arg != clsName)
-                throw new CompilerException("Declared Class name was not found or mismatches File name");
-
+            if (tokens[i].Type != TokenType.Word)
+                if (clsName != null && clsName != tokens[i].Arg)
+                    throw new CompilerException("Declared Class name mismatches File name");
+                else name = tokens[i].Arg!;
+            else throw new CompilerException("Missing Class name");
             return mod;
         }
 
         public CompilerContext Compile(RuntimeBase vm, CompilerContext context, IList<IToken> tokens)
         {
-            ICompiler use = this;
-            context = new CompilerContext(context, tokens, context.Type);
-            CompilerLoop(vm, ref use, ref context);
+            string cname = "";
+            MemberModifier mod = FindClassModifiers(tokens, null, ref cname);
+            Class cls = context.Package.GetOrCreateClass(cname, mod, context.Package);
+            context = new CompilerContext(context, cls, tokens, context.Type);
+            CompilerLoop(vm, this, ref context);
             return context;
         }
 
-        protected static void CompilerLoop(RuntimeBase vm, ref ICompiler use, ref CompilerContext context)
+        protected static void CompilerLoop(RuntimeBase vm, ICompiler use, ref CompilerContext context)
         {
             while (context.TokenIndex < context.Tokens.Count && use.Active)
             {

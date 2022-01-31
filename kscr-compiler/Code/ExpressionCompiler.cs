@@ -27,9 +27,8 @@ namespace KScr.Compiler.Code
                     };
 
                     // compile inner expression
-                    ICompiler sub = new ExpressionCompiler(this);
                     var subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
-                    CompilerLoop(vm, ref sub, ref subctx);
+                    CompilerLoop(vm, new ExpressionCompiler(this), ref subctx);
                     ctx.Component.SubComponent = subctx.Component;
                     ctx.TokenIndex = subctx.TokenIndex;
 

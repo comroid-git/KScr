@@ -23,7 +23,7 @@ namespace KScr.Lib.Bytecode
 
     public static class ModifierMethods
     {
-        public static MemberModifier Modifier(this TokenType type) => type switch
+        public static MemberModifier? Modifier(this TokenType type) => type switch
         {
             TokenType.Public => MemberModifier.Public,
             TokenType.Protected => MemberModifier.Protected,
@@ -32,7 +32,7 @@ namespace KScr.Lib.Bytecode
             TokenType.Static => MemberModifier.Static,
             TokenType.Abstract => MemberModifier.Abstract,
             TokenType.Final => MemberModifier.Final,
-            _ => MemberModifier.Protected
+            _ => null
         };
         
         public static bool IsPublic(this IModifierContainer container)

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using KScr.Lib;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
 
@@ -39,9 +40,9 @@ namespace KScr.Compiler
                 char c = source[i];
                 char n = i + 1 < len ? source[i + 1] : ' ';
                 char p = i - 1 > 0 ? source[i - 1] : ' ';
-                Token = (Accept(c, n, p, ref i, ref str) as ClassToken)!;
+                Accept(c, n, p, ref i, ref str);
 
-                if (!(Token as AbstractToken)!.Complete) 
+                if (!((Token as AbstractToken)?.Complete ?? false)) 
                     continue;
                 PushToken();
                 str = "";
@@ -53,7 +54,6 @@ namespace KScr.Compiler
         private int artParLevel;
         private bool isLineComment;
         private bool isStringLiteral;
-        private readonly List<IToken> tokens = new List<IToken>();
 
         private Token token
         {
@@ -61,7 +61,7 @@ namespace KScr.Compiler
             set => Token = value;
         }
 
-        public IToken? Accept(char c, char n, char p, ref int i, ref string str)
+        public void Accept(char c, char n, char p, ref int i, ref string str)
         {
             // string literals
             if (isStringLiteral)
@@ -77,25 +77,27 @@ namespace KScr.Compiler
             {
                 if (isLineComment)
                     isLineComment = false;
-                return null;
+                return;
             }
 
             if (c == '/' && n == '/')
                 isLineComment = true;
 
             if (isLineComment)
-                return null;
+                return;
 
             IToken? buf;
-            bool isWhitespace = c == ' ';
-            if (isWhitespace)
-            {
-                buf = new Token{Complete = true};
-                PushToken(ref buf);
-            }
 
-            if (isWhitespace && !isStringLiteral)
+            bool isWhitespace = c == ' ';
+            /*if (isWhitespace && !isStringLiteral && token != null)
+            {
                 token.Complete = true;
+                PushToken(ref Token);
+            }*/
+            if (isWhitespace && Tokens[^1].Type != TokenType.Whitespace)
+            {
+                token = new Token{Complete = true};
+            }
 
             switch (c)
             {
@@ -107,7 +109,8 @@ namespace KScr.Compiler
                         PushToken(ref buf);
                     }
 
-                    return new Token(TokenType.Terminator) { Complete = true };
+                    token = new Token(TokenType.Terminator) { Complete = true };
+                    return;
                 // logistical symbols
                 case '.':
                     if (str.Length == 0 || !char.IsDigit(str[^1]))
@@ -169,24 +172,26 @@ namespace KScr.Compiler
                     break;
                 // equals operand
                 case '=':
-                    buf = new Token(TokenType.OperatorEquals) { Complete = true };
-                    PushToken(ref buf);
+                    PushToken(new Token(TokenType.OperatorEquals) { Complete = true });
                     // create artificial parentheses if this EQUALS operand is of an assignment
-                    if (n != '=' && tokens[^2].Type == TokenType.Word)
+                    if (n != '=' && Tokens[^2].Type == TokenType.Word)
                     {
-                        buf = new Token(TokenType.ParRoundOpen) { Complete = true };
-                        PushToken(ref buf);
+                        token = new Token(TokenType.ParRoundOpen) { Complete = true };
                         artParLevel++;
                     }
 
-                    return null;
+                    return;
                 // lexical tokens
                 default:
                     LexicalToken(isWhitespace, ref str, c, n, ref i);
                     break;
             }
 
-            return null;
+            if (token?.Complete ?? false)
+            {
+                //PushToken(token);
+                str = string.Empty;
+            }
         }
 
         private void LexicalToken(bool isWhitespace, ref string str, char c, char n, ref int i)
@@ -199,17 +204,15 @@ namespace KScr.Compiler
             switch (str)
             {
                 case "return":
-                    PushToken(new Token(TokenType.Return) { Complete = true });
-                    PushToken(new Token(TokenType.ParRoundOpen) { Complete = true });
+                    token = new Token(TokenType.Return) { Complete = true };
                     artParLevel++;
                     return;
                 case "throw":
-                    PushToken(new Token(TokenType.Throw) { Complete = true });
-                    PushToken(new Token(TokenType.ParRoundOpen) { Complete = true });
+                    token = new Token(TokenType.Throw) { Complete = true };
                     artParLevel++;
                     return;
                 case "this":
-                    PushToken(new Token(TokenType.This) { Complete = true });
+                    token = new Token(TokenType.This) { Complete = true };
                     return;
                 case "num":
                     token = new Token(TokenType.IdentNum) { Complete = true };
@@ -237,38 +240,44 @@ namespace KScr.Compiler
                     token.Type = TokenType.Implements;
                     token.Complete = true;
                     break;
+                case "package":
+                    token = new Token(TokenType.Package) { Complete = true };
+                    break;
+                case "import":
+                    token = new Token(TokenType.Import) { Complete = true };
+                    break;
                 case "public":
-                    token.Type |= TokenType.Public;
+                    AddToToken(TokenType.Public);
                     break;
                 case "internal":
-                    token.Type |= TokenType.Internal;
+                    AddToToken(TokenType.Internal);
                     break;
                 case "protected":
-                    token.Type |= TokenType.Protected;
+                    AddToToken(TokenType.Protected);
                     break;
                 case "private":
-                    token.Type |= TokenType.Private;
+                    AddToToken(TokenType.Private);
                     break;
                 case "class":
-                    token.Type |= TokenType.Class;
+                    AddToToken(TokenType.Class);
                     break;
                 case "interface":
-                    token.Type |= TokenType.Interface;
+                    AddToToken(TokenType.Interface);
                     break;
                 case "enum":
-                    token.Type |= TokenType.Enum;
+                    AddToToken(TokenType.Enum);
                     break;
                 case "static":
-                    token.Type |= TokenType.Static;
+                    AddToToken(TokenType.Static);
                     break;
                 case "dynamic":
-                    token.Type |= TokenType.Dynamic;
+                    AddToToken(TokenType.Dynamic);
                     break;
                 case "abstract":
-                    token.Type |= TokenType.Abstract;
+                    AddToToken(TokenType.Abstract);
                     break;
                 case "final":
-                    token.Type |= TokenType.Final;
+                    AddToToken(TokenType.Final);
                     break;
                 default:
                     if (Numeric.NumberRegex.IsMatch(str) && !char.IsDigit(n) && n != '.')
@@ -293,6 +302,13 @@ namespace KScr.Compiler
 
                     break;
             }
+        }
+
+        private void AddToToken(TokenType tokenType)
+        {
+            /*if (Tokens[^2].Type.Modifier() != null)
+                Tokens[^2].Type |= tokenType;
+            else*/ token = new Token(tokenType){Complete = true};
         }
     }
 }

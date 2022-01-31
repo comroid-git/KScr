@@ -61,5 +61,10 @@ namespace KScr.Lib.Bytecode
             }
             return it;
         }
+
+        public override string ToString()
+        {
+            return $"Package<{FullName}>";
+        }
     }
 }

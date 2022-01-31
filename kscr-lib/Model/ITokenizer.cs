@@ -66,7 +66,11 @@ namespace KScr.Lib.Model
 
         // other modifiers
         Abstract = 0x020F_10,
-        Final = 0x020F_20
+        Final = 0x020F_20,
+        
+        // class initializers
+        Package = 0x0401_10,
+        Import = 0x0402_10,
     }
 
     public static class TokenExtensios
@@ -126,12 +130,12 @@ namespace KScr.Lib.Model
         bool PushToken(IToken? token);
         bool PushToken(ref IToken? token);
         IList<IToken> Tokenize(RuntimeBase vm, string source);
-        IToken? Accept(char c, char n, char p, ref int i, ref string str);
+        void Accept(char c, char n, char p, ref int i, ref string str);
     }
 
     public interface IToken
     {
-        TokenType Type { get; }
+        TokenType Type { get; set; }
         string? Arg { get; }
     }
 
