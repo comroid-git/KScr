@@ -173,18 +173,17 @@ namespace KScr.Lib.Model
             context = prev;
         }
 
-        private static MemberModifier FindClassModifiers(IList<IToken> tokens, string clsName)
+        private static MemberModifier FindClassModifiers(IList<IToken> tokens, string clsName, ref int i)
         {
             string name = "";
             return FindClassModifiers(tokens, clsName, ref name);
         }
 
-        private static MemberModifier FindClassModifiers(IList<IToken> tokens, string? clsName, ref string name)
+        private static MemberModifier FindClassModifiers(IList<IToken> tokens, string? clsName, ref int i, ref string name)
         {
             var mod = MemberModifier.Protected;
-            int i = 0;
             
-            // fixme todo !!!
+            // fixme todo!!!
 
             switch (tokens[i].Type)
             {
