@@ -45,7 +45,7 @@ public interface Collection<K = int, T> extends Pipe<Entry<K, T>> {
             return false;
         K key;
         fori (0, Length)
-            if ((key = get(i)) == value)
+            if (get(i) == value)
                 return key;
         return false;
     }
