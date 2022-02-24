@@ -1,0 +1,3 @@
+package org.comroid.kscr.system.annotation;
+
+public annotation Out;

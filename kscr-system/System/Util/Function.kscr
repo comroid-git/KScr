@@ -1,6 +1,0 @@
-package System.Util;
-
-@Outputting
-public interface Function<R, T...> {
-    R apply(T args);
-}

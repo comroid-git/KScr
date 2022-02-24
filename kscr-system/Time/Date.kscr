@@ -1,4 +1,4 @@
-package System.Time;
+package org.comroid.kscr.system.time;
 
 public class Date {
     private static final Map<str, Date> interns = new Trie<str, Date>();
