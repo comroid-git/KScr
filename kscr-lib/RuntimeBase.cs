@@ -32,12 +32,12 @@ namespace KScr.Lib
 
         public abstract ObjectStore ObjectStore { get; }
         public abstract ClassStore ClassStore { get; }
-        public Context Context { get; } = new Context();
+        public Stack Stack { get; } = new Stack();
 
         public ObjectRef? this[VariableContext varctx, string name]
         {
-            get => ObjectStore[Context, varctx, name];
-            set => ObjectStore[Context, varctx, name] = value;
+            get => ObjectStore[Stack, varctx, name];
+            set => ObjectStore[Stack, varctx, name] = value;
         }
 
         public abstract ITokenizer Tokenizer { get; }
@@ -165,7 +165,7 @@ namespace KScr.Lib
             return rev?.Value;
         }
 
-        public Class? FindType(string name)
+        public Class? FindType(string name, Package? package = null)
         {
             switch (name)
             {
@@ -187,7 +187,7 @@ namespace KScr.Lib
                     return Class.VoidType;
             }
 
-            return (Class)ClassStore.FindType(name);
+            return (Class)ClassStore.FindType(package!, name);
         }
     }
 }

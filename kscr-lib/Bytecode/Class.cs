@@ -53,7 +53,6 @@ namespace KScr.Lib.Bytecode
             new ConcurrentDictionary<string, IClassMember>();
 
         public ClassType ClassType { get; }
-        public long TypeId { get; }
 
         public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0) =>
             DeclaredMembers[StaticInitializer].Evaluate(vm, ref state, ref rev, alt);
@@ -81,7 +80,7 @@ namespace KScr.Lib.Bytecode
             int len;
             len = BitConverter.ToInt32(data, index);
             index += 4;
-            Name = RuntimeBase.Encoding.GetString(data, index, len);
+            _name = RuntimeBase.Encoding.GetString(data, index, len);
             index += len;
             Modifier = (MemberModifier) BitConverter.ToInt32(data, index);
             index += 4;
@@ -102,20 +101,79 @@ namespace KScr.Lib.Bytecode
             return cls;
         }
 
-        public sealed class Instance : AbstractPackageMember, IClassInstance, IRuntimeSite
-        { // todo
-            public override void Write(Stream stream)
+        public sealed class Instance : IClassInstance
+        {
+            public Instance(Class @class)
             {
-                throw new NotImplementedException();
+                Class = @class;
             }
 
-            public ClassType ClassType { get; }
-            public long TypeId { get; }
-            public IDictionary<string, IClassMember> DeclaredMembers { get; }
-            public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
+            public Class Class { get; }
+            public List<TypeParameter> TypeParameters { get; } = new();
+            public List<TypeParameter.Instance> TypeParameterInstances { get; } = new();
+            public MemberModifier Modifier => Class.Modifier;
+            public ClassType ClassType => Class.ClassType;
+            public string FullName => Class.FullName + TypeParameters;
+        }
+
+        public List<TypeParameter> TypeParameters { get; } = new();
+        public List<TypeParameter.Instance>? TypeParameterInstances => null!;
+        public override string Name => base.Name + (TypeParameters.Count == 0 ? string.Empty : '<' + string.Join(", ", TypeParameters) + '>');
+    }
+
+    public sealed class TypeParameter : ITypeParameterDeclaration
+    {
+        private TypeParameterSpecializationType _specialization;
+
+        public sealed class Instance
+        {
+            public readonly TypeParameter TypeParameter;
+
+            public Instance(TypeParameter typeParameter)
             {
-                throw new NotImplementedException();
+                TypeParameter = typeParameter;
             }
+        }
+
+        public TypeParameter(string name, TypeParameterSpecializationType? specialization = null!, IClass? specializationTarget = null!)
+        {
+            Name = name;
+            Specialization = name == "n" ? TypeParameterSpecializationType.N : specialization ?? TypeParameterSpecializationType.Extends;
+            SpecializationTarget = specializationTarget ?? Class.VoidType;
+        }
+
+        public string Name { get; }
+
+        public TypeParameterSpecializationType Specialization
+        {
+            get => _specialization;
+            set
+            {
+                if (_specialization == TypeParameterSpecializationType.N)
+                    throw new InvalidOperationException("Cannot change n specialization");
+                _specialization = value;
+            }
+        }
+
+        public IClass SpecializationTarget { get; }
+
+        public override string ToString()
+        {
+            string str = Name;
+            switch (Specialization)
+            {
+                case TypeParameterSpecializationType.Extends:
+                case TypeParameterSpecializationType.Super:
+                    if (!SpecializationTarget.Equals(Class.VoidType))
+                        str += ' ' + Specialization.ToString().ToLower() + ' ' + SpecializationTarget;
+                    break;
+                case TypeParameterSpecializationType.List:
+                    str += "...";
+                    break;
+                case TypeParameterSpecializationType.N:
+                    break;
+            }
+            return str;
         }
     }
 }

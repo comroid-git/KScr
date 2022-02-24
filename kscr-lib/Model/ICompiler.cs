@@ -16,6 +16,7 @@ namespace KScr.Lib.Model
         // class compiler types
         Package = 1, // dir-level compiler
         Class = 2,   // file-level compiler
+        TypeParameterDefinition = 4,
         ParameterDefintion = 3, // parameterdefinition
         
         // code compiler types
@@ -29,9 +30,11 @@ namespace KScr.Lib.Model
         public virtual IList<IToken> Tokens { get; }
         public int TokenIndex;
 
-        protected TokenContext()
+        protected TokenContext(TokenContext? parent = null)
         {
             Tokens = null!;
+            if (parent != null)
+                TokenIndex = parent.TokenIndex;
         }
 
         public TokenContext(IList<IToken> tokens, int tokenIndex = 0)
@@ -97,8 +100,11 @@ namespace KScr.Lib.Model
         public TokenContext TokenContext { get; }
         public CompilerContext() 
             : this(null, CompilerType.Package, null!, Package.RootPackage, null!, null!) {}
+
         public CompilerContext(CompilerContext ctx, Package package)
-            : this(ctx, CompilerType.Package, ctx.TokenContext, package, null!, null!) {}
+            : this(ctx, CompilerType.Package, ctx.TokenContext, package, null!, null!)
+        {
+        }
         public CompilerContext(CompilerContext ctx, Class @class, TokenContext tokens, [Range(10, 19)] CompilerType type) 
             : this(ctx, type, tokens, ctx.Package, @class, null!) {}
         public CompilerContext(CompilerContext ctx, TokenContext tokens, [Range(10, 19)] CompilerType type) 
@@ -114,7 +120,7 @@ namespace KScr.Lib.Model
             Class @class,
             ExecutableCode executableCode, 
             int statementIndex = -1, 
-            int componentIndex = -1)
+            int componentIndex = -1) : base(parent)
         {
             Parent = parent;
             Type = type;

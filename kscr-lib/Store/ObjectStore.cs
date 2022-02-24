@@ -11,26 +11,25 @@ namespace KScr.Lib.Store
 {
     public sealed class ObjectStore
     {
-        private readonly ConcurrentDictionary<string, ObjectRef?>
-            cache = new ConcurrentDictionary<string, ObjectRef?>();
+        private readonly ConcurrentDictionary<string, ObjectRef?> _cache = new();
 
-        public ObjectRef? this[Context ctx, VariableContext varctx, string name]
+        public ObjectRef? this[Stack ctx, VariableContext varctx, string name]
         {
             get
             {
                 string? key = CreateKey(ctx, varctx, name);
-                if (cache.ContainsKey(key))
-                    return cache[key];
+                if (_cache.ContainsKey(key))
+                    return _cache[key];
                 return null;
             }
             set
             {
                 string? key = CreateKey(ctx, varctx, name);
-                cache[key] = value;
+                _cache[key] = value;
             }
         }
 
-        private static string CreateKey(Context ctx, VariableContext varctx, string name)
+        private static string CreateKey(Stack ctx, VariableContext varctx, string name)
         {
             return varctx switch
             {
@@ -41,16 +40,16 @@ namespace KScr.Lib.Store
             };
         }
 
-        public void ClearLocals(Context ctx)
+        public void ClearLocals(Stack ctx)
         {
-            foreach (var localKey in cache.Keys.Where(it => it.StartsWith(ctx.PrefixLocal)))
-                if (!cache.TryRemove(localKey, out _))
+            foreach (var localKey in _cache.Keys.Where(it => it.StartsWith(ctx.PrefixLocal)))
+                if (!_cache.TryRemove(localKey, out _))
                     throw new InternalException("Unable to remove local variable " + localKey);
         }
 
         public void Clear()
         {
-            cache.Clear();
+            _cache.Clear();
         }
     }
 

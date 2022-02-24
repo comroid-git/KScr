@@ -11,13 +11,12 @@ namespace KScr.Compiler.Class
         private readonly Method _method;
         private int pIndex = -1, pState = 0;
         private bool _active = true;
+        public override bool Active => _active;
 
         public ParameterDefinitionCompiler(ClassCompiler parent, Method method) : base(parent)
         {
             _method = method;
         }
-
-        public override bool Active => _active;
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
@@ -40,6 +39,7 @@ namespace KScr.Compiler.Class
                     break;
                 case TokenType.Comma:
                     pIndex += 1;
+                    pState = 0;
                     break;
                 case TokenType.ParRoundClose:
                     _active = false;

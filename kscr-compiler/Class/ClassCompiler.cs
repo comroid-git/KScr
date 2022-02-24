@@ -9,6 +9,7 @@ namespace KScr.Compiler.Class
 {
     public class ClassCompiler : AbstractCompiler
     {
+        private bool inBody = false;
         private MemberModifier? modifier;
         private string? memberName;
         private int memberType = 0;
@@ -18,19 +19,18 @@ namespace KScr.Compiler.Class
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
-            if (ctx.Type != CompilerType.Class)
-                return Parent;
+            while (ctx.Type != CompilerType.Class && ctx.Type != CompilerType.Package)
+            {
+                ctx.Parent!.TokenIndex = ctx.TokenIndex;
+                ctx = ctx.Parent!;
+            }
 
             switch (ctx.Token.Type)
             {
                 case TokenType.Package:
                     ctx.SkipPackage();
+                    ctx.SkipImports();
                     break;
-                // parse type parameter names 
-                case TokenType.ParDiamondOpen:
-                case TokenType.ParDiamondClose:
-                    // todo
-                    break; 
                 case TokenType.Public:
                 case TokenType.Protected:
                 case TokenType.Internal:
@@ -44,10 +44,12 @@ namespace KScr.Compiler.Class
                     else modifier |= mod;
                     break;
                 case TokenType.Word:
+                    if (!inBody)
+                        break; // is name
                     if (targetType == null)
                     {
-                        string targetTypeIdentifier = ctx.FindCompoundWord();
-                        targetType = vm.FindType(targetTypeIdentifier) ?? throw new CompilerException("Could not find type: " + targetTypeIdentifier);
+                        string targetTypeIdentifier = ctx.Token.Arg!;
+                        targetType = vm.FindType(targetTypeIdentifier, ctx.Package) ?? throw new CompilerException("Could not find type: " + targetTypeIdentifier);
                     }
                     else if (memberName == null) 
                         memberName = ctx.Token.Arg!;
@@ -63,13 +65,31 @@ namespace KScr.Compiler.Class
                     memberType = 1; // method
 
                     // compile parameter definition
-                    method = new Method(ctx.Class, memberName!, modifier!.Value);
+                    method = new Method(ctx.Class, memberName!, modifier
+                                                                ?? (ctx.Class.ClassType == ClassType.Interface 
+                                                                    || ctx.Class.ClassType == ClassType.Annotation
+                                                                    ? MemberModifier.Public
+                                                                    : MemberModifier.Protected));
                     ctx = new CompilerContext(ctx, CompilerType.ParameterDefintion);
                     CompilerLoop(vm, new ParameterDefinitionCompiler(this, method), ref ctx);
                     ctx = ctx.Parent!;
 
                     break;
+                // compile type parameter definition
+                case TokenType.ParDiamondOpen:
+                    ctx = new CompilerContext(ctx, CompilerType.TypeParameterDefinition);
+                    ctx.TokenIndex += 1;
+                    CompilerLoop(vm, new TypeParameterDefinitionCompiler(this, ctx.Class), ref ctx);
+                    ctx.Parent!.TokenIndex = ctx.TokenIndex;
+                    ctx = ctx.Parent!;
+
+                    break; 
                 case TokenType.ParAccOpen:
+                    if (!inBody)
+                    {
+                        inBody = true;
+                        break;
+                    }
                     if (method == null)
                         break;
                     

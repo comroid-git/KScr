@@ -31,6 +31,7 @@ namespace KScr.Lib.Model
         IdentVoid = 0x0108_01,
         IdentNum = 0x0108_10,
         IdentStr = 0x0108_20,
+        IdentVar = 0x0108_FF,
 
         LiteralNull = 0x010F_01,
         LiteralNum = 0x010F_10,
@@ -47,6 +48,7 @@ namespace KScr.Lib.Model
 
 
         // inheritance
+        Super = 0x0201_0F,
         Extends = 0x0201_10,
         Implements = 0x0201_20,
 
@@ -109,6 +111,7 @@ namespace KScr.Lib.Model
             TokenType.OperatorDivide => "/",
             TokenType.OperatorModulus => "%",
             TokenType.OperatorEquals => "=",
+            TokenType.Super => "super",
             TokenType.Extends => "extends",
             TokenType.Implements => "implements",
             TokenType.Public => "public",

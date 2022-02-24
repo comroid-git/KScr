@@ -15,27 +15,27 @@ namespace KScr.Lib.Store
     public struct CtxBlob
     {
         public string Local;
-        public long This;
+        public string This;
         public ObjectRef? It;
     }
 
-    public sealed class Context
+    public sealed class Stack
     {
         public const string Delimiter = ".";
-        private readonly List<CtxBlob> _blobs = new List<CtxBlob>();
-        private string _local => _blobs.Last().Local;
-        private long _this => _blobs.Last().This;
-        public ObjectRef? This => _blobs.Last().It;
+        private readonly List<CtxBlob> _dequeue = new List<CtxBlob>();
+        private string _local => _dequeue.Last().Local;
+        private string _this => _dequeue.Last().This;
+        public ObjectRef? This => _dequeue.Last().It;
         public string PrefixLocal => _local + Delimiter;
         public string PrefixThis => _this + Delimiter;
 
         // put focus into static class
-        public void Refocus(IClass into, object? local = null /*todo implement memberref type*/)
+        public void Refocus(IClassInstance into, object? local = null /*todo implement memberref type*/)
         {
-            _blobs.Add(new CtxBlob()
+            _dequeue.Add(new CtxBlob()
             {
-                Local = local?.ToString() ?? "static"+into.TypeId,
-                This = into.TypeId,
+                Local = local?.ToString() ?? "static"+into.FullName,
+                This = into.FullName,
                 It = null
             });
         }
@@ -43,14 +43,15 @@ namespace KScr.Lib.Store
         // put focus into object instance
         public void Refocus(ObjectRef into, object local /*todo implement memberref type*/)
         {
-            _blobs.Add(new CtxBlob()
+            var o = into.Value!;
+            _dequeue.Add(new CtxBlob
             {
                 Local = local.ToString()!, 
-                This = into.Value?.ObjectId ?? long.MinValue,
+                This = o.Type.FullName + '#' + o.ObjectId,
                 It = into
             });
         }
 
-        public void RevertFocus() => _blobs.RemoveAt(_blobs.Count - 1);
+        public void RevertFocus() => _dequeue.RemoveAt(_dequeue.Count - 1);
     }
 }

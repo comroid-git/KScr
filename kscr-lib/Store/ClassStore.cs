@@ -11,15 +11,22 @@ namespace KScr.Lib.Store
     {
         private IDictionary<long, Class.Instance> _cache = new ConcurrentDictionary<long, Class.Instance>();
 
-        public IClassInstance FindType(string name)
+        public IClassInstance FindType(Package package, string name)
         {
-            var cls = Package.RootPackage.GetClass(name.Split("."));
+            var cls = package.GetOrCreateClass(name);
             if (cls != null)
                 return cls;
-            return FindType(RuntimeBase.GetHashCode64(name));
+            return FindType(RuntimeBase.GetHashCode64(package.FullName + '.' + name));
         }
 
         public IClassInstance FindType(long typeId) => _cache[typeId];
+
+        public long Add(Class.Instance classInstance)
+        {
+            long key = RuntimeBase.GetHashCode64(classInstance.FullName);
+            _cache[key] = classInstance;
+            return key;
+        }
 
         public void Clear()
         {

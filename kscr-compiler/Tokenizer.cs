@@ -232,6 +232,9 @@ namespace KScr.Compiler
                 case "null":
                     token = new Token(TokenType.LiteralNull) { Complete = true };
                     break;
+                case "super":
+                    token = new Token(TokenType.Super) { Complete = true };
+                    break;
                 case "extends":
                     token = new Token(TokenType.Extends) { Complete = true };
                     break;

@@ -12,8 +12,10 @@ namespace KScr.Lib.Model
 
     public interface IClassInstance : IClassInfo
     {
+        List<TypeParameter> TypeParameters { get; }
+        List<TypeParameter.Instance>? TypeParameterInstances { get; }
     }
-    
+
     public struct ClassInfo : IClassInfo
     {
         public ClassInfo(MemberModifier modifier, ClassType classType, string fullName)
@@ -30,7 +32,6 @@ namespace KScr.Lib.Model
     
     public interface IClass : IClassInstance
     {
-        long TypeId { get; }
         IDictionary<string, IClassMember> DeclaredMembers { get; }
 
         bool CanHold(IClass? type)
@@ -45,5 +46,21 @@ namespace KScr.Lib.Model
         Enum,
         Interface,
         Annotation
+    }
+
+    public interface ITypeParameterDeclaration
+    {
+        string Name { get; }
+
+        TypeParameterSpecializationType Specialization { get; }
+        IClass SpecializationTarget { get; }
+    }
+
+    public enum TypeParameterSpecializationType
+    {
+        Extends,
+        Super,
+        List,
+        N
     }
 }

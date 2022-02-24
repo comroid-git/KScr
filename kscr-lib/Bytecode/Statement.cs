@@ -41,7 +41,7 @@ namespace KScr.Lib.Bytecode
         public override void Write(Stream stream)
         {
             stream.Write(BitConverter.GetBytes((byte)Type));
-            stream.Write(BitConverter.GetBytes(TargetType.TypeId));
+            //stream.Write(BitConverter.GetBytes(TargetType.TypeId));
             stream.Write(BitConverter.GetBytes(Main.Count));
             foreach (var component in Main)
                 (component as AbstractBytecode)!.Write(stream);
@@ -53,7 +53,7 @@ namespace KScr.Lib.Bytecode
             
             Type = (StatementComponentType) BitConverter.ToInt16(data, index);
             index += 2;
-            TargetType = vm.ClassStore.FindType(BitConverter.ToInt64(data, index));
+            TargetType = (vm.ClassStore.FindType(BitConverter.ToInt64(data, index)) as Class)!;
             index += 8;
             int len = BitConverter.ToInt32(data, index);
             index += 4;
@@ -143,7 +143,7 @@ namespace KScr.Lib.Bytecode
 
                     if (VariableContext == VariableContext.This)
                     {
-                        rev = vm.Context.This;
+                        rev = vm.Stack.This;
                         return State.Normal;
                     }
 
@@ -167,10 +167,10 @@ namespace KScr.Lib.Bytecode
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
                                 if (mtd.IsStatic())
-                                    vm.Context.Refocus(mtd.Parent, mtd.Parent.TypeId);
-                                else vm.Context.Refocus(rev, mtd.Parent.TypeId);
+                                    vm.Stack.Refocus(mtd.Parent, mtd.FullName);
+                                else vm.Stack.Refocus(rev, mtd.FullName);
                                 mtd.Evaluate(vm, ref state, ref output); // todo inspect
-                                vm.Context.RevertFocus();
+                                vm.Stack.RevertFocus();
                                 rev = output;
                                 //mpc.Evaluate(vm, null, ref output);
                             }
