@@ -1,4 +1,4 @@
-package System.Enumerable;
+package org.comroid.kscr.system.enumerable;
 
 public interface List<T> extends Collection<T> {
     bool add(T? value) {
@@ -6,6 +6,6 @@ public interface List<T> extends Collection<T> {
     }
 
     protected bool canAdd(T? value) {
-        return value != null;
+        return value;
     }
 }

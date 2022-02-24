@@ -1,8 +1,8 @@
-package System.Enumerable;
+package org.comroid.kscr.system.enumerable;
 
 public interface Set<T> extends List<T> {
     @Override
     protected bool canAdd(T value) {
-        return find(value) == false;
+        return !find(value);
     }
 }

@@ -1,0 +1,4 @@
+package org.comroid.kscr.system.core;
+
+public final class Array {
+}

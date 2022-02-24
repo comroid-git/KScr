@@ -1,4 +1,4 @@
-package System.Numerics;
+package org.comroid.kscr.system.numerics;
 
 public final class Math {
     public static final double Pi = 3.14159265359;

@@ -1,0 +1,10 @@
+package org.comroid.kscr.system.core;
+
+import org.comroid.kscr.system.annotation.ApiStatus.*;
+
+public class Object {
+    @Experimental
+    public native long InternalID;
+
+    public native str toString(short alt = 0);
+}

@@ -1,4 +1,4 @@
-package System.Enumerable;
+package org.comroid.kscr.system.enumerable;
 
 public interface Map<K, V> extends Matrix<K, V> {
 }
