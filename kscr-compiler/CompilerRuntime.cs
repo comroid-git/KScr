@@ -15,7 +15,7 @@ namespace KScr.Compiler
         public override ObjectStore ObjectStore => null!;
         public override ClassStore ClassStore { get; } = new();
         public override ITokenizer Tokenizer => new Tokenizer();
-        public override ICompiler Compiler => new ClassCompiler();
+        public override ClassCompiler Compiler => new ClassCompiler();
 
         public void CompileFiles(IEnumerator<FileInfo> files)
         {
