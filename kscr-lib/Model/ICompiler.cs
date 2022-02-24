@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
+using Microsoft.VisualBasic;
 
 namespace KScr.Lib.Model
 {
@@ -21,19 +23,93 @@ namespace KScr.Lib.Model
         CodeExpression = 11, // expression component compiler
         CodeParameterExpression = 15 // method parameter expression compiler 
     }
-    
-    public sealed class CompilerContext
+
+    public class TokenContext
     {
-        public CompilerContext() : this(null, CompilerType.Package, null!, Package.RootPackage, null!, null!) {}
-        public CompilerContext(CompilerContext ctx, Package package) : this(ctx, CompilerType.Package, ctx.Tokens, package, null!, null!) {}
-        public CompilerContext(CompilerContext ctx, Class @class, IList<IToken> tokens, [Range(10, 19)] CompilerType type) : this(ctx, type, tokens, ctx.Package, @class, null!) {}
-        public CompilerContext(CompilerContext ctx, IList<IToken> tokens, [Range(10, 19)] CompilerType type) : this(ctx, type, tokens, ctx.Package, ctx.Class, null!) {}
-        public CompilerContext(CompilerContext ctx, CompilerType type) : this(ctx, type, ctx.Tokens, ctx.Package, ctx.Class, new ExecutableCode()) {}
+        public virtual IList<IToken> Tokens { get; }
+        public int TokenIndex;
+
+        protected TokenContext()
+        {
+            Tokens = null!;
+        }
+
+        public TokenContext(IList<IToken> tokens, int tokenIndex = 0)
+        {
+            Tokens = tokens;
+            TokenIndex = tokenIndex;
+        }
+
+        public IToken Token => Tokens[TokenIndex];
+        public IToken? NextToken => Tokens.Count > TokenIndex + 1 ? Tokens[TokenIndex + 1] : null;
+
+        public IToken? PrevToken => TokenIndex - 1 >= 0 ? Tokens[TokenIndex - 1] : null;
+
+        public int SkipTrailingTokens(TokenType type = TokenType.Whitespace)
+        {
+            for (int i = 0; Token.Type == type && i < Tokens.Count; i++)
+                if (++TokenIndex > Tokens.Count)
+                {
+                    TokenIndex--;
+                    return -1;
+                }
+                else if (Token.Type != type)
+                    return i;
+            return -1;
+        }
+
+        public string FindCompoundWord(TokenType delimiter = TokenType.Whitespace)
+        {
+            string str = "";
+            while (Token.Type == TokenType.Word || Token.Type == delimiter)
+            {
+                str += Token.String();
+                TokenIndex += 1;
+            }
+            return str;
+        }
+
+        public void SkipPackage()
+        {
+            if (Token.Type != TokenType.Package)
+                return;
+            do
+            {
+                TokenIndex++;
+            } while (Token.Type != TokenType.Terminator);
+        }
+
+        public void SkipImports()
+        {
+            while (NextToken?.Type == TokenType.Import)
+            {
+                do
+                {
+                    TokenIndex++;
+                } while (Token.Type != TokenType.Terminator);
+            }
+        }
+    }
+
+    public sealed class CompilerContext : TokenContext
+    {
+        public override IList<IToken> Tokens => TokenContext.Tokens;
+        public TokenContext TokenContext { get; }
+        public CompilerContext() 
+            : this(null, CompilerType.Package, null!, Package.RootPackage, null!, null!) {}
+        public CompilerContext(CompilerContext ctx, Package package)
+            : this(ctx, CompilerType.Package, ctx.TokenContext, package, null!, null!) {}
+        public CompilerContext(CompilerContext ctx, Class @class, TokenContext tokens, [Range(10, 19)] CompilerType type) 
+            : this(ctx, type, tokens, ctx.Package, @class, null!) {}
+        public CompilerContext(CompilerContext ctx, TokenContext tokens, [Range(10, 19)] CompilerType type) 
+            : this(ctx, type, tokens, ctx.Package, ctx.Class, null!) {}
+        public CompilerContext(CompilerContext ctx, CompilerType type) 
+            : this(ctx, type, ctx.TokenContext, ctx.Package, ctx.Class, new ExecutableCode()) {}
 
         private CompilerContext(
             CompilerContext? parent,
             CompilerType type,
-            IList<IToken> tokens,
+            TokenContext tokens,
             Package package,
             Class @class,
             ExecutableCode executableCode, 
@@ -42,7 +118,7 @@ namespace KScr.Lib.Model
         {
             Parent = parent;
             Type = type;
-            Tokens = tokens;
+            TokenContext = tokens;
             Package = package;
             Class = @class;
             ExecutableCode = executableCode;
@@ -50,23 +126,18 @@ namespace KScr.Lib.Model
             ComponentIndex = componentIndex;
         }
 
-        public CompilerContext this[int i1delta, int i2delta] => new CompilerContext(Parent, Type, Tokens, Package, Class, ExecutableCode,
+
+        public CompilerContext this[int i1delta, int i2delta] => new CompilerContext(Parent, Type, TokenContext, Package, Class, ExecutableCode,
             StatementIndex + i1delta, ComponentIndex + i2delta);
 
         public readonly CompilerContext? Parent;
         public readonly CompilerType Type;
-        public readonly IList<IToken> Tokens;
         public readonly Package Package;
         public readonly Class Class;
         public readonly ExecutableCode ExecutableCode;
-        public int TokenIndex;
         public int StatementIndex;
         public int ComponentIndex;
 
-        public IToken Token => Tokens[TokenIndex]; 
-        public IToken? NextToken => Tokens.Count > TokenIndex + 1 ? Tokens[TokenIndex + 1] : null; 
-        public IToken? PrevToken => TokenIndex - 1 >= 0 ? Tokens[TokenIndex - 1] : null; 
-        
         public Statement Statement
         {
             get => ExecutableCode.Main[StatementIndex];
@@ -97,19 +168,6 @@ namespace KScr.Lib.Model
         public override string ToString()
         {
             return $"CompilerContext<{Type};{PrevToken?.Type},{Token.Type},{NextToken?.Type};{Class.FullName}>";
-        }
-
-        public int SkipTrailingTokens(TokenType type = TokenType.Whitespace)
-        {
-            for (int i = 0; Token.Type == type && i < Tokens.Count; i++)
-                if (++TokenIndex > Tokens.Count)
-                {
-                    TokenIndex--;
-                    return -1;
-                }
-                else if (Token.Type != type)
-                    return i;
-            return -1;
         }
     }
     
@@ -164,75 +222,73 @@ namespace KScr.Lib.Model
         private void CompileClass(RuntimeBase vm, FileInfo file, ref CompilerContext context)
         {
             var source = File.ReadAllText(file.FullName);
-            var tokens = vm.Tokenizer.Tokenize(vm, source ?? throw new FileNotFoundException("Source file not found: " + file.FullName));
+            var tokens = vm.Tokenizer.Tokenize(vm, source ?? throw new FileNotFoundException("Source file not found: " + file.FullName)); 
+            var token = new TokenContext(tokens);
             string clsName = file.Name.Substring(0, file.Name.Length - FileAppendix.Length);
-            var cls = context.Package.GetOrCreateClass(clsName, FindClassModifiers(tokens, clsName, ref context.TokenIndex), context.Package);
+            var pkg = context.Package;
+            pkg = pkg.GetOrCreatePackage(FindClassPackageName(token));
+            var cls = pkg.GetOrCreateClass(clsName, FindClassHeader(token, clsName), context.Package);
             var prev = context;
-            context = new CompilerContext(context, cls, tokens, CompilerType.Class);
+            context = new CompilerContext(context, cls, token, CompilerType.Class);
             CompilerLoop(vm, vm.Compiler, ref context);
             context = prev;
         }
 
-        private static MemberModifier FindClassModifiers(IList<IToken> tokens, string clsName, ref int i)
+        private string FindClassPackageName(TokenContext ctx)
         {
-            string name = "";
-            return FindClassModifiers(tokens, clsName, ref name);
+            ctx.TokenIndex = 0;
+            if (ctx.Token.Type != TokenType.Package)
+                throw new CompilerException("Missing Package name at index 0");
+            ctx.TokenIndex += 2;
+            return ctx.FindCompoundWord(TokenType.Dot);
         }
 
-        private static MemberModifier FindClassModifiers(IList<IToken> tokens, string? clsName, ref int i, ref string name)
+        private static IList<string> FindClassImports(TokenContext ctx)
+        {
+            // skip package name if necessary
+            ctx.SkipPackage();
+            
+            var yields = new List<string>();
+            while (ctx.Token.Type != TokenType.Terminator && ctx.NextToken?.Type == TokenType.Import)
+            {
+                // todo
+            }
+
+            return yields;
+        }
+
+        private static MemberModifier FindClassHeader(TokenContext ctx, string clsName)
+        {
+            // skip package and imports if necessary
+            ctx.SkipPackage();
+            ctx.SkipImports();
+            
+            string name = "";
+            return FindClassHeader(ctx, clsName, ref name);
+        }
+
+        private static MemberModifier FindClassHeader(TokenContext ctx, string? clsName, ref string name)
         {
             var mod = MemberModifier.Protected;
             
             // fixme todo!!!
 
-            switch (tokens[i].Type)
-            {
-                case TokenType.Public:
-                    mod = MemberModifier.Public;
-                    i+=1;
-                    break;
-                case TokenType.Internal:
-                    mod = MemberModifier.Internal;
-                    i+=1;
-                    break;
-                case TokenType.Private:
-                    mod = MemberModifier.Private;
-                    i+=1;
-                    break;
-            }
-
-            if (tokens[i].Type == TokenType.Static)
-            {
-                mod |= MemberModifier.Static;
-                i+=1;
-            }
-
-            switch (tokens[i].Type)
-            {
-                case TokenType.Final:
-                    mod |= MemberModifier.Final;
-                    i+=1;
-                    break;
-                case TokenType.Abstract:
-                    mod |= MemberModifier.Abstract;
-                    i+=1;
-                    break;
-            }
-
-            if (tokens[i].Type != TokenType.Word)
-                if (clsName != null && clsName != tokens[i].Arg)
+            if (ctx.Token.Type != TokenType.Word)
+                if (clsName != null && clsName != ctx.Token.Arg)
                     throw new CompilerException("Declared Class name mismatches File name");
-                else name = tokens[i].Arg!;
+                else name = ctx.Token.Arg!;
             else throw new CompilerException("Missing Class name");
             return mod;
         }
 
         public CompilerContext Compile(RuntimeBase vm, CompilerContext context, IList<IToken> tokens)
         {
+            var token = new TokenContext(tokens);
+            Package pkg = Package.RootPackage.GetOrCreatePackage(FindClassPackageName(token));
             string cname = "";
-            MemberModifier mod = FindClassModifiers(tokens, null, ref cname);
-            Class cls = context.Package.GetOrCreateClass(cname, mod, context.Package);
-            context = new CompilerContext(context, cls, tokens, context.Type);
+            MemberModifier mod = FindClassHeader(token, null, ref cname);
+            Class cls = pkg.GetOrCreateClass(cname, mod, context.Package);
+            context = new CompilerContext(context, cls, token, context.Type);
             CompilerLoop(vm, this, ref context);
             return context;
         }
@@ -244,17 +300,6 @@ namespace KScr.Lib.Model
                 use = use.AcceptToken(vm, ref context) ?? use.Parent!;
                 context.TokenIndex += 1;
             }
-        }
-
-        protected static string FindCompoundWord(CompilerContext ctx, TokenType delimiter = TokenType.Whitespace)
-        {
-            string str = "";
-            while (ctx.Token.Type != delimiter)
-            {
-                str += ctx.Token.String();
-                ctx.TokenIndex += 1;
-            }
-            return str;
         }
 
         public abstract ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx);

@@ -96,7 +96,7 @@ namespace KScr.Compiler
             }*/
             if (isWhitespace && Tokens[^1].Type != TokenType.Whitespace)
             {
-                token = new Token{Complete = true};
+                //token = new Token{Complete = true};
             }
 
             switch (c)

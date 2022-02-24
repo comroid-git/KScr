@@ -120,7 +120,7 @@ namespace KScr.Lib.Model
             TokenType.Dynamic => "dynamic",
             TokenType.Abstract => "abstract",
             TokenType.Final => "final",
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(token.ToString())
         };
     }
 

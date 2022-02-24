@@ -73,7 +73,7 @@ namespace KScr.Compiler.Class
                 case TokenType.Word:
                     if (targetType == null)
                     {
-                        string targetTypeIdentifier = FindCompoundWord(ctx);
+                        string targetTypeIdentifier = ctx.FindCompoundWord();
                         targetType = vm.FindType(targetTypeIdentifier) ?? throw new CompilerException("Could not find type: " + targetTypeIdentifier);
                     }
                     else if (memberName == null) 
