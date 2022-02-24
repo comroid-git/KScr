@@ -1,4 +1,4 @@
-package org.comroid.kscr.system.annotation;
+package org.comroid.kscr.annotation;
 
 public annotation Contract {
     str value;

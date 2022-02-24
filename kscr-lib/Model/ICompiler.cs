@@ -58,7 +58,7 @@ namespace KScr.Lib.Model
             return -1;
         }
 
-        public string FindCompoundWord(TokenType delimiter = TokenType.Whitespace)
+        public string FindCompoundWord(TokenType delimiter = TokenType.Dot)
         {
             string str = "";
             while (Token.Type == TokenType.Word || Token.Type == delimiter)
@@ -178,8 +178,9 @@ namespace KScr.Lib.Model
 
         // compile at package level. context is created from root package
         CompilerContext Compile(RuntimeBase vm, DirectoryInfo dir);
-        // compile at class level. context type must be class-level
-        CompilerContext Compile(RuntimeBase vm, CompilerContext context, IList<IToken> tokens);
+        CompilerContext CompileClass(RuntimeBase vm, FileInfo file);
+        CompilerContext CompileClass(RuntimeBase vm, FileInfo file, ref CompilerContext context);
+        
         ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext context);
     }
 
@@ -219,19 +220,34 @@ namespace KScr.Lib.Model
                 CompileClass(vm, subFile, ref context);
         }
 
-        private void CompileClass(RuntimeBase vm, FileInfo file, ref CompilerContext context)
+        public CompilerContext CompileClass(RuntimeBase vm, FileInfo file)
+        {
+            CompilerContext context = null!;
+            return CompileClass(vm, file, ref context);
+        }
+
+        public CompilerContext CompileClass(RuntimeBase vm, FileInfo file, ref CompilerContext context)
         {
             var source = File.ReadAllText(file.FullName);
-            var tokens = vm.Tokenizer.Tokenize(vm, source ?? throw new FileNotFoundException("Source file not found: " + file.FullName)); 
-            var token = new TokenContext(tokens);
+            var tokenlist = vm.Tokenizer.Tokenize(vm, source ?? throw new FileNotFoundException("Source file not found: " + file.FullName)); 
+            var tokens = new TokenContext(tokenlist);
             string clsName = file.Name.Substring(0, file.Name.Length - FileAppendix.Length);
-            var pkg = context.Package;
-            pkg = pkg.GetOrCreatePackage(FindClassPackageName(token));
-            var cls = pkg.GetOrCreateClass(clsName, FindClassHeader(token, clsName), context.Package);
+            // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
+            var pkg = context?.Package ?? Package.RootPackage;
+            pkg = ResolvePackage(pkg, FindClassPackageName(tokens).Split("."));
+            var cls = pkg.GetOrCreateClass(clsName, FindClassHeader(tokens, clsName));
             var prev = context;
-            context = new CompilerContext(context, cls, token, CompilerType.Class);
+            context = new CompilerContext(context ?? new CompilerContext(new CompilerContext(), pkg), cls, tokens, CompilerType.Class);
             CompilerLoop(vm, vm.Compiler, ref context);
-            context = prev;
+            return prev == null ? context : context = prev;
+        }
+
+        private Package ResolvePackage(Package inside, string[] names, int i = 0)
+        {
+            inside = inside.GetOrCreatePackage(names[i]);
+            if (i + 1 >= names.Length)
+                return inside;
+            return ResolvePackage(inside, names, i + 1);
         }
 
         private string FindClassPackageName(TokenContext ctx)
@@ -240,7 +256,7 @@ namespace KScr.Lib.Model
             if (ctx.Token.Type != TokenType.Package)
                 throw new CompilerException("Missing Package name at index 0");
             ctx.TokenIndex += 2;
-            return ctx.FindCompoundWord(TokenType.Dot);
+            return ctx.FindCompoundWord();
         }
 
         private static IList<string> FindClassImports(TokenContext ctx)
@@ -251,7 +267,8 @@ namespace KScr.Lib.Model
             var yields = new List<string>();
             while (ctx.Token.Type != TokenType.Terminator && ctx.NextToken?.Type == TokenType.Import)
             {
-                // todo
+                ctx.TokenIndex += 2;
+                yields.Add(ctx.FindCompoundWord());
             }
 
             return yields;
@@ -279,18 +296,6 @@ namespace KScr.Lib.Model
                 else name = ctx.Token.Arg!;
             else throw new CompilerException("Missing Class name");
             return mod;
-        }
-
-        public CompilerContext Compile(RuntimeBase vm, CompilerContext context, IList<IToken> tokens)
-        {
-            var token = new TokenContext(tokens);
-            Package pkg = Package.RootPackage.GetOrCreatePackage(FindClassPackageName(token));
-            string cname = "";
-            MemberModifier mod = FindClassHeader(token, null, ref cname);
-            Class cls = pkg.GetOrCreateClass(cname, mod, context.Package);
-            context = new CompilerContext(context, cls, token, context.Type);
-            CompilerLoop(vm, this, ref context);
-            return context;
         }
 
         protected static void CompilerLoop(RuntimeBase vm, ICompiler use, ref CompilerContext context)

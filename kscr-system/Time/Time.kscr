@@ -1,4 +1,4 @@
-package org.comroid.kscr.system.time;
+package org.comroid.kscr.time;
 
 public class Time {
     private static final Map<str, Time> interns = new Trie<str, Time>();

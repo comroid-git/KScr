@@ -1,4 +1,4 @@
-package org.comroid.kscr.system.numerics;
+package org.comroid.kscr.numerics;
 
 public class Vector<n = 3, T = float> extends num<n, T> {
     public num X << this(0);

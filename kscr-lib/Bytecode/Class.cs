@@ -45,7 +45,7 @@ namespace KScr.Lib.Bytecode
             };
         }
         
-        public Class(Package parent, string name, MemberModifier? modifier = null) : base(parent, name, modifier ?? MemberModifier.Public)
+        public Class(Package package, string name, MemberModifier? modifier = null) : base(package, name, modifier ?? MemberModifier.Public)
         {
         }
 

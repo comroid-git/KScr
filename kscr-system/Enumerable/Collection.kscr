@@ -1,4 +1,4 @@
-package org.comroid.kscr.system.enumerable;
+package org.comroid.kscr.enumerable;
 
 public interface Collection<K = int, T> extends Pipe<Entry<K, T>> {
     int Length;

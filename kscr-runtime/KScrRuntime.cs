@@ -7,6 +7,6 @@ namespace KScr.Runtime
 {
     public sealed class KScrRuntime : CompilerRuntime
     {
-        public override ObjectStore ObjectStore { get; } = new ObjectStore();
+        public override ObjectStore ObjectStore { get; } = new();
     }
 }

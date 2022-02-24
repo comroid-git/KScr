@@ -1,4 +1,4 @@
-package org.comroid.kscr.system.enumerable;
+package org.comroid.kscr.enumerable;
 
 public interface List<T> extends Collection<T> {
     bool add(T? value) {

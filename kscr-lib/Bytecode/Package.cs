@@ -66,5 +66,21 @@ namespace KScr.Lib.Bytecode
         {
             return $"Package<{FullName}>";
         }
+
+        public Package GetOrCreatePackage(string name)
+        {
+            if (Members.TryGetValue(name, out var pm) && pm is Package pkg)
+                return pkg;
+            Add(pkg = new Package(this, name));
+            return pkg;
+        }
+
+        public Class GetOrCreateClass(string name, MemberModifier mod)
+        {
+            if (Members.TryGetValue(name, out var pm) && pm is Class cls)
+                return cls;
+            Add(cls = new Class(this, name, mod));
+            return cls;
+        }
     }
 }

@@ -1,4 +1,4 @@
-package org.comroid.kscr.system.async;
+package org.comroid.kscr.async;
 
 public class Future<T> {
     private T value;

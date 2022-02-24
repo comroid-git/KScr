@@ -1,4 +1,4 @@
-package System;
+package org.comroid.kscr;
 
 public abstract class Pipe<T> {
     public abstract async T read(int length = 1);

@@ -1,4 +1,4 @@
-package org.comroid.kscr.system.core;
+package org.comroid.kscr.core;
 
 import org.comroid.kscr.system.annotation.ApiStatus.*;
 

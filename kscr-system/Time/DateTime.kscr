@@ -1,4 +1,4 @@
-package org.comroid.kscr.system.time;
+package org.comroid.kscr.time;
 
 public final class DateTime extends Date, Time {
 }

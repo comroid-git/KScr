@@ -1,4 +1,4 @@
-package org.comroid.kscr.system.io;
+package org.comroid.kscr.io;
 
 public class File : Pipe<str> {
     public native str read(int length);

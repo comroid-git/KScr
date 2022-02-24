@@ -52,22 +52,6 @@ namespace KScr.Lib.Bytecode
             return Members[member.Name] = member;
         }
 
-        public Package GetOrCreatePackage(string name, Package? parent = null)
-        {
-            if (Members.TryGetValue(name, out var pm) && pm is Package pkg)
-                return pkg;
-            Add(pkg = new Package(parent ?? Package.RootPackage, name));
-            return pkg;
-        }
-
-        public Class GetOrCreateClass(string name, MemberModifier mod, Package? parent = null)
-        {
-            if (Members.TryGetValue(name, out var pm) && pm is Class cls)
-                return cls;
-            Add(cls = new Class(parent ?? Package.RootPackage, name, mod));
-            return cls;
-        }
-
         public IPackageMember GetAbsoluteMember(string name)
         {
             return Package.RootPackage.GetAbsoluteMember(name.Split('.'), 0);
