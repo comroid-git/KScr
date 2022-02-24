@@ -267,6 +267,9 @@ namespace KScr.Compiler
                 case "enum":
                     AddToToken(TokenType.Enum);
                     break;
+                case "annotation":
+                    AddToToken(TokenType.Annotation);
+                    break;
                 case "static":
                     AddToToken(TokenType.Static);
                     break;

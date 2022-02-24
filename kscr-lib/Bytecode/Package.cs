@@ -9,9 +9,9 @@ namespace KScr.Lib.Bytecode
     public sealed class Package : AbstractPackageMember
     {
         public static readonly string RootPackageName = "<root>";
-        public static readonly Package RootPackage = new Package();
+        public static readonly Package RootPackage = new();
 
-        private Package()
+        private Package() : this(null!, RootPackageName)
         {
         }
 
@@ -19,8 +19,6 @@ namespace KScr.Lib.Bytecode
             MemberModifier.Public | MemberModifier.Static)
         {
         }
-
-        public bool IsRoot => Name == RootPackageName;
 
         public IRuntimeSite FindEntrypoint()
         {
@@ -75,12 +73,30 @@ namespace KScr.Lib.Bytecode
             return pkg;
         }
 
-        public Class GetOrCreateClass(string name, MemberModifier mod)
+        public Class? GetOrCreateClass(string name, MemberModifier mod = MemberModifier.None)
         {
             if (Members.TryGetValue(name, out var pm) && pm is Class cls)
                 return cls;
+            if (mod == MemberModifier.None)
+                return null;
             Add(cls = new Class(this, name, mod));
             return cls;
+        }
+
+        public Package GetPackage(string[] names)
+        {
+            Package pkg = RootPackage;
+            foreach (string name in names)
+                pkg = GetOrCreatePackage(name);
+            return pkg;
+        }
+
+        public Class? GetClass(string[] names)
+        {
+            Package pkg = RootPackage;
+            for (var i = 0; i < names.Length - 1; i++) 
+                pkg = pkg.GetOrCreatePackage(names[i]);
+            return pkg.GetOrCreateClass(names[^1]);
         }
     }
 }

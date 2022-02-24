@@ -30,7 +30,7 @@ namespace KScr.Lib.Store
         public string PrefixThis => _this + Delimiter;
 
         // put focus into static class
-        public void Refocus(IClassRef into, object? local = null /*todo implement memberref type*/)
+        public void Refocus(IClass into, object? local = null /*todo implement memberref type*/)
         {
             _blobs.Add(new CtxBlob()
             {

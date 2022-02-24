@@ -40,7 +40,7 @@ namespace KScr.Lib.Bytecode
         public Package? Parent { get; }
         public string Name { get; protected set; }
         public MemberModifier Modifier { get; protected set; }
-        public string FullName => (IsRoot ? "" : Parent != null ? Parent?.FullName + '.' : string.Empty) + Name;
+        public string FullName => Parent?.FullName + (IsRoot ? string.Empty : (Parent?.IsRoot ?? true ? string.Empty : '.') + Name);
 
         public IPackageMember GetMember(string name)
         {

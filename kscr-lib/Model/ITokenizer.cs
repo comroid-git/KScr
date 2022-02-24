@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using KScr.Lib.Bytecode;
 
 namespace KScr.Lib.Model
 {
@@ -59,6 +60,7 @@ namespace KScr.Lib.Model
         Class = 0x0204_10,
         Interface = 0x0204_20,
         Enum = 0x0204_40,
+        Annotation = 0x0204_80,
 
         // static
         Static = 0x0208_10,
@@ -116,11 +118,33 @@ namespace KScr.Lib.Model
             TokenType.Class => "class",
             TokenType.Interface => "interface",
             TokenType.Enum => "enum",
+            TokenType.Annotation => "annotation",
             TokenType.Static => "static",
             TokenType.Dynamic => "dynamic",
             TokenType.Abstract => "abstract",
             TokenType.Final => "final",
             _ => throw new ArgumentOutOfRangeException(token.ToString())
+        };
+        
+        public static MemberModifier? Modifier(this TokenType type) => type switch
+        {
+            TokenType.Public => MemberModifier.Public,
+            TokenType.Protected => MemberModifier.Protected,
+            TokenType.Internal => MemberModifier.Internal,
+            TokenType.Private => MemberModifier.Private,
+            TokenType.Static => MemberModifier.Static,
+            TokenType.Abstract => MemberModifier.Abstract,
+            TokenType.Final => MemberModifier.Final,
+            _ => null
+        };
+        
+        public static ClassType? ClassType(this TokenType type) => type switch
+        {
+            TokenType.Class => Model.ClassType.Class,
+            TokenType.Interface => Model.ClassType.Interface,
+            TokenType.Enum => Model.ClassType.Enum,
+            TokenType.Annotation => Model.ClassType.Annotation,
+            _ => null
         };
     }
 

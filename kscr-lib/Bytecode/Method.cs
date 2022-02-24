@@ -7,7 +7,7 @@ namespace KScr.Lib.Bytecode
 {
     public class MethodParameter
     {
-        public IClassRef Type { get; set; }
+        public IClass Type { get; set; }
         public string Name { get; set; }
     }
     

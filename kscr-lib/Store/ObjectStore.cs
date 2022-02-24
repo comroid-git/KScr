@@ -56,12 +56,12 @@ namespace KScr.Lib.Store
 
     public class ObjectRef
     {
-        public ObjectRef(IClassRef type, IObject? value) : this(type)
+        public ObjectRef(IClass type, IObject? value) : this(type)
         {
             Value = value;
         }
 
-        public ObjectRef(IClassRef type, [Range(1, int.MaxValue)] int len = 1)
+        public ObjectRef(IClass type, [Range(1, int.MaxValue)] int len = 1)
         {
             if (len < 1)
                 throw new ArgumentOutOfRangeException(nameof(len), len, "Invalid ObjectRef size");
@@ -70,7 +70,7 @@ namespace KScr.Lib.Store
             Stack = new IObject?[len];
         }
 
-        public readonly IClassRef Type;
+        public readonly IClass Type;
         public readonly IObject?[] Stack;
         
         public int Length => Stack.Length;
@@ -116,7 +116,7 @@ namespace KScr.Lib.Store
             ? Type + "" + string.Join(",", Stack.Select(it => it?.ToString()))
             : Type + ": " + Value;
 
-        private void CheckTypeCompat(IClassRef other)
+        private void CheckTypeCompat(IClass other)
         {
             if (!Type.CanHold(other))
                 throw new InternalException("Invalid Type (" + other + ") assigned to reference of type " + Type);

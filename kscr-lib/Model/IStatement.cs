@@ -65,7 +65,7 @@ namespace KScr.Lib.Model
     {
         public List<SubType> Main { get; }
         public StatementComponentType Type { get; }
-        public IClassRef TargetType { get; }
+        public IClass TargetType { get; }
     }
 
     public interface IStatementComponent : IEvaluable

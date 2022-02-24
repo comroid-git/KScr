@@ -12,47 +12,20 @@ namespace KScr.Compiler.Class
         private MemberModifier? modifier;
         private string? memberName;
         private int memberType = 0;
-        private IClassRef targetType = null!;
+        private IClass targetType = null!;
         private Method method = null!;
         private Field field = null!;
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
-            if (ctx.Type == CompilerType.Package && ctx.Token.Type == TokenType.Package)
-            {
-                // set up compiler for single class compilation
-                string pkgName = "";
-                do
-                {
-                    ctx.TokenIndex += 2;
-                    pkgName += '.' + ctx.Token.Arg;
-                } while (ctx.NextToken!.Type == TokenType.Dot);
-                pkgName = pkgName.Substring(1);
-                if (ctx.Package.FullName != pkgName)
-                    throw new CompilerException("Invalid package name");
-                
-
-                // find class modifiers & name
-                MemberModifier cmod = MemberModifier.None;
-                while (ctx.Token.Type != TokenType.Class)
-                {
-                    MemberModifier? mod = ctx.Token.Type.Modifier();
-                    if (mod != null)
-                        cmod |= mod.Value;
-                    ctx.SkipTrailingTokens();
-                }
-                ctx.TokenIndex += 2;
-                string cname = ctx.PrevToken!.Arg!;
-                if (cname != ctx.Class.Name)
-                    throw new CompilerException("Invalid class name");
-            }
-            
             if (ctx.Type != CompilerType.Class)
                 return Parent;
 
-            ICompiler sub;
             switch (ctx.Token.Type)
             {
+                case TokenType.Package:
+                    ctx.SkipPackage();
+                    break;
                 // parse type parameter names 
                 case TokenType.ParDiamondOpen:
                 case TokenType.ParDiamondClose:
@@ -73,7 +46,7 @@ namespace KScr.Compiler.Class
                 case TokenType.Word:
                     if (targetType == null)
                     {
-                        string targetTypeIdentifier = ctx.FindCompoundWord(TokenType.Whitespace);
+                        string targetTypeIdentifier = ctx.FindCompoundWord();
                         targetType = vm.FindType(targetTypeIdentifier) ?? throw new CompilerException("Could not find type: " + targetTypeIdentifier);
                     }
                     else if (memberName == null) 

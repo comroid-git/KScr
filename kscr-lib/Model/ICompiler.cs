@@ -235,7 +235,8 @@ namespace KScr.Lib.Model
             // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
             var pkg = context?.Package ?? Package.RootPackage;
             pkg = ResolvePackage(pkg, FindClassPackageName(tokens).Split("."));
-            var cls = pkg.GetOrCreateClass(clsName, FindClassHeader(tokens, clsName));
+            var classInfo = FindClassInfo(tokens, clsName);
+            var cls = pkg.GetOrCreateClass(clsName, classInfo.Modifier);
             var prev = context;
             context = new CompilerContext(context ?? new CompilerContext(new CompilerContext(), pkg), cls, tokens, CompilerType.Class);
             CompilerLoop(vm, vm.Compiler, ref context);
@@ -255,7 +256,7 @@ namespace KScr.Lib.Model
             ctx.TokenIndex = 0;
             if (ctx.Token.Type != TokenType.Package)
                 throw new CompilerException("Missing Package name at index 0");
-            ctx.TokenIndex += 2;
+            ctx.TokenIndex += 1;
             return ctx.FindCompoundWord();
         }
 
@@ -274,28 +275,35 @@ namespace KScr.Lib.Model
             return yields;
         }
 
-        private static MemberModifier FindClassHeader(TokenContext ctx, string clsName)
+        private static ClassInfo FindClassInfo(TokenContext ctx, string? clsName)
         {
             // skip package and imports if necessary
             ctx.SkipPackage();
             ctx.SkipImports();
-            
-            string name = "";
-            return FindClassHeader(ctx, clsName, ref name);
-        }
 
-        private static MemberModifier FindClassHeader(TokenContext ctx, string? clsName, ref string name)
-        {
-            var mod = MemberModifier.Protected;
+            if (ctx.Token.Type == TokenType.Terminator)
+                ctx.TokenIndex += 1;
             
-            // fixme todo!!!
+            var mod = MemberModifier.None;
+            ClassType? type;
+            string name;
 
-            if (ctx.Token.Type != TokenType.Word)
+            while ((type = ctx.Token.Type.ClassType()) == null)
+            {
+                var m = ctx.Token.Type.Modifier();
+                if (m != null)
+                    mod |= m.Value;
+                ctx.TokenIndex += 1;
+            }
+            ctx.TokenIndex += 1;
+
+            if (ctx.Token.Type == TokenType.Word)
                 if (clsName != null && clsName != ctx.Token.Arg)
                     throw new CompilerException("Declared Class name mismatches File name");
                 else name = ctx.Token.Arg!;
             else throw new CompilerException("Missing Class name");
-            return mod;
+            
+            return new ClassInfo(mod, type.Value, name);
         }
 
         protected static void CompilerLoop(RuntimeBase vm, ICompiler use, ref CompilerContext context)
