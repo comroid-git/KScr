@@ -4,6 +4,8 @@
         <TargetFramework>net5.0</TargetFramework>
         <RootNamespace>KScr.Lib</RootNamespace>
         <Nullable>enable</Nullable>
+        <Company>comroid</Company>
+        <AssemblyVersion>0.1.0</AssemblyVersion>
     </PropertyGroup>
 
 </Project>

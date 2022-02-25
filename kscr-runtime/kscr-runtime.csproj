@@ -8,11 +8,12 @@
         <AssemblyName>kscr</AssemblyName>
         <Company>comroid</Company>
         <Product>kscr</Product>
+        <AssemblyVersion>0.1.0</AssemblyVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj"/>
-        <ProjectReference Include="..\kscr-lib\kscr-lib.csproj"/>
+        <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj" />
+        <ProjectReference Include="..\kscr-lib\kscr-lib.csproj" />
     </ItemGroup>
 
 </Project>
