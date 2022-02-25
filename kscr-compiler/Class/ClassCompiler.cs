@@ -13,7 +13,7 @@ namespace KScr.Compiler.Class
         private MemberModifier? modifier;
         private string? memberName;
         private int memberType = 0;
-        private IClass targetType = null!;
+        private ITypeInfo targetType = null!;
         private Method method = null!;
         private Field field = null!;
 
@@ -97,7 +97,8 @@ namespace KScr.Compiler.Class
                     if (targetType == null)
                     { // is return type
                         string targetTypeIdentifier = ctx.Token.Arg!;
-                        targetType = vm.FindType(targetTypeIdentifier, ctx.Package) ?? throw new CompilerException("Could not find type: " + targetTypeIdentifier);
+                        targetType = vm.FindTypeInfo(targetTypeIdentifier, ctx.Class, ctx.Package) 
+                                     ?? throw new CompilerException("Could not find type: " + targetTypeIdentifier);
                     }
                     else if (memberName == null) 
                         // is name
@@ -118,11 +119,9 @@ namespace KScr.Compiler.Class
                     memberType = 1; // method
 
                     // compile parameter definition
-                    method = new Method(ctx.Class, memberName!, modifier
-                                                                ?? (ctx.Class.ClassType == ClassType.Interface 
-                                                                    || ctx.Class.ClassType == ClassType.Annotation
-                                                                    ? MemberModifier.Public
-                                                                    : MemberModifier.Protected));
+                    method = new Method(ctx.Class, memberName!, 
+                        modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation 
+                            ? MemberModifier.Public : MemberModifier.Protected));
                     ctx = new CompilerContext(ctx, CompilerType.ParameterDefintion);
                     ctx.TokenIndex += 1;
                     CompilerLoop(vm, new ParameterDefinitionCompiler(this, method), ref ctx);

@@ -69,7 +69,7 @@ namespace KScr.Lib.Store
             Stack = new IObject?[len];
         }
 
-        public readonly IClass Type;
+        public readonly ITypeInfo Type;
         public readonly IObject?[] Stack;
         
         public int Length => Stack.Length;

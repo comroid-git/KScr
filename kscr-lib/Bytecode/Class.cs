@@ -121,28 +121,32 @@ namespace KScr.Lib.Bytecode
         public override string Name => base.Name + (TypeParameters.Count == 0 ? string.Empty : '<' + string.Join(", ", TypeParameters) + '>');
     }
 
-    public sealed class TypeParameter : ITypeParameterDeclaration
+    public sealed class TypeParameter : ITypeParameter
     {
         private TypeParameterSpecializationType _specialization;
 
-        public sealed class Instance
+        public sealed class Instance : ITypeParameterInstance
         {
             public readonly TypeParameter TypeParameter;
 
-            public Instance(TypeParameter typeParameter)
+            public Instance(TypeParameter typeParameter, IClass targetType)
             {
                 TypeParameter = typeParameter;
+                TargetType = targetType;
             }
+
+            public string FullName => TypeParameter.FullName;
+            public IClass TargetType { get; }
         }
 
         public TypeParameter(string name, TypeParameterSpecializationType? specialization = null!, IClass? specializationTarget = null!)
         {
-            Name = name;
+            FullName = name;
             Specialization = name == "n" ? TypeParameterSpecializationType.N : specialization ?? TypeParameterSpecializationType.Extends;
             SpecializationTarget = specializationTarget ?? Class.VoidType;
         }
 
-        public string Name { get; }
+        public string FullName { get; }
 
         public TypeParameterSpecializationType Specialization
         {
@@ -159,7 +163,7 @@ namespace KScr.Lib.Bytecode
 
         public override string ToString()
         {
-            string str = Name;
+            string str = FullName;
             switch (Specialization)
             {
                 case TypeParameterSpecializationType.Extends:

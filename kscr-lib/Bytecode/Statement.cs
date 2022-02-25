@@ -13,7 +13,7 @@ namespace KScr.Lib.Bytecode
     public class Statement : AbstractBytecode, IStatement<StatementComponent>
     {
         public StatementComponentType Type { get; set; }
-        public IClass TargetType { get; set; } = Class.VoidType;
+        public ITypeInfo TargetType { get; set; } = Class.VoidType;
         public List<StatementComponent> Main { get; } = new List<StatementComponent>();
 
         public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
@@ -109,7 +109,12 @@ namespace KScr.Lib.Bytecode
                     return State.Normal;
                 case StatementComponentType.Declaration:
                     // variable declaration
-                    rev = vm[VariableContext, Arg] = new ObjectRef(Statement.TargetType);
+
+                    IClass type = /*Statement.TargetType is ITypeParameter tp
+                        ? vm.Stack.This!.Type.TypeParameterInstances!
+                            .First(_tp => _tp.FullName == tp.FullName).TargetType
+                        :*/ (Statement.TargetType as Class)!; // todo
+                    rev = vm[VariableContext, Arg] = new ObjectRef(type);
                     break;
                 case StatementComponentType.Pipe:
                     throw new NotImplementedException();
@@ -163,7 +168,7 @@ namespace KScr.Lib.Bytecode
                             // invoke member
                             if (rev == null)
                                 throw new InternalException("Invalid call; no target found");
-                            if (rev.Type.DeclaredMembers[Arg] is Method mtd)
+                            if (((Class)rev.Type).DeclaredMembers[Arg] is Method mtd)
                             {
                                 if (!(SubComponent is MethodParameterComponent mpc) ||
                                     (SubComponent.Type & StatementComponentType.Code) == 0)

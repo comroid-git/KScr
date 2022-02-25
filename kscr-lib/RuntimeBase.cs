@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
@@ -188,6 +189,12 @@ namespace KScr.Lib
             }
 
             return (Class)ClassStore.FindType(package!, name);
+        }
+
+        public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)
+        {
+            return (ITypeInfo?) inClass.TypeParameters.FirstOrDefault(tp => tp.FullName == identifier)
+                   ?? FindType(identifier, inPackage)!;
         }
     }
 }
