@@ -177,12 +177,21 @@ namespace KScr.Lib.Model
             {
                 if (StatementIndex == -1) 
                     Statement = new Statement();
-                (value.Statement = Statement).Main.Add(value);
-                ComponentIndex += 1;
+                if (NextIntoPrevSub)
+                {
+                    NextIntoPrevSub = false;
+                    value.Statement = Statement;
+                    PrevComponent!.SubComponent = value;
+                } else
+                {
+                    (value.Statement = Statement).Main.Add(value);
+                    ComponentIndex += 1;
+                }
             }
         }
         public StatementComponent? NextComponent => Statement.Main.Count < ComponentIndex + 1 ? Statement.Main[ComponentIndex + 1] : null;
         public StatementComponent? PrevComponent => ComponentIndex - 1 >= 0 ? Statement.Main[ComponentIndex - 1] : null;
+        public bool NextIntoPrevSub { get; set; }
 
         public override string ToString()
         {
