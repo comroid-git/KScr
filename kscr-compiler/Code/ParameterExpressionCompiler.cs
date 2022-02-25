@@ -23,7 +23,7 @@ namespace KScr.Compiler.Code
 
             while (ctx.Token.Type != TokenType.ParRoundClose)
             {
-                CompilerContext subctx = new CompilerContext(ctx, CompilerType.CodeParameterExpression);
+                var subctx = new CompilerContext(ctx, CompilerType.CodeParameterExpression);
                 CompilerLoop(vm, new ExpressionCompiler(this, false, TokenType.Comma), ref subctx);
                 mpc.Expressions.Add(subctx.Component);
                 ctx.TokenIndex = subctx.TokenIndex;

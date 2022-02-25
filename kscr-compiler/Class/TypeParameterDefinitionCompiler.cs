@@ -8,14 +8,15 @@ namespace KScr.Compiler.Class
     public class TypeParameterDefinitionCompiler : AbstractCompiler
     {
         private readonly IClass _class;
-        private int pIndex = -1, pState = 0;
         private bool _active = true;
-        public override bool Active => _active;
+        private int pIndex = -1, pState;
 
         public TypeParameterDefinitionCompiler(ClassCompiler parent, IClass @class) : base(parent)
         {
             _class = @class;
         }
+
+        public override bool Active => _active;
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
@@ -23,18 +24,21 @@ namespace KScr.Compiler.Class
             {
                 case TokenType.Word:
                     if (pState == 0)
-                    { // parse name
+                    {
+                        // parse name
                         if (pIndex >= _class.TypeParameters.Count)
                             throw new CompilerException("Invalid TypeParameter index during compilation");
-                        
+
                         _class.TypeParameters.Add(new TypeParameter(ctx.Token.Arg!));
                         pIndex += 1;
                         pState += 1;
                     }
                     else
-                    { // parse spec type name
+                    {
+                        // parse spec type name
                         // todo
                     }
+
                     break;
                 case TokenType.Comma:
                     pState = 0;
@@ -61,6 +65,7 @@ namespace KScr.Compiler.Class
                     return Parent;
                 default: throw new CompilerException("Unexpected token: " + ctx.Token);
             }
+
             return this;
         }
     }

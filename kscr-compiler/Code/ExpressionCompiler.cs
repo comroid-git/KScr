@@ -12,14 +12,16 @@ namespace KScr.Compiler.Code
         private readonly bool _endBeforeTerminator;
         private readonly TokenType[] _terminators;
 
-        public ExpressionCompiler(ICompiler parent, bool endBeforeTerminator = false, params TokenType[] terminators) : base(parent)
+        public ExpressionCompiler(ICompiler parent, bool endBeforeTerminator = false, params TokenType[] terminators) :
+            base(parent)
         {
             _endBeforeTerminator = endBeforeTerminator;
             _terminators = terminators;
         }
 
-        public ExpressionCompiler(ICompiler parent, bool endBeforeTerminator = false, TokenType terminator = TokenType.Terminator)
-            : this(parent, endBeforeTerminator, new[]{terminator})
+        public ExpressionCompiler(ICompiler parent, bool endBeforeTerminator = false,
+            TokenType terminator = TokenType.Terminator)
+            : this(parent, endBeforeTerminator, new[] { terminator })
         {
         }
 
@@ -95,7 +97,7 @@ namespace KScr.Compiler.Code
                     };
                     break;
             }
-            
+
             var use = base.AcceptToken(vm, ref ctx);
             if (_terminators.Contains(ctx.NextToken?.Type ?? TokenType.Terminator))
             {
@@ -104,6 +106,7 @@ namespace KScr.Compiler.Code
                 _active = false;
                 return _endBeforeTerminator ? Parent : this;
             }
+
             return use;
         }
     }

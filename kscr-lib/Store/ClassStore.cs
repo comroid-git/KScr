@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using KScr.Lib.Bytecode;
-using KScr.Lib.Core;
 using KScr.Lib.Model;
 
 namespace KScr.Lib.Store
 {
     public sealed class ClassStore
     {
-        private IDictionary<long, Class.Instance> _cache = new ConcurrentDictionary<long, Class.Instance>();
+        private readonly IDictionary<long, Class.Instance> _cache = new ConcurrentDictionary<long, Class.Instance>();
 
         public IClassInstance FindType(Package package, string name)
         {
@@ -19,7 +17,10 @@ namespace KScr.Lib.Store
             return FindType(RuntimeBase.GetHashCode64(package.FullName + '.' + name));
         }
 
-        public IClassInstance FindType(long typeId) => _cache[typeId];
+        public IClassInstance FindType(long typeId)
+        {
+            return _cache[typeId];
+        }
 
         public long Add(Class.Instance classInstance)
         {

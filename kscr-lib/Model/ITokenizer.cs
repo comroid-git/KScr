@@ -78,95 +78,104 @@ namespace KScr.Lib.Model
         // other modifiers
         Abstract = 0x020F_10,
         Final = 0x020F_20,
-        
+
         // class initializers
         Package = 0x0401_10,
-        Import = 0x0402_10,
+        Import = 0x0402_10
     }
 
     public static class TokenExtensios
     {
-        public static string String(this IToken token) => token.Type switch
+        public static string String(this IToken token)
         {
-            TokenType.Whitespace => " ",
-            TokenType.Terminator => ";",
-            TokenType.Word => token.Arg!,
-            TokenType.Return => "return",
-            TokenType.Throw => "throw",
-            TokenType.This => "this",
-            TokenType.StdIo => "stdio",
-            TokenType.Dot => ".",
-            TokenType.Colon => "'",
-            TokenType.Comma => ",",
-            TokenType.ParRoundOpen => "(",
-            TokenType.ParRoundClose => ")",
-            TokenType.ParSquareOpen => "[",
-            TokenType.ParSquareClose => "]",
-            TokenType.ParAccOpen => "{",
-            TokenType.ParAccClose => "}",
-            TokenType.ParDiamondOpen => "<",
-            TokenType.ParDiamondClose => ">",
-            TokenType.IdentVoid => "void",
-            TokenType.IdentNum => "num",
-            TokenType.IdentNumByte => "byte",
-            TokenType.IdentNumShort => "short",
-            TokenType.IdentNumInt => "int",
-            TokenType.IdentNumLong => "long",
-            TokenType.IdentNumFloat => "float",
-            TokenType.IdentNumDouble => "double",
-            TokenType.IdentStr => "str",
-            TokenType.IdentVar => "var",
-            TokenType.LiteralNull => "null",
-            TokenType.LiteralNum => "num",
-            TokenType.LiteralTrue => "true",
-            TokenType.LiteralFalse => "false",
-            TokenType.LiteralStr => "str",
-            TokenType.OperatorPlus => "+",
-            TokenType.OperatorMinus => "-",
-            TokenType.OperatorMultiply => "*",
-            TokenType.OperatorDivide => "/",
-            TokenType.OperatorModulus => "%",
-            TokenType.OperatorEquals => "=",
-            TokenType.Super => "super",
-            TokenType.Extends => "extends",
-            TokenType.Implements => "implements",
-            TokenType.Public => "public",
-            TokenType.Internal => "internal",
-            TokenType.Protected => "protected",
-            TokenType.Private => "private",
-            TokenType.Class => "class",
-            TokenType.Interface => "interface",
-            TokenType.Enum => "enum",
-            TokenType.Annotation => "annotation",
-            TokenType.Static => "static",
-            TokenType.Dynamic => "dynamic",
-            TokenType.Abstract => "abstract",
-            TokenType.Final => "final",
-            TokenType.Package => "package",
-            TokenType.Import => "import",
-            _ => throw new ArgumentOutOfRangeException(token.ToString())
-        };
-        
-        public static MemberModifier? Modifier(this TokenType type) => type switch
+            return token.Type switch
+            {
+                TokenType.Whitespace => " ",
+                TokenType.Terminator => ";",
+                TokenType.Word => token.Arg!,
+                TokenType.Return => "return",
+                TokenType.Throw => "throw",
+                TokenType.This => "this",
+                TokenType.StdIo => "stdio",
+                TokenType.Dot => ".",
+                TokenType.Colon => "'",
+                TokenType.Comma => ",",
+                TokenType.ParRoundOpen => "(",
+                TokenType.ParRoundClose => ")",
+                TokenType.ParSquareOpen => "[",
+                TokenType.ParSquareClose => "]",
+                TokenType.ParAccOpen => "{",
+                TokenType.ParAccClose => "}",
+                TokenType.ParDiamondOpen => "<",
+                TokenType.ParDiamondClose => ">",
+                TokenType.IdentVoid => "void",
+                TokenType.IdentNum => "num",
+                TokenType.IdentNumByte => "byte",
+                TokenType.IdentNumShort => "short",
+                TokenType.IdentNumInt => "int",
+                TokenType.IdentNumLong => "long",
+                TokenType.IdentNumFloat => "float",
+                TokenType.IdentNumDouble => "double",
+                TokenType.IdentStr => "str",
+                TokenType.IdentVar => "var",
+                TokenType.LiteralNull => "null",
+                TokenType.LiteralNum => "num",
+                TokenType.LiteralTrue => "true",
+                TokenType.LiteralFalse => "false",
+                TokenType.LiteralStr => "str",
+                TokenType.OperatorPlus => "+",
+                TokenType.OperatorMinus => "-",
+                TokenType.OperatorMultiply => "*",
+                TokenType.OperatorDivide => "/",
+                TokenType.OperatorModulus => "%",
+                TokenType.OperatorEquals => "=",
+                TokenType.Super => "super",
+                TokenType.Extends => "extends",
+                TokenType.Implements => "implements",
+                TokenType.Public => "public",
+                TokenType.Internal => "internal",
+                TokenType.Protected => "protected",
+                TokenType.Private => "private",
+                TokenType.Class => "class",
+                TokenType.Interface => "interface",
+                TokenType.Enum => "enum",
+                TokenType.Annotation => "annotation",
+                TokenType.Static => "static",
+                TokenType.Dynamic => "dynamic",
+                TokenType.Abstract => "abstract",
+                TokenType.Final => "final",
+                TokenType.Package => "package",
+                TokenType.Import => "import",
+                _ => throw new ArgumentOutOfRangeException(token.ToString())
+            };
+        }
+
+        public static MemberModifier? Modifier(this TokenType type)
         {
-            TokenType.Public => MemberModifier.Public,
-            TokenType.Protected => MemberModifier.Protected,
-            TokenType.Internal => MemberModifier.Internal,
-            TokenType.Private => MemberModifier.Private,
-            TokenType.Static => MemberModifier.Static,
-            TokenType.Abstract => MemberModifier.Abstract,
-            TokenType.Final => MemberModifier.Final,
-            _ => null
-        };
-        
-        public static ClassType? ClassType(this TokenType type) => type switch
+            return type switch
+            {
+                TokenType.Public => MemberModifier.Public,
+                TokenType.Protected => MemberModifier.Protected,
+                TokenType.Internal => MemberModifier.Internal,
+                TokenType.Private => MemberModifier.Private,
+                TokenType.Static => MemberModifier.Static,
+                TokenType.Abstract => MemberModifier.Abstract,
+                TokenType.Final => MemberModifier.Final,
+                _ => null
+            };
+        }
+
+        public static ClassType? ClassType(this TokenType type)
         {
-            TokenType.Class => Model.ClassType.Class,
-            TokenType.Interface => Model.ClassType.Interface,
-            TokenType.Enum => Model.ClassType.Enum,
-            TokenType.Annotation => Model.ClassType.Annotation,
-            _ => null
-        };
+            return type switch
+            {
+                TokenType.Class => Model.ClassType.Class,
+                TokenType.Interface => Model.ClassType.Interface,
+                TokenType.Enum => Model.ClassType.Enum,
+                TokenType.Annotation => Model.ClassType.Annotation,
+                _ => null
+            };
+        }
     }
 
     public interface ITokenizer

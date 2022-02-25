@@ -23,7 +23,11 @@ namespace KScr.Lib.Core
         public long ObjectId { get; }
         public bool Primitive => true;
         public IClassInstance Type => Class.ArrayType;
-        public string ToString(short variant) => string.Join(", ", List.Select(it => it.Value?.ToString(variant)));
+
+        public string ToString(short variant)
+        {
+            return string.Join(", ", List.Select(it => it.Value?.ToString(variant)));
+        }
 
         public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args)
         {

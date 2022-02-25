@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using KScr.Lib.Store;
 
@@ -10,13 +9,13 @@ namespace KScr.Lib.Bytecode
         Method,
         Field
     }
-    
+
     public interface IClassMember : IRuntimeSite, IModifierContainer
     {
         public Class Parent { get; }
         public string Name { get; }
         public string FullName { get; }
-        public ClassMemberType Type { get; } 
+        public ClassMemberType Type { get; }
     }
 
     public abstract class AbstractClassMember : AbstractBytecode, IClassMember
@@ -42,7 +41,7 @@ namespace KScr.Lib.Bytecode
 
         public override void Write(Stream stream)
         {
-            stream.Write(new []{(byte)Type});
+            stream.Write(new[] { (byte)Type });
             stream.Write(BitConverter.GetBytes(Name.Length));
             stream.Write(RuntimeBase.Encoding.GetBytes(Name));
             stream.Write(BitConverter.GetBytes((int)Modifier));
@@ -50,7 +49,7 @@ namespace KScr.Lib.Bytecode
 
         public override void Load(RuntimeBase vm, byte[] data)
         {
-            int index = 0;
+            var index = 0;
             _Load(data, ref index, out string name, out var modifier);
             _name = name;
             Modifier = modifier;
@@ -58,7 +57,7 @@ namespace KScr.Lib.Bytecode
 
         public static AbstractClassMember Read(RuntimeBase vm, Class parent, byte[] data, ref int index)
         {
-            ClassMemberType type = _Load(data, ref index, out string name, out var modifier);
+            var type = _Load(data, ref index, out string name, out var modifier);
             AbstractClassMember member = type switch
             {
                 ClassMemberType.Method => new Method(parent, name, modifier),
@@ -72,7 +71,7 @@ namespace KScr.Lib.Bytecode
         private static ClassMemberType _Load(byte[] data, ref int index, out string name, out MemberModifier modifier)
         {
             int len;
-            var type = data[index];
+            byte type = data[index];
             index += 1;
             len = BitConverter.ToInt32(data, index);
             index += 4;

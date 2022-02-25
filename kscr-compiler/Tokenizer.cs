@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using KScr.Lib;
-using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
 
@@ -8,8 +7,18 @@ namespace KScr.Compiler
 {
     public sealed class Tokenizer : ITokenizer
     {
+        private readonly List<IToken> Tokens = new();
+
+        private int artParLevel;
+        private bool isLineComment;
+        private bool isStringLiteral;
         private IToken? Token;
-        private readonly List<IToken> Tokens = new List<IToken>();
+
+        private Token token
+        {
+            get => (Token as Token)!;
+            set => Token = value;
+        }
 
         public bool PushToken()
         {
@@ -33,7 +42,7 @@ namespace KScr.Compiler
         public IList<IToken> Tokenize(RuntimeBase vm, string source)
         {
             int len = source.Length;
-            string str = "";
+            var str = "";
 
             for (var i = 0; i < len; i++)
             {
@@ -42,7 +51,7 @@ namespace KScr.Compiler
                 char p = i - 1 > 0 ? source[i - 1] : ' ';
                 Accept(c, n, p, ref i, ref str);
 
-                if (!((Token as AbstractToken)?.Complete ?? false)) 
+                if (!((Token as AbstractToken)?.Complete ?? false))
                     continue;
                 PushToken();
                 str = "";
@@ -51,23 +60,15 @@ namespace KScr.Compiler
             return Tokens;
         }
 
-        private int artParLevel;
-        private bool isLineComment;
-        private bool isStringLiteral;
-
-        private Token token
-        {
-            get => (Token as Token)!;
-            set => Token = value;
-        }
-
         public void Accept(char c, char n, char p, ref int i, ref string str)
         {
             // string literals
             if (isStringLiteral)
             {
-                if ((c != '"') && (p != '\\'))
+                if (c != '"' && p != '\\')
+                {
                     token.Arg += c;
+                }
                 else if (c == '"' && p != '\\')
                 {
                     token.Complete = true;
@@ -76,7 +77,6 @@ namespace KScr.Compiler
             }
             else
             {
-
                 // skip linefeeds
                 if (c == '\n' || c == '\r')
                 {
@@ -188,10 +188,8 @@ namespace KScr.Compiler
             }
 
             if (token?.Complete ?? false)
-            {
                 //PushToken(token);
                 str = string.Empty;
-            }
         }
 
         private void LexicalToken(bool isWhitespace, ref string str, char c, char n, ref int i)
@@ -335,7 +333,8 @@ namespace KScr.Compiler
         {
             /*if (Tokens[^2].Type.Modifier() != null)
                 Tokens[^2].Type |= tokenType;
-            else*/ token = new Token(tokenType){Complete = true};
+            else*/
+            token = new Token(tokenType) { Complete = true };
         }
     }
 }

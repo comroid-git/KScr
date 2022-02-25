@@ -1,6 +1,5 @@
 ﻿using KScr.Lib;
 using KScr.Lib.Bytecode;
-using KScr.Lib.Exception;
 using KScr.Lib.Model;
 
 namespace KScr.Compiler.Code
@@ -20,7 +19,8 @@ namespace KScr.Compiler.Code
             switch (ctx.Token.Type)
             {
                 case TokenType.OperatorEquals:
-                    if (ctx.Statement.Type == StatementComponentType.Declaration || ctx.Component.CodeType == BytecodeType.ExpressionVariable)
+                    if (ctx.Statement.Type == StatementComponentType.Declaration ||
+                        ctx.Component.CodeType == BytecodeType.ExpressionVariable)
                     {
                         // assignment
                         ctx.Component = new StatementComponent
@@ -46,7 +46,7 @@ namespace KScr.Compiler.Code
                     _active = false;
                     return this;
             }
-            
+
             return base.AcceptToken(vm, ref ctx);
         }
     }

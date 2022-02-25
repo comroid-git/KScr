@@ -1,5 +1,4 @@
-﻿using System;
-using KScr.Compiler.Code;
+﻿using KScr.Compiler.Code;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
@@ -9,13 +8,13 @@ namespace KScr.Compiler.Class
 {
     public class ClassCompiler : AbstractCompiler
     {
-        private bool inBody = false;
-        private MemberModifier? modifier;
-        private string? memberName;
-        private int memberType = 0;
-        private ITypeInfo targetType = null!;
-        private Method method = null!;
         private Field field = null!;
+        private bool inBody;
+        private string? memberName;
+        private int memberType;
+        private Method method = null!;
+        private MemberModifier? modifier;
+        private ITypeInfo targetType = null!;
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
@@ -95,14 +94,18 @@ namespace KScr.Compiler.Class
                     if (!inBody)
                         break;
                     if (targetType == null)
-                    { // is return type
+                    {
+                        // is return type
                         string targetTypeIdentifier = ctx.Token.Arg!;
-                        targetType = vm.FindTypeInfo(targetTypeIdentifier, ctx.Class, ctx.Package) 
+                        targetType = vm.FindTypeInfo(targetTypeIdentifier, ctx.Class, ctx.Package)
                                      ?? throw new CompilerException("Could not find type: " + targetTypeIdentifier);
                     }
-                    else if (memberName == null) 
+                    else if (memberName == null)
                         // is name
+                    {
                         memberName = ctx.Token.Arg!;
+                    }
+
                     memberType = 2; // field
                     break;
                 // into field
@@ -119,9 +122,10 @@ namespace KScr.Compiler.Class
                     memberType = 1; // method
 
                     // compile parameter definition
-                    method = new Method(ctx.Class, memberName!, 
-                        modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation 
-                            ? MemberModifier.Public : MemberModifier.Protected));
+                    method = new Method(ctx.Class, memberName!,
+                        modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation
+                            ? MemberModifier.Public
+                            : MemberModifier.Protected));
                     ctx = new CompilerContext(ctx, CompilerType.ParameterDefintion);
                     ctx.TokenIndex += 1;
                     CompilerLoop(vm, new ParameterDefinitionCompiler(this, method), ref ctx);
@@ -139,16 +143,18 @@ namespace KScr.Compiler.Class
                         ctx.Parent!.TokenIndex = ctx.TokenIndex;
                         ctx = ctx.Parent!;
                     }
-                    break; 
+
+                    break;
                 case TokenType.ParAccOpen:
                     if (!inBody)
                     {
                         inBody = true;
                         break;
                     }
+
                     if (method == null)
                         break;
-                    
+
                     // compile method body
                     ctx = new CompilerContext(ctx, CompilerType.CodeStatement);
                     ctx.TokenIndex += 1;
@@ -157,7 +163,7 @@ namespace KScr.Compiler.Class
                     ctx.Class.DeclaredMembers[memberName!] = method;
                     ctx.Parent!.TokenIndex = ctx.TokenIndex;
                     ctx = ctx.Parent!;
-                    
+
                     break;
             }
 

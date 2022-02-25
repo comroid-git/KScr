@@ -1,8 +1,6 @@
 ﻿using System;
-using KScr.Compiler.Class;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
-using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
@@ -13,11 +11,11 @@ namespace KScr.Compiler.Code
     {
         protected bool _active = true;
 
-        public override bool Active => _active;
-
         protected AbstractCodeCompiler(ICompiler parent) : base(parent)
         {
         }
+
+        public override bool Active => _active;
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
@@ -74,7 +72,8 @@ namespace KScr.Compiler.Code
                     ctx.Component = new StatementComponent
                     {
                         Type = ctx.Statement.Type == StatementComponentType.Declaration
-                            ? StatementComponentType.Declaration : StatementComponentType.Provider,
+                            ? StatementComponentType.Declaration
+                            : StatementComponentType.Provider,
                         CodeType = BytecodeType.ExpressionVariable,
                         Arg = ctx.Token.Arg!
                     };
@@ -117,7 +116,8 @@ namespace KScr.Compiler.Code
                 // pipe operands
                 case TokenType.ParDiamondOpen:
                     if (ctx.NextToken!.Type == TokenType.ParDiamondOpen)
-                    { // compile Emitter
+                    {
+                        // compile Emitter
                         ctx.Component = new StatementComponent
                         {
                             Type = StatementComponentType.Emitter
@@ -134,10 +134,12 @@ namespace KScr.Compiler.Code
                         ctx.LastComponent!.SubStatement = subctx.Statement;
                         ctx.TokenIndex = subctx.TokenIndex;
                     }
+
                     break;
                 case TokenType.ParDiamondClose:
                     if (ctx.NextToken!.Type == TokenType.ParDiamondClose)
-                    { // compile Emitter
+                    {
+                        // compile Emitter
                         ctx.Component = new StatementComponent
                         {
                             Type = StatementComponentType.Consumer
@@ -149,6 +151,7 @@ namespace KScr.Compiler.Code
                         ctx.LastComponent!.SubStatement = subctx.Statement;
                         ctx.TokenIndex = subctx.TokenIndex;
                     }
+
                     break;
                 case TokenType.Terminator:
                     ctx.Statement = new Statement();
@@ -167,7 +170,7 @@ namespace KScr.Compiler.Code
             {
                 Type = StatementComponentType.Declaration,
                 TargetType = targetType
-            };/*
+            }; /*
             ctx.Component = new StatementComponent
             {
                 Type = StatementComponentType.Declaration,

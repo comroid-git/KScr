@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using KScr.Compiler;
-using KScr.Compiler.Class;
 using KScr.Compiler.Code;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
@@ -17,18 +15,22 @@ namespace KScr.Runtime
     internal class Program
     {
         private static readonly KScrRuntime VM = new();
-        private static readonly string DefaultOutput = Path.Combine(Directory.GetCurrentDirectory(), "build", "compile");
+
+        private static readonly string
+            DefaultOutput = Path.Combine(Directory.GetCurrentDirectory(), "build", "compile");
 
         private static int Main(string[] args)
         {
-            State state = State.Normal;
-            IObject yield = VM.ConstantVoid.Value!;
+            var state = State.Normal;
+            var yield = VM.ConstantVoid.Value!;
 
             if (args.Length == 0)
+            {
                 StdIoMode(ref state, ref yield);
+            }
             else
             {
-                string[] paths = new string[args.Length - 1];
+                var paths = new string[args.Length - 1];
                 Array.Copy(args, 1, paths, 0, paths.Length);
                 var files = paths.Select(path => new FileInfo(path)).GetEnumerator();
 
@@ -43,7 +45,7 @@ namespace KScr.Runtime
                         yield = Run(VM, ref state);
                         break;
                     case "run":
-                        var classpath = args.Length >= 2 ? args[1] : Directory.GetCurrentDirectory();
+                        string classpath = args.Length >= 2 ? args[1] : Directory.GetCurrentDirectory();
                         Package.Read(VM, new DirectoryInfo(classpath));
                         yield = Run(VM, ref state);
                         break;
@@ -58,13 +60,13 @@ namespace KScr.Runtime
             return HandleExit(state, yield);
         }
 
-        private static void StdIoMode(ref State state, ref IObject @yield)
+        private static void StdIoMode(ref State state, ref IObject yield)
         {
             Console.WriteLine("Entering StdIoMode - Only Expressions are allowed");
-            
+
             var compiler = new StatementCompiler();
             var contextBase = new CompilerContext();
-            ObjectRef output = new ObjectRef(Class.VoidType);
+            var output = new ObjectRef(Class.VoidType);
             VM.Stack.StepDown(Class.VoidType, "scratch");
 
             while (state == State.Normal)
@@ -81,6 +83,7 @@ namespace KScr.Runtime
                         Console.Clear();
                         continue;
                 }
+
                 string code = "stdio << " + expr + ';';
 
                 long compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
@@ -88,19 +91,25 @@ namespace KScr.Runtime
                 var context = new CompilerContext(contextBase, tokens, CompilerType.CodeStatement);
                 AbstractCompiler.CompilerLoop(VM, compiler, ref context);
                 compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - compileTime;
-                
+
                 long executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                 state = context.ExecutableCode.Evaluate(VM, null, ref output);
                 executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - executeTime;
                 context.Clear();
-                
+
                 HandleResult(state, output.Value, compileTime, executeTime);
             }
         }
 
-        private static void WriteClasses(string output) => Package.RootPackage.Write(new DirectoryInfo(output));
+        private static void WriteClasses(string output)
+        {
+            Package.RootPackage.Write(new DirectoryInfo(output));
+        }
 
-        private static IObject Run(RuntimeBase vm, ref State state) => vm.Execute(ref state) ?? vm.ConstantVoid.Value!;
+        private static IObject Run(RuntimeBase vm, ref State state)
+        {
+            return vm.Execute(ref state) ?? vm.ConstantVoid.Value!;
+        }
 
         private static void HandleResult(State state, IObject? result, long compileTime, long executeTime)
         {

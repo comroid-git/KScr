@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -22,7 +21,7 @@ namespace KScr.Lib
     public abstract class RuntimeBase
     {
         public static Encoding Encoding = Encoding.ASCII;
-        
+
         private uint _lastObjId = 0xF;
 
         static RuntimeBase()
@@ -33,7 +32,7 @@ namespace KScr.Lib
 
         public abstract ObjectStore ObjectStore { get; }
         public abstract ClassStore ClassStore { get; }
-        public Stack Stack { get; } = new Stack();
+        public Stack Stack { get; } = new();
 
         public ObjectRef? this[VariableContext varctx, string name]
         {
@@ -52,51 +51,8 @@ namespace KScr.Lib
 
         public ObjectRef ConstantTrue =>
             ComputeObject(VariableContext.Absolute, Numeric.CreateKey(1), () => Numeric.One);
-        
+
         public ObjectRef StdioRef { get; } = new StandardIORef();
-
-        public sealed class StandardIORef : ObjectRef
-        {
-            public StandardIORef() : base(Class.StringType)
-            {
-            }
-
-            public override IEvaluable? ReadAccessor
-            {
-                get => new StdioReader();
-                set => throw new InternalException("Cannot reassign stdio ReadAccessor");
-            }
-
-            public override IEvaluable? WriteAccessor
-            {
-                get => new StdioWriter();
-                set => throw new InternalException("Cannot reassign stdio WriteAccessor");
-            }
-
-            private sealed class StdioWriter : IEvaluable
-            {
-                public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
-                {
-                    var txt = rev.Value!.ToString(IObject.ToString_ShortName);
-                    Console.WriteLine(txt);
-                    return State.Normal;
-                }
-            }
-            
-            private sealed class StdioReader : IEvaluable
-            {
-                public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
-                {
-                    if (rev.Length != 1 || !rev.Type.CanHold(Class.StringType) && !rev.Type.CanHold(Class.NumericType))
-                        throw new InternalException("Invalid reference to write string into: " + rev);
-                    var txt = Console.ReadLine()!;
-                    if (rev.Type.CanHold(Class.NumericType))
-                        rev.Value = Numeric.Compile(vm, txt).Value;
-                    else rev.Value = String.Instance(vm, txt).Value;
-                    return State.Normal;
-                }
-            }
-        }
 
         public bool StdIoMode { get; set; } = false;
 
@@ -197,8 +153,51 @@ namespace KScr.Lib
 
         public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)
         {
-            return (ITypeInfo?) inClass.TypeParameters.FirstOrDefault(tp => tp.FullName == identifier)
+            return (ITypeInfo?)inClass.TypeParameters.FirstOrDefault(tp => tp.FullName == identifier)
                    ?? FindType(identifier, inPackage)!;
+        }
+
+        public sealed class StandardIORef : ObjectRef
+        {
+            public StandardIORef() : base(Class.StringType)
+            {
+            }
+
+            public override IEvaluable? ReadAccessor
+            {
+                get => new StdioReader();
+                set => throw new InternalException("Cannot reassign stdio ReadAccessor");
+            }
+
+            public override IEvaluable? WriteAccessor
+            {
+                get => new StdioWriter();
+                set => throw new InternalException("Cannot reassign stdio WriteAccessor");
+            }
+
+            private sealed class StdioWriter : IEvaluable
+            {
+                public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
+                {
+                    var txt = rev.Value!.ToString(IObject.ToString_ShortName);
+                    Console.WriteLine(txt);
+                    return State.Normal;
+                }
+            }
+
+            private sealed class StdioReader : IEvaluable
+            {
+                public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
+                {
+                    if (rev.Length != 1 || !rev.Type.CanHold(Class.StringType) && !rev.Type.CanHold(Class.NumericType))
+                        throw new InternalException("Invalid reference to write string into: " + rev);
+                    string txt = Console.ReadLine()!;
+                    if (rev.Type.CanHold(Class.NumericType))
+                        rev.Value = Numeric.Compile(vm, txt).Value;
+                    else rev.Value = String.Instance(vm, txt).Value;
+                    return State.Normal;
+                }
+            }
         }
     }
 }

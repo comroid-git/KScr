@@ -52,7 +52,10 @@ namespace KScr.Lib.Core
             }
         }
 
-        private ObjectRef OpPlus(RuntimeBase vm, string other) => Instance(vm, Str + other);
+        private ObjectRef OpPlus(RuntimeBase vm, string other)
+        {
+            return Instance(vm, Str + other);
+        }
 
         public static ObjectRef Instance(RuntimeBase vm, string str)
         {

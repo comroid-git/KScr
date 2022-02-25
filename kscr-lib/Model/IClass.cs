@@ -9,7 +9,7 @@ namespace KScr.Lib.Model
         string Name { get; }
         string FullName { get; }
     }
-    
+
     public interface IClassInfo : ITypeInfo
     {
         MemberModifier Modifier { get; }
@@ -40,9 +40,13 @@ namespace KScr.Lib.Model
         public ClassType ClassType { get; }
         public string Name { get; }
         public string FullName { get; }
-        public bool CanHold(IClassInstance? type) => throw new InvalidOperationException("Cannot check inheritance of info struct");
+
+        public bool CanHold(IClassInstance? type)
+        {
+            throw new InvalidOperationException("Cannot check inheritance of info struct");
+        }
     }
-    
+
     public interface IClass : IClassInstance
     {
         IDictionary<string, IClassMember> DeclaredMembers { get; }

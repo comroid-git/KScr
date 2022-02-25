@@ -9,10 +9,11 @@ namespace KScr.Lib.Bytecode
 {
     public class ExecutableCode : AbstractBytecode, IStatement<Statement>
     {
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main;
         public StatementComponentType Type => StatementComponentType.Code;
         public IClassInstance TargetType { get; protected set; } = Class.VoidType;
 
-        public List<Statement> Main { get; } = new List<Statement>();
+        public List<Statement> Main { get; } = new();
 
         public State Evaluate(RuntimeBase vm, IEvaluable? _, ref ObjectRef output)
         {
@@ -35,30 +36,28 @@ namespace KScr.Lib.Bytecode
 
             return state;
         }
-        
+
         public void Append(IEvaluable? here)
         {
             if (here is ExecutableCode bc)
                 Main.AddRange(bc.Main);
         }
 
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main;
-        
         public override void Write(Stream stream)
         {
             stream.Write(BitConverter.GetBytes(Main.Count));
-            foreach (var abstractBytecode in Main) 
+            foreach (var abstractBytecode in Main)
                 abstractBytecode.Write(stream);
         }
 
         public override void Load(RuntimeBase vm, byte[] data, ref int index)
         {
             Main.Clear();
-            
-            int len = BitConverter.ToInt32(data, index);
+
+            var len = BitConverter.ToInt32(data, index);
             index += 4;
             Statement stmt;
-            for (int i = 0; i < len; i++)
+            for (var i = 0; i < len; i++)
             {
                 stmt = new Statement();
                 stmt.Load(vm, data, ref index);

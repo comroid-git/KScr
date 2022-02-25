@@ -8,7 +8,7 @@ namespace KScr.Lib.Bytecode
 {
     public class MethodParameterComponent : StatementComponent
     {
-        public readonly List<StatementComponent> Expressions = new List<StatementComponent>();
+        public readonly List<StatementComponent> Expressions = new();
 
         public override void Write(Stream stream)
         {
@@ -27,11 +27,11 @@ namespace KScr.Lib.Bytecode
 
             for (var i = 0; i < Expressions.Count; i++)
             {
-                ObjectRef val = new ObjectRef(Class.VoidType);
+                var val = new ObjectRef(Class.VoidType);
                 Expressions[i].Evaluate(vm, null, ref val!);
                 rev[vm, i] = val.Value;
             }
-            
+
             return State.Normal;
         }
     }

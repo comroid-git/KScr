@@ -28,7 +28,7 @@ namespace KScr.Lib.Bytecode
         public AbstractPackageMember(Package parent, string name, MemberModifier modifier)
         {
             Parent = parent;
-            this._name = name;
+            _name = name;
             Modifier = modifier;
         }
 
@@ -44,7 +44,9 @@ namespace KScr.Lib.Bytecode
         public virtual string Name => _name;
 
         public MemberModifier Modifier { get; protected set; }
-        public string FullName => Parent?.FullName + (IsRoot ? string.Empty : (Parent?.IsRoot ?? true ? string.Empty : '.') + Name);
+
+        public string FullName => Parent?.FullName +
+                                  (IsRoot ? string.Empty : (Parent?.IsRoot ?? true ? string.Empty : '.') + Name);
 
         public IPackageMember GetMember(string name)
         {

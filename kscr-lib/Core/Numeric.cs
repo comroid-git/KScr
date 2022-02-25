@@ -21,24 +21,23 @@ namespace KScr.Lib.Core
 
     public sealed class Numeric : IObject
     {
-        public static readonly Regex NumberRegex = new Regex(@"([\d]+)(i|l|f|d|b)?(\.([\d]+)(f|d)?)?");
+        public static readonly Regex NumberRegex = new(@"([\d]+)(i|l|f|d|b)?(\.([\d]+)(f|d)?)?");
 
-        public static readonly Numeric Zero = new Numeric(0)
+        public static readonly Numeric Zero = new(0)
         {
             Mutable = false,
             Bytes = BitConverter.GetBytes((byte)0),
             Mode = NumericMode.Byte
         };
 
-        public static readonly Numeric One = new Numeric(1)
+        public static readonly Numeric One = new(1)
         {
             Mutable = false,
             Bytes = BitConverter.GetBytes((byte)1),
             Mode = NumericMode.Byte
         };
 
-        private static readonly ConcurrentDictionary<decimal, Numeric> Cache =
-            new ConcurrentDictionary<decimal, Numeric>();
+        private static readonly ConcurrentDictionary<decimal, Numeric> Cache = new();
 
         private readonly bool _constant;
 

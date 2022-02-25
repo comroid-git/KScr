@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using KScr.Lib.Store;
 
 namespace KScr.Lib.Model
 {
@@ -18,7 +17,7 @@ namespace KScr.Lib.Model
         // - num x          (-> standard numeric declaration)
         // - str v          (-> standard string declaration)
         Declaration = 0x20 | Expression,
-        
+
         // setter-operation
         // - [setter] = [expression];
         Setter = 0x100,

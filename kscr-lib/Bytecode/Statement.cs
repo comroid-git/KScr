@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
+using Array = System.Array;
 using String = KScr.Lib.Core.String;
 
 namespace KScr.Lib.Bytecode
 {
     public class Statement : AbstractBytecode, IStatement<StatementComponent>
     {
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main;
         public StatementComponentType Type { get; set; }
         public IClassInstance TargetType { get; set; } = Class.VoidType;
-        public List<StatementComponent> Main { get; } = new List<StatementComponent>();
+        public List<StatementComponent> Main { get; } = new();
 
         public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
         {
@@ -37,28 +38,27 @@ namespace KScr.Lib.Bytecode
             return state;
         }
 
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main.Cast<AbstractBytecode>();
         public override void Write(Stream stream)
         {
             stream.Write(BitConverter.GetBytes((byte)Type));
             //stream.Write(BitConverter.GetBytes(TargetType.TypeId));
             stream.Write(BitConverter.GetBytes(Main.Count));
             foreach (var component in Main)
-                (component as AbstractBytecode)!.Write(stream);
+                component!.Write(stream);
         }
 
         public override void Load(RuntimeBase vm, byte[] data, ref int index)
         {
             Main.Clear();
-            
-            Type = (StatementComponentType) BitConverter.ToInt16(data, index);
+
+            Type = (StatementComponentType)BitConverter.ToInt16(data, index);
             index += 2;
             TargetType = (vm.ClassStore.FindType(BitConverter.ToInt64(data, index)) as Class)!;
             index += 8;
-            int len = BitConverter.ToInt32(data, index);
+            var len = BitConverter.ToInt32(data, index);
             index += 4;
             StatementComponent stmt;
-            for (int i = 0; i < len; i++)
+            for (var i = 0; i < len; i++)
             {
                 stmt = new StatementComponent();
                 stmt.Load(vm, data, ref index);
@@ -66,7 +66,10 @@ namespace KScr.Lib.Bytecode
             }
         }
 
-        public void Clear() => Main.Clear();
+        public void Clear()
+        {
+            Main.Clear();
+        }
     }
 
     public class StatementComponent : AbstractBytecode, IStatementComponent
@@ -76,6 +79,10 @@ namespace KScr.Lib.Bytecode
         public string Arg { get; set; } = string.Empty;
         public Statement? SubStatement { get; set; }
         public StatementComponent? SubComponent { get; set; }
+
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers =>
+            SubComponent != null ? new[] { SubComponent } : Array.Empty<AbstractBytecode>();
+
         public StatementComponentType Type { get; set; }
         public BytecodeType CodeType { get; set; } = BytecodeType.Terminator;
 
@@ -183,8 +190,11 @@ namespace KScr.Lib.Bytecode
                                 rev = output;
                                 //mpc.Evaluate(vm, null, ref output);
                             }
-                            else throw new System.Exception("Invalid state; not a method");
-                            
+                            else
+                            {
+                                throw new System.Exception("Invalid state; not a method");
+                            }
+
                             break;
                         case BytecodeType.StdioExpression:
                             rev = vm.StdioRef;
@@ -227,8 +237,6 @@ namespace KScr.Lib.Bytecode
             return State.Normal;
         }
 
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers => SubComponent != null ? new []{ SubComponent } : System.Array.Empty<AbstractBytecode>();
-        
         public override void Write(Stream stream)
         {
             stream.Write(BitConverter.GetBytes((byte)Type));
@@ -244,7 +252,7 @@ namespace KScr.Lib.Bytecode
 
         public override void Load(RuntimeBase vm, byte[] data, ref int index)
         {
-            _Load(vm, data, ref index, out var sct, out var vct, out var bty, out var arg, out var sub);
+            _Load(vm, data, ref index, out var sct, out var vct, out var bty, out string arg, out var sub);
             Type = sct;
             VariableContext = vct;
             CodeType = bty;
@@ -252,7 +260,8 @@ namespace KScr.Lib.Bytecode
             SubComponent = sub;
         }
 
-        private static void _Load(RuntimeBase vm, byte[] data, ref int index, out StatementComponentType sct, out VariableContext vct, out BytecodeType bty, out string arg, out StatementComponent? sub)
+        private static void _Load(RuntimeBase vm, byte[] data, ref int index, out StatementComponentType sct,
+            out VariableContext vct, out BytecodeType bty, out string arg, out StatementComponent? sub)
         {
             sct = (StatementComponentType)data[index];
             index += 1;
@@ -260,7 +269,7 @@ namespace KScr.Lib.Bytecode
             index += 1;
             bty = (BytecodeType)BitConverter.ToUInt32(data, index);
             index += 4;
-            int len = BitConverter.ToInt32(data, index);
+            var len = BitConverter.ToInt32(data, index);
             index += 4;
             arg = RuntimeBase.Encoding.GetString(data, index, len);
             index += len;

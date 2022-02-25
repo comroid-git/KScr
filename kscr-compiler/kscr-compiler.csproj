@@ -8,11 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\kscr-lib\kscr-lib.csproj" />
+        <ProjectReference Include="..\kscr-lib\kscr-lib.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
+        <PackageReference Include="CommandLineParser" Version="2.9.0-preview1"/>
     </ItemGroup>
 
 </Project>

@@ -4,7 +4,6 @@ using CommandLine;
 using KScr.Compiler.Class;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
-using KScr.Lib.Model;
 
 namespace KScr.Compiler
 {
@@ -12,10 +11,11 @@ namespace KScr.Compiler
     {
         [Option("source", Required = true, HelpText = "The source directory")]
         public string SourceDir { get; set; } = null!;
+
         [Option("output", Required = false, HelpText = "The output directory; defaults to ./output/")]
         public string OutputDir { get; set; } = string.Empty;
     }
-    
+
     public sealed class MainCompiler
     {
         public static void Compile(RuntimeBase vm, DirectoryInfo sourceDir, DirectoryInfo outputDir)

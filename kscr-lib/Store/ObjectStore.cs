@@ -42,7 +42,7 @@ namespace KScr.Lib.Store
 
         public void ClearLocals(Stack ctx)
         {
-            foreach (var localKey in _cache.Keys.Where(it => it.StartsWith(ctx.PrefixLocal)))
+            foreach (string localKey in _cache.Keys.Where(it => it.StartsWith(ctx.PrefixLocal)))
                 if (!_cache.TryRemove(localKey, out _))
                     throw new InternalException("Unable to remove local variable " + localKey);
         }
@@ -55,6 +55,10 @@ namespace KScr.Lib.Store
 
     public class ObjectRef
     {
+        public readonly IObject?[] Stack;
+
+        public readonly IClassInstance Type;
+
         public ObjectRef(IClassInstance type, IObject? value) : this(type)
         {
             Value = value;
@@ -64,14 +68,11 @@ namespace KScr.Lib.Store
         {
             if (len < 1)
                 throw new ArgumentOutOfRangeException(nameof(len), len, "Invalid ObjectRef size");
-            
+
             Type = type;
             Stack = new IObject?[len];
         }
 
-        public readonly IClassInstance Type;
-        public readonly IObject?[] Stack;
-        
         public int Length => Stack.Length;
         public bool IsPipe => ReadAccessor != null || WriteAccessor != null;
         public virtual IEvaluable? ReadAccessor { get; set; }
@@ -83,21 +84,27 @@ namespace KScr.Lib.Store
             {
                 if (ReadAccessor != null)
                 {
-                    ObjectRef output = Numeric.Constant(vm, i);
+                    var output = Numeric.Constant(vm, i);
                     ReadAccessor!.Evaluate(vm, null, ref output!);
                     return output.Value;
                 }
-                else return Stack[i];
+                else
+                {
+                    return Stack[i];
+                }
             }
             set
             {
                 CheckTypeCompat(value!.Type);
                 if (WriteAccessor != null)
                 {
-                    ObjectRef output = new ObjectRef(Class.VoidType) { Value = value };
+                    var output = new ObjectRef(Class.VoidType) { Value = value };
                     WriteAccessor!.Evaluate(vm, null, ref output!);
-                } 
-                else InsertToStack(i, value);
+                }
+                else
+                {
+                    InsertToStack(i, value);
+                }
             }
         }
 
@@ -111,9 +118,12 @@ namespace KScr.Lib.Store
             }
         }
 
-        public override string ToString() => Length > 1
-            ? Type + "" + string.Join(",", Stack.Select(it => it?.ToString()))
-            : Type + ": " + Value;
+        public override string ToString()
+        {
+            return Length > 1
+                ? Type + "" + string.Join(",", Stack.Select(it => it?.ToString()))
+                : Type + ": " + Value;
+        }
 
         private void CheckTypeCompat(IClassInstance other)
         {
