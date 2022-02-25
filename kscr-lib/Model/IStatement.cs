@@ -17,7 +17,7 @@ namespace KScr.Lib.Model
         // basic declaration:
         // - num x          (-> standard numeric declaration)
         // - str v          (-> standard string declaration)
-        Declaration = 0x20,
+        Declaration = 0x20 | Expression,
         
         // setter-operation
         // - [setter] = [expression];

@@ -65,6 +65,8 @@ namespace KScr.Lib.Bytecode
                 Main.Add(stmt);
             }
         }
+
+        public void Clear() => Main.Clear();
     }
 
     public class StatementComponent : AbstractBytecode, IStatementComponent

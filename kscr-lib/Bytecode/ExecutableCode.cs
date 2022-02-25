@@ -65,5 +65,11 @@ namespace KScr.Lib.Bytecode
                 Main.Add(stmt);
             }
         }
+
+        public void Clear()
+        {
+            Main.ForEach(st => st.Clear());
+            Main.Clear();
+        }
     }
 }

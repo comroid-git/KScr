@@ -111,7 +111,7 @@ namespace KScr.Lib.Model
         public CompilerContext(CompilerContext ctx, Class @class, TokenContext tokens, [Range(10, 19)] CompilerType type) 
             : this(ctx, type, tokens, ctx.Package, @class, null!) {}
         public CompilerContext(CompilerContext ctx, TokenContext tokens, [Range(10, 19)] CompilerType type) 
-            : this(ctx, type, tokens, ctx.Package, ctx.Class, null!) {}
+            : this(ctx, type, tokens, ctx.Package, ctx.Class, new ExecutableCode()) {}
 
         public CompilerContext(CompilerContext ctx, CompilerType type, bool inheritCode = false)
             : this(ctx, type, ctx.TokenContext, ctx.Package, ctx.Class,
@@ -198,6 +198,8 @@ namespace KScr.Lib.Model
         {
             return $"CompilerContext<{Type};{PrevToken?.Type},{Token.Type},{NextToken?.Type};{Class.FullName}>";
         }
+
+        public void Clear() => ExecutableCode.Clear();
     }
     
     public interface ICompiler
@@ -335,7 +337,7 @@ namespace KScr.Lib.Model
             return new ClassInfo(mod, type.Value, name, packageName + '.' + name);
         }
 
-        protected static void CompilerLoop(RuntimeBase vm, ICompiler use, ref CompilerContext context)
+        public static void CompilerLoop(RuntimeBase vm, ICompiler use, ref CompilerContext context)
         {
             while (context.TokenIndex < context.Tokens.Count && use.Active)
             {

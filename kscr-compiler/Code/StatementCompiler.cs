@@ -7,6 +7,10 @@ namespace KScr.Compiler.Code
 {
     public class StatementCompiler : AbstractCodeCompiler
     {
+        public StatementCompiler() : this(null!)
+        {
+        }
+
         public StatementCompiler(ICompiler parent) : base(parent)
         {
         }
