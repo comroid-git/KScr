@@ -193,26 +193,26 @@ namespace KScr.Lib.Bytecode
                     // assignment
                     if (rev == null)
                         throw new InternalException("Invalid assignment; missing variable name");
-                    if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
+                    if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new InternalException("Invalid assignment; no Expression found");
                     output = null;
-                    state = SubComponent.Evaluate(vm, this, ref output);
-                    rev.Value = output?.Value;
+                    state = SubStatement!.Evaluate(vm, this, ref output!);
+                    rev.Value = output.Value;
                     return state;
                 case StatementComponentType.Emitter:
-                    if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
+                    if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new InternalException("Invalid emitter; no Expression found");
                     if (!rev.IsPipe)
                         throw new InternalException("Cannot emit value into non-pipe accessor");
-                    state = SubComponent.Evaluate(vm, this, ref output);
+                    state = SubStatement.Evaluate(vm, this, ref output!);
                     rev.WriteAccessor!.Evaluate(vm, null, ref output);
                     return state;
                 case StatementComponentType.Consumer:
-                    if (SubComponent == null || (SubComponent.Type & StatementComponentType.Declaration) == 0)
+                    if (SubStatement == null || (SubStatement.Type & StatementComponentType.Declaration) == 0)
                         throw new InternalException("Invalid consumer; no declaration found");
                     if (!rev.IsPipe)
                         throw new InternalException("Cannot consume value from non-pipe accessor");
-                    state = SubComponent.Evaluate(vm, this, ref output);
+                    state = SubStatement.Evaluate(vm, this, ref output!);
                     rev.WriteAccessor!.Evaluate(vm, null, ref output);
                     return state;
                 case StatementComponentType.Lambda:

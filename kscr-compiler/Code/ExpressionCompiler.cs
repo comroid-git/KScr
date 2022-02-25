@@ -43,7 +43,7 @@ namespace KScr.Compiler.Code
                         TargetType = ctx.Statement.TargetType
                     };
                     CompilerLoop(vm, new ExpressionCompiler(this), ref subctx);
-                    ctx.Component.SubStatement = subctx.Statement;
+                    ctx.LastComponent!.SubStatement = subctx.Statement;
                     ctx.TokenIndex = subctx.TokenIndex - 1;
                     // finished
                     _active = false;

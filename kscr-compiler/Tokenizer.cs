@@ -66,125 +66,125 @@ namespace KScr.Compiler
             // string literals
             if (isStringLiteral)
             {
-                if ((c != '"') & (p != '\\'))
+                if ((c != '"') && (p != '\\'))
                     token.Arg += c;
                 else if (c == '"' && p != '\\')
+                {
                     token.Complete = true;
+                    isStringLiteral = false;
+                }
             }
-
-            // skip linefeeds
-            if (c == '\n' || c == '\r')
+            else
             {
+
+                // skip linefeeds
+                if (c == '\n' || c == '\r')
+                {
+                    if (isLineComment)
+                        isLineComment = false;
+                    return;
+                }
+
+                if (c == '/' && n == '/')
+                    isLineComment = true;
+
                 if (isLineComment)
-                    isLineComment = false;
-                return;
-            }
-
-            if (c == '/' && n == '/')
-                isLineComment = true;
-
-            if (isLineComment)
-                return;
-
-            IToken? buf;
-
-            bool isWhitespace = c == ' ';
-            /*if (isWhitespace && !isStringLiteral && token != null)
-            {
-                token.Complete = true;
-                PushToken(ref Token);
-            }*/
-            if (isWhitespace && Tokens[^1].Type != TokenType.Whitespace)
-            {
-                //token = new Token{Complete = true};
-            }
-
-            switch (c)
-            {
-                // terminator
-                case ';':
-                    if (artParLevel > 0) while (artParLevel-- > 0)
-                    {
-                        buf = new Token(TokenType.ParRoundClose) { Complete = true };
-                        PushToken(ref buf);
-                    }
-
-                    token = new Token(TokenType.Terminator) { Complete = true };
                     return;
-                // logistical symbols
-                case '.':
-                    if (str.Length == 0 || !char.IsDigit(str[^1]))
-                        token = new Token(TokenType.Dot) { Complete = true };
-                    else
-                        LexicalToken(isWhitespace, ref str, c, n, ref i);
-                    break;
-                case ':':
-                    token = new Token(TokenType.Colon) { Complete = true };
-                    break;
-                case ',':
-                    token = new Token(TokenType.Comma) { Complete = true };
-                    break;
-                // arithmetic operators
-                case '+':
-                    token = new Token(TokenType.OperatorPlus) { Complete = true };
-                    break;
-                case '-':
-                    token = new Token(TokenType.OperatorMinus) { Complete = true };
-                    break;
-                case '*':
-                    token = new Token(TokenType.OperatorMultiply) { Complete = true };
-                    break;
-                case '/':
-                    token = new Token(TokenType.OperatorDivide) { Complete = true };
-                    break;
-                case '%':
-                    token = new Token(TokenType.OperatorModulus) { Complete = true };
-                    break;
-                // parentheses
-                case '(':
-                    token = new Token(TokenType.ParRoundOpen) { Complete = true };
-                    break;
-                case ')':
-                    token = new Token(TokenType.ParRoundClose) { Complete = true };
-                    break;
-                case '[':
-                    token = new Token(TokenType.ParSquareOpen) { Complete = true };
-                    break;
-                case ']':
-                    token = new Token(TokenType.ParSquareClose) { Complete = true };
-                    break;
-                case '{':
-                    token = new Token(TokenType.ParAccOpen) { Complete = true };
-                    break;
-                case '}':
-                    token = new Token(TokenType.ParAccClose) { Complete = true };
-                    break;
-                case '<':
-                    token = new Token(TokenType.ParDiamondOpen) { Complete = true };
-                    break;
-                case '>':
-                    token = new Token(TokenType.ParDiamondClose) { Complete = true };
-                    break;
-                case '"':
-                    // ReSharper disable once AssignmentInConditionalExpression
-                    if (isStringLiteral = !isStringLiteral)
-                        token = new Token(TokenType.LiteralStr, "");
-                    break;
-                // equals operand
-                case '=':
-                    PushToken(new Token(TokenType.OperatorEquals) { Complete = true });
-                    // create artificial parentheses if this EQUALS operand is of an assignment
-                    if (n != '=' && Tokens[^2].Type == TokenType.Word)
-                    {
+
+                IToken? buf;
+
+                bool isWhitespace = c == ' ';
+                /*if (isWhitespace && !isStringLiteral && token != null)
+                {
+                    token.Complete = true;
+                    PushToken(ref Token);
+                }*/
+                if (isWhitespace && Tokens[^1].Type != TokenType.Whitespace)
+                {
+                    //token = new Token{Complete = true};
+                }
+
+                switch (c)
+                {
+                    // terminator
+                    case ';':
+                        if (artParLevel > 0)
+                            while (artParLevel-- > 0)
+                            {
+                                buf = new Token(TokenType.ParRoundClose) { Complete = true };
+                                PushToken(ref buf);
+                            }
+
+                        token = new Token(TokenType.Terminator) { Complete = true };
+                        return;
+                    // logistical symbols
+                    case '.':
+                        if (str.Length == 0 || !char.IsDigit(str[^1]))
+                            token = new Token(TokenType.Dot) { Complete = true };
+                        else
+                            LexicalToken(isWhitespace, ref str, c, n, ref i);
+                        break;
+                    case ':':
+                        token = new Token(TokenType.Colon) { Complete = true };
+                        break;
+                    case ',':
+                        token = new Token(TokenType.Comma) { Complete = true };
+                        break;
+                    // arithmetic operators
+                    case '+':
+                        token = new Token(TokenType.OperatorPlus) { Complete = true };
+                        break;
+                    case '-':
+                        token = new Token(TokenType.OperatorMinus) { Complete = true };
+                        break;
+                    case '*':
+                        token = new Token(TokenType.OperatorMultiply) { Complete = true };
+                        break;
+                    case '/':
+                        token = new Token(TokenType.OperatorDivide) { Complete = true };
+                        break;
+                    case '%':
+                        token = new Token(TokenType.OperatorModulus) { Complete = true };
+                        break;
+                    // parentheses
+                    case '(':
                         token = new Token(TokenType.ParRoundOpen) { Complete = true };
-                        artParLevel++;
-                    }
-
-                    return;
-                // lexical tokens
-                default:
-                    LexicalToken(isWhitespace, ref str, c, n, ref i);
-                    break;
+                        break;
+                    case ')':
+                        token = new Token(TokenType.ParRoundClose) { Complete = true };
+                        break;
+                    case '[':
+                        token = new Token(TokenType.ParSquareOpen) { Complete = true };
+                        break;
+                    case ']':
+                        token = new Token(TokenType.ParSquareClose) { Complete = true };
+                        break;
+                    case '{':
+                        token = new Token(TokenType.ParAccOpen) { Complete = true };
+                        break;
+                    case '}':
+                        token = new Token(TokenType.ParAccClose) { Complete = true };
+                        break;
+                    case '<':
+                        token = new Token(TokenType.ParDiamondOpen) { Complete = true };
+                        break;
+                    case '>':
+                        token = new Token(TokenType.ParDiamondClose) { Complete = true };
+                        break;
+                    case '"':
+                        // ReSharper disable once AssignmentInConditionalExpression
+                        isStringLiteral = true;
+                        token = new Token(TokenType.LiteralStr, "");
+                        break;
+                    // equals operand
+                    case '=':
+                        token = new Token(TokenType.OperatorEquals) { Complete = true };
+                        break;
+                    // lexical tokens
+                    default:
+                        LexicalToken(isWhitespace, ref str, c, n, ref i);
+                        break;
+                }
             }
 
             if (token?.Complete ?? false)

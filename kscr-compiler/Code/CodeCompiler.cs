@@ -38,8 +38,7 @@ namespace KScr.Compiler.Code
                         // method call, parse parameter expressions
                         subctx = new CompilerContext(ctx, CompilerType.CodeParameterExpression);
                         CompilerLoop(vm, new ParameterExpressionCompiler(this), ref subctx);
-
-                        ctx.Component.SubComponent = subctx.Component;
+                        ctx.LastComponent!.SubComponent = subctx.Component;
                         ctx.TokenIndex = subctx.TokenIndex;
                     }
 
@@ -86,16 +85,7 @@ namespace KScr.Compiler.Code
                             _ => throw new ArgumentOutOfRangeException()
                         }
                     };
-                    ctx.TokenIndex += 1;
-                    subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
-                    subctx.Statement = new Statement
-                    {
-                        TargetType = ctx.Statement.TargetType,
-                        Type = StatementComponentType.Expression
-                    };
-                    CompilerLoop(vm, new ExpressionCompiler(this, true), ref subctx);
-                    ctx.Component.SubComponent = subctx.Component;
-                    ctx.TokenIndex = subctx.TokenIndex - 1;
+                    ctx.NextIntoSub = true;
                     break;
                 // pipe operands
                 case TokenType.ParDiamondOpen:
@@ -114,7 +104,7 @@ namespace KScr.Compiler.Code
                         };
                         CompilerLoop(vm, new ExpressionCompiler(this, false,
                             TokenType.Terminator, TokenType.ParDiamondOpen, TokenType.ParDiamondClose), ref subctx);
-                        ctx.Component.SubComponent = subctx.Component;
+                        ctx.LastComponent!.SubStatement = subctx.Statement;
                         ctx.TokenIndex = subctx.TokenIndex;
                     }
                     break;
@@ -129,7 +119,7 @@ namespace KScr.Compiler.Code
                         subctx = new CompilerContext(ctx, CompilerType.PipeConsumer);
                         CompilerLoop(vm, new ExpressionCompiler(this, false,
                             TokenType.Terminator, TokenType.ParDiamondOpen, TokenType.ParDiamondClose), ref subctx);
-                        ctx.Component.SubComponent = subctx.Component;
+                        ctx.LastComponent!.SubStatement = subctx.Statement;
                         ctx.TokenIndex = subctx.TokenIndex;
                     }
                     break;
