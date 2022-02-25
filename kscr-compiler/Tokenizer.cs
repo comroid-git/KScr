@@ -103,7 +103,7 @@ namespace KScr.Compiler
             {
                 // terminator
                 case ';':
-                    while (artParLevel-- > 0)
+                    if (artParLevel > 0) while (artParLevel-- > 0)
                     {
                         buf = new Token(TokenType.ParRoundClose) { Complete = true };
                         PushToken(ref buf);

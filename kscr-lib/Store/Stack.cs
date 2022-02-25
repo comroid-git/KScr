@@ -30,7 +30,7 @@ namespace KScr.Lib.Store
         public string PrefixThis => _this + Delimiter;
 
         // put focus into static class
-        public void Refocus(IClassInstance into, object? local = null /*todo implement memberref type*/)
+        public void StepDown(IClassInstance into, object? local = null /*todo implement memberref type*/)
         {
             _dequeue.Add(new CtxBlob()
             {
@@ -41,7 +41,7 @@ namespace KScr.Lib.Store
         }
 
         // put focus into object instance
-        public void Refocus(ObjectRef into, object local /*todo implement memberref type*/)
+        public void StepDown(ObjectRef into, object local /*todo implement memberref type*/)
         {
             var o = into.Value!;
             _dequeue.Add(new CtxBlob
@@ -52,6 +52,6 @@ namespace KScr.Lib.Store
             });
         }
 
-        public void RevertFocus() => _dequeue.RemoveAt(_dequeue.Count - 1);
+        public void StepUp() => _dequeue.RemoveAt(_dequeue.Count - 1);
     }
 }

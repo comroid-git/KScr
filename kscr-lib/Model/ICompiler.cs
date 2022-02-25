@@ -112,8 +112,17 @@ namespace KScr.Lib.Model
             : this(ctx, type, tokens, ctx.Package, @class, null!) {}
         public CompilerContext(CompilerContext ctx, TokenContext tokens, [Range(10, 19)] CompilerType type) 
             : this(ctx, type, tokens, ctx.Package, ctx.Class, null!) {}
-        public CompilerContext(CompilerContext ctx, CompilerType type) 
-            : this(ctx, type, ctx.TokenContext, ctx.Package, ctx.Class, new ExecutableCode()) {}
+
+        public CompilerContext(CompilerContext ctx, CompilerType type, bool inheritCode = false)
+            : this(ctx, type, ctx.TokenContext, ctx.Package, ctx.Class,
+                inheritCode ? ctx.ExecutableCode : new ExecutableCode())
+        {
+            if (inheritCode)
+            {
+                StatementIndex = ctx.StatementIndex;
+                ComponentIndex = ctx.ComponentIndex;
+            }
+        }
 
         private CompilerContext(
             CompilerContext? parent,
@@ -157,6 +166,7 @@ namespace KScr.Lib.Model
                 ComponentIndex = -1;
             }
         }
+
         public Statement? NextStatement => ExecutableCode.Main.Count < StatementIndex + 1 ? ExecutableCode.Main[StatementIndex + 1] : null;
         public Statement? PrevStatement => StatementIndex - 1 >= 0 ? ExecutableCode.Main[StatementIndex - 1] : null;
         
@@ -165,7 +175,7 @@ namespace KScr.Lib.Model
             get => Statement.Main[ComponentIndex];
             set
             {
-                if (StatementIndex == -1)
+                if (StatementIndex == -1) 
                     Statement = new Statement();
                 (value.Statement = Statement).Main.Add(value);
                 ComponentIndex += 1;

@@ -17,13 +17,13 @@ namespace KScr.Compiler.Code
             {
                 case TokenType.IdentVoid:
                     CompileDeclaration(ctx, Lib.Bytecode.Class.VoidType);
-                    break;
+                    return this;
                 case TokenType.IdentNum:
                     CompileDeclaration(ctx, Lib.Bytecode.Class.NumericType);
-                    break;
+                    return this;
                 case TokenType.IdentStr:
                     CompileDeclaration(ctx, Lib.Bytecode.Class.StringType);
-                    break;
+                    return this;
                 case TokenType.OperatorEquals:
                     if (ctx.Statement.Type == StatementComponentType.Declaration || ctx.Component.CodeType == BytecodeType.ExpressionVariable)
                     {
@@ -32,16 +32,21 @@ namespace KScr.Compiler.Code
                         {
                             Type = StatementComponentType.Setter
                         };
-                    
+
+                        ctx.TokenIndex += 1;
                         // compile expression
                         var subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
+                        subctx.Statement = new Statement
+                        {
+                            Type = StatementComponentType.Expression,
+                            TargetType = ctx.Statement.TargetType
+                        };
                         CompilerLoop(vm, new ExpressionCompiler(this), ref subctx);
-                        
                         ctx.Component.SubComponent = subctx.Component;
-                        ctx.TokenIndex = subctx.TokenIndex;
+                        ctx.TokenIndex = subctx.TokenIndex - 1;
                     }
 
-                    break;
+                    return this;
                 case TokenType.ParAccClose:
                     _active = false;
                     return this;
@@ -59,12 +64,12 @@ namespace KScr.Compiler.Code
             {
                 Type = StatementComponentType.Declaration,
                 TargetType = targetType
-            };
+            };/*
             ctx.Component = new StatementComponent
             {
+                Type = StatementComponentType.Declaration,
                 Arg = ctx.NextToken!.Arg!
-            };
-            ctx.TokenIndex += 1;
+            };*/
         }
     }
 }

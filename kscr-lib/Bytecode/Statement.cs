@@ -72,6 +72,7 @@ namespace KScr.Lib.Bytecode
         public Statement Statement { get; set; } = null!;
         public VariableContext VariableContext { get; set; }
         public string Arg { get; set; } = string.Empty;
+        public Statement? SubStatement { get; set; }
         public StatementComponent? SubComponent { get; set; }
         public StatementComponentType Type { get; set; }
         public BytecodeType CodeType { get; set; } = BytecodeType.Terminator;
@@ -101,6 +102,8 @@ namespace KScr.Lib.Bytecode
                         case BytecodeType.Null:
                             rev = vm.ConstantVoid;
                             return State.Normal;
+                        case BytecodeType.Parentheses:
+                            return SubStatement!.Evaluate(vm, this, ref rev);
                     }
 
                     return State.Normal;
@@ -164,10 +167,10 @@ namespace KScr.Lib.Bytecode
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
                                 if (mtd.IsStatic())
-                                    vm.Stack.Refocus(mtd.Parent, mtd.FullName);
-                                else vm.Stack.Refocus(rev, mtd.FullName);
+                                    vm.Stack.StepDown(mtd.Parent, mtd.FullName);
+                                else vm.Stack.StepDown(rev, mtd.FullName);
                                 mtd.Evaluate(vm, ref state, ref output); // todo inspect
-                                vm.Stack.RevertFocus();
+                                vm.Stack.StepUp();
                                 rev = output;
                                 //mpc.Evaluate(vm, null, ref output);
                             }
@@ -199,7 +202,13 @@ namespace KScr.Lib.Bytecode
                     rev.WriteAccessor!.Evaluate(vm, null, ref output);
                     return state;
                 case StatementComponentType.Consumer:
-                    throw new NotImplementedException();
+                    if (SubComponent == null || (SubComponent.Type & StatementComponentType.Declaration) == 0)
+                        throw new InternalException("Invalid consumer; no declaration found");
+                    if (!rev.IsPipe)
+                        throw new InternalException("Cannot consume value from non-pipe accessor");
+                    state = SubComponent.Evaluate(vm, this, ref output);
+                    rev.WriteAccessor!.Evaluate(vm, null, ref output);
+                    return state;
                 case StatementComponentType.Lambda:
                     throw new NotImplementedException();
                 default:

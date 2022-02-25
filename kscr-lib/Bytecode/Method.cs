@@ -24,6 +24,9 @@ namespace KScr.Lib.Bytecode
 
         public override IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
         {
+            if (Modifier.IsStatic())
+                vm.Stack.StepDown(Parent, Name);
+            else vm.Stack.StepDown(rev!, Name);
             state = Body.Evaluate(vm, null, ref rev);
             return null;
         }

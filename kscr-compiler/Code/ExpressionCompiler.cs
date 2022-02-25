@@ -33,11 +33,18 @@ namespace KScr.Compiler.Code
 
                     // compile inner expression
                     var subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
+                    subctx.TokenIndex += 1;
+                    subctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Expression,
+                        TargetType = ctx.Statement.TargetType
+                    };
                     CompilerLoop(vm, new ExpressionCompiler(this), ref subctx);
-                    ctx.Component.SubComponent = subctx.Component;
-                    ctx.TokenIndex = subctx.TokenIndex;
-
-                    return Parent;
+                    ctx.Component.SubStatement = subctx.Statement;
+                    ctx.TokenIndex = subctx.TokenIndex - 1;
+                    // finished
+                    _active = false;
+                    return this;
                 case TokenType.LiteralNull:
                     ctx.Component = new StatementComponent
                     {
@@ -83,18 +90,15 @@ namespace KScr.Compiler.Code
                         CodeType = BytecodeType.LiteralFalse
                     };
                     break;
-                case TokenType.Terminator:
-                    // todo finalize & push expression
-                    _active = false;
-                    return Parent;
             }
-
+            
+            var use = base.AcceptToken(vm, ref ctx);
             if (_terminators.Contains(ctx.NextToken?.Type ?? TokenType.Terminator))
             {
                 _active = false;
                 return this;
             }
-            else return base.AcceptToken(vm, ref ctx);
+            return use;
         }
     }
 }

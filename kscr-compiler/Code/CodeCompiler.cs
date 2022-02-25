@@ -46,7 +46,8 @@ namespace KScr.Compiler.Code
                 case TokenType.Word:
                     ctx.Component = new StatementComponent
                     {
-                        Type = StatementComponentType.Provider,
+                        Type = ctx.Statement.Type == StatementComponentType.Declaration
+                            ? StatementComponentType.Declaration : StatementComponentType.Provider,
                         CodeType = BytecodeType.ExpressionVariable,
                         Arg = ctx.Token.Arg!
                     };
@@ -111,6 +112,9 @@ namespace KScr.Compiler.Code
                         ctx.TokenIndex = subctx.TokenIndex;
                     }
                     break;
+                case TokenType.Terminator:
+                    ctx.Statement = new Statement();
+                    return this;
             }
 
             return this;
