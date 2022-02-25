@@ -13,7 +13,7 @@ namespace KScr.Lib.Bytecode
     public class Statement : AbstractBytecode, IStatement<StatementComponent>
     {
         public StatementComponentType Type { get; set; }
-        public ITypeInfo TargetType { get; set; } = Class.VoidType;
+        public IClassInstance TargetType { get; set; } = Class.VoidType;
         public List<StatementComponent> Main { get; } = new List<StatementComponent>();
 
         public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
@@ -110,11 +110,7 @@ namespace KScr.Lib.Bytecode
                 case StatementComponentType.Declaration:
                     // variable declaration
 
-                    IClass type = /*Statement.TargetType is ITypeParameter tp
-                        ? vm.Stack.This!.Type.TypeParameterInstances!
-                            .First(_tp => _tp.FullName == tp.FullName).TargetType
-                        :*/ (Statement.TargetType as Class)!; // todo
-                    rev = vm[VariableContext, Arg] = new ObjectRef(type);
+                    rev = vm[VariableContext, Arg] = new ObjectRef(Statement.TargetType);
                     break;
                 case StatementComponentType.Pipe:
                     throw new NotImplementedException();
@@ -218,7 +214,7 @@ namespace KScr.Lib.Bytecode
                     if (!rev.IsPipe)
                         throw new InternalException("Cannot consume value from non-pipe accessor");
                     state = SubStatement.Evaluate(vm, this, ref output!);
-                    rev.WriteAccessor!.Evaluate(vm, null, ref output);
+                    rev.ReadAccessor!.Evaluate(vm, null, ref output);
                     return state;
                 case StatementComponentType.Lambda:
                     throw new NotImplementedException();

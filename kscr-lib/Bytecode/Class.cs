@@ -110,31 +110,37 @@ namespace KScr.Lib.Bytecode
         public sealed class Instance : IClassInstance
         {
 #pragma warning disable CS0628
-            protected internal Instance(Class @class, IClassInstance[] typeParameters)
+            protected internal Instance(Class baseClass, IClassInstance[] typeParameters)
 #pragma warning restore CS0628
             {
-                Class = @class;
+                BaseClass = baseClass;
                 var list = new TypeParameter.Instance[typeParameters.Length];
                 for (var i = 0; i < typeParameters.Length; i++)
                     list[i] = new TypeParameter.Instance(TypeParameters[i], typeParameters[i]);
                 TypeParameterInstances = list;
             }
 
-            public Class Class { get; }
+            public Class BaseClass { get; }
             public TypeParameter.Instance[] TypeParameterInstances { get; }
 
-            public List<TypeParameter> TypeParameters => Class.TypeParameters;
-            public MemberModifier Modifier => Class.Modifier;
-            public ClassType ClassType => Class.ClassType;
-            public string FullName => Class.FullName + TypeParameters;
+            public List<TypeParameter> TypeParameters => BaseClass.TypeParameters;
+            public MemberModifier Modifier => BaseClass.Modifier;
+            public ClassType ClassType => BaseClass.ClassType;
+            public string FullName => BaseClass.FullName;
             
             public Instance CreateInstance(params IClassInstance[] typeParameters) =>
-                Class.CreateInstance(typeParameters);
+                BaseClass.CreateInstance(typeParameters);
+            public string Name => BaseClass.Name.Substring(0, BaseClass.Name.IndexOf('<'))
+                                           + (TypeParameters.Count == 0 ? string.Empty 
+                                               : '<' + string.Join(", ", TypeParameters) + '>');
+            public bool CanHold(IClassInstance? type) => BaseClass.CanHold(type);
         }
 
+        public Class BaseClass => this;
         public List<TypeParameter> TypeParameters { get; } = new();
         public TypeParameter.Instance[] TypeParameterInstances { get; } = Array.Empty<TypeParameter.Instance>();
         public override string Name => base.Name + (TypeParameters.Count == 0 ? string.Empty : '<' + string.Join(", ", TypeParameters) + '>');
+        public bool CanHold(IClassInstance? type) => Name == "void" || type?.BaseClass  == BaseClass;
     }
 
     public sealed class TypeParameter : ITypeParameter
@@ -152,6 +158,7 @@ namespace KScr.Lib.Bytecode
             }
 
             public IClassInstance TargetType { get; }
+            public string Name => TypeParameter.Name;
             public string FullName => TypeParameter.FullName;
             public TypeParameterSpecializationType Specialization => TypeParameter.Specialization;
             public IClass SpecializationTarget => TypeParameter.SpecializationTarget;
@@ -159,12 +166,13 @@ namespace KScr.Lib.Bytecode
 
         public TypeParameter(string name, TypeParameterSpecializationType? specialization = null!, IClass? specializationTarget = null!)
         {
-            FullName = name;
+            Name = name;
             Specialization = name == "n" ? TypeParameterSpecializationType.N : specialization ?? TypeParameterSpecializationType.Extends;
             SpecializationTarget = specializationTarget ?? Class.VoidType;
         }
 
-        public string FullName { get; }
+        public string Name { get; }
+        public string FullName => Name;
 
         public TypeParameterSpecializationType Specialization
         {

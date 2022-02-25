@@ -87,10 +87,12 @@ namespace KScr.Lib
             {
                 public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
                 {
-                    if (rev.Length != 1 || !rev.Type.CanHold(Class.StringType))
+                    if (rev.Length != 1 || !rev.Type.CanHold(Class.StringType) && !rev.Type.CanHold(Class.NumericType))
                         throw new InternalException("Invalid reference to write string into: " + rev);
                     var txt = Console.ReadLine()!;
-                    rev = String.Instance(vm, txt);
+                    if (rev.Type.CanHold(Class.NumericType))
+                        rev.Value = Numeric.Compile(vm, txt).Value;
+                    else rev.Value = String.Instance(vm, txt).Value;
                     return State.Normal;
                 }
             }
@@ -166,10 +168,12 @@ namespace KScr.Lib
             return rev?.Value;
         }
 
-        public Class? FindType(string name, Package? package = null)
+        public IClassInstance FindType(string name, Package? package = null)
         {
             switch (name)
             {
+                case "num":
+                    return Class.NumericType;
                 case "byte":
                     return Class.NumericByteType;
                 case "short":
@@ -188,7 +192,7 @@ namespace KScr.Lib
                     return Class.VoidType;
             }
 
-            return (Class)ClassStore.FindType(package!, name);
+            return ClassStore.FindType(package!, name);
         }
 
         public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)

@@ -15,15 +15,6 @@ namespace KScr.Compiler.Code
         {
             switch (ctx.Token.Type)
             {
-                case TokenType.IdentVoid:
-                    CompileDeclaration(ctx, Lib.Bytecode.Class.VoidType);
-                    return this;
-                case TokenType.IdentNum:
-                    CompileDeclaration(ctx, Lib.Bytecode.Class.NumericType);
-                    return this;
-                case TokenType.IdentStr:
-                    CompileDeclaration(ctx, Lib.Bytecode.Class.StringType);
-                    return this;
                 case TokenType.OperatorEquals:
                     if (ctx.Statement.Type == StatementComponentType.Declaration || ctx.Component.CodeType == BytecodeType.ExpressionVariable)
                     {
@@ -53,23 +44,6 @@ namespace KScr.Compiler.Code
             }
             
             return base.AcceptToken(vm, ref ctx);
-        }
-
-        private static void CompileDeclaration(CompilerContext ctx, Lib.Bytecode.Class targetType)
-        {
-            if (ctx.NextToken?.Type != TokenType.Word)
-                throw new CompilerException("Invalid declaration; missing variable name");
-
-            ctx.Statement = new Statement
-            {
-                Type = StatementComponentType.Declaration,
-                TargetType = targetType
-            };/*
-            ctx.Component = new StatementComponent
-            {
-                Type = StatementComponentType.Declaration,
-                Arg = ctx.NextToken!.Arg!
-            };*/
         }
     }
 }

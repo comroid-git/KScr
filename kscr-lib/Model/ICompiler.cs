@@ -304,10 +304,10 @@ namespace KScr.Lib.Model
             return yields;
         }
 
-        private static ClassInfo FindClassInfo(TokenContext ctx, string? clsName)
+        private ClassInfo FindClassInfo(TokenContext ctx, string? clsName)
         {
             // skip package and imports if necessary
-            ctx.SkipPackage();
+            string packageName = FindClassPackageName(ctx);
             ctx.SkipImports();
 
             if (ctx.Token.Type == TokenType.Terminator)
@@ -332,7 +332,7 @@ namespace KScr.Lib.Model
                 else name = ctx.Token.Arg!;
             else throw new CompilerException("Missing Class name");
             
-            return new ClassInfo(mod, type.Value, name);
+            return new ClassInfo(mod, type.Value, name, packageName + '.' + name);
         }
 
         protected static void CompilerLoop(RuntimeBase vm, ICompiler use, ref CompilerContext context)

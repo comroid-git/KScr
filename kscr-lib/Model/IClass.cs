@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using KScr.Lib.Bytecode;
 
 namespace KScr.Lib.Model
 {
     public interface ITypeInfo
     {
+        string Name { get; }
         string FullName { get; }
     }
     
@@ -12,10 +14,13 @@ namespace KScr.Lib.Model
     {
         MemberModifier Modifier { get; }
         ClassType ClassType { get; }
+
+        bool CanHold(IClassInstance? type);
     }
 
     public interface IClassInstance : IClassInfo
     {
+        Class BaseClass { get; }
         List<TypeParameter> TypeParameters { get; }
         TypeParameter.Instance[] TypeParameterInstances { get; }
         Class.Instance CreateInstance(params IClassInstance[] typeParameters);
@@ -23,24 +28,24 @@ namespace KScr.Lib.Model
 
     public struct ClassInfo : IClassInfo
     {
-        public ClassInfo(MemberModifier modifier, ClassType classType, string fullName)
+        public ClassInfo(MemberModifier modifier, ClassType classType, string name, string fullName)
         {
             Modifier = modifier;
             ClassType = classType;
+            Name = name;
             FullName = fullName;
         }
 
         public MemberModifier Modifier { get; }
         public ClassType ClassType { get; }
+        public string Name { get; }
         public string FullName { get; }
+        public bool CanHold(IClassInstance? type) => throw new InvalidOperationException("Cannot check inheritance of info struct");
     }
     
     public interface IClass : IClassInstance
     {
-        string Name { get; }
         IDictionary<string, IClassMember> DeclaredMembers { get; }
-
-        bool CanHold(IClass? type) => FullName == "void" || (type?.Name.StartsWith(Name) ?? false); // todo fixme
     }
 
     public enum ClassType : byte

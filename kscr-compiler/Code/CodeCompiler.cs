@@ -24,6 +24,33 @@ namespace KScr.Compiler.Code
             CompilerContext subctx;
             switch (ctx.Token.Type)
             {
+                case TokenType.IdentVoid:
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.VoidType);
+                    return this;
+                case TokenType.IdentNum:
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.NumericType);
+                    return this;
+                case TokenType.IdentNumByte:
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.NumericByteType);
+                    return this;
+                case TokenType.IdentNumShort:
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.NumericShortType);
+                    return this;
+                case TokenType.IdentNumInt:
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.NumericIntegerType);
+                    return this;
+                case TokenType.IdentNumLong:
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.NumericLongType);
+                    return this;
+                case TokenType.IdentNumFloat:
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.NumericFloatType);
+                    return this;
+                case TokenType.IdentNumDouble:
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.NumericDoubleType);
+                    return this;
+                case TokenType.IdentStr:
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.StringType);
+                    return this;
                 case TokenType.Dot:
                     // field call
                     ctx.Component = new StatementComponent
@@ -95,7 +122,7 @@ namespace KScr.Compiler.Code
                         {
                             Type = StatementComponentType.Emitter
                         };
-                        ctx.TokenIndex += 2;
+                        ctx.TokenIndex += 1;
                         subctx = new CompilerContext(ctx, CompilerType.PipeEmitter);
                         subctx.Statement = new Statement
                         {
@@ -113,9 +140,9 @@ namespace KScr.Compiler.Code
                     { // compile Emitter
                         ctx.Component = new StatementComponent
                         {
-                            Type = StatementComponentType.Emitter
+                            Type = StatementComponentType.Consumer
                         };
-                        ctx.TokenIndex += 2;
+                        ctx.TokenIndex += 1;
                         subctx = new CompilerContext(ctx, CompilerType.PipeConsumer);
                         CompilerLoop(vm, new ExpressionCompiler(this, false,
                             TokenType.Terminator, TokenType.ParDiamondOpen, TokenType.ParDiamondClose), ref subctx);
@@ -129,6 +156,23 @@ namespace KScr.Compiler.Code
             }
 
             return this;
+        }
+
+        private static void CompileDeclaration(CompilerContext ctx, IClassInstance targetType)
+        {
+            if (ctx.NextToken?.Type != TokenType.Word)
+                throw new CompilerException("Invalid declaration; missing variable name");
+
+            ctx.Statement = new Statement
+            {
+                Type = StatementComponentType.Declaration,
+                TargetType = targetType
+            };/*
+            ctx.Component = new StatementComponent
+            {
+                Type = StatementComponentType.Declaration,
+                Arg = ctx.NextToken!.Arg!
+            };*/
         }
     }
 }
