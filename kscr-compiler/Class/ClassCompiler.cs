@@ -56,6 +56,36 @@ namespace KScr.Compiler.Class
                         break;
                     targetType = Lib.Bytecode.Class.NumericType;
                     break;
+                case TokenType.IdentNumByte:
+                    if (!inBody)
+                        break;
+                    targetType = Lib.Bytecode.Class.NumericByteType;
+                    break;
+                case TokenType.IdentNumShort:
+                    if (!inBody)
+                        break;
+                    targetType = Lib.Bytecode.Class.NumericShortType;
+                    break;
+                case TokenType.IdentNumInt:
+                    if (!inBody)
+                        break;
+                    targetType = Lib.Bytecode.Class.NumericIntegerType;
+                    break;
+                case TokenType.IdentNumLong:
+                    if (!inBody)
+                        break;
+                    targetType = Lib.Bytecode.Class.NumericLongType;
+                    break;
+                case TokenType.IdentNumFloat:
+                    if (!inBody)
+                        break;
+                    targetType = Lib.Bytecode.Class.NumericFloatType;
+                    break;
+                case TokenType.IdentNumDouble:
+                    if (!inBody)
+                        break;
+                    targetType = Lib.Bytecode.Class.NumericDoubleType;
+                    break;
                 case TokenType.IdentStr:
                     if (!inBody)
                         break;

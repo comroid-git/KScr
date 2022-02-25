@@ -220,6 +220,24 @@ namespace KScr.Compiler
                 case "num":
                     token = new Token(TokenType.IdentNum) { Complete = true };
                     break;
+                case "byte":
+                    token = new Token(TokenType.IdentNumByte) { Complete = true };
+                    break;
+                case "short":
+                    token = new Token(TokenType.IdentNumShort) { Complete = true };
+                    break;
+                case "int":
+                    token = new Token(TokenType.IdentNumInt) { Complete = true };
+                    break;
+                case "long":
+                    token = new Token(TokenType.IdentNumLong) { Complete = true };
+                    break;
+                case "float":
+                    token = new Token(TokenType.IdentNumFloat) { Complete = true };
+                    break;
+                case "double":
+                    token = new Token(TokenType.IdentNumDouble) { Complete = true };
+                    break;
                 case "str":
                     token = new Token(TokenType.IdentStr) { Complete = true };
                     break;

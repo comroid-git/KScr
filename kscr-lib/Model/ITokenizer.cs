@@ -31,7 +31,13 @@ namespace KScr.Lib.Model
 
         IdentVoid = 0x0108_01,
         IdentNum = 0x0108_10,
-        IdentStr = 0x0108_20,
+        IdentNumByte = 0x0108_20,
+        IdentNumShort = 0x0108_21,
+        IdentNumInt = 0x0108_22,
+        IdentNumLong = 0x0108_24,
+        IdentNumFloat = 0x0108_28,
+        IdentNumDouble = 0x0108_2F,
+        IdentStr = 0x0108_80,
         IdentVar = 0x0108_FF,
 
         LiteralNull = 0x010F_01,
@@ -102,7 +108,14 @@ namespace KScr.Lib.Model
             TokenType.ParDiamondClose => ">",
             TokenType.IdentVoid => "void",
             TokenType.IdentNum => "num",
+            TokenType.IdentNumByte => "byte",
+            TokenType.IdentNumShort => "short",
+            TokenType.IdentNumInt => "int",
+            TokenType.IdentNumLong => "long",
+            TokenType.IdentNumFloat => "float",
+            TokenType.IdentNumDouble => "double",
             TokenType.IdentStr => "str",
+            TokenType.IdentVar => "var",
             TokenType.LiteralNull => "null",
             TokenType.LiteralNum => "num",
             TokenType.LiteralTrue => "true",
@@ -129,6 +142,8 @@ namespace KScr.Lib.Model
             TokenType.Dynamic => "dynamic",
             TokenType.Abstract => "abstract",
             TokenType.Final => "final",
+            TokenType.Package => "package",
+            TokenType.Import => "import",
             _ => throw new ArgumentOutOfRangeException(token.ToString())
         };
         

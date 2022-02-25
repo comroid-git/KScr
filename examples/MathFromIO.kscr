@@ -11,9 +11,9 @@ public class MathFromIO {
         stdio >> num b;
 
         stdio << "\nEnter integer factor C: "
-        stdio >> num<int> c;
+        stdio >> int c;
 
         stdio << "\nResult: "
-        stdio << ((a + b) * c);
+        stdio << (a + b) * c;
     }
 }
