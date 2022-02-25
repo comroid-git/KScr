@@ -19,7 +19,7 @@ public interface Collection<K = int, T> extends Pipe<Entry<K, T>> {
     Collection<Entry<K, T>> entries();
 
     bool contains(T value) {
-        fori (0, n)
+        fori (0, Length)
             if (get(i) == value)
                 return true;
         return false;
