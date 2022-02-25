@@ -1,0 +1,21 @@
+package org.comroid.kscr.test;
+
+import system.File;
+
+public class FileIO {
+    public static void main() {
+        pipe file = File.open("file.txt");
+
+        stdio << "Enter text to be written to the file: "
+        stdio >> str text;
+
+        file << text;
+        text = "";
+        stdio << "\nText written; buffer cleared";
+
+        file >> text;
+        stdio << "\nText read: " << text;
+
+        file.delete();
+    }
+}

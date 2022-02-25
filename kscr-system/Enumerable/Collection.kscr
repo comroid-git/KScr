@@ -1,0 +1,83 @@
+package org.comroid.kscr.enumerable;
+
+public interface Collection<K = int, T> extends Pipe<Entry<K, T>> {
+    int Length;
+
+    @Contract("null -> null")
+    T? get(K key);
+
+    @Contract("null, _ -> null")
+    Entry<K, T>? getEntry(K key);
+
+    @Contract("null, _ -> null")
+    T? set(K key, T? value);
+
+    Collection<K> keys();
+
+    Collection<T> values();
+
+    Collection<Entry<K, T>> entries();
+
+    bool contains(T value) {
+        fori (0, Length)
+            if (get(i) == value)
+                return true;
+        return false;
+    }
+
+    bool containsKey(K key) {
+        return whether fori (0, n) >> getEntry(i).Key == key;
+
+                // OR
+                
+        return whether fori (0, n)
+            getEntry(i).Key == key;
+
+                //
+
+        fori (0, n)
+            if (getEntry(i).Key == key)
+                return true;
+        return false;
+    }
+
+    bool remove(K key) {
+        return set(key, null) != null;
+    }
+
+    bool remove(T value) {
+        return set(find(value), null) != null;
+    }
+
+    K find(T value) {
+        if (value == null)
+            return false;
+        K key;
+        fori (0, Length)
+            if (get(i) == value)
+                return key;
+        return false;
+    }
+
+    int removeIf(Function<bool, Entry<K, T>> tester) {
+        int c = 0;
+        entries() >tester> >Key> >remove> c++;
+        return c;
+    }
+
+    int keepIf(Function<bool, Entry<K, T> tester) {
+        int c = 0;
+        entries() >!tester> >Key> >remove> c++;
+        return c;
+    }
+
+    bool clear() {
+        int pLen = Length;
+        return removeIf(e -> true) == pLen;
+    }
+
+    interface Entry<K = int, T> {
+        K Key;
+        T Value;
+    }
+}

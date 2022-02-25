@@ -1,33 +1,35 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
+using KScr.Lib.Model;
 
 namespace KScr.Lib.Store
 {
     public sealed class ObjectStore
     {
-        private readonly ConcurrentDictionary<string, ObjectRef?>
-            cache = new ConcurrentDictionary<string, ObjectRef?>();
+        private readonly ConcurrentDictionary<string, ObjectRef?> _cache = new();
 
-        public ObjectRef? this[Context ctx, VariableContext varctx, string name]
+        public ObjectRef? this[Stack ctx, VariableContext varctx, string name]
         {
             get
             {
-                var key = CreateKey(ctx, varctx, name);
-                if (cache.ContainsKey(key))
-                    return cache[key];
+                string? key = CreateKey(ctx, varctx, name);
+                if (_cache.ContainsKey(key))
+                    return _cache[key];
                 return null;
             }
             set
             {
-                var key = CreateKey(ctx, varctx, name);
-                cache[key] = value;
+                string? key = CreateKey(ctx, varctx, name);
+                _cache[key] = value;
             }
         }
 
-        private static string CreateKey(Context ctx, VariableContext varctx, string name)
+        private static string CreateKey(Stack ctx, VariableContext varctx, string name)
         {
             return varctx switch
             {
@@ -38,52 +40,92 @@ namespace KScr.Lib.Store
             };
         }
 
-        public void ClearLocals(Context ctx)
+        public void ClearLocals(Stack ctx)
         {
-            foreach (var localKey in cache.Keys.Where(it => it.StartsWith(ctx.PrefixLocal)))
-                if (!cache.TryRemove(localKey, out _))
+            foreach (var localKey in _cache.Keys.Where(it => it.StartsWith(ctx.PrefixLocal)))
+                if (!_cache.TryRemove(localKey, out _))
                     throw new InternalException("Unable to remove local variable " + localKey);
         }
 
         public void Clear()
         {
-            cache.Clear();
+            _cache.Clear();
         }
     }
 
-    public sealed class ObjectRef
+    public class ObjectRef
     {
-        private IObject? _value;
-
-        public ObjectRef(TypeRef type) : this(type, null)
+        public ObjectRef(IClassInstance type, IObject? value) : this(type)
         {
+            Value = value;
         }
 
-        public ObjectRef(TypeRef type, IObject? value)
+        public ObjectRef(IClassInstance type, [Range(1, int.MaxValue)] int len = 1)
         {
+            if (len < 1)
+                throw new ArgumentOutOfRangeException(nameof(len), len, "Invalid ObjectRef size");
+            
             Type = type;
-            _value = value;
+            Stack = new IObject?[len];
         }
 
-        public TypeRef Type { get; }
+        public readonly IClassInstance Type;
+        public readonly IObject?[] Stack;
+        
+        public int Length => Stack.Length;
+        public bool IsPipe => ReadAccessor != null || WriteAccessor != null;
+        public virtual IEvaluable? ReadAccessor { get; set; }
+        public virtual IEvaluable? WriteAccessor { get; set; }
 
-        public IObject? Value
+        public IObject? this[RuntimeBase vm, int i]
         {
-            get => _value;
+            get
+            {
+                if (ReadAccessor != null)
+                {
+                    ObjectRef output = Numeric.Constant(vm, i);
+                    ReadAccessor!.Evaluate(vm, null, ref output!);
+                    return output.Value;
+                }
+                else return Stack[i];
+            }
             set
             {
-                var canHold = Type.CanHold(value?.Type);
-                if (canHold)
-                    _value = value;
-                else
-                    throw new InternalException("Invalid Type (" + value?.Type + ") assigned to reference of type " +
-                                                Type);
+                CheckTypeCompat(value!.Type);
+                if (WriteAccessor != null)
+                {
+                    ObjectRef output = new ObjectRef(Class.VoidType) { Value = value };
+                    WriteAccessor!.Evaluate(vm, null, ref output!);
+                } 
+                else InsertToStack(i, value);
             }
         }
 
-        public override string ToString()
+        public IObject? Value
         {
-            return Type + ": " + Value;
+            get => Stack[0];
+            set
+            {
+                CheckTypeCompat(value!.Type);
+                InsertToStack(0, value);
+            }
+        }
+
+        public override string ToString() => Length > 1
+            ? Type + "" + string.Join(",", Stack.Select(it => it?.ToString()))
+            : Type + ": " + Value;
+
+        private void CheckTypeCompat(IClassInstance other)
+        {
+            if (!Type.CanHold(other))
+                throw new InternalException("Invalid Type (" + other + ") assigned to reference of type " + Type);
+        }
+
+        private void InsertToStack(int i, IObject? value)
+        {
+            if (IsPipe)
+                throw new InvalidOperationException("Cannot insert value inte pipe");
+            Stack[i] = value;
         }
     }
 }

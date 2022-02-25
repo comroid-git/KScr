@@ -1,0 +1,31 @@
+package org.comroid.kscr.time;
+
+public class Date {
+    private static final Map<str, Date> interns = new Trie<str, Date>();
+    public final int Year;
+    public final int Month;
+    public final int Day;
+
+    public Date(int year, int month, int day) {
+        return getInternal(year, month, day);
+    }
+
+    @Convert
+    public Date(str date) {
+        int[] split = date.split("-") >> int::parse;
+        return new Date(split[0], split[1], split[2]);
+    }
+
+    public str toString(short variant) {
+        return toString(Year, Month, Day);
+    }
+
+    @Trie.Key
+    private static str toString(int year, int month, int day) {
+        return $"{Year}-{Month}-{Day}";
+    }
+
+    private static Date getInternal(int year, int month, int day) {
+        return interns.getOrCreate(Year, Month, Day);
+    }
+}

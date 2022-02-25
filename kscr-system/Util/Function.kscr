@@ -1,0 +1,5 @@
+package org.comroid.kscr.util;
+
+public interface Function<R, T...> {
+    R apply(T args);
+}

@@ -1,0 +1,9 @@
+package org.comroid.kscr.annotation;
+
+public final class ApiStatus {
+    public annotation Experimental;
+
+    public annotation Internal;
+
+    public annotation Deprecated;
+}

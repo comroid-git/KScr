@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Text;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
+using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
+using String = KScr.Lib.Core.String;
 
 namespace KScr.Lib
 {
@@ -13,9 +18,11 @@ namespace KScr.Lib
         Return = 1,
         Throw = 2
     }
-    
+
     public abstract class RuntimeBase
     {
+        public static Encoding Encoding = Encoding.ASCII;
+        
         private uint _lastObjId = 0xF;
 
         static RuntimeBase()
@@ -25,21 +32,72 @@ namespace KScr.Lib
         }
 
         public abstract ObjectStore ObjectStore { get; }
-        public abstract TypeStore TypeStore { get; }
-        public Context Context { get; } = new Context();
+        public abstract ClassStore ClassStore { get; }
+        public Stack Stack { get; } = new Stack();
 
         public ObjectRef? this[VariableContext varctx, string name]
         {
-            get => ObjectStore[Context, varctx, name];
-            set => ObjectStore[Context, varctx, name] = value;
+            get => ObjectStore[Stack, varctx, name];
+            set => ObjectStore[Stack, varctx, name] = value;
         }
 
         public abstract ITokenizer Tokenizer { get; }
         public abstract ICompiler Compiler { get; }
 
-        public ObjectRef ConstantVoid => ComputeObject(VariableContext.Absolute, Numeric.CreateKey(-1), () => IObject.Null);
-        public ObjectRef ConstantFalse => ComputeObject(VariableContext.Absolute, Numeric.CreateKey(0), () => Numeric.Zero);
-        public ObjectRef ConstantTrue => ComputeObject(VariableContext.Absolute, Numeric.CreateKey(1), () => Numeric.One);
+        public ObjectRef ConstantVoid =>
+            ComputeObject(VariableContext.Absolute, Numeric.CreateKey(-1), () => IObject.Null);
+
+        public ObjectRef ConstantFalse =>
+            ComputeObject(VariableContext.Absolute, Numeric.CreateKey(0), () => Numeric.Zero);
+
+        public ObjectRef ConstantTrue =>
+            ComputeObject(VariableContext.Absolute, Numeric.CreateKey(1), () => Numeric.One);
+        
+        public ObjectRef StdioRef { get; } = new StandardIORef();
+
+        public sealed class StandardIORef : ObjectRef
+        {
+            public StandardIORef() : base(Class.StringType)
+            {
+            }
+
+            public override IEvaluable? ReadAccessor
+            {
+                get => new StdioReader();
+                set => throw new InternalException("Cannot reassign stdio ReadAccessor");
+            }
+
+            public override IEvaluable? WriteAccessor
+            {
+                get => new StdioWriter();
+                set => throw new InternalException("Cannot reassign stdio WriteAccessor");
+            }
+
+            private sealed class StdioWriter : IEvaluable
+            {
+                public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
+                {
+                    var txt = rev.Value!.ToString(IObject.ToString_ShortName);
+                    Console.WriteLine(txt);
+                    return State.Normal;
+                }
+            }
+            
+            private sealed class StdioReader : IEvaluable
+            {
+                public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
+                {
+                    if (rev.Length != 1 || !rev.Type.CanHold(Class.StringType) && !rev.Type.CanHold(Class.NumericType))
+                        throw new InternalException("Invalid reference to write string into: " + rev);
+                    var txt = Console.ReadLine()!;
+                    if (rev.Type.CanHold(Class.NumericType))
+                        rev.Value = Numeric.Compile(vm, txt).Value;
+                    else rev.Value = String.Instance(vm, txt).Value;
+                    return State.Normal;
+                }
+            }
+        }
+
         public bool StdIoMode { get; set; } = false;
 
         public uint NextObjId()
@@ -78,7 +136,7 @@ namespace KScr.Lib
         public void Clear()
         {
             ObjectStore.Clear();
-            TypeStore.Clear();
+            ClassStore.Clear();
         }
 
         public ObjectRef ComputeObject(VariableContext varctx, string key, Func<IObject> func)
@@ -88,51 +146,59 @@ namespace KScr.Lib
 
         public ObjectRef PutObject(VariableContext varctx, string key, IObject? value)
         {
-            return this[varctx, key] = new ObjectRef(value?.Type ?? TypeRef.VoidType, value ?? IObject.Null);
+            return this[varctx, key] = new ObjectRef(value?.Type ?? Class.VoidType, value ?? IObject.Null);
         }
 
-        public IList<Token> Tokenize(string source) => Tokenizer.Tokenize(source);
-
-        public IEvaluable Compile(IList<Token> tokens) => Compiler.Compile(this, tokens);
-
-        public IObject? Execute(IEvaluable bytecode, out State state, out long timeµs)
+        public IObject? Execute(ref State state, out long timeµs)
         {
             timeµs = UnixTime();
-            var yield = Execute(bytecode, out state);
+            var yield = Execute(ref state);
             timeµs = UnixTime() - timeµs;
             return yield;
         }
 
-        public IObject? Execute(IEvaluable bytecode, out State state)
+        public IObject? Execute(ref State state)
         {
-            ObjectRef? nil = null;
-            state = bytecode.Evaluate(this, null, ref nil);
-            return nil?.Value;
+            var site = Package.RootPackage.FindEntrypoint();
+            ObjectRef? rev = null;
+
+            while (site != null)
+                site = site.Evaluate(this, ref state, ref rev);
+
+            return rev?.Value;
         }
 
-        public TypeRef? FindType(string name)
+        public IClassInstance FindType(string name, Package? package = null)
         {
             switch (name)
             {
+                case "num":
+                    return Class.NumericType;
                 case "byte":
-                    return TypeRef.NumericByteType;
+                    return Class.NumericByteType;
                 case "short":
-                    return TypeRef.NumericShortType;
+                    return Class.NumericShortType;
                 case "int":
-                    return TypeRef.NumericIntegerType;
+                    return Class.NumericIntegerType;
                 case "long":
-                    return TypeRef.NumericLongType;
+                    return Class.NumericLongType;
                 case "float":
-                    return TypeRef.NumericFloatType;
+                    return Class.NumericFloatType;
                 case "double":
-                    return TypeRef.NumericDoubleType;
+                    return Class.NumericDoubleType;
                 case "str":
-                    return TypeRef.StringType;
+                    return Class.StringType;
                 case "void":
-                    return TypeRef.VoidType;
+                    return Class.VoidType;
             }
 
-            return null; // todo;
+            return ClassStore.FindType(package!, name);
+        }
+
+        public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)
+        {
+            return (ITypeInfo?) inClass.TypeParameters.FirstOrDefault(tp => tp.FullName == identifier)
+                   ?? FindType(identifier, inPackage)!;
         }
     }
 }

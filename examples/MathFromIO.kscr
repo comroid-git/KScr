@@ -1,0 +1,19 @@
+package org.comroid.kscr.test;
+
+public class MathFromIO {
+    public static void main() {
+        stdio << "Operation: (A + B) * C";
+
+        stdio << "Enter number A: ";
+        stdio >> num a;
+
+        stdio << "Enter number B: ";
+        stdio >> num b;
+
+        stdio << "Enter integer factor C: ";
+        stdio >> int c;
+
+        stdio << "Result: ";
+        stdio << (a + b) * c;
+    }
+}

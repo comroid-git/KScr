@@ -5,7 +5,7 @@ using KScr.Lib.Store;
 namespace KScr.Lib.Model
 {
     [Flags]
-    public enum StatementComponentType : byte
+    public enum StatementComponentType : ushort
     {
         // basetypes
 
@@ -17,7 +17,11 @@ namespace KScr.Lib.Model
         // basic declaration:
         // - num x          (-> standard numeric declaration)
         // - str v          (-> standard string declaration)
-        Declaration = 0x20,
+        Declaration = 0x20 | Expression,
+        
+        // setter-operation
+        // - [setter] = [expression];
+        Setter = 0x100,
 
         // pipe base node
         // - pipe<num> x    (-> standard pipe declaration)
@@ -39,16 +43,16 @@ namespace KScr.Lib.Model
 
         // pipe-related symbols
 
-        // providing pipe:
-        // - [pipe] <== [provider OR emitter]  (-> standard pipe constructor)
-        // - [pipe] <== [expression]           (-> pipe invoker)
-        Consumer = 0x04 | Pipe,
-
-        // consuming pipe:
-        // - [pipe] ==> [consumer]                    (-> standard pipe handler)
+        // consuming from pipe:
+        // - [pipe] >> [consumer]                    (-> standard pipe handler)
         // - [pipe] where( [lambda<in, bool>] )       (-> filtering pipe stage)
         // - [pipe] select( [lambda<in, out>] )       (-> remapping pipe stage)
-        Emitter = 0x08 | Provider | Pipe,
+        Consumer = 0x04 | Provider | Pipe,
+
+        // emitting into pipe:
+        // - [pipe] << [provider OR emitter]  (-> standard pipe constructor)
+        // - [pipe] << [expression]           (-> pipe invoker)
+        Emitter = 0x08 | Pipe,
 
         // lambda pipe:
         // - Type::getName                (-> static lambda call)
@@ -61,8 +65,9 @@ namespace KScr.Lib.Model
     {
         public List<SubType> Main { get; }
         public StatementComponentType Type { get; }
-        public TypeRef TargetType { get; }
+        public IClassInstance TargetType { get; }
     }
+
     public interface IStatementComponent : IEvaluable
     {
         public StatementComponentType Type { get; }

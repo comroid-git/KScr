@@ -2,13 +2,17 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>net5.0</TargetFramework>
         <RootNamespace>KScr.Runtime</RootNamespace>
         <Nullable>enable</Nullable>
+        <AssemblyName>kscr</AssemblyName>
+        <Company>comroid</Company>
+        <Product>kscr</Product>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\kscr-eval\kscr-eval.csproj"/>
+      <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj" />
+      <ProjectReference Include="..\kscr-lib\kscr-lib.csproj" />
     </ItemGroup>
 
 </Project>

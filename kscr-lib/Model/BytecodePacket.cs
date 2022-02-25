@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using KScr.Lib.Core;
-using KScr.Lib.Exception;
-using KScr.Lib.Store;
-using String = KScr.Lib.Core.String;
 
 namespace KScr.Lib.Model
 {
@@ -36,6 +31,9 @@ namespace KScr.Lib.Model
         OperatorDivide = 0x0000_8000 | Operator,
         OperatorModulus = 0x0000_F000 | Operator,
 
+        StdioExpression = 0x0200_0000,
+        ParameterExpression = 0x0100_0000,
+        
         Call = 0x2000_0000 | Expression,
         Throw = 0x4000_0000 | Statement,
         Return = 0x8000_0000 | Statement,

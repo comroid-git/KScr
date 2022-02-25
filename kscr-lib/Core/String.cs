@@ -1,5 +1,7 @@
 ﻿using System;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
+using KScr.Lib.Model;
 using KScr.Lib.Store;
 
 namespace KScr.Lib.Core
@@ -18,7 +20,7 @@ namespace KScr.Lib.Core
         public long ObjectId { get; }
 
         public bool Primitive => true;
-        public TypeRef Type => TypeRef.StringType;
+        public IClassInstance Type => Class.StringType;
 
         public string ToString(short variant)
         {
@@ -32,14 +34,13 @@ namespace KScr.Lib.Core
 
         public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args)
         {
-            if (member.StartsWith("Operator") && args[0] is String other)
-            {
-                switch (member.Substring("Operator".Length))
+            if (member.StartsWith("op") && args[0] != null)
+                switch (member.Substring("op".Length))
                 {
                     case "Plus":
-                        return OpPlus(vm, other);
+                        return OpPlus(vm, args[0]!.ToString(0));
                 }
-            }
+
             switch (member)
             {
                 case "toString":
@@ -51,7 +52,7 @@ namespace KScr.Lib.Core
             }
         }
 
-        private ObjectRef OpPlus(RuntimeBase vm, String other) => Instance(vm, Str + other.Str);
+        private ObjectRef OpPlus(RuntimeBase vm, string other) => Instance(vm, Str + other);
 
         public static ObjectRef Instance(RuntimeBase vm, string str)
         {
@@ -66,7 +67,6 @@ namespace KScr.Lib.Core
             if (rev == null)
                 rev = vm.ComputeObject(VariableContext.Absolute, ptr, () => new String(vm, str));
             return rev;
-
         }
 
         public override string ToString()

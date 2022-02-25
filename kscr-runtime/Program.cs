@@ -1,95 +1,111 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using KScr.Eval;
+using KScr.Compiler;
+using KScr.Compiler.Class;
+using KScr.Compiler.Code;
 using KScr.Lib;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
+using Array = System.Array;
 
 namespace KScr.Runtime
 {
     internal class Program
     {
-        private static readonly KScrRuntime vm = new KScrRuntime();
+        private static readonly KScrRuntime VM = new();
+        private static readonly string DefaultOutput = Path.Combine(Directory.GetCurrentDirectory(), "build", "compile");
 
         private static int Main(string[] args)
         {
-            var eval = new KScrRuntime();
+            State state = State.Normal;
+            IObject yield = VM.ConstantVoid.Value!;
 
             if (args.Length == 0)
-                return StdIoMode(eval);
-            string fullSource = string.Join('\n',
-                args.Where(it => it.EndsWith(".kscr"))
-                    .Select(File.ReadAllText));
-            if (fullSource != string.Empty)
+                StdIoMode(ref state, ref yield);
+            else
             {
-                var yield = HandleSourcecode(eval, fullSource, out State state, out IEvaluable? bytecode, out var time);
-                return HandleExit(state, yield);
+                string[] paths = new string[args.Length - 1];
+                Array.Copy(args, 1, paths, 0, paths.Length);
+                var files = paths.Select(path => new FileInfo(path)).GetEnumerator();
+
+                switch (args[0])
+                {
+                    case "compile":
+                        VM.CompileFiles(files);
+                        WriteClasses(DefaultOutput);
+                        break;
+                    case "execute":
+                        VM.CompileFiles(files);
+                        yield = Run(VM, ref state);
+                        break;
+                    case "run":
+                        var classpath = args.Length >= 2 ? args[1] : Directory.GetCurrentDirectory();
+                        Package.Read(VM, new DirectoryInfo(classpath));
+                        yield = Run(VM, ref state);
+                        break;
+                    default:
+                        Console.WriteLine("Invalid arguments: " + string.Join(' ', args));
+                        break;
+                }
+
+                files.Dispose();
             }
 
-            Console.WriteLine("Uh-oh, I really don't know what this is: [" + string.Join(',', args) + ']');
-            PressToExit();
-            return -1;
+            return HandleExit(state, yield);
         }
 
-        private static void PressToExit()
+        private static void StdIoMode(ref State state, ref IObject @yield)
         {
-            Console.WriteLine("Press any key to exit...");
-            Console.Read();
-        }
-
-        private static int StdIoMode(KScrRuntime runtime)
-        {
-            runtime.StdIoMode = true;
-            Bytecode full = new Bytecode();
-            IObject? result = null;
-            State state = State.Normal;
-            var verbose = false;
+            Console.WriteLine("Entering StdIoMode - Only Expressions are allowed");
+            
+            var compiler = new StatementCompiler();
+            var contextBase = new CompilerContext();
+            ObjectRef output = new ObjectRef(Class.VoidType);
+            VM.Stack.StepDown(Class.VoidType, "scratch");
 
             while (state == State.Normal)
             {
-                // write prefix
                 Console.Write("kscr> ");
-                // read command or code
-                var input = Console.ReadLine();
-
-                if (input == string.Empty)
+                string? expr = Console.ReadLine();
+                if (string.IsNullOrEmpty(expr))
                     continue;
-
-                switch (input)
+                switch (expr)
                 {
                     case "exit":
-                        return 0;
-                    case "verbose":
-                        // ReSharper disable once AssignmentInConditionalExpression
-                        Console.WriteLine("Verbose console output " + ((verbose = !verbose) ? "on" : "off"));
-                        continue;
+                        return;
                     case "clear":
-                        ClearEval(runtime);
-                        full = new Bytecode();
-                        continue;
-                    case "run":
-                        ClearEval(runtime);
-                        result = runtime.Execute(full, out state);
-                        return HandleExit(state, result);
-                    default:
-                        if (!input.EndsWith(';'))
-                            input += ';';
-                        result = HandleSourcecode(runtime, input, out state, out IEvaluable here, out var time);
-                        var isnull = result == null;
-
-                        string str0 = result?.ToString(0) ?? "null";
-                        if (verbose)
-                            str0 += "\t\t" + (result?.ToString(-1) ?? "void");
-                        str0 += $" [{time} µs]";
-                        Console.WriteLine(str0);
-                        full.Append(here);
+                        Console.Clear();
                         continue;
                 }
-            }
+                string code = "stdio << " + expr + ';';
 
-            return HandleExit(state, result);
+                long compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                var tokens = new TokenContext(new Tokenizer().Tokenize(VM, code));
+                var context = new CompilerContext(contextBase, tokens, CompilerType.CodeStatement);
+                AbstractCompiler.CompilerLoop(VM, compiler, ref context);
+                compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - compileTime;
+                
+                long executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                state = context.ExecutableCode.Evaluate(VM, null, ref output);
+                executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - executeTime;
+                context.Clear();
+                
+                HandleResult(state, output.Value, compileTime, executeTime);
+            }
+        }
+
+        private static void WriteClasses(string output) => Package.RootPackage.Write(new DirectoryInfo(output));
+
+        private static IObject Run(RuntimeBase vm, ref State state) => vm.Execute(ref state) ?? vm.ConstantVoid.Value!;
+
+        private static void HandleResult(State state, IObject? result, long compileTime, long executeTime)
+        {
+            Console.WriteLine($"State: {state.ToString()} - Compile: {compileTime}ms - Execute: {executeTime}ms");
+            //Console.WriteLine($"Type: {result?.Type} - Value: {result?.ToString(0)}");
         }
 
         private static int HandleExit(State state, IObject? result)
@@ -108,16 +124,21 @@ namespace KScr.Runtime
             }
 
             if (result == null)
+            {
                 Console.WriteLine("without exit value;");
+            }
             else if (result is Numeric num)
             {
                 int rtn = num.IntValue;
                 Console.WriteLine("with exit code " + rtn);
                 return rtn;
             }
-            else Console.WriteLine("with exit message: " + result.ToString(IObject.ToString_LongName));
+            else
+            {
+                Console.WriteLine("with exit message: " + result.ToString(0));
+            }
 
-            PressToExit();
+            //PressToExit();
             return state switch
             {
                 State.Normal => 0,
@@ -127,20 +148,10 @@ namespace KScr.Runtime
             };
         }
 
-        private static void ClearEval(KScrRuntime runtime)
+        private static void PressToExit()
         {
-            Console.Clear();
-            vm.Clear();
-        }
-
-        private static IObject? HandleSourcecode(KScrRuntime runtime, string? input, out State state, out IEvaluable? here, out long time)
-        {
-            time = RuntimeBase.UnixTime();
-            var tokens = runtime.Tokenize(input!);
-            here = runtime.Compile(tokens);
-            var result = runtime.Execute(here, out state);
-            time = RuntimeBase.UnixTime() - time;
-            return result;
+            Console.WriteLine("Press any key to exit...");
+            Console.Read();
         }
     }
 }

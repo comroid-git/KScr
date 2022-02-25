@@ -1,0 +1,28 @@
+package org.comroid.kscr.numerics;
+
+public class Vector<n = 3, T = float> extends num<n, T> {
+    public num X << this(0);
+    public num Y << this(1);
+    public num Z << this(2);
+    public num W << this(3);
+    public float Magnitude << magnitude;
+    public Vector<n> Normalized << normalize;
+
+    public str toString(short variant) {
+        str txt = "Vector" + n + "{";
+        fori (0, n)
+            txt += this(i) + ", ";
+        return txt.section(0, txt.length - 2) + "}";
+    }
+
+    private float magnitude() {
+        T square = 0;
+        fori (0, n)
+            square += this(i) ^ 2;
+        return Math.sqrt(square);
+    }
+
+    private Vector<n, T> normalize() {
+        return this / Magnitude;
+    }
+}

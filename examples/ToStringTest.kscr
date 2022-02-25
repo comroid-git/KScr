@@ -1,0 +1,34 @@
+package org.comroid.kscr.test;
+
+public class ToStringTest {
+    public num x;
+    public num y;
+    // the result of z will ALWAYS be up-to-date with the values of x and y 
+    public num z << x + y;
+    
+    public str toString(num alt) {
+        if (alt == 0) {
+            return x;
+        }
+        if (alt == 1) {
+            return y;
+        }
+        if (alt == 2) {
+            return z;
+        }
+        return "invalid alternative";
+    }
+    
+    public static void main() {
+        void obj = new SomeObject();
+        
+        // invokes numeric '3' on every access to obj.x
+        obj.x << 3;
+        // invokes numeric '5' on every access to obj.x
+        obj.y << 5;
+        
+        stdio << "X = " << obj.toString(0) << "\n";
+        stdio << "Y = " << obj.toString(1) << "\n";
+        stdio << "Z = " << obj.toString(2) << "\n";
+    }
+}

@@ -1,0 +1,9 @@
+package org.comroid.kscr.test;
+
+public class PrintNumbers {
+    public static void main() {
+        fori (0, 10) {
+            stdio << i;
+        }
+    }
+}
