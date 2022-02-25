@@ -43,7 +43,7 @@ namespace KScr.Compiler.Class
                     break;
                 case TokenType.ParRoundClose:
                     _active = false;
-                    return Parent;
+                    break;
                 default: throw new CompilerException("Unexpected token: " + ctx.Token);
             }
             return this;

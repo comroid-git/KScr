@@ -22,7 +22,10 @@ namespace KScr.Lib.Model
         // code compiler types
         CodeStatement = 10, // statement component compiler
         CodeExpression = 11, // expression component compiler
-        CodeParameterExpression = 15 // method parameter expression compiler 
+        CodeParameterExpression = 15, // method parameter expression compiler 
+        
+        PipeEmitter = 20, // into-pipe emitter <<
+        PipeConsumer = 21, // from-pipe consumer >>
     }
 
     public class TokenContext

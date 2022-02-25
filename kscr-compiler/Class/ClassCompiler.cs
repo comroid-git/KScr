@@ -38,30 +38,53 @@ namespace KScr.Compiler.Class
                 case TokenType.Abstract:
                 case TokenType.Final:
                 case TokenType.Static:
+                    if (!inBody)
+                        break;
                     var mod = ctx.Token.Type.Modifier() ?? MemberModifier.Protected;
                     if (modifier == null)
                         modifier = mod;
                     else modifier |= mod;
                     break;
+                case TokenType.IdentVar:
+                case TokenType.IdentVoid:
+                    if (!inBody)
+                        break;
+                    targetType = Lib.Bytecode.Class.VoidType;
+                    break;
+                case TokenType.IdentNum:
+                    if (!inBody)
+                        break;
+                    targetType = Lib.Bytecode.Class.NumericType;
+                    break;
+                case TokenType.IdentStr:
+                    if (!inBody)
+                        break;
+                    targetType = Lib.Bytecode.Class.StringType;
+                    break;
                 case TokenType.Word:
                     if (!inBody)
-                        break; // is name
+                        break;
                     if (targetType == null)
-                    {
+                    { // is return type
                         string targetTypeIdentifier = ctx.Token.Arg!;
                         targetType = vm.FindType(targetTypeIdentifier, ctx.Package) ?? throw new CompilerException("Could not find type: " + targetTypeIdentifier);
                     }
                     else if (memberName == null) 
+                        // is name
                         memberName = ctx.Token.Arg!;
                     memberType = 2; // field
                     break;
                 // into field
                 case TokenType.OperatorEquals:
+                    if (!inBody)
+                        break;
                     break;
                 // into method
                 case TokenType.ParRoundOpen:
+                    if (!inBody)
+                        break;
                     if (memberType != 2)
-                        break; // todo
+                        throw new CompilerException("Could not create method; invalid memberType = " + memberType);
                     memberType = 1; // method
 
                     // compile parameter definition
@@ -71,18 +94,22 @@ namespace KScr.Compiler.Class
                                                                     ? MemberModifier.Public
                                                                     : MemberModifier.Protected));
                     ctx = new CompilerContext(ctx, CompilerType.ParameterDefintion);
+                    ctx.TokenIndex += 1;
                     CompilerLoop(vm, new ParameterDefinitionCompiler(this, method), ref ctx);
+                    ctx.Parent!.TokenIndex = ctx.TokenIndex - 1;
                     ctx = ctx.Parent!;
 
                     break;
                 // compile type parameter definition
                 case TokenType.ParDiamondOpen:
-                    ctx = new CompilerContext(ctx, CompilerType.TypeParameterDefinition);
-                    ctx.TokenIndex += 1;
-                    CompilerLoop(vm, new TypeParameterDefinitionCompiler(this, ctx.Class), ref ctx);
-                    ctx.Parent!.TokenIndex = ctx.TokenIndex;
-                    ctx = ctx.Parent!;
-
+                    if (!inBody)
+                    {
+                        ctx = new CompilerContext(ctx, CompilerType.TypeParameterDefinition);
+                        ctx.TokenIndex += 1;
+                        CompilerLoop(vm, new TypeParameterDefinitionCompiler(this, ctx.Class), ref ctx);
+                        ctx.Parent!.TokenIndex = ctx.TokenIndex;
+                        ctx = ctx.Parent!;
+                    }
                     break; 
                 case TokenType.ParAccOpen:
                     if (!inBody)
@@ -95,8 +122,11 @@ namespace KScr.Compiler.Class
                     
                     // compile method body
                     ctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    ctx.TokenIndex += 1;
                     CompilerLoop(vm, new StatementCompiler(this), ref ctx);
                     method.Body = ctx.ExecutableCode;
+                    ctx.Class.DeclaredMembers[memberName!] = method;
+                    ctx.Parent!.TokenIndex = ctx.TokenIndex;
                     ctx = ctx.Parent!;
                     
                     break;

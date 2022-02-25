@@ -1,3 +1,5 @@
+package org.comroid.kscr.test;
+
 public class AdditionFromIO {
     public static void main() {
         stdio << "Operation: (A + B) * C"

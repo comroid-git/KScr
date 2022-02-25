@@ -1,3 +1,5 @@
+package org.comroid.kscr.test;
+
 public class SomeObject {
     public num x;
     public num y;

@@ -78,7 +78,7 @@ namespace KScr.Lib.Bytecode
 
         public virtual State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
         {
-            ObjectRef? output;
+            ObjectRef? output = null;
             State state;
             switch (Type)
             {
@@ -100,9 +100,6 @@ namespace KScr.Lib.Bytecode
                             return State.Normal;
                         case BytecodeType.Null:
                             rev = vm.ConstantVoid;
-                            return State.Normal;
-                        case BytecodeType.StdioExpression:
-                            rev = vm.StdioRef;
                             return State.Normal;
                     }
 
@@ -177,6 +174,9 @@ namespace KScr.Lib.Bytecode
                             else throw new System.Exception("Invalid state; not a method");
                             
                             break;
+                        case BytecodeType.StdioExpression:
+                            rev = vm.StdioRef;
+                            return State.Normal;
                     }
 
                     break;
@@ -190,9 +190,15 @@ namespace KScr.Lib.Bytecode
                     state = SubComponent.Evaluate(vm, this, ref output);
                     rev.Value = output?.Value;
                     return state;
-
-                    break;
                 case StatementComponentType.Emitter:
+                    if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
+                        throw new InternalException("Invalid emitter; no Expression found");
+                    if (!rev.IsPipe)
+                        throw new InternalException("Cannot emit value into non-pipe accessor");
+                    state = SubComponent.Evaluate(vm, this, ref output);
+                    rev.WriteAccessor!.Evaluate(vm, null, ref output);
+                    return state;
+                case StatementComponentType.Consumer:
                     throw new NotImplementedException();
                 case StatementComponentType.Lambda:
                     throw new NotImplementedException();

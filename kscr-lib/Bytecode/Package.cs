@@ -23,7 +23,7 @@ namespace KScr.Lib.Bytecode
         public IRuntimeSite FindEntrypoint()
         {
             return All().Where(it => it is Class).Cast<Class>()
-                .Where(it => it.Members.ContainsKey("main"))
+                .Where(it => it.DeclaredMembers.ContainsKey("main"))
                 .Select(it => (it.DeclaredMembers["main"] as Method)!)
                 .First(it => it.IsStatic());
         }

@@ -1,3 +1,5 @@
+package org.comroid.kscr.test;
+
 import system.File;
 
 public class FileIO {

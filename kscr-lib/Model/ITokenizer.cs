@@ -14,6 +14,7 @@ namespace KScr.Lib.Model
         Return = 0x0101_20,
         Throw = 0x0101_21,
         This = 0x0101_22,
+        StdIo = 0x0101_30,
 
         Dot = 0x0102_10,
         Colon = 0x0102_20,
@@ -86,6 +87,8 @@ namespace KScr.Lib.Model
             TokenType.Word => token.Arg!,
             TokenType.Return => "return",
             TokenType.Throw => "throw",
+            TokenType.This => "this",
+            TokenType.StdIo => "stdio",
             TokenType.Dot => ".",
             TokenType.Colon => "'",
             TokenType.Comma => ",",

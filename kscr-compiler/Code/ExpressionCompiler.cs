@@ -1,4 +1,5 @@
-﻿using KScr.Lib;
+﻿using System.Linq;
+using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
@@ -8,11 +9,15 @@ namespace KScr.Compiler.Code
 {
     public class ExpressionCompiler : AbstractCodeCompiler
     {
-        private readonly TokenType _terminator;
+        private readonly TokenType[] _terminators;
 
-        public ExpressionCompiler(ICompiler parent, TokenType terminator = TokenType.Terminator) : base(parent)
+        public ExpressionCompiler(ICompiler parent, params TokenType[] terminators) : base(parent)
         {
-            _terminator = terminator;
+            _terminators = terminators;
+        }
+
+        public ExpressionCompiler(ICompiler parent, TokenType terminator = TokenType.Terminator) : this(parent, new[]{terminator})
+        {
         }
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
@@ -84,7 +89,12 @@ namespace KScr.Compiler.Code
                     return Parent;
             }
 
-            return ctx.NextToken?.Type == _terminator ? Parent : base.AcceptToken(vm, ref ctx);
+            if (_terminators.Contains(ctx.NextToken?.Type ?? TokenType.Terminator))
+            {
+                _active = false;
+                return this;
+            }
+            else return base.AcceptToken(vm, ref ctx);
         }
     }
 }

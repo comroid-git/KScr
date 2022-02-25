@@ -21,17 +21,21 @@ namespace KScr.Lib.Bytecode
 
     public abstract class AbstractClassMember : AbstractBytecode, IClassMember
     {
+        private protected string _name;
+
         protected AbstractClassMember(Class parent, string name, MemberModifier modifier)
         {
             Parent = parent;
-            Name = name;
+            _name = name;
             Modifier = modifier;
         }
 
         public Class Parent { get; }
-        public string Name { get; protected set; }
+
+        public virtual string Name => _name;
+
+        public virtual string FullName => Parent.FullName + '.' + Name;
         public MemberModifier Modifier { get; protected set; }
-        public string FullName => Parent.FullName + '.' + Name;
         public abstract ClassMemberType Type { get; }
 
         public abstract IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0);
@@ -48,7 +52,7 @@ namespace KScr.Lib.Bytecode
         {
             int index = 0;
             _Load(data, ref index, out string name, out var modifier);
-            Name = name;
+            _name = name;
             Modifier = modifier;
         }
 

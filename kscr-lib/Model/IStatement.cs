@@ -44,15 +44,15 @@ namespace KScr.Lib.Model
         // pipe-related symbols
 
         // providing pipe:
-        // - [pipe] <== [provider OR emitter]  (-> standard pipe constructor)
-        // - [pipe] <== [expression]           (-> pipe invoker)
-        Consumer = 0x04 | Pipe,
-
-        // consuming pipe:
         // - [pipe] ==> [consumer]                    (-> standard pipe handler)
         // - [pipe] where( [lambda<in, bool>] )       (-> filtering pipe stage)
         // - [pipe] select( [lambda<in, out>] )       (-> remapping pipe stage)
-        Emitter = 0x08 | Provider | Pipe,
+        Consumer = 0x04 | Provider | Pipe,
+
+        // consuming pipe:
+        // - [pipe] <== [provider OR emitter]  (-> standard pipe constructor)
+        // - [pipe] <== [expression]           (-> pipe invoker)
+        Emitter = 0x08 | Pipe,
 
         // lambda pipe:
         // - Type::getName                (-> static lambda call)

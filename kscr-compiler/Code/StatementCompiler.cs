@@ -44,7 +44,7 @@ namespace KScr.Compiler.Code
                     break;
                 case TokenType.ParAccClose:
                     _active = false;
-                    return Parent;
+                    return this;
             }
             
             return base.AcceptToken(vm, ref ctx);

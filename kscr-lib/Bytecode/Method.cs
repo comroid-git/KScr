@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 
@@ -26,6 +27,8 @@ namespace KScr.Lib.Bytecode
             state = Body.Evaluate(vm, null, ref rev);
             return null;
         }
+
+        public override string Name => base.Name + '(' + string.Join(", ", Parameters.Select(it => it.Type)) + ')';
 
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => new []{ Body };
         public override ClassMemberType Type => ClassMemberType.Method;
