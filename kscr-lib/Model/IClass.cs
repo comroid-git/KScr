@@ -32,12 +32,10 @@ namespace KScr.Lib.Model
     
     public interface IClass : IClassInstance
     {
+        string Name { get; }
         IDictionary<string, IClassMember> DeclaredMembers { get; }
 
-        bool CanHold(IClass? type)
-        {
-            return FullName == "void" || Equals(type);
-        }
+        bool CanHold(IClass? type) => FullName == "void" || (type?.Name.StartsWith(Name) ?? false); // todo fixme
     }
 
     public enum ClassType : byte

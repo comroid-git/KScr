@@ -1,4 +1,5 @@
-﻿using KScr.Compiler.Class;
+﻿using System;
+using KScr.Compiler.Class;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
@@ -75,8 +76,26 @@ namespace KScr.Compiler.Code
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Operator,
-                        Arg = ctx.Token.String()
+                        Arg = ctx.Token.Type switch
+                        {
+                            TokenType.OperatorPlus => "Plus",
+                            TokenType.OperatorMinus => "Minus",
+                            TokenType.OperatorMultiply => "Multiply",
+                            TokenType.OperatorDivide => "Divide",
+                            TokenType.OperatorModulus => "Modulus",
+                            _ => throw new ArgumentOutOfRangeException()
+                        }
                     };
+                    ctx.TokenIndex += 1;
+                    subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
+                    subctx.Statement = new Statement
+                    {
+                        TargetType = ctx.Statement.TargetType,
+                        Type = StatementComponentType.Expression
+                    };
+                    CompilerLoop(vm, new ExpressionCompiler(this, true), ref subctx);
+                    ctx.Component.SubComponent = subctx.Component;
+                    ctx.TokenIndex = subctx.TokenIndex - 1;
                     break;
                 // pipe operands
                 case TokenType.ParDiamondOpen:
@@ -93,7 +112,8 @@ namespace KScr.Compiler.Code
                             TargetType = Lib.Bytecode.Class.VoidType,
                             Type = StatementComponentType.Expression
                         };
-                        CompilerLoop(vm, new ExpressionCompiler(this, TokenType.Terminator, TokenType.ParDiamondOpen, TokenType.ParDiamondClose), ref subctx);
+                        CompilerLoop(vm, new ExpressionCompiler(this, false,
+                            TokenType.Terminator, TokenType.ParDiamondOpen, TokenType.ParDiamondClose), ref subctx);
                         ctx.Component.SubComponent = subctx.Component;
                         ctx.TokenIndex = subctx.TokenIndex;
                     }
@@ -107,7 +127,8 @@ namespace KScr.Compiler.Code
                         };
                         ctx.TokenIndex += 2;
                         subctx = new CompilerContext(ctx, CompilerType.PipeConsumer);
-                        CompilerLoop(vm, new ExpressionCompiler(this, TokenType.Terminator, TokenType.ParDiamondOpen, TokenType.ParDiamondClose), ref subctx);
+                        CompilerLoop(vm, new ExpressionCompiler(this, false,
+                            TokenType.Terminator, TokenType.ParDiamondOpen, TokenType.ParDiamondClose), ref subctx);
                         ctx.Component.SubComponent = subctx.Component;
                         ctx.TokenIndex = subctx.TokenIndex;
                     }

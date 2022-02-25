@@ -137,7 +137,13 @@ namespace KScr.Lib.Bytecode
 
                     throw new NotImplementedException();
                 case StatementComponentType.Operator:
-                    throw new NotImplementedException();
+                    if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
+                        throw new InternalException("Invalid operator; no right-hand Expression found");
+                    state = SubComponent.Evaluate(vm, this, ref output!);
+                    if (state != State.Normal)
+                        return state;
+                    rev = rev.Value!.Invoke(vm, "op" + Arg, output.Value!)!;
+                    break;
                 case StatementComponentType.Provider:
                     // non-constant expressions
 

@@ -9,14 +9,17 @@ namespace KScr.Compiler.Code
 {
     public class ExpressionCompiler : AbstractCodeCompiler
     {
+        private readonly bool _endBeforeTerminator;
         private readonly TokenType[] _terminators;
 
-        public ExpressionCompiler(ICompiler parent, params TokenType[] terminators) : base(parent)
+        public ExpressionCompiler(ICompiler parent, bool endBeforeTerminator = false, params TokenType[] terminators) : base(parent)
         {
+            _endBeforeTerminator = endBeforeTerminator;
             _terminators = terminators;
         }
 
-        public ExpressionCompiler(ICompiler parent, TokenType terminator = TokenType.Terminator) : this(parent, new[]{terminator})
+        public ExpressionCompiler(ICompiler parent, bool endBeforeTerminator = false, TokenType terminator = TokenType.Terminator)
+            : this(parent, endBeforeTerminator, new[]{terminator})
         {
         }
 
@@ -55,11 +58,12 @@ namespace KScr.Compiler.Code
                 case TokenType.LiteralNum:
                     if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
                         throw new CompilerException("Invalid Numeric literal; expected " + ctx.Statement.TargetType);
+                    var numstr = Numeric.Compile(vm, ctx.Token.Arg!).Value!.ToString(IObject.ToString_LongName);
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
                         CodeType = BytecodeType.LiteralNumeric,
-                        Arg = Numeric.Compile(vm, ctx.Token.Arg!).ToString()
+                        Arg = numstr
                     };
                     break;
                 case TokenType.LiteralStr:
@@ -95,8 +99,10 @@ namespace KScr.Compiler.Code
             var use = base.AcceptToken(vm, ref ctx);
             if (_terminators.Contains(ctx.NextToken?.Type ?? TokenType.Terminator))
             {
+                if (_endBeforeTerminator)
+                    ctx.TokenIndex -= 1;
                 _active = false;
-                return this;
+                return _endBeforeTerminator ? Parent : this;
             }
             return use;
         }

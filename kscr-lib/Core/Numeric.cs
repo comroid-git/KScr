@@ -25,15 +25,15 @@ namespace KScr.Lib.Core
         public static readonly Numeric Zero = new Numeric(0)
         {
             Mutable = false,
-            Bytes = BitConverter.GetBytes((short)0),
-            Mode = NumericMode.Short
+            Bytes = BitConverter.GetBytes((byte)0),
+            Mode = NumericMode.Byte
         };
 
         public static readonly Numeric One = new Numeric(1)
         {
             Mutable = false,
-            Bytes = BitConverter.GetBytes((short)1),
-            Mode = NumericMode.Short
+            Bytes = BitConverter.GetBytes((byte)1),
+            Mode = NumericMode.Byte
         };
 
         private static readonly ConcurrentDictionary<decimal, Numeric> Cache =
@@ -87,8 +87,8 @@ namespace KScr.Lib.Core
 
         public ObjectRef Invoke(RuntimeBase vm, string member, params IObject?[] args)
         {
-            if (member.StartsWith("Operator") && args.Length > 0 && args[0] is Numeric other)
-                switch (member.Substring("Operator".Length))
+            if (member.StartsWith("op") && args.Length > 0 && args[0] is Numeric other)
+                switch (member.Substring("op".Length))
                 {
                     case "Plus":
                         return OpPlus(vm, other);

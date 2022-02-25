@@ -82,7 +82,7 @@ namespace KScr.Runtime
             }
             else
             {
-                Console.WriteLine("with exit message: " + result.ToString(IObject.ToString_LongName));
+                Console.WriteLine("with exit message: " + result);
             }
 
             PressToExit();

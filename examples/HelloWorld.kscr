@@ -2,7 +2,7 @@ package org.comroid.kscr.test;
 
 public class HelloWorld {
     public static void main() {
-        str text = "hello";
+        void text = "pi = " + (3.14159265359d + 2);
         stdio << text;
     }
 }
