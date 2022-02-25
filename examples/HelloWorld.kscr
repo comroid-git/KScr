@@ -2,6 +2,6 @@ package org.comroid.kscr.test;
 
 public class HelloWorld {
     public static void main() {
-        stdio << "ich mag züge";
+        stdio << "Hello World!";
     }
 }
