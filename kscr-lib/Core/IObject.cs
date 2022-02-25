@@ -1,4 +1,5 @@
 ﻿using KScr.Lib.Bytecode;
+using KScr.Lib.Model;
 using KScr.Lib.Store;
 
 namespace KScr.Lib.Core
@@ -13,7 +14,7 @@ namespace KScr.Lib.Core
         long ObjectId { get; }
         bool Primitive { get; }
 
-        Class Type { get; }
+        IClassInstance Type { get; }
 
         string ToString(short variant);
 
@@ -31,7 +32,7 @@ namespace KScr.Lib.Core
 
         public long ObjectId => Value?.ObjectId ?? long.MinValue;
         public bool Primitive => Value?.Primitive ?? true;
-        public Class Type => Value?.Type ?? Class.VoidType;
+        public IClassInstance Type => Value?.Type ?? Class.VoidType;
 
         public string ToString(short variant)
         {
@@ -55,7 +56,7 @@ namespace KScr.Lib.Core
 
         public long ObjectId => Value?.ObjectId ?? long.MinValue;
         public bool Primitive => Value?.Primitive ?? true;
-        public Class Type => Value?.Type ?? Class.VoidType;
+        public IClassInstance Type => Value?.Type ?? Class.VoidType;
 
         public string ToString(short variant)
         {
@@ -79,7 +80,7 @@ namespace KScr.Lib.Core
 
         public long ObjectId => Value.ObjectId;
         public bool Primitive => Value.Primitive;
-        public Class Type => Value.Type;
+        public IClassInstance Type => Value.Type;
 
         public string ToString(short variant)
         {

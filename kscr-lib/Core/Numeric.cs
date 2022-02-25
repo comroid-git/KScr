@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
+using KScr.Lib.Model;
 using KScr.Lib.Store;
 
 namespace KScr.Lib.Core
@@ -73,7 +74,7 @@ namespace KScr.Lib.Core
 
         public long ObjectId => RuntimeBase.CombineHash(_objId, CreateKey(StringValue));
         public bool Primitive => true;
-        public Class Type => Class._NumericType(Mode);
+        public IClassInstance Type => Class._NumericType(Mode);
 
         public string ToString(short variant)
         {

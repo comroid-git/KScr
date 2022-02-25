@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using KScr.Lib.Bytecode;
+using KScr.Lib.Model;
 using KScr.Lib.Store;
 
 namespace KScr.Lib.Core
@@ -21,7 +22,7 @@ namespace KScr.Lib.Core
         public ObjectRef[] List { get; }
         public long ObjectId { get; }
         public bool Primitive => true;
-        public Class Type => Class.ArrayType;
+        public IClassInstance Type => Class.ArrayType;
         public string ToString(short variant) => string.Join(", ", List.Select(it => it.Value?.ToString(variant)));
 
         public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args)

@@ -3,17 +3,22 @@ using KScr.Lib.Bytecode;
 
 namespace KScr.Lib.Model
 {
-    public interface IClassInfo
+    public interface ITypeInfo
+    {
+        string FullName { get; }
+    }
+    
+    public interface IClassInfo : ITypeInfo
     {
         MemberModifier Modifier { get; }
         ClassType ClassType { get; }
-        string FullName { get; }
     }
 
     public interface IClassInstance : IClassInfo
     {
         List<TypeParameter> TypeParameters { get; }
-        List<TypeParameter.Instance>? TypeParameterInstances { get; }
+        TypeParameter.Instance[] TypeParameterInstances { get; }
+        Class.Instance CreateInstance(params IClassInstance[] typeParameters);
     }
 
     public struct ClassInfo : IClassInfo
@@ -46,10 +51,17 @@ namespace KScr.Lib.Model
         Annotation
     }
 
-    public interface ITypeParameterDeclaration
+    public interface ITypeParameterInfo : ITypeInfo
     {
-        string Name { get; }
+    }
 
+    public interface ITypeParameterInstance : ITypeParameterInfo
+    {
+        IClassInstance? TargetType { get; }
+    }
+
+    public interface ITypeParameter : ITypeParameterInstance
+    {
         TypeParameterSpecializationType Specialization { get; }
         IClass SpecializationTarget { get; }
     }
