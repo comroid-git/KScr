@@ -1,6 +1,6 @@
 package org.comroid.kscr.test;
 
-public class SomeObject {
+public class ToStringTest {
     public num x;
     public num y;
     // the result of z will ALWAYS be up-to-date with the values of x and y 
@@ -18,9 +18,7 @@ public class SomeObject {
         }
         return "invalid alternative";
     }
-}
-
-public class ToStringTest {
+    
     public static void main() {
         void obj = new SomeObject();
         
