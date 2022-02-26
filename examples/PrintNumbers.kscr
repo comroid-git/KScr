@@ -9,6 +9,9 @@ public class PrintNumbers {
         forn (i : range) {
             stdio << i;
         }
+        
+        stdio << "length of ABC is " + "ABC".length();
+        
         // and then fails because i went out of scope
         stdio << i;
     }
