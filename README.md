@@ -3,8 +3,7 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 
 Working Code Example Files:
 - [x] `HelloWorld.kscr`
-- [ ] `NumericReturn.kscr`
-- [ ] `PrintNumbers.kscr`
+- [x] `PrintNumbers.kscr`
 - [x] `MathFromIO.kscr`
 - [ ] `ToStringTest.kscr` (requires objects)
 - [ ] `File.kscr` (core class; requires native class members)

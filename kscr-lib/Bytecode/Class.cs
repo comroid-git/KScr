@@ -14,33 +14,36 @@ namespace KScr.Lib.Bytecode
     {
         private const MemberModifier LibClassModifier =
             MemberModifier.Public | MemberModifier.Static | MemberModifier.Final;
+        private static readonly Package LibClassPackage = Package.RootPackage.GetOrCreatePackage("org")
+            .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr").GetOrCreatePackage("core");
 
         public const string StaticInitializer = "initializer_static";
-        public static readonly Class VoidType = new(Package.RootPackage, "void", LibClassModifier);
-        public static readonly Class StringType = new(Package.RootPackage, "str", LibClassModifier);
+        public static readonly Class VoidType = new(LibClassPackage, "void", LibClassModifier);
+        public static readonly Class StringType = new(LibClassPackage, "str", LibClassModifier);
 
-        [Obsolete] public static readonly Class ArrayType = new(Package.RootPackage, "array", LibClassModifier);
+        [Obsolete] public static readonly Class ArrayType = new(LibClassPackage, "array", LibClassModifier);
+        public static readonly Class RangeType = new(LibClassPackage, "range", LibClassModifier);
 
-        public static readonly Class NumericType = new(Package.RootPackage, "num", LibClassModifier)
+        public static readonly Class NumericType = new(LibClassPackage, "num", LibClassModifier)
             { TypeParameters = { new TypeParameter("T") } };
 
         public static readonly IClassInstance NumericByteType =
-            NumericType.CreateInstance(new Class(Package.RootPackage, "byte", LibClassModifier));
+            NumericType.CreateInstance(new Class(LibClassPackage, "byte", LibClassModifier));
 
         public static readonly IClassInstance NumericShortType =
-            NumericType.CreateInstance(new Class(Package.RootPackage, "short", LibClassModifier));
+            NumericType.CreateInstance(new Class(LibClassPackage, "short", LibClassModifier));
 
         public static readonly IClassInstance NumericIntegerType =
-            NumericType.CreateInstance(new Class(Package.RootPackage, "int", LibClassModifier));
+            NumericType.CreateInstance(new Class(LibClassPackage, "int", LibClassModifier));
 
         public static readonly IClassInstance NumericLongType =
-            NumericType.CreateInstance(new Class(Package.RootPackage, "long", LibClassModifier));
+            NumericType.CreateInstance(new Class(LibClassPackage, "long", LibClassModifier));
 
         public static readonly IClassInstance NumericFloatType =
-            NumericType.CreateInstance(new Class(Package.RootPackage, "float", LibClassModifier));
+            NumericType.CreateInstance(new Class(LibClassPackage, "float", LibClassModifier));
 
         public static readonly IClassInstance NumericDoubleType =
-            NumericType.CreateInstance(new Class(Package.RootPackage, "double", LibClassModifier));
+            NumericType.CreateInstance(new Class(LibClassPackage, "double", LibClassModifier));
 
         public Class(Package package, string name, MemberModifier modifier = MemberModifier.Protected,
             ClassType type = ClassType.Class) : base(package, name, modifier)
@@ -136,6 +139,8 @@ namespace KScr.Lib.Bytecode
                 index += NewLineBytes.Length;
             }
         }
+
+        public override string ToString() => FullName;
 
         public static Class Read(RuntimeBase vm, FileInfo file, Package package)
         {

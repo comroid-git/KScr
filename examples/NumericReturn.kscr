@@ -1,7 +1,0 @@
-package org.comroid.kscr.test;
-
-public class NumericReturn {
-    public static num main() {
-        return 2;
-    }
-}

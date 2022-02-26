@@ -17,15 +17,17 @@ namespace KScr.Lib.Store
         {
             get
             {
-                string? key = CreateKey(ctx, varctx, name);
+                string key = CreateKey(ctx, varctx, name);
                 if (_cache.ContainsKey(key))
                     return _cache[key];
                 return null;
             }
             set
             {
-                string? key = CreateKey(ctx, varctx, name);
-                _cache[key] = value;
+                string key = CreateKey(ctx, varctx, name);
+                if (value == null)
+                    _cache.TryRemove(key, out _);
+                else _cache[key] = value;
             }
         }
 

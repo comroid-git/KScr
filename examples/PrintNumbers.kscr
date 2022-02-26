@@ -1,9 +1,12 @@
 package org.comroid.kscr.test;
 
 public class PrintNumbers {
+    // prints numbers 0 to 11
     public static void main() {
-        fori (0, 10) {
+        forn (i : 0~12) {
             stdio << i;
         }
+        // and then fails because i is out of scope
+        stdio << i;
     }
 }

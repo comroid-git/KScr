@@ -6,6 +6,7 @@ using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 using Array = System.Array;
+using Range = KScr.Lib.Core.Range;
 using String = KScr.Lib.Core.String;
 
 namespace KScr.Lib.Bytecode
@@ -94,7 +95,7 @@ namespace KScr.Lib.Bytecode
         public virtual State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
         {
             ObjectRef? buf = null;
-            State state;
+            State state = State.Normal;
             switch (Type)
             {
                 case StatementComponentType.Expression:
@@ -112,6 +113,12 @@ namespace KScr.Lib.Bytecode
                             return State.Normal;
                         case BytecodeType.LiteralFalse:
                             rev = vm.ConstantFalse;
+                            return State.Normal;
+                        case BytecodeType.LiteralRange:
+                            var bs = BitConverter.GetBytes(ByteArg);
+                            int start = BitConverter.ToInt32(new[]{bs[0],bs[1],bs[2],bs[3]}),
+                                end = BitConverter.ToInt32(new[]{bs[4],bs[5],bs[6],bs[7]});
+                            rev = Range.Instance(vm, start, end);
                             return State.Normal;
                         case BytecodeType.Null:
                             rev = vm.ConstantVoid;
@@ -139,7 +146,7 @@ namespace KScr.Lib.Bytecode
                             if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new InternalException("Invalid assignment; no Expression found");
                             buf = null;
-                            state = SubComponent.Evaluate(vm, this, ref buf);
+                            state = SubComponent.Evaluate(vm, this, ref buf!);
                             rev.Value = buf?.Value;
                             return state;
                         case BytecodeType.Return:
@@ -149,12 +156,29 @@ namespace KScr.Lib.Bytecode
                             state = SubComponent.Evaluate(vm, this, ref rev);
                             return state == State.Normal ? State.Return : state;
                         case BytecodeType.StmtIf:
-                            state = SubStatement!.Evaluate(vm, this, ref buf);
+                            state = SubStatement!.Evaluate(vm, this, ref buf!);
                             if (buf.ToBool())
                                 state = InnerCode!.Evaluate(vm, this, ref rev);
                             else if (SubComponent?.CodeType == BytecodeType.StmtElse)
                                 state = SubComponent!.InnerCode!.Evaluate(vm, this, ref rev);
                             return state;
+                        case BytecodeType.StmtForN:
+                            var n = vm[VariableContext.Local, Arg] = new ObjectRef(Class.NumericIntegerType);
+                            state = SubStatement!.Evaluate(vm, this, ref buf!);
+                            if (state != State.Normal)
+                                break;
+                            var range = (buf.Value as Range)!;
+                            n.Value = range.start(vm).Value;
+                            do
+                            {
+                                state = InnerCode!.Evaluate(vm, null, ref rev);
+                                n.Value = range.accumulate(vm, (n.Value as Numeric)!).Value;
+                            } while (state == State.Normal && range.test(vm, (n.Value as Numeric)!).ToBool());
+
+                            vm[VariableContext.Local, Arg] = null;
+                            return state;
+                        default:
+                            throw new NotImplementedException();
                     }
 
                     break;
@@ -316,7 +340,7 @@ namespace KScr.Lib.Bytecode
                     throw new ArgumentOutOfRangeException();
             }
 
-            return State.Normal;
+            return state;
         }
 
         public override void Write(Stream stream)

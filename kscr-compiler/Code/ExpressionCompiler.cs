@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
@@ -58,6 +59,8 @@ namespace KScr.Compiler.Code
                     };
                     break;
                 case TokenType.LiteralNum:
+                    if (ctx.NextToken?.Type == TokenType.Tilde)
+                        return this; // parse ranges completely
                     if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
                         throw new CompilerException("Invalid Numeric literal; expected " + ctx.Statement.TargetType);
                     var numstr = Numeric.Compile(vm, ctx.Token.Arg!).Value!.ToString(IObject.ToString_LongName);
@@ -95,6 +98,27 @@ namespace KScr.Compiler.Code
                         Type = StatementComponentType.Expression,
                         CodeType = BytecodeType.LiteralFalse
                     };
+                    break;
+                // range literal
+                case TokenType.Tilde:
+                    int start = -1, end = -1;
+                    if (ctx.PrevToken?.Type == TokenType.LiteralNum)
+                        start = int.Parse(ctx.PrevToken.Arg!);
+                    if (ctx.NextToken?.Type == TokenType.LiteralNum)
+                        end = int.Parse(ctx.NextToken.Arg!);
+                    var sb = BitConverter.GetBytes(start);
+                    var eb = BitConverter.GetBytes(end);
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Expression,
+                        CodeType = BytecodeType.LiteralRange,
+                        ByteArg = BitConverter.ToUInt64(new[]{
+                            sb[0],sb[1],sb[2],sb[3],
+                            eb[0],eb[1],eb[2],eb[3]
+                        })
+                    };
+                    if (end != -1)
+                        ctx.TokenIndex += 1;
                     break;
                 // equality operators
                 case TokenType.ParDiamondOpen:

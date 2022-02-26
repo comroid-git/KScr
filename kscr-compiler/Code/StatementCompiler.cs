@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
@@ -52,7 +53,7 @@ namespace KScr.Compiler.Code
                     return this;
                 case TokenType.If:
                     if (ctx.NextToken?.Type != TokenType.ParRoundOpen)
-                        throw new CompilerException("Invalid if-Statement; missing parentheses");
+                        throw new CompilerException("Invalid if-Statement; missing condition");
                     if (ctx.Statement != null && ctx.Statement.Main.Count > 0)
                         throw new CompilerException("Invalid if-Statement; must be first statement");
                     if (ctx.Statement == null)
@@ -104,6 +105,57 @@ namespace KScr.Compiler.Code
                     };
                     ctx.TokenIndex = subctx.TokenIndex;
                     return this;
+                case TokenType.For:
+                    throw new NotImplementedException();
+                case TokenType.ForN:
+                    if (ctx.NextToken?.Type != TokenType.ParRoundOpen)
+                        throw new CompilerException("Invalid forn-Statement; missing specification");
+                    if (ctx.ExecutableCode.Main.Count > 0 && ctx.Statement.Main.Count > 0)
+                        throw new CompilerException("Invalid forn-Statement; must be first statement");
+                    
+                    if (ctx.ExecutableCode.Main.Count == 0)
+                        ctx.Statement = new Statement
+                        {
+                            Type = StatementComponentType.Code,
+                            CodeType = BytecodeType.StmtForN
+                        };
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.StmtForN
+                    };
+                    
+                    ctx.TokenIndex += 2;
+                    // parse n's name
+                    if (ctx.Token.Type != TokenType.Word)
+                        throw new CompilerException("Invalid forn-Statement; missing n Identifier");
+                    ctx.LastComponent!.Arg = ctx.Token.Arg!;
+
+                    // parse range
+                    ctx.TokenIndex += 2;
+                    if (ctx.PrevToken!.Type != TokenType.Colon)
+                        throw new CompilerException("Invalid forn-Statement; missing delimiter colon");
+                    subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
+                    subctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.Expression,
+                        TargetType = Lib.Bytecode.Class.RangeType
+                    };
+                    CompilerLoop(vm, new ExpressionCompiler(this, false, TokenType.ParRoundClose), ref subctx);
+                    ctx.LastComponent!.SubStatement = subctx.Statement;
+                    ctx.TokenIndex = subctx.TokenIndex;
+
+                    // parse body
+                    ctx.TokenIndex += 1;
+                    subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    CompilerLoop(vm, new StatementCompiler(this, false,
+                        ctx.Token.Type == TokenType.ParAccOpen ? TokenType.ParAccClose : TokenType.Terminator), ref subctx);
+                    ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
+                    ctx.TokenIndex = subctx.TokenIndex;
+                    return this;
+                case TokenType.ForEach:
+                    throw new NotImplementedException();
                 case TokenType.ParAccClose:
                     _active = false;
                     return this;

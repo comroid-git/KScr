@@ -23,6 +23,7 @@ namespace KScr.Lib.Model
         LiteralString = 0x0000_0200 | Expression,
         LiteralTrue = 0x0000_0400 | Expression,
         LiteralFalse = 0x0000_0800 | Expression,
+        LiteralRange = 0x0F00_0000 | Expression,
         ExpressionVariable = 0x0000_0F00 | Expression,
 
         OperatorPlus = 0x0000_1000 | Operator,

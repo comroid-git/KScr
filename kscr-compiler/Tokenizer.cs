@@ -236,6 +236,8 @@ namespace KScr.Compiler
                     token = new Token(TokenType.While) { Complete = true };
                     return;
                 case "for":
+                    if (n is 'n' or 'e')
+                        break;
                     token = new Token(TokenType.For) { Complete = true };
                     return;
                 case "forn":
