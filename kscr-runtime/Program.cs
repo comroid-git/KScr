@@ -23,6 +23,7 @@ namespace KScr.Runtime
         {
             var state = State.Normal;
             var yield = VM.ConstantVoid.Value!;
+            long compileTime = -1, executeTime = -1;
 
             if (args.Length == 0)
             {
@@ -37,17 +38,26 @@ namespace KScr.Runtime
                 switch (args[0])
                 {
                     case "compile":
+                        compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                         VM.CompileFiles(files);
+                        compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - compileTime;
                         WriteClasses(DefaultOutput);
                         break;
                     case "execute":
+                        compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                         VM.CompileFiles(files);
+                        compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - compileTime;
+                        
+                        executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                         yield = Run(VM, ref state);
+                        executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - executeTime;
                         break;
                     case "run":
                         string classpath = args.Length >= 2 ? args[1] : Directory.GetCurrentDirectory();
                         Package.Read(VM, new DirectoryInfo(classpath));
+                        executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                         yield = Run(VM, ref state);
+                        executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - executeTime;
                         break;
                     default:
                         Console.WriteLine("Invalid arguments: " + string.Join(' ', args));
@@ -57,7 +67,7 @@ namespace KScr.Runtime
                 files.Dispose();
             }
 
-            return HandleExit(state, yield);
+            return HandleExit(state, yield, compileTime, executeTime);
         }
 
         private static void StdIoMode(ref State state, ref IObject yield)
@@ -117,8 +127,17 @@ namespace KScr.Runtime
             //Console.WriteLine($"Type: {result?.Type} - Value: {result?.ToString(0)}");
         }
 
-        private static int HandleExit(State state, IObject? result)
+        private static int HandleExit(State state, IObject? result, long compileTime = -1, long executeTime = -1)
         {
+            if (compileTime != -1)
+                Console.Write($"Compile took {compileTime}ms");
+            if (compileTime != -1 && executeTime != -1)
+                Console.Write("; ");
+            if (executeTime != -1)
+                Console.Write($"Execute took {executeTime}ms");
+            if (compileTime != -1 || executeTime != -1)
+                Console.WriteLine();
+            
             switch (state)
             {
                 case State.Normal:
