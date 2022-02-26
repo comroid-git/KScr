@@ -45,11 +45,11 @@ namespace KScr.Compiler.Code
                         Type = StatementComponentType.Expression,
                         TargetType = ctx.Statement.TargetType
                     };
-                    CompilerLoop(vm, new ExpressionCompiler(this), ref subctx);
+                    CompilerLoop(vm, new ExpressionCompiler(this, false, TokenType.ParRoundClose), ref subctx);
                     ctx.LastComponent!.SubStatement = subctx.Statement;
-                    ctx.TokenIndex = subctx.TokenIndex - 1;
+                    ctx.TokenIndex = subctx.TokenIndex;
                     // finished
-                    _active = false;
+                    //_active = false;
                     return this;
                 case TokenType.LiteralNull:
                     ctx.Component = new StatementComponent
@@ -178,6 +178,7 @@ namespace KScr.Compiler.Code
                     }
                     break;
                 case TokenType.OperatorMinus:
+                    /* TODO
                     if (ctx.NextToken!.Type is TokenType.Word or TokenType.LiteralNum)
                     {
                         ctx.Component = new StatementComponent
@@ -187,7 +188,9 @@ namespace KScr.Compiler.Code
                         };
                         ctx.NextIntoSub = true;
                     }
-                    else if (ctx.NextToken!.Type is TokenType.OperatorMinus)
+                    else
+                    */
+                    if (ctx.NextToken!.Type is TokenType.OperatorMinus)
                     {
                         if (ctx.PrevToken!.Type is TokenType.Word)
                         {

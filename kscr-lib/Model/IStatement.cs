@@ -6,6 +6,7 @@ namespace KScr.Lib.Model
     [Flags]
     public enum StatementComponentType : ushort
     {
+        Undefined = 0,
         // basetypes
 
         // basic compile-constant expression:

@@ -159,17 +159,20 @@ namespace KScr.Lib.Bytecode
                             break;
                         case BytecodeType.StmtIf:
                             state = SubStatement!.Evaluate(vm, this, ref buf!);
+                            vm.Stack.StepDown(Class.VoidType, "if");
                             if (buf.ToBool())
                                 state = InnerCode!.Evaluate(vm, this, ref rev);
                             else if (SubComponent?.CodeType == BytecodeType.StmtElse)
                                 state = SubComponent!.InnerCode!.Evaluate(vm, this, ref rev);
+                            vm.Stack.StepUp();
                             break;
                         case BytecodeType.StmtForN:
-                            var n = vm[VariableContext.Local, Arg] = new ObjectRef(Class.NumericIntegerType);
                             state = SubStatement!.Evaluate(vm, this, ref buf!);
                             if (state != State.Normal)
                                 break;
                             var range = (buf.Value as Range)!;
+                            vm.Stack.StepDown(Class.VoidType, "forn");
+                            var n = vm[VariableContext.Local, Arg] = new ObjectRef(Class.NumericIntegerType);
                             n.Value = range.start(vm).Value;
                             do
                             {
@@ -178,6 +181,7 @@ namespace KScr.Lib.Bytecode
                             } while (state == State.Normal && range.test(vm, (n.Value as Numeric)!).ToBool());
 
                             vm[VariableContext.Local, Arg] = null;
+                            vm.Stack.StepUp();
                             break;
                         default:
                             throw new NotImplementedException();
@@ -187,6 +191,7 @@ namespace KScr.Lib.Bytecode
                 case StatementComponentType.Operator:
                     if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                         throw new InternalException("Invalid operator; no right-hand Expression found");
+                    buf = rev;
                     state = SubComponent.Evaluate(vm, this, ref buf!);
                     if (state != State.Normal)
                         break;
@@ -238,8 +243,8 @@ namespace KScr.Lib.Bytecode
                                 throw new InternalException(
                                     "Invalid binary operator; missing right numeric operand");
                             // try to use overrides
-                            if (op == Operator.Plus && rev.Value?.Type.Name == "str" 
-                                || (rev.Value?.Type.BaseClass.DeclaredMembers.ContainsKey("op" + op) ?? false))
+                            if (op == Operator.Plus && rev?.Value?.Type.Name == "str" 
+                                || (rev?.Value?.Type.BaseClass.DeclaredMembers.ContainsKey("op" + op) ?? false))
                             {
                                 rev = rev.Value!.Invoke(vm, "op" + op, buf.Value)!;
                             } 
@@ -249,7 +254,7 @@ namespace KScr.Lib.Bytecode
                                 if (rev.Value is not Numeric left3)
                                     throw new InternalException(
                                         "Invalid binary operator; missing left numeric operand");
-                                rev = left3.Operator(vm, op, buf.Value as Numeric);
+                                rev = left3.Operator(vm, op, (buf.Value as Numeric)!);
                                 break;
                             }
 
