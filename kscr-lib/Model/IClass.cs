@@ -16,6 +16,7 @@ namespace KScr.Lib.Model
         ClassType ClassType { get; }
 
         bool CanHold(IClassInstance? type);
+        bool Primitive { get; }
     }
 
     public interface IClassInstance : IClassInfo
@@ -45,6 +46,8 @@ namespace KScr.Lib.Model
         {
             throw new InvalidOperationException("Cannot check inheritance of info struct");
         }
+
+        public bool Primitive => false;
     }
 
     public interface IClass : IClassInstance

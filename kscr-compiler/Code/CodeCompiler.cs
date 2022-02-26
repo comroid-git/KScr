@@ -50,8 +50,8 @@ namespace KScr.Compiler.Code
                     CompileDeclaration(ctx, Lib.Bytecode.Class.StringType);
                     return this;
                 case TokenType.Dot:
-                    // field call
-                    ctx.Component = new StatementComponent
+                    // member call
+                    ctx.LastComponent!.PostComponent = new StatementComponent
                     {
                         Type = StatementComponentType.Provider,
                         CodeType = BytecodeType.Call,
@@ -61,10 +61,11 @@ namespace KScr.Compiler.Code
                     if (ctx.NextToken?.Type == TokenType.ParRoundOpen)
                     {
                         // method call, parse parameter expressions
+                        ctx.TokenIndex += 2;
                         subctx = new CompilerContext(ctx, CompilerType.CodeParameterExpression);
                         CompilerLoop(vm, new ParameterExpressionCompiler(this), ref subctx);
-                        ctx.LastComponent!.SubComponent = subctx.Component;
-                        ctx.TokenIndex = subctx.TokenIndex;
+                        ctx.LastComponent!.PostComponent.SubComponent = subctx.Component;
+                        ctx.TokenIndex = subctx.TokenIndex - 1;
                     }
 
                     break;
@@ -155,6 +156,7 @@ namespace KScr.Compiler.Code
                     }
 
                     break;
+                case TokenType.ParAccClose:
                 case TokenType.Terminator:
                     ctx.Statement = new Statement();
                     return this;

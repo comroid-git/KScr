@@ -18,36 +18,37 @@ namespace KScr.Lib.Bytecode
             .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr").GetOrCreatePackage("core");
 
         public const string StaticInitializer = "initializer_static";
-        public static readonly Class VoidType = new(LibClassPackage, "void", LibClassModifier);
-        public static readonly Class StringType = new(LibClassPackage, "str", LibClassModifier);
+        public static readonly Class VoidType = new(LibClassPackage, "void", true, LibClassModifier);
+        public static readonly Class StringType = new(LibClassPackage, "str", true, LibClassModifier);
 
-        [Obsolete] public static readonly Class ArrayType = new(LibClassPackage, "array", LibClassModifier);
-        public static readonly Class RangeType = new(LibClassPackage, "range", LibClassModifier);
+        [Obsolete] public static readonly Class ArrayType = new(LibClassPackage, "array", true, LibClassModifier);
+        public static readonly Class RangeType = new(LibClassPackage, "range", true, LibClassModifier);
 
-        public static readonly Class NumericType = new(LibClassPackage, "num", LibClassModifier)
+        public static readonly Class NumericType = new(LibClassPackage, "num", true, LibClassModifier)
             { TypeParameters = { new TypeParameter("T") } };
 
         public static readonly IClassInstance NumericByteType =
-            NumericType.CreateInstance(new Class(LibClassPackage, "byte", LibClassModifier));
+            NumericType.CreateInstance(new Class(LibClassPackage, "byte", true, LibClassModifier));
 
         public static readonly IClassInstance NumericShortType =
-            NumericType.CreateInstance(new Class(LibClassPackage, "short", LibClassModifier));
+            NumericType.CreateInstance(new Class(LibClassPackage, "short", true, LibClassModifier));
 
         public static readonly IClassInstance NumericIntegerType =
-            NumericType.CreateInstance(new Class(LibClassPackage, "int", LibClassModifier));
+            NumericType.CreateInstance(new Class(LibClassPackage, "int", true, LibClassModifier));
 
         public static readonly IClassInstance NumericLongType =
-            NumericType.CreateInstance(new Class(LibClassPackage, "long", LibClassModifier));
+            NumericType.CreateInstance(new Class(LibClassPackage, "long", true, LibClassModifier));
 
         public static readonly IClassInstance NumericFloatType =
-            NumericType.CreateInstance(new Class(LibClassPackage, "float", LibClassModifier));
+            NumericType.CreateInstance(new Class(LibClassPackage, "float", true, LibClassModifier));
 
         public static readonly IClassInstance NumericDoubleType =
-            NumericType.CreateInstance(new Class(LibClassPackage, "double", LibClassModifier));
+            NumericType.CreateInstance(new Class(LibClassPackage, "double", true, LibClassModifier));
 
-        public Class(Package package, string name, MemberModifier modifier = MemberModifier.Protected,
+        public Class(Package package, string name, bool primitive, MemberModifier modifier = MemberModifier.Protected,
             ClassType type = ClassType.Class) : base(package, name, modifier)
         {
+            Primitive = primitive;
             ClassType = type;
             DefaultInstance = CreateInstance(TypeParameters.Select(tp => tp.SpecializationTarget)
                 .Cast<IClassInstance>().ToArray());
@@ -80,6 +81,8 @@ namespace KScr.Lib.Bytecode
         {
             return Name == "void" || type?.BaseClass == BaseClass;
         }
+
+        public bool Primitive { get; }
 
         public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
         {
@@ -144,7 +147,7 @@ namespace KScr.Lib.Bytecode
 
         public static Class Read(RuntimeBase vm, FileInfo file, Package package)
         {
-            var cls = new Class(package, file.Name);
+            var cls = new Class(package, file.Name, false);
             cls.Load(vm, File.ReadAllBytes(file.FullName));
             return cls;
         }
@@ -184,6 +187,8 @@ namespace KScr.Lib.Bytecode
             {
                 return BaseClass.CanHold(type);
             }
+
+            public bool Primitive => BaseClass.Primitive;
         }
     }
 

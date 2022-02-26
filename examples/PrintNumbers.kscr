@@ -3,10 +3,13 @@ package org.comroid.kscr.test;
 public class PrintNumbers {
     // prints numbers 0 to 11
     public static void main() {
-        forn (i : 0~12) {
+        void range = 0~12;
+        stdio << "print numbers " + range.start() + " to " + range.end() + ":";
+    
+        forn (i : range) {
             stdio << i;
         }
-        // and then fails because i is out of scope
+        // and then fails because i went out of scope
         stdio << i;
     }
 }

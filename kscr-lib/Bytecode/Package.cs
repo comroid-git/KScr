@@ -80,7 +80,7 @@ namespace KScr.Lib.Bytecode
                 return cls;
             if (mod == MemberModifier.None)
                 return null;
-            Add(cls = new Class(this, name, mod));
+            Add(cls = new Class(this, name, false, mod));
             return cls;
         }
 

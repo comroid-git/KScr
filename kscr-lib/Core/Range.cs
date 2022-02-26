@@ -43,6 +43,8 @@ namespace KScr.Lib.Core
                     return Start == other.Start && End == other.End ? vm.ConstantTrue : vm.ConstantFalse;
                 case "start": // get first value
                     return start(vm);
+                case "end": // get last value
+                    return end(vm);
                 case "test": // can accumulate?
                     if (args[0] is not Numeric i)
                         throw new ArgumentException("Invalid Argument; expected num");
@@ -57,6 +59,7 @@ namespace KScr.Lib.Core
         }
         
         public ObjectRef start(RuntimeBase vm) => Numeric.Constant(vm, Start);
+        public ObjectRef end(RuntimeBase vm) => Numeric.Constant(vm, End);
         public ObjectRef test(RuntimeBase vm, Numeric n) => (Decremental ? n.IntValue > End : n.IntValue < End) ? vm.ConstantTrue : vm.ConstantFalse;
         public ObjectRef accumulate(RuntimeBase vm, Numeric n) => Decremental ? n.OpMinus(vm, Numeric.One) : n.OpPlus(vm, Numeric.One);
 

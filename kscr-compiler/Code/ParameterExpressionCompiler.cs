@@ -7,6 +7,8 @@ namespace KScr.Compiler.Code
 {
     public sealed class ParameterExpressionCompiler : AbstractCompiler
     {
+        private bool _active = true;
+
         public ParameterExpressionCompiler(ICompiler parent) : base(parent)
         {
         }
@@ -33,7 +35,10 @@ namespace KScr.Compiler.Code
                 ctx.TokenIndex += 1;
             }
 
-            return Parent;
+            _active = false;
+            return this;
         }
+
+        public override bool Active => _active;
     }
 }
