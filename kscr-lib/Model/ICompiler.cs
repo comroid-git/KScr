@@ -105,6 +105,7 @@ namespace KScr.Lib.Model
         public readonly CompilerType Type;
         public int ComponentIndex;
         public int StatementIndex;
+        private StatementComponent? _lastComponent;
 
         public CompilerContext()
             : this(null, CompilerType.Package, null!, Package.RootPackage, null!, null!)
@@ -194,7 +195,7 @@ namespace KScr.Lib.Model
                 {
                     NextIntoSub = false;
                     value.Statement = Statement;
-                    Component.SubComponent = LastComponent = value;
+                    LastComponent.SubComponent = LastComponent = value;
                 }
                 else
                 {
@@ -208,7 +209,13 @@ namespace KScr.Lib.Model
             Statement.Main.Count < ComponentIndex + 1 ? Statement.Main[ComponentIndex + 1] : null;
 
         public StatementComponent? PrevComponent => ComponentIndex - 1 >= 0 ? Statement.Main[ComponentIndex - 1] : null;
-        public StatementComponent? LastComponent { get; private set; }
+
+        public StatementComponent? LastComponent
+        {
+            get => _lastComponent ?? Parent?.LastComponent;
+            private set => _lastComponent = value;
+        }
+
         public bool NextIntoSub { get; set; }
 
         public override string ToString()

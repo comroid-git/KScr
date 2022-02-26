@@ -9,7 +9,6 @@ namespace KScr.Compiler
     {
         private readonly List<IToken> Tokens = new();
 
-        private int artParLevel;
         private bool isLineComment;
         private bool isStringLiteral;
         private IToken? Token;
@@ -108,13 +107,6 @@ namespace KScr.Compiler
                 {
                     // terminator
                     case ';':
-                        if (artParLevel > 0)
-                            while (artParLevel-- > 0)
-                            {
-                                buf = new Token(TokenType.ParRoundClose) { Complete = true };
-                                PushToken(ref buf);
-                            }
-
                         token = new Token(TokenType.Terminator) { Complete = true };
                         return;
                     // logistical symbols
@@ -123,9 +115,6 @@ namespace KScr.Compiler
                             token = new Token(TokenType.Dot) { Complete = true };
                         else
                             LexicalToken(isWhitespace, ref str, c, n, ref i);
-                        break;
-                    case ':':
-                        token = new Token(TokenType.Colon) { Complete = true };
                         break;
                     case ',':
                         token = new Token(TokenType.Comma) { Complete = true };
@@ -145,6 +134,27 @@ namespace KScr.Compiler
                         break;
                     case '%':
                         token = new Token(TokenType.OperatorModulus) { Complete = true };
+                        break;
+                    case '^':
+                        token = new Token(TokenType.Circumflex) { Complete = true };
+                        break;
+                    case '&':
+                        token = new Token(TokenType.Ampersand) { Complete = true };
+                        break;
+                    case '|':
+                        token = new Token(TokenType.VertBar) { Complete = true };
+                        break;
+                    case '!':
+                        token = new Token(TokenType.Exclamation) { Complete = true };
+                        break;
+                    case '?':
+                        token = new Token(TokenType.Question) { Complete = true };
+                        break;
+                    case ':':
+                        token = new Token(TokenType.Colon) { Complete = true };
+                        break;
+                    case '~':
+                        token = new Token(TokenType.Tilde) { Complete = true };
                         break;
                     // parentheses
                     case '(':
@@ -203,17 +213,36 @@ namespace KScr.Compiler
             {
                 case "return":
                     token = new Token(TokenType.Return) { Complete = true };
-                    artParLevel++;
                     return;
                 case "throw":
                     token = new Token(TokenType.Throw) { Complete = true };
-                    artParLevel++;
                     return;
                 case "this":
                     token = new Token(TokenType.This) { Complete = true };
                     return;
                 case "stdio":
                     token = new Token(TokenType.StdIo) { Complete = true };
+                    return;
+                case "if":
+                    token = new Token(TokenType.If) { Complete = true };
+                    return;
+                case "else":
+                    token = new Token(TokenType.Else) { Complete = true };
+                    return;
+                case "do":
+                    token = new Token(TokenType.Do) { Complete = true };
+                    return;
+                case "while":
+                    token = new Token(TokenType.While) { Complete = true };
+                    return;
+                case "for":
+                    token = new Token(TokenType.For) { Complete = true };
+                    return;
+                case "forn":
+                    token = new Token(TokenType.ForN) { Complete = true };
+                    return;
+                case "foreach":
+                    token = new Token(TokenType.ForEach) { Complete = true };
                     return;
                 case "num":
                     token = new Token(TokenType.IdentNum) { Complete = true };

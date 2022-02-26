@@ -5,7 +5,7 @@ namespace KScr.Lib.Model
     [Flags]
     public enum BytecodeType : uint
     {
-        Terminator = 0xFFFF_FFFF,
+        Undefined = 0xFFFF_FFFF,
 
         Declaration = 0x0000_0001,
         Assignment = 0x0000_0002,
@@ -30,6 +30,15 @@ namespace KScr.Lib.Model
         OperatorMultiply = 0x0000_4000 | Operator,
         OperatorDivide = 0x0000_8000 | Operator,
         OperatorModulus = 0x0000_F000 | Operator,
+        
+        StmtIf = 0x0011_0000 | Statement,
+        StmtIfCond = 0x0012_0000 | Statement,
+        StmtElse = 0x0014_0000 | Statement,
+        StmtDo = 0x0021_0000 | Statement,
+        StmtWhile = 0x0022_0000 | Statement,
+        StmtFor = 0x0041_0000 | Statement,
+        StmtForN = 0x0042_0000 | Statement,
+        StmtForEach = 0x0044_0000 | Statement,
 
         StdioExpression = 0x0200_0000,
         ParameterExpression = 0x0100_0000,
@@ -38,5 +47,32 @@ namespace KScr.Lib.Model
         Throw = 0x4000_0000 | Statement,
         Return = 0x8000_0000 | Statement,
         Null = 0xF000_0000 | Expression
+    }
+
+    public enum Operator : ushort
+    {
+        Unknown = 0,
+        
+        // unary operators
+        IncrementRead,  // ++x
+        ReadIncrement,  // x++
+        DecrementRead,  // --x
+        ReadDecrement,  // x--
+        LogicalNot,     // !x
+        ArithmeticNot,  // -x
+
+        // binary operators
+        Plus,       // +
+        Minus,      // -
+        Multiply,   // *
+        Divide,     // /
+        Modulus,    // %
+        Circumflex, // ^
+        Equals,     // ==
+        NotEquals,  // !=
+        Greater,    // >
+        GreaterEq,  // >=
+        Lesser,     // <
+        LesserEq,   // <=
     }
 }

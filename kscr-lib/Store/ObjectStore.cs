@@ -137,5 +137,12 @@ namespace KScr.Lib.Store
                 throw new InvalidOperationException("Cannot insert value inte pipe");
             Stack[i] = value;
         }
+
+        public bool ToBool() => !(Value == IObject.Null // todo inspect
+                                  || ((Value as Numeric)?.ImplicitlyFalse ?? false)
+                                  || Value == null);
+
+        public ObjectRef LogicalNot(RuntimeBase vm) =>
+            ToBool() ? vm.ConstantFalse : vm.ConstantTrue;
     }
 }

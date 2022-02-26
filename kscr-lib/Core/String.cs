@@ -34,17 +34,14 @@ namespace KScr.Lib.Core
 
         public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args)
         {
-            if (member.StartsWith("op") && args[0] != null)
-                switch (member.Substring("op".Length))
-                {
-                    case "Plus":
-                        return OpPlus(vm, args[0]!.ToString(0));
-                }
-
             switch (member)
             {
                 case "toString":
                     return Instance(vm, Str);
+                case "equals":
+                    return args[0] is String other && Str == other.Str ? vm.ConstantTrue : vm.ConstantFalse;
+                case "opPlus":
+                    return OpPlus(vm, args[0]?.ToString(0) ?? "null");
                 case "length":
                     return Numeric.Constant(vm, Str.Length);
                 default:

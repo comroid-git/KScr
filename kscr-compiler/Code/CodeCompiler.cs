@@ -97,19 +97,21 @@ namespace KScr.Compiler.Code
                 case TokenType.OperatorMultiply:
                 case TokenType.OperatorDivide:
                 case TokenType.OperatorModulus:
-                    // simple operator component
-                    ctx.Component = new StatementComponent
+                case TokenType.Circumflex:
+                        // simple operator component; special cases handled in ExpressionCompiler
+                    ctx.Component = new()
                     {
                         Type = StatementComponentType.Operator,
-                        Arg = ctx.Token.Type switch
+                        ByteArg = (ulong)(ctx.Token.Type switch
                         {
-                            TokenType.OperatorPlus => "Plus",
-                            TokenType.OperatorMinus => "Minus",
-                            TokenType.OperatorMultiply => "Multiply",
-                            TokenType.OperatorDivide => "Divide",
-                            TokenType.OperatorModulus => "Modulus",
+                            TokenType.OperatorPlus => Operator.Plus,
+                            TokenType.OperatorMinus => Operator.Minus,
+                            TokenType.OperatorMultiply => Operator.Multiply,
+                            TokenType.OperatorDivide => Operator.Divide,
+                            TokenType.OperatorModulus => Operator.Modulus,
+                            TokenType.Circumflex => Operator.Circumflex,
                             _ => throw new ArgumentOutOfRangeException()
-                        }
+                        })
                     };
                     ctx.NextIntoSub = true;
                     break;
@@ -122,7 +124,7 @@ namespace KScr.Compiler.Code
                         {
                             Type = StatementComponentType.Emitter
                         };
-                        ctx.TokenIndex += 1;
+                        ctx.TokenIndex += 2;
                         subctx = new CompilerContext(ctx, CompilerType.PipeEmitter);
                         subctx.Statement = new Statement
                         {
@@ -132,7 +134,7 @@ namespace KScr.Compiler.Code
                         CompilerLoop(vm, new ExpressionCompiler(this, false,
                             TokenType.Terminator, TokenType.ParDiamondOpen, TokenType.ParDiamondClose), ref subctx);
                         ctx.LastComponent!.SubStatement = subctx.Statement;
-                        ctx.TokenIndex = subctx.TokenIndex;
+                        ctx.TokenIndex = subctx.TokenIndex - 1;
                     }
 
                     break;
@@ -144,12 +146,12 @@ namespace KScr.Compiler.Code
                         {
                             Type = StatementComponentType.Consumer
                         };
-                        ctx.TokenIndex += 1;
+                        ctx.TokenIndex += 2;
                         subctx = new CompilerContext(ctx, CompilerType.PipeConsumer);
                         CompilerLoop(vm, new ExpressionCompiler(this, false,
                             TokenType.Terminator, TokenType.ParDiamondOpen, TokenType.ParDiamondClose), ref subctx);
                         ctx.LastComponent!.SubStatement = subctx.Statement;
-                        ctx.TokenIndex = subctx.TokenIndex;
+                        ctx.TokenIndex = subctx.TokenIndex - 1;
                     }
 
                     break;
