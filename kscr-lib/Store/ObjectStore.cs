@@ -17,29 +17,19 @@ namespace KScr.Lib.Store
         {
             get
             {
-                string key = CreateKey(ctx, varctx, name);
-                if (_cache.ContainsKey(key))
-                    return _cache[key];
+                foreach (string key in ctx.CreateKeys(varctx, name))
+                    if (_cache.ContainsKey(key))
+                        return _cache[key];
                 return null;
             }
             set
             {
-                string key = CreateKey(ctx, varctx, name);
-                if (value == null)
-                    _cache.TryRemove(key, out _);
-                else _cache[key] = value;
+                foreach(string key in ctx.CreateKeys(varctx, name)){
+                    if (value == null && _cache.TryRemove(key, out _))
+                        return;
+                    else _cache[key] = value;
+                }
             }
-        }
-
-        private static string CreateKey(Stack ctx, VariableContext varctx, string name)
-        {
-            return varctx switch
-            {
-                VariableContext.Local => ctx.PrefixLocal + name,
-                VariableContext.This => ctx.PrefixThis + name,
-                VariableContext.Absolute => name,
-                _ => throw new ArgumentOutOfRangeException(nameof(varctx), varctx, null)
-            };
         }
 
         public void ClearLocals(Stack ctx)

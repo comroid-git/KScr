@@ -193,7 +193,7 @@ namespace KScr.Compiler.Code
                     ctx.TokenIndex = subctx.TokenIndex;
                     return this;
                 case TokenType.ForEach:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException("ForEach");
                 case TokenType.ParAccClose:
                     _active = false;
                     return this;

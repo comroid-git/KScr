@@ -3,18 +3,20 @@ package org.comroid.kscr.test;
 public class PrintNumbers {
     // prints numbers 0 to 11
     public static void main() {
-        void range = 0~12; // todo: support non-compile-time constants 
-        stdio << "print numbers " + range.start() + " to " + (range.end() - 1) + ":";
+        void range = 0~12; // todo: range as non-compile-time constant 
+        
+        stdio << "print numbers " + range.start() + " to (exclusive) " + (range.end() - 1 + 1) + ":";
         forn (i : range)
             stdio << i;
         
         stdio << "and now backwards bcs we're cool:";
-        for (int i = range.end(); i; i--)
+        for (int i = range.end(); i; --i)
             { stdio << i; }
         
         stdio << "length of ABC is " + "ABC".length();
         
         // forever print something to test for loop robustness
+        // todo: this does not compile. find solution for empty statements
         //for (;;) stdio << "abc";
     }
 }
