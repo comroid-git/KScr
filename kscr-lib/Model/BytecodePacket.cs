@@ -33,7 +33,7 @@ namespace KScr.Lib.Model
         OperatorModulus = 0x0000_F000 | Operator,
         
         StmtIf = 0x0011_0000 | Statement,
-        StmtIfCond = 0x0012_0000 | Statement,
+        StmtCond = 0x0012_0000 | Statement,
         StmtElse = 0x0014_0000 | Statement,
         StmtDo = 0x0021_0000 | Statement,
         StmtWhile = 0x0022_0000 | Statement,

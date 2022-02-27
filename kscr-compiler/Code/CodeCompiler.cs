@@ -93,13 +93,128 @@ namespace KScr.Compiler.Code
                         CodeType = BytecodeType.StdioExpression
                     };
                     break;
+                // equality operators
+                case TokenType.OperatorEquals:
+                    if (ctx.NextToken!.Type != TokenType.OperatorEquals)
+                        break;
+                    ctx.TokenIndex += 1;
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Operator,
+                        ByteArg = (ulong)Operator.Equals
+                    };
+                    ctx.NextIntoSub = true;
+                    break;
                 case TokenType.OperatorPlus:
+                    if (ctx.NextToken!.Type is TokenType.OperatorPlus)
+                    {
+                        if (ctx.PrevToken!.Type is TokenType.Word)
+                        {
+                            ctx.Component = new StatementComponent
+                            {
+                                Type = StatementComponentType.Operator,
+                                ByteArg = (ulong)Operator.ReadIncrement
+                            };
+                            ctx.TokenIndex += 1;
+                            break;
+                        }
+                        ctx.TokenIndex += 1;
+                        if (ctx.NextToken!.Type is TokenType.Word)
+                        {
+                            ctx.Component = new StatementComponent
+                            {
+                                Type = StatementComponentType.Operator,
+                                ByteArg = (ulong)Operator.IncrementRead
+                            };
+                            ctx.NextIntoSub = true;
+                        } else ctx.TokenIndex -= 1;
+                    }
+                    else
+                    {
+                        // simple operator component; special cases handled in ExpressionCompiler
+                        ctx.Component = new()
+                        {
+                            Type = StatementComponentType.Operator,
+                            ByteArg = (ulong)Operator.Plus
+                        };
+                        ctx.NextIntoSub = true;
+                    }
+
+                    break;
                 case TokenType.OperatorMinus:
+                    /* TODO
+                    if (ctx.NextToken!.Type is TokenType.Word or TokenType.LiteralNum)
+                    {
+                        ctx.Component = new StatementComponent
+                        {
+                            Type = StatementComponentType.Operator,
+                            ByteArg = (ulong)Operator.ArithmeticNot
+                        };
+                        ctx.NextIntoSub = true;
+                    }
+                    else
+                    */
+                    if (ctx.NextToken!.Type is TokenType.OperatorMinus)
+                    {
+                        if (ctx.PrevToken!.Type is TokenType.Word)
+                        {
+                            ctx.Component = new StatementComponent
+                            {
+                                Type = StatementComponentType.Operator,
+                                ByteArg = (ulong)Operator.ReadDecrement
+                            };
+                            ctx.TokenIndex += 1;
+                            break;
+                        }
+                        ctx.TokenIndex += 1;
+                        if (ctx.NextToken!.Type is TokenType.Word)
+                        {
+                            ctx.Component = new StatementComponent
+                            {
+                                Type = StatementComponentType.Operator,
+                                ByteArg = (ulong)Operator.DecrementRead
+                            };
+                            ctx.NextIntoSub = true;
+                        } else ctx.TokenIndex -= 1;
+                    }
+                    else
+                    {
+                        // simple operator component; special cases handled in ExpressionCompiler
+                        ctx.Component = new()
+                        {
+                            Type = StatementComponentType.Operator,
+                            ByteArg = (ulong)Operator.Minus
+                        };
+                        ctx.NextIntoSub = true;
+                    }
+                    break;
+                case TokenType.Exclamation:
+                    switch (ctx.NextToken!.Type)
+                    {
+                        case TokenType.OperatorEquals:
+                            ctx.TokenIndex += 1;
+                            ctx.Component = new StatementComponent
+                            {
+                                Type = StatementComponentType.Operator,
+                                ByteArg = (ulong)Operator.NotEquals
+                            };
+                            ctx.NextIntoSub = true;
+                            break;
+                        case TokenType.Word or TokenType.LiteralFalse or TokenType.LiteralTrue:
+                            ctx.Component = new StatementComponent
+                            {
+                                Type = StatementComponentType.Operator,
+                                ByteArg = (ulong)Operator.LogicalNot
+                            };
+                            ctx.NextIntoSub = true;
+                            break;
+                    }
+                    break;
                 case TokenType.OperatorMultiply:
                 case TokenType.OperatorDivide:
                 case TokenType.OperatorModulus:
                 case TokenType.Circumflex:
-                        // simple operator component; special cases handled in ExpressionCompiler
+                    // simple operator component; special cases handled in ExpressionCompiler
                     ctx.Component = new()
                     {
                         Type = StatementComponentType.Operator,
@@ -137,6 +252,17 @@ namespace KScr.Compiler.Code
                         ctx.LastComponent!.SubStatement = subctx.Statement;
                         ctx.TokenIndex = subctx.TokenIndex - 1;
                     }
+                    else
+                    {
+                        if (ctx.NextToken!.Type == TokenType.ParDiamondOpen)
+                            break;
+                        ctx.Component = new StatementComponent
+                        {
+                            Type = StatementComponentType.Operator,
+                            ByteArg = (ulong)(ctx.NextToken!.Type == TokenType.OperatorEquals ? Operator.LesserEq : Operator.Lesser)
+                        };
+                        ctx.NextIntoSub = true;
+                    }
 
                     break;
                 case TokenType.ParDiamondClose:
@@ -154,11 +280,20 @@ namespace KScr.Compiler.Code
                         ctx.LastComponent!.SubStatement = subctx.Statement;
                         ctx.TokenIndex = subctx.TokenIndex - 1;
                     }
+                    else
+                    {
+                        ctx.Component = new StatementComponent
+                        {
+                            Type = StatementComponentType.Operator,
+                            ByteArg = (ulong)(ctx.NextToken!.Type == TokenType.OperatorEquals ? Operator.GreaterEq : Operator.Greater)
+                        };
+                        ctx.NextIntoSub = true;
+                    }
 
                     break;
                 case TokenType.ParAccClose:
                 case TokenType.Terminator:
-                    ctx.Statement = new Statement();
+                    //ctx.Statement = new Statement();
                     return this;
             }
 

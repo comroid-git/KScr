@@ -189,6 +189,8 @@ namespace KScr.Lib.Bytecode
             }
 
             public bool Primitive => BaseClass.Primitive;
+
+            public override string ToString() => FullName;
         }
     }
 

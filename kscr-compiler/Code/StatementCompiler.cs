@@ -54,14 +54,11 @@ namespace KScr.Compiler.Code
                 case TokenType.If:
                     if (ctx.NextToken?.Type != TokenType.ParRoundOpen)
                         throw new CompilerException("Invalid if-Statement; missing condition");
-                    if (ctx.Statement != null && ctx.Statement.Main.Count > 0)
-                        throw new CompilerException("Invalid if-Statement; must be first statement");
-                    if (ctx.Statement == null)
-                        ctx.Statement = new Statement
-                        {
-                            Type = StatementComponentType.Code,
-                            CodeType = BytecodeType.StmtIf
-                        };
+                    ctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.StmtIf
+                    };
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Code,
@@ -74,7 +71,7 @@ namespace KScr.Compiler.Code
                     subctx.Statement = new Statement
                     {
                         Type = StatementComponentType.Code,
-                        CodeType = BytecodeType.StmtIfCond
+                        CodeType = BytecodeType.StmtCond
                     };
                     CompilerLoop(vm, new ExpressionCompiler(this, false, 
                         TokenType.ParRoundClose), ref subctx);
@@ -106,19 +103,60 @@ namespace KScr.Compiler.Code
                     ctx.TokenIndex = subctx.TokenIndex;
                     return this;
                 case TokenType.For:
-                    throw new NotImplementedException();
+                    if (ctx.NextToken?.Type != TokenType.ParRoundOpen)
+                        throw new CompilerException("Invalid for-Statement; missing specification");
+                    ctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.StmtFor
+                    };
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.StmtFor
+                    };
+
+                    // parse start statement
+                    ctx.TokenIndex += 2;
+                    subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    CompilerLoop(vm, new StatementCompiler(this, false, TokenType.Terminator), ref subctx);
+                    ctx.LastComponent!.SubStatement = subctx.Statement;
+                    ctx.TokenIndex = subctx.TokenIndex;
+
+                    // parse continue-check
+                    subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
+                    subctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.StmtCond,
+                        TargetType = Lib.Bytecode.Class.NumericType
+                    };
+                    CompilerLoop(vm, new ExpressionCompiler(this), ref subctx);
+                    ctx.LastComponent!.SubComponent = subctx.Component;
+                    ctx.TokenIndex = subctx.TokenIndex + 1;
+                    
+                    // parse accumulator
+                    subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    subctx.Statement = new Statement();
+                    CompilerLoop(vm, new StatementCompiler(this, false, TokenType.ParRoundClose), ref subctx);
+                    ctx.LastComponent!.AltStatement = subctx.Statement;
+                    ctx.TokenIndex = subctx.TokenIndex + 1;
+
+                    // parse body
+                    subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    CompilerLoop(vm, new StatementCompiler(this, false,
+                        ctx.Token.Type == TokenType.ParAccOpen ? TokenType.ParAccClose : TokenType.Terminator), ref subctx);
+                    ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
+                    ctx.TokenIndex = subctx.TokenIndex;
+                    return this;
                 case TokenType.ForN:
                     if (ctx.NextToken?.Type != TokenType.ParRoundOpen)
                         throw new CompilerException("Invalid forn-Statement; missing specification");
-                    if (ctx.ExecutableCode.Main.Count > 0 && ctx.Statement.Main.Count > 0)
-                        throw new CompilerException("Invalid forn-Statement; must be first statement");
-                    
-                    if (ctx.ExecutableCode.Main.Count == 0)
-                        ctx.Statement = new Statement
-                        {
-                            Type = StatementComponentType.Code,
-                            CodeType = BytecodeType.StmtForN
-                        };
+                    ctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.StmtForN 
+                    };
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Code,
@@ -162,7 +200,8 @@ namespace KScr.Compiler.Code
             }
             
             var use = base.AcceptToken(vm, ref ctx);
-            if (_terminators.Contains(ctx.NextToken?.Type ?? TokenType.Terminator))
+            if (_terminators.Contains(ctx.Token.Type) 
+                || _terminators.Contains(ctx.NextToken?.Type ?? TokenType.Terminator))
             {
                 if (_endBeforeTerminator)
                     ctx.TokenIndex -= 1;

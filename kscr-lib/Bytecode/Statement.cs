@@ -166,6 +166,22 @@ namespace KScr.Lib.Bytecode
                                 state = SubComponent!.InnerCode!.Evaluate(vm, this, ref rev);
                             vm.Stack.StepUp();
                             break;
+                        case BytecodeType.StmtFor:
+                            vm.Stack.StepDown(Class.VoidType, "for");
+                            state = SubStatement!.Evaluate(vm, this, ref buf!);
+                            if (state != State.Normal)
+                                break;
+                            while (SubComponent!.Evaluate(vm, this, ref buf) == State.Normal && buf.ToBool())
+                            {
+                                state = InnerCode!.Evaluate(vm, this, ref rev);
+                                if (state != State.Normal)
+                                    break;
+                                state = AltStatement!.Evaluate(vm, this, ref rev);
+                                if (state != State.Normal)
+                                    break;
+                            }
+                            vm.Stack.StepUp();
+                            break;
                         case BytecodeType.StmtForN:
                             state = SubStatement!.Evaluate(vm, this, ref buf!);
                             if (state != State.Normal)
@@ -184,7 +200,7 @@ namespace KScr.Lib.Bytecode
                             vm.Stack.StepUp();
                             break;
                         default:
-                            throw new NotImplementedException();
+                            throw new NotImplementedException(CodeType.ToString());
                     }
 
                     break;
