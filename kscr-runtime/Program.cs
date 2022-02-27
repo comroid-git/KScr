@@ -28,9 +28,11 @@ namespace KScr.Runtime
             long compileTime = -1, executeTime = -1;
 
             if (args.Length == 0)
-            {
-                StdIoMode(ref state, ref yield);
-            }
+                VM.Stack.StepDown(Class.VoidType, "scratch", ref state, _ =>
+                {
+                    StdIoMode(ref state, ref yield);
+                    return state;
+                });
             else
             {
                 var paths = new string[args.Length - 1];
@@ -51,16 +53,12 @@ namespace KScr.Runtime
                         VM.CompileFiles(files);
                         compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - compileTime;
                         
-                        executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                        yield = Run(VM, ref state);
-                        executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - executeTime;
+                        yield = VM.Execute(out executeTime);
                         break;
                     case "run":
                         string classpath = args.Length >= 2 ? args[1] : Directory.GetCurrentDirectory();
                         Package.Read(VM, new DirectoryInfo(classpath));
-                        executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                        yield = Run(VM, ref state);
-                        executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - executeTime;
+                        yield = VM.Execute(out executeTime);
                         break;
                     default:
                         Console.WriteLine("Invalid arguments: " + string.Join(' ', args));
@@ -106,7 +104,6 @@ namespace KScr.Runtime
             var compiler = new StatementCompiler();
             var contextBase = new CompilerContext();
             var output = VM.ConstantVoid;
-            VM.Stack.StepDown(Class.VoidType, "scratch");
 
             while (state == State.Normal)
             {
@@ -143,11 +140,6 @@ namespace KScr.Runtime
         private static void WriteClasses(string output)
         {
             Package.RootPackage.Write(new DirectoryInfo(output));
-        }
-
-        private static IObject Run(RuntimeBase vm, ref State state)
-        {
-            return vm.Execute(ref state) ?? vm.ConstantVoid.Value!;
         }
 
         private static void HandleResult(State state, IObject? result, long compileTime, long executeTime)

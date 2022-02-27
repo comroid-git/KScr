@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using KScr.Lib.Bytecode;
+using KScr.Lib.Exception;
 using KScr.Lib.Model;
 
 namespace KScr.Lib.Store
@@ -58,27 +59,29 @@ namespace KScr.Lib.Store
             return arr;
         }
 
-        public void StepInside(string sub)
+        public void StepInside<T>(string sub, ref T t, Func<T,T> exec)
         {
             _dequeue.Add(new CtxBlob(PrefixLocal + sub)
             {
                 Local = sub,
                 Parent = _dequeue.Last()
             });
+            WrapExecution(ref t, exec);
         }
         
         // put focus into static class
-        public void StepDown(IClass into, object? local = null /*todo implement memberref type*/)
+        public void StepDown<T>(IClass into, object local, ref T t, Func<T,T> exec)
         {
             _dequeue.Add(new CtxBlob(PrefixLocal + local)
             {
-                Local = local?.ToString() ?? string.Empty,
+                Local = local.ToString() ?? string.Empty,
                 Class = into
             });
+            WrapExecution(ref t, exec);
         }
 
         // put focus into object instance
-        public void StepDown(ObjectRef into, object local /*todo implement memberref type*/)
+        public void StepDown<T>(ObjectRef into, object local, ref T t, Func<T,T> exec)
         {
             _dequeue.Add(new CtxBlob(PrefixLocal + local)
             {
@@ -86,9 +89,26 @@ namespace KScr.Lib.Store
                 Class = into.Value!.Type,
                 It = into,
             });
+            WrapExecution(ref t, exec);
         }
 
-        public void StepUp()
+        private void WrapExecution<T>(ref T t, Func<T,T> exec)
+        {
+            try
+            {
+                t = exec(t);
+            }
+            catch (InternalException exc)
+            {
+                throw new InternalException("Internal exception at " + _local, exc);
+            }
+            finally
+            {
+                StepUp();
+            }
+        }
+
+        private void StepUp()
         {
             _dequeue.RemoveAt(_dequeue.Count - 1);
         }

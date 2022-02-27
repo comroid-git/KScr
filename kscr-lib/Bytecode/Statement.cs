@@ -163,10 +163,10 @@ namespace KScr.Lib.Bytecode
                             state = SubComponent.Evaluate(vm, ref rev) == State.Normal ? State.Return : state;
                             break;
                         case BytecodeType.Throw:
-                            if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
+                            if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                                 throw new InternalException("Invalid throw statement; no Exception found");
-                            state = SubComponent.Evaluate(vm, ref rev) == State.Normal ? State.Throw : state;
-                            throw new InternalException("+++ EXCEPTION IN CODE: " + rev.Value?.ToString(1) ?? "no message" + " +++");
+                            state = SubStatement.Evaluate(vm, ref rev) == State.Normal ? State.Throw : state;
+                            throw new InternalException("+++ EXCEPTION IN CODE: " + (rev.Value?.ToString(1) ?? "no message") + " +++");
                         case BytecodeType.ParameterExpression:
                             if (InnerCode == null)
                                 break;
@@ -179,46 +179,52 @@ namespace KScr.Lib.Bytecode
                             }
                             break;
                         case BytecodeType.StmtIf:
-                            vm.Stack.StepInside("if");
-                            state = SubStatement!.Evaluate(vm, ref buf!);
-                            if (buf.ToBool())
-                                state = InnerCode!.Evaluate(vm, ref rev);
-                            else if (SubComponent?.CodeType == BytecodeType.StmtElse)
-                                state = SubComponent!.InnerCode!.Evaluate(vm, ref rev);
-                            vm.Stack.StepUp();
+                            vm.Stack.StepInside("if", ref rev, _rev => 
+                            {
+                                state = SubStatement!.Evaluate(vm, ref buf!);
+                                if (buf.ToBool())
+                                    state = InnerCode!.Evaluate(vm, ref _rev);
+                                else if (SubComponent?.CodeType == BytecodeType.StmtElse)
+                                    state = SubComponent!.InnerCode!.Evaluate(vm, ref _rev);
+                                return _rev;
+                            });
                             break;
                         case BytecodeType.StmtFor:
-                            vm.Stack.StepInside("for");
-                            state = SubStatement!.Evaluate(vm, ref buf!);
-                            if (state != State.Normal)
-                                break;
-                            while (SubComponent!.Evaluate(vm, ref buf) == State.Normal && buf.ToBool())
+                            vm.Stack.StepInside("for", ref rev, _rev =>
                             {
-                                state = InnerCode!.Evaluate(vm, ref rev);
+                                state = SubStatement!.Evaluate(vm, ref buf!);
                                 if (state != State.Normal)
-                                    break;
-                                state = AltStatement!.Evaluate(vm, ref rev);
-                                if (state != State.Normal)
-                                    break;
-                            }
-                            vm.Stack.StepUp();
+                                    return _rev;
+                                while (SubComponent!.Evaluate(vm, ref buf) == State.Normal && buf.ToBool())
+                                {
+                                    state = InnerCode!.Evaluate(vm, ref _rev);
+                                    if (state != State.Normal)
+                                        break;
+                                    state = AltStatement!.Evaluate(vm, ref _rev);
+                                    if (state != State.Normal)
+                                        break;
+                                }
+                                return _rev;
+                            });
                             break;
                         case BytecodeType.StmtForN:
-                            vm.Stack.StepInside("forn");
-                            state = SubStatement!.Evaluate(vm, ref buf!);
-                            if (state != State.Normal)
-                                break;
-                            var range = (buf.Value as Range)!;
-                            var n = vm[VariableContext.Local, Arg] = new ObjectRef(Class.NumericIntType);
-                            n.Value = range.start(vm).Value;
-                            do
+                            vm.Stack.StepInside("forn", ref rev, _rev =>
                             {
-                                state = InnerCode!.Evaluate(vm, ref rev);
-                                n.Value = range.accumulate(vm, (n.Value as Numeric)!).Value;
-                            } while (state == State.Normal && range.test(vm, (n.Value as Numeric)!).ToBool());
+                                state = SubStatement!.Evaluate(vm, ref buf!);
+                                if (state != State.Normal)
+                                    return _rev;
+                                var range = (buf.Value as Range)!;
+                                var n = vm[VariableContext.Local, Arg] = new ObjectRef(Class.NumericIntType);
+                                n.Value = range.start(vm).Value;
+                                do
+                                {
+                                    state = InnerCode!.Evaluate(vm, ref _rev);
+                                    n.Value = range.accumulate(vm, (n.Value as Numeric)!).Value;
+                                } while (state == State.Normal && range.test(vm, (n.Value as Numeric)!).ToBool());
 
-                            vm[VariableContext.Local, Arg] = null;
-                            vm.Stack.StepUp();
+                                vm[VariableContext.Local, Arg] = null;
+                                return _rev;
+                            });
                             break;
                         default:
                             throw new NotImplementedException(CodeType.ToString());
@@ -326,13 +332,14 @@ namespace KScr.Lib.Bytecode
                                 var param1 = mtd1.Parameters;
                                 buf = new ObjectRef(Class.VoidType.DefaultInstance, param1.Count);
                                 state = SubComponent!.Evaluate(vm, ref buf);
-                                vm.Stack.StepDown(cli1, Arg);
-                                for (var i = 0; i < param1.Count; i++)
-                                    vm.PutObject(VariableContext.Local, param1[i].Name, buf[vm, i]);
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
-                                rev = rev.Value!.Invoke(vm, Arg, buf.Stack)!;
-                                vm.Stack.StepUp();
+                                vm.Stack.StepDown(cli1, Arg, ref rev, _rev =>
+                                {
+                                    for (var i = 0; i < param1.Count; i++)
+                                        vm.PutObject(VariableContext.Local, param1[i].Name, buf[vm, i]);
+                                    return _rev.Value!.Invoke(vm, Arg, buf.Stack)!;
+                                });
                             } else if (rev.Value!.Type.Primitive 
                                        && rev.Value!.Type.DeclaredMembers.ContainsKey(Arg)
                                        && rev.Value!.Type.DeclaredMembers[Arg] is IMethod mtd2)
@@ -340,26 +347,29 @@ namespace KScr.Lib.Bytecode
                                 var param2 = mtd2.Parameters;
                                 buf = new ObjectRef(Class.VoidType.DefaultInstance, param2.Count);
                                 state = SubComponent!.Evaluate(vm, ref buf);
-                                vm.Stack.StepDown(rev, Arg);
-                                for (var i = 0; i < param2.Count; i++)
-                                    vm.PutObject(VariableContext.Local, param2[i].Name, buf[vm, i]);
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
-                                rev = rev.Value!.Invoke(vm, Arg, buf.Stack)!;
-                                vm.Stack.StepUp();
+                                vm.Stack.StepDown(rev, Arg, ref rev, _rev =>
+                                {
+                                    for (var i = 0; i < param2.Count; i++)
+                                        vm.PutObject(VariableContext.Local, param2[i].Name, buf[vm, i]);
+                                    return _rev.Value!.Invoke(vm, Arg, buf.Stack)!;
+                                });
                             } else if (rev.Value!.Type.DeclaredMembers.ContainsKey(Arg) 
                                        && rev.Type.DeclaredMembers[Arg] is IMethod mtd3)
                             {
                                 var param3 = mtd3.Parameters;
                                 buf = new ObjectRef(Class.VoidType.DefaultInstance, param3.Count);
                                 state = SubComponent!.Evaluate(vm, ref buf);
-                                vm.Stack.StepDown(rev, Arg);
-                                for (var i = 0; i < param3.Count; i++)
-                                    vm.PutObject(VariableContext.Local, param3[i].Name, buf[vm, i]);
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
-                                mtd3.Evaluate(vm, ref state, ref rev!);
-                                vm.Stack.StepUp();
+                                vm.Stack.StepDown(rev, Arg, ref rev, _rev =>
+                                {
+                                    for (var i = 0; i < param3.Count; i++)
+                                        vm.PutObject(VariableContext.Local, param3[i].Name, buf[vm, i]);
+                                    mtd3.Evaluate(vm, ref state, ref _rev!);
+                                    return _rev;
+                                });
                             } else if (rev.Value is Class.Instance cli2
                                        && cli2.DeclaredMembers.ContainsKey(Arg)
                                        && cli2.DeclaredMembers[Arg] is Field fld1)

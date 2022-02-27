@@ -135,24 +135,38 @@ namespace KScr.Lib
             return this[varctx, key] = new ObjectRef(value?.Type ?? Class.VoidType.DefaultInstance, value ?? IObject.Null);
         }
 
-        public IObject? Execute(ref State state, out long timeµs)
+        public IObject? Execute(out long timeµs)
         {
             timeµs = UnixTime();
-            var yield = Execute(ref state);
+            var yield = Execute();
             timeµs = UnixTime() - timeµs;
             return yield;
         }
 
-        public IObject? Execute(ref State state)
+        public IObject? Execute()
         {
             var method = Package.RootPackage.FindEntrypoint();
-            IRuntimeSite? site = method;
             ObjectRef? rev = null;
 
-            Stack.StepDown(method.Parent, "main");
-            while (site != null)
-                site = site.Evaluate(this, ref state, ref rev);
-            Stack.StepUp();
+            try
+            {
+                Stack.StepDown(method.Parent, "main", ref rev, _rev =>
+                {
+                    State state = State.Normal;
+                    IRuntimeSite? site = method;
+                    while (site != null)
+                        site = site.Evaluate(this, ref state, ref _rev);
+                    return _rev;
+                });
+            }
+            catch (InternalException exc)
+            {
+                Console.WriteLine($"An internal exception occurred: {exc}");
+                /*
+                while (exc.InnerException is InternalException inner && (exc = inner) != null)
+                    Console.WriteLine($"Caused by: {inner}");
+                */
+            }
 
             return rev?.Value;
         }
