@@ -43,15 +43,15 @@ namespace KScr.Runtime
                 switch (args[0])
                 {
                     case "compile":
-                        compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                        compileTime = RuntimeBase.UnixTime();
                         VM.CompileFiles(files);
-                        compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - compileTime;
+                        compileTime = RuntimeBase.UnixTime() - compileTime;
                         WriteClasses(DefaultOutput);
                         break;
                     case "execute":
-                        compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                        compileTime = RuntimeBase.UnixTime();
                         VM.CompileFiles(files);
-                        compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - compileTime;
+                        compileTime = RuntimeBase.UnixTime() - compileTime;
                         
                         yield = VM.Execute(out executeTime);
                         break;
@@ -151,11 +151,11 @@ namespace KScr.Runtime
         private static int HandleExit(State state, IObject? result, long compileTime = -1, long executeTime = -1)
         {
             if (compileTime != -1)
-                Console.Write($"Compile took {compileTime}ms");
+                Console.Write($"Compile took {(double)compileTime/1000:#,##0.00}ms");
             if (compileTime != -1 && executeTime != -1)
                 Console.Write("; ");
             if (executeTime != -1)
-                Console.Write($"Execute took {executeTime}ms");
+                Console.Write($"Execute took {(double)executeTime/1000:#,##0.00}ms");
             if (compileTime != -1 || executeTime != -1)
                 Console.WriteLine();
             

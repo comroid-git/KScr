@@ -161,11 +161,9 @@ namespace KScr.Lib
             }
             catch (InternalException exc)
             {
-                Console.WriteLine($"An internal exception occurred: {exc}");
-                /*
+                Console.WriteLine($"An internal exception occurred:\t{exc.Message}");
                 while (exc.InnerException is InternalException inner && (exc = inner) != null)
-                    Console.WriteLine($"Caused by: {inner}");
-                */
+                    Console.WriteLine($"\t\t- Caused by:\t{inner.Message}");
             }
 
             return rev?.Value;
