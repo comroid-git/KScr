@@ -90,7 +90,7 @@ namespace KScr.Lib.Store
                 CheckTypeCompat(value!.Type);
                 if (WriteAccessor != null)
                 {
-                    var output = new ObjectRef(Class.VoidType) { Value = value };
+                    var output = new ObjectRef(Class.VoidType.DefaultInstance) { Value = value };
                     WriteAccessor!.Evaluate(vm, null, ref output!);
                 }
                 else

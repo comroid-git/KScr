@@ -75,7 +75,7 @@ namespace KScr.Lib.Store
         }
         
         // put focus into static class
-        public void StepDown(IClassInstance into, object? local = null /*todo implement memberref type*/)
+        public void StepDown(IClassInfo into, object? local = null /*todo implement memberref type*/)
         {
             _dequeue.Add(new CtxBlob(local?.ToString() ?? "static" + into.FullName)
             {

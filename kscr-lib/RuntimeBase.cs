@@ -22,12 +22,31 @@ namespace KScr.Lib
     {
         public static Encoding Encoding = Encoding.ASCII;
 
+        public bool Initialized = false;
         private uint _lastObjId = 0xF;
 
         static RuntimeBase()
         {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+        }
+
+        public void Initialize()
+        {
+            if (Initialized) return;
+            Class.TypeType.Initialize(this);
+            Class.VoidType.Initialize(this);
+            Class.ArrayType.Initialize(this);
+            Class.StringType.Initialize(this);
+            Class.RangeType.Initialize(this);
+            Class.NumericType.Initialize(this);
+            Class.NumericByteType.Initialize(this);
+            Class.NumericShortType.Initialize(this);
+            Class.NumericIntType.Initialize(this);
+            Class.NumericLongType.Initialize(this);
+            Class.NumericFloatType.Initialize(this);
+            Class.NumericDoubleType.Initialize(this);
+            Initialized = true;
         }
 
         public abstract ObjectStore ObjectStore { get; }
@@ -102,7 +121,7 @@ namespace KScr.Lib
 
         public ObjectRef PutObject(VariableContext varctx, string key, IObject? value)
         {
-            return this[varctx, key] = new ObjectRef(value?.Type ?? Class.VoidType, value ?? IObject.Null);
+            return this[varctx, key] = new ObjectRef(value?.Type ?? Class.VoidType.DefaultInstance, value ?? IObject.Null);
         }
 
         public IObject? Execute(ref State state, out long timeµs)
@@ -124,18 +143,18 @@ namespace KScr.Lib
             return rev?.Value;
         }
 
-        public IClassInstance FindType(string name, Package? package = null)
+        public IClassInstance FindType(RuntimeBase vm, string name, Package? package = null)
         {
             switch (name)
             {
                 case "num":
-                    return Class.NumericType;
+                    return Class.NumericType.DefaultInstance;
                 case "byte":
                     return Class.NumericByteType;
                 case "short":
                     return Class.NumericShortType;
                 case "int":
-                    return Class.NumericIntegerType;
+                    return Class.NumericIntType;
                 case "long":
                     return Class.NumericLongType;
                 case "float":
@@ -143,23 +162,23 @@ namespace KScr.Lib
                 case "double":
                     return Class.NumericDoubleType;
                 case "str":
-                    return Class.StringType;
+                    return Class.StringType.DefaultInstance;
                 case "void":
-                    return Class.VoidType;
+                    return Class.VoidType.DefaultInstance;
             }
 
-            return ClassStore.FindType(package!, name);
+            return ClassStore.FindType(vm, package!, name);
         }
 
-        public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)
+        public ITypeInfo FindTypeInfo(RuntimeBase vm, string identifier, Class inClass, Package inPackage)
         {
             return (ITypeInfo?)inClass.TypeParameters.FirstOrDefault(tp => tp.FullName == identifier)
-                   ?? FindType(identifier, inPackage)!;
+                   ?? FindType(vm, identifier, inPackage)!;
         }
 
         public sealed class StandardIORef : ObjectRef
         {
-            public StandardIORef() : base(Class.StringType)
+            public StandardIORef() : base(Class.StringType.DefaultInstance)
             {
             }
 

@@ -20,7 +20,7 @@ namespace KScr.Lib.Core
         }
 
         public bool Primitive => true;
-        public IClassInstance Type => Class.RangeType;
+        public IClassInstance Type => Class.RangeType.DefaultInstance;
 
         public string ToString(short variant) => variant switch
         {

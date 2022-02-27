@@ -23,10 +23,10 @@ namespace KScr.Compiler.Code
             switch (ctx.Token.Type)
             {
                 case TokenType.IdentVoid:
-                    CompileDeclaration(ctx, Lib.Bytecode.Class.VoidType);
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.VoidType.DefaultInstance);
                     return this;
                 case TokenType.IdentNum:
-                    CompileDeclaration(ctx, Lib.Bytecode.Class.NumericType);
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.NumericType.DefaultInstance);
                     return this;
                 case TokenType.IdentNumByte:
                     CompileDeclaration(ctx, Lib.Bytecode.Class.NumericByteType);
@@ -35,7 +35,7 @@ namespace KScr.Compiler.Code
                     CompileDeclaration(ctx, Lib.Bytecode.Class.NumericShortType);
                     return this;
                 case TokenType.IdentNumInt:
-                    CompileDeclaration(ctx, Lib.Bytecode.Class.NumericIntegerType);
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.NumericIntType);
                     return this;
                 case TokenType.IdentNumLong:
                     CompileDeclaration(ctx, Lib.Bytecode.Class.NumericLongType);
@@ -47,7 +47,7 @@ namespace KScr.Compiler.Code
                     CompileDeclaration(ctx, Lib.Bytecode.Class.NumericDoubleType);
                     return this;
                 case TokenType.IdentStr:
-                    CompileDeclaration(ctx, Lib.Bytecode.Class.StringType);
+                    CompileDeclaration(ctx, Lib.Bytecode.Class.StringType.DefaultInstance);
                     return this;
                 case TokenType.Dot:
                     // member call
@@ -244,7 +244,7 @@ namespace KScr.Compiler.Code
                         subctx = new CompilerContext(ctx, CompilerType.PipeEmitter);
                         subctx.Statement = new Statement
                         {
-                            TargetType = Lib.Bytecode.Class.VoidType,
+                            TargetType = Lib.Bytecode.Class.VoidType.DefaultInstance,
                             Type = StatementComponentType.Expression
                         };
                         CompilerLoop(vm, new ExpressionCompiler(this, false,

@@ -74,7 +74,7 @@ namespace KScr.Lib.Bytecode
             return pkg;
         }
 
-        public Class? GetOrCreateClass(string name, MemberModifier mod = MemberModifier.None)
+        public Class? GetOrCreateClass(RuntimeBase vm, string name, MemberModifier mod = MemberModifier.None)
         {
             if (Members.TryGetValue(name, out var pm) && pm is Class cls)
                 return cls;
@@ -92,12 +92,12 @@ namespace KScr.Lib.Bytecode
             return pkg;
         }
 
-        public Class? GetClass(string[] names)
+        public Class? GetClass(RuntimeBase vm, string[] names)
         {
             var pkg = RootPackage;
             for (var i = 0; i < names.Length - 1; i++)
                 pkg = pkg.GetOrCreatePackage(names[i]);
-            return pkg.GetOrCreateClass(names[^1]);
+            return pkg.GetOrCreateClass(vm, names[^1]);
         }
     }
 }

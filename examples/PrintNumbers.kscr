@@ -15,8 +15,14 @@ public class PrintNumbers {
         
         stdio << "length of ABC is " + "ABC".length();
         
+        PrintNumbers.second();
+        
         // forever print something to test for loop robustness
         // todo: this does not compile. find solution for empty statements
         //for (;;) stdio << "abc";
+    }
+    
+    public static void second() {
+        stdio << "This is another method";
     }
 }

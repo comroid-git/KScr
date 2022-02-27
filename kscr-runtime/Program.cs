@@ -21,6 +21,8 @@ namespace KScr.Runtime
 
         private static int Main(string[] args)
         {
+            VM.Initialize();
+            
             var state = State.Normal;
             var yield = VM.ConstantVoid.Value!;
             long compileTime = -1, executeTime = -1;
@@ -76,7 +78,7 @@ namespace KScr.Runtime
 
             var compiler = new StatementCompiler();
             var contextBase = new CompilerContext();
-            var output = new ObjectRef(Class.VoidType);
+            var output = VM.ConstantVoid;
             VM.Stack.StepDown(Class.VoidType, "scratch");
 
             while (state == State.Normal)

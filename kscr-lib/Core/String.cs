@@ -20,7 +20,7 @@ namespace KScr.Lib.Core
         public long ObjectId { get; }
 
         public bool Primitive => true;
-        public IClassInstance Type => Class.StringType;
+        public IClassInstance Type => Class.StringType.DefaultInstance;
 
         public string ToString(short variant)
         {

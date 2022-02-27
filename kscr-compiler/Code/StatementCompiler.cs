@@ -129,7 +129,7 @@ namespace KScr.Compiler.Code
                     {
                         Type = StatementComponentType.Code,
                         CodeType = BytecodeType.StmtCond,
-                        TargetType = Lib.Bytecode.Class.NumericType
+                        TargetType = Lib.Bytecode.Class.NumericType.DefaultInstance
                     };
                     CompilerLoop(vm, new ExpressionCompiler(this), ref subctx);
                     ctx.LastComponent!.SubComponent = subctx.Component;
@@ -178,7 +178,7 @@ namespace KScr.Compiler.Code
                     {
                         Type = StatementComponentType.Code,
                         CodeType = BytecodeType.Expression,
-                        TargetType = Lib.Bytecode.Class.RangeType
+                        TargetType = Lib.Bytecode.Class.RangeType.DefaultInstance
                     };
                     CompilerLoop(vm, new ExpressionCompiler(this, false, TokenType.ParRoundClose), ref subctx);
                     ctx.LastComponent!.SubStatement = subctx.Statement;

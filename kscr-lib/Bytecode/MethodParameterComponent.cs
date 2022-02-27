@@ -29,7 +29,7 @@ namespace KScr.Lib.Bytecode
 
             for (var i = 0; i < Expressions.Count; i++)
             {
-                var val = new ObjectRef(Class.VoidType);
+                var val = new ObjectRef(Class.VoidType.DefaultInstance);
                 Expressions[i].Evaluate(vm, null, ref val!);
                 rev[vm, i] = val.Value;
             }

@@ -30,7 +30,7 @@ namespace KScr.Compiler.Class
                             throw new CompilerException("Invalid parameter index during compilation");
 
                         _method.Parameters.Add(new MethodParameter());
-                        _method.Parameters[++pIndex].Type = vm.FindType(ctx.Token.Arg!)!;
+                        _method.Parameters[++pIndex].Type = vm.FindType(vm, ctx.Token.Arg!)!;
                         pState = 1;
                     }
                     else if (pState == 1)

@@ -19,53 +19,49 @@ namespace KScr.Lib.Bytecode
 
         public const string StaticInitializer = "initializer_static";
         public static readonly Class VoidType = new(LibClassPackage, "void", true, LibClassModifier);
+        public static readonly Class TypeType = new(LibClassPackage, "type", true, LibClassModifier);
+        public static readonly Class ArrayType = new(LibClassPackage, "array", true, LibClassModifier);
         public static readonly Class StringType = new(LibClassPackage, "str", true, LibClassModifier);
-
-        [Obsolete] public static readonly Class ArrayType = new(LibClassPackage, "array", true, LibClassModifier);
         public static readonly Class RangeType = new(LibClassPackage, "range", true, LibClassModifier);
-
-        public static readonly Class NumericType = new(LibClassPackage, "num", true, LibClassModifier)
-            { TypeParameters = { new TypeParameter("T") } };
-
-        public static readonly IClassInstance NumericByteType =
-            NumericType.CreateInstance(new Class(LibClassPackage, "byte", true, LibClassModifier));
-
-        public static readonly IClassInstance NumericShortType =
-            NumericType.CreateInstance(new Class(LibClassPackage, "short", true, LibClassModifier));
-
-        public static readonly IClassInstance NumericIntegerType =
-            NumericType.CreateInstance(new Class(LibClassPackage, "int", true, LibClassModifier));
-
-        public static readonly IClassInstance NumericLongType =
-            NumericType.CreateInstance(new Class(LibClassPackage, "long", true, LibClassModifier));
-
-        public static readonly IClassInstance NumericFloatType =
-            NumericType.CreateInstance(new Class(LibClassPackage, "float", true, LibClassModifier));
-
-        public static readonly IClassInstance NumericDoubleType =
-            NumericType.CreateInstance(new Class(LibClassPackage, "double", true, LibClassModifier));
-
+        public static readonly Class NumericType = new(LibClassPackage, "num", true, LibClassModifier) { TypeParameters = { new TypeParameter("T") } };
+        public static readonly Instance NumericByteType = new(NumericType, new Class(LibClassPackage, "byte", true, LibClassModifier));
+        public static readonly Instance NumericShortType = new(NumericType, new Class(LibClassPackage, "short", true, LibClassModifier));
+        public static readonly Instance NumericIntType = new(NumericType, new Class(LibClassPackage, "int", true, LibClassModifier));
+        public static readonly Instance NumericLongType = new(NumericType, new Class(LibClassPackage, "long", true, LibClassModifier));
+        public static readonly Instance NumericFloatType = new(NumericType, new Class(LibClassPackage, "float", true, LibClassModifier));
+        public static readonly Instance NumericDoubleType = new(NumericType, new Class(LibClassPackage, "double", true, LibClassModifier));
+        
         public Class(Package package, string name, bool primitive, MemberModifier modifier = MemberModifier.Protected,
             ClassType type = ClassType.Class) : base(package, name, modifier)
         {
             Primitive = primitive;
             ClassType = type;
-            DefaultInstance = CreateInstance(TypeParameters.Select(tp => tp.SpecializationTarget)
-                .Cast<IClassInstance>().ToArray());
         }
 
-        public Instance DefaultInstance { get; }
+        private bool _initialized = false;
+        
+        public void Initialize(RuntimeBase vm) {
+            if (_initialized) return;
+            DefaultInstance = CreateInstance(vm, TypeParameters.Select(tp => tp.SpecializationTarget).ToArray());
+            _initialized = true;
+        }
+
+        public Instance DefaultInstance { get; private set; } = null!;
+
+        public ObjectRef SelfRef { get; } = null!;
 
         public IDictionary<string, IClassMember> DeclaredMembers { get; } =
             new ConcurrentDictionary<string, IClassMember>();
 
         public ClassType ClassType { get; }
 
-        public Instance CreateInstance(params IClassInstance[] typeParameters)
+        public Instance CreateInstance(RuntimeBase vm, params IClass[] typeParameters)
         {
             if (typeParameters.Length != TypeParameters.Count)
                 throw new ArgumentException("Invalid typeParameter count");
-            return new Instance(this, typeParameters);
+            var instance = new Instance(this, typeParameters);
+            instance.Initialize(vm);
+            return instance;
         }
 
         public Class BaseClass => this;
@@ -77,7 +73,7 @@ namespace KScr.Lib.Bytecode
                                            ? string.Empty
                                            : '<' + string.Join(", ", TypeParameters) + '>');
 
-        public bool CanHold(IClassInstance? type)
+        public bool CanHold(IClass? type)
         {
             return Name == "void" || type?.BaseClass == BaseClass;
         }
@@ -95,7 +91,7 @@ namespace KScr.Lib.Bytecode
             {
                 NumericMode.Byte => NumericByteType,
                 NumericMode.Short => NumericShortType,
-                NumericMode.Int => NumericIntegerType,
+                NumericMode.Int => NumericIntType,
                 NumericMode.Long => NumericLongType,
                 NumericMode.Float => NumericFloatType,
                 NumericMode.Double => NumericDoubleType,
@@ -154,36 +150,50 @@ namespace KScr.Lib.Bytecode
 
         public sealed class Instance : IClassInstance
         {
+            private bool _initialized = false;
 #pragma warning disable CS0628
-            protected internal Instance(Class baseClass, IClassInstance[] typeParameters)
+            protected internal Instance(Class baseClass, params IClass[] typeParameters)
 #pragma warning restore CS0628
             {
                 BaseClass = baseClass;
-                var list = new TypeParameter.Instance[typeParameters.Length];
+                TypeParameterInstances = new TypeParameter.Instance[typeParameters.Length];
                 for (var i = 0; i < typeParameters.Length; i++)
-                    list[i] = new TypeParameter.Instance(TypeParameters[i], typeParameters[i]);
-                TypeParameterInstances = list;
+                    TypeParameterInstances[i] = new TypeParameter.Instance(TypeParameters[i], typeParameters[i]);
+            }
+
+            public void Initialize(RuntimeBase vm)
+            {
+                if (_initialized) return;
+                SelfRef = vm.PutObject(VariableContext.Absolute, "classInstance:" + FullName, this);
+                _initialized = true;
             }
 
             public Class BaseClass { get; }
+            public ObjectRef SelfRef { get; internal set; } = null!;
             public TypeParameter.Instance[] TypeParameterInstances { get; }
+            public IDictionary<string, IClassMember> DeclaredMembers => BaseClass.DeclaredMembers;
 
             public List<TypeParameter> TypeParameters => BaseClass.TypeParameters;
             public MemberModifier Modifier => BaseClass.Modifier;
             public ClassType ClassType => BaseClass.ClassType;
             public string FullName => BaseClass.FullName;
 
-            public Instance CreateInstance(params IClassInstance[] typeParameters)
+            public Instance CreateInstance(RuntimeBase vm, params IClass[] typeParameters)
             {
-                return BaseClass.CreateInstance(typeParameters);
+                return BaseClass.CreateInstance(vm, typeParameters);
             }
 
-            public string Name => BaseClass.Name.Substring(0, BaseClass.Name.IndexOf('<'))
-                                  + (TypeParameters.Count == 0
-                                      ? string.Empty
-                                      : '<' + string.Join(", ", TypeParameters) + '>');
+            public string Name
+            {
+                get
+                {
+                    int indexOf = BaseClass.Name.IndexOf('<');
+                    return BaseClass.Name.Substring(0, indexOf == -1 ? BaseClass.Name.Length : indexOf)
+                           + (TypeParameters.Count == 0 ? string.Empty : '<' + string.Join(", ", TypeParameters) + '>');
+                }
+            }
 
-            public bool CanHold(IClassInstance? type)
+            public bool CanHold(IClass? type)
             {
                 return BaseClass.CanHold(type);
             }
@@ -191,6 +201,18 @@ namespace KScr.Lib.Bytecode
             public bool Primitive => BaseClass.Primitive;
 
             public override string ToString() => FullName;
+            public long ObjectId { get; }
+            public IClassInstance Type => Name == "type" ? this : TypeType.DefaultInstance;
+
+            public string ToString(short variant) => variant switch
+            {
+                IObject.ToString_ShortName => Name,
+                IObject.ToString_LongName => FullName,
+                _ => throw new ArgumentOutOfRangeException(nameof(variant), variant, null)
+            };
+
+            public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args) 
+                => throw new NotImplementedException("Reflection is not implemented");
         }
     }
 
@@ -224,7 +246,7 @@ namespace KScr.Lib.Bytecode
 
         public IClass SpecializationTarget { get; }
 
-        public IClassInstance? TargetType => null;
+        public IClass? TargetType => null;
 
         public override string ToString()
         {
@@ -250,7 +272,7 @@ namespace KScr.Lib.Bytecode
         {
             public readonly TypeParameter TypeParameter;
 
-            public Instance(TypeParameter typeParameter, IClassInstance targetType)
+            public Instance(TypeParameter typeParameter, IClass targetType)
             {
                 TypeParameter = typeParameter;
                 TargetType = targetType;
@@ -259,7 +281,7 @@ namespace KScr.Lib.Bytecode
             public TypeParameterSpecializationType Specialization => TypeParameter.Specialization;
             public IClass SpecializationTarget => TypeParameter.SpecializationTarget;
 
-            public IClassInstance TargetType { get; }
+            public IClass TargetType { get; }
             public string Name => TypeParameter.Name;
             public string FullName => TypeParameter.FullName;
         }

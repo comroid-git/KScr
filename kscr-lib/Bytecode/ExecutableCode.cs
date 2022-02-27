@@ -11,7 +11,7 @@ namespace KScr.Lib.Bytecode
     {
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main;
         public StatementComponentType Type => StatementComponentType.Code;
-        public IClassInstance TargetType { get; protected set; } = Class.VoidType;
+        public IClassInstance TargetType { get; protected set; } = Class.VoidType.DefaultInstance;
 
         public List<Statement> Main { get; } = new();
 

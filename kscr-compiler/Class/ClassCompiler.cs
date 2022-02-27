@@ -16,6 +16,15 @@ namespace KScr.Compiler.Class
         private MemberModifier? modifier;
         private ITypeInfo targetType = null!;
 
+        private void ResetData()
+        {
+            field = null!;
+            method = null!;
+            memberName = null;
+            modifier = null!;
+            targetType = null!;
+        }
+
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
             while (ctx.Type != CompilerType.Class && ctx.Type != CompilerType.Package)
@@ -68,7 +77,7 @@ namespace KScr.Compiler.Class
                 case TokenType.IdentNumInt:
                     if (!inBody)
                         break;
-                    targetType = Lib.Bytecode.Class.NumericIntegerType;
+                    targetType = Lib.Bytecode.Class.NumericIntType;
                     break;
                 case TokenType.IdentNumLong:
                     if (!inBody)
@@ -97,7 +106,7 @@ namespace KScr.Compiler.Class
                     {
                         // is return type
                         string targetTypeIdentifier = ctx.Token.Arg!;
-                        targetType = vm.FindTypeInfo(targetTypeIdentifier, ctx.Class, ctx.Package)
+                        targetType = vm.FindTypeInfo(vm, targetTypeIdentifier, ctx.Class, ctx.Package)
                                      ?? throw new CompilerException("Could not find type: " + targetTypeIdentifier);
                     }
                     else if (memberName == null)
@@ -161,8 +170,9 @@ namespace KScr.Compiler.Class
                     CompilerLoop(vm, new StatementCompiler(this), ref ctx);
                     method.Body = ctx.ExecutableCode;
                     ctx.Class.DeclaredMembers[memberName!] = method;
-                    ctx.Parent!.TokenIndex = ctx.TokenIndex;
+                    ctx.Parent!.TokenIndex = ctx.TokenIndex - 1;
                     ctx = ctx.Parent!;
+                    ResetData();
 
                     break;
             }

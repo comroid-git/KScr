@@ -280,7 +280,7 @@ namespace KScr.Lib.Model
             var pkg = context?.Package ?? Package.RootPackage;
             pkg = ResolvePackage(pkg, FindClassPackageName(tokens).Split("."));
             var classInfo = FindClassInfo(tokens, clsName);
-            var cls = pkg.GetOrCreateClass(clsName, classInfo.Modifier);
+            var cls = pkg.GetOrCreateClass(vm, clsName, classInfo.Modifier);
             var prev = context;
             context = new CompilerContext(context ?? new CompilerContext(new CompilerContext(), pkg), cls, tokens,
                 CompilerType.Class);

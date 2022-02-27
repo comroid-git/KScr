@@ -16,7 +16,7 @@ namespace KScr.Lib.Bytecode
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main;
         public StatementComponentType Type { get; set; }
         public BytecodeType CodeType { get; set; } = BytecodeType.Undefined;
-        public IClassInstance TargetType { get; set; } = Class.VoidType;
+        public IClassInstance TargetType { get; set; } = Class.VoidType.DefaultInstance;
         public List<StatementComponent> Main { get; } = new();
 
         public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
@@ -55,7 +55,7 @@ namespace KScr.Lib.Bytecode
 
             Type = (StatementComponentType)BitConverter.ToInt16(data, index);
             index += 2;
-            TargetType = (vm.ClassStore.FindType(BitConverter.ToInt64(data, index)) as Class)!;
+            TargetType = (vm.ClassStore.FindType(BitConverter.ToInt64(data, index)).BaseClass.DefaultInstance)!;
             index += 8;
             var len = BitConverter.ToInt32(data, index);
             index += 4;
@@ -188,7 +188,7 @@ namespace KScr.Lib.Bytecode
                             if (state != State.Normal)
                                 break;
                             var range = (buf.Value as Range)!;
-                            var n = vm[VariableContext.Local, Arg] = new ObjectRef(Class.NumericIntegerType);
+                            var n = vm[VariableContext.Local, Arg] = new ObjectRef(Class.NumericIntType);
                             n.Value = range.start(vm).Value;
                             do
                             {
@@ -303,14 +303,14 @@ namespace KScr.Lib.Bytecode
                                 throw new InternalException("Invalid method call; no parameters found");
                             if (rev.Type.Primitive)
                             {
-                                buf = new ObjectRef(Class.VoidType, 2);
+                                buf = new ObjectRef(Class.VoidType.DefaultInstance, 2);
                                 state = mpc.Evaluate(vm, null, ref buf);
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
                                 rev = rev.Value!.Invoke(vm, Arg, buf.Stack)!;
-                            } else if (((Class)rev.Type).DeclaredMembers[Arg] is Method mtd)
+                            } else if ((rev.Type).DeclaredMembers[Arg] is Method mtd)
                             {
-                                buf = new ObjectRef(Class.VoidType, mtd.Parameters.Count);
+                                buf = new ObjectRef(Class.VoidType.DefaultInstance, mtd.Parameters.Count);
                                 state = mpc.Evaluate(vm, null, ref buf);
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");

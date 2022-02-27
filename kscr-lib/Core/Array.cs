@@ -22,7 +22,7 @@ namespace KScr.Lib.Core
         public ObjectRef[] List { get; }
         public long ObjectId { get; }
         public bool Primitive => true;
-        public IClassInstance Type => Class.ArrayType;
+        public IClassInstance Type => Class.ArrayType.DefaultInstance;
 
         public string ToString(short variant)
         {

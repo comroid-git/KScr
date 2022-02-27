@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using KScr.Lib.Bytecode;
+using KScr.Lib.Core;
+using KScr.Lib.Store;
 
 namespace KScr.Lib.Model
 {
@@ -15,16 +17,22 @@ namespace KScr.Lib.Model
         MemberModifier Modifier { get; }
         ClassType ClassType { get; }
 
-        bool CanHold(IClassInstance? type);
+        bool CanHold(IClass? type);
         bool Primitive { get; }
     }
 
-    public interface IClassInstance : IClassInfo
+    public interface IClass : IClassInfo
     {
         Class BaseClass { get; }
+        ObjectRef SelfRef { get; }
+        IDictionary<string, IClassMember> DeclaredMembers { get; }
+        Class.Instance CreateInstance(RuntimeBase vm, params IClass[] typeParameters);
+    }
+
+    public interface IClassInstance : IClass, IObject
+    {
         List<TypeParameter> TypeParameters { get; }
         TypeParameter.Instance[] TypeParameterInstances { get; }
-        Class.Instance CreateInstance(params IClassInstance[] typeParameters);
     }
 
     public struct ClassInfo : IClassInfo
@@ -42,17 +50,12 @@ namespace KScr.Lib.Model
         public string Name { get; }
         public string FullName { get; }
 
-        public bool CanHold(IClassInstance? type)
+        public bool CanHold(IClass? type)
         {
             throw new InvalidOperationException("Cannot check inheritance of info struct");
         }
 
         public bool Primitive => false;
-    }
-
-    public interface IClass : IClassInstance
-    {
-        IDictionary<string, IClassMember> DeclaredMembers { get; }
     }
 
     public enum ClassType : byte
@@ -69,7 +72,7 @@ namespace KScr.Lib.Model
 
     public interface ITypeParameterInstance : ITypeParameterInfo
     {
-        IClassInstance? TargetType { get; }
+        IClass? TargetType { get; }
     }
 
     public interface ITypeParameter : ITypeParameterInstance

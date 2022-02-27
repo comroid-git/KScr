@@ -12,7 +12,6 @@ namespace KScr.Lib.Core
         public static readonly IObject Null = new ConstantValue(Numeric.Zero);
 
         long ObjectId { get; }
-        bool Primitive { get; }
 
         IClassInstance Type { get; }
 
@@ -31,8 +30,7 @@ namespace KScr.Lib.Core
         public IObject? Value { get; }
 
         public long ObjectId => Value?.ObjectId ?? long.MinValue;
-        public bool Primitive => Value?.Primitive ?? true;
-        public IClassInstance Type => Value?.Type ?? Class.VoidType;
+        public IClassInstance Type => Value?.Type ?? Class.VoidType.DefaultInstance;
 
         public string ToString(short variant)
         {
@@ -55,8 +53,7 @@ namespace KScr.Lib.Core
         public IObject? Value { get; }
 
         public long ObjectId => Value?.ObjectId ?? long.MinValue;
-        public bool Primitive => Value?.Primitive ?? true;
-        public IClassInstance Type => Value?.Type ?? Class.VoidType;
+        public IClassInstance Type => Value?.Type ?? Class.VoidType.DefaultInstance;
 
         public string ToString(short variant)
         {
@@ -79,7 +76,6 @@ namespace KScr.Lib.Core
         public IObject Value { get; }
 
         public long ObjectId => Value.ObjectId;
-        public bool Primitive => Value.Primitive;
         public IClassInstance Type => Value.Type;
 
         public string ToString(short variant)

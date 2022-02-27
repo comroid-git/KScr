@@ -7,13 +7,13 @@ namespace KScr.Compiler.Class
 {
     public class TypeParameterDefinitionCompiler : AbstractCompiler
     {
-        private readonly IClass _class;
+        private readonly KScr.Lib.Bytecode.Class _class;
         private bool _active = true;
         private int pIndex = -1, pState;
 
         public TypeParameterDefinitionCompiler(ClassCompiler parent, IClass @class) : base(parent)
         {
-            _class = @class;
+            _class = @class.BaseClass;
         }
 
         public override bool Active => _active;
@@ -26,7 +26,7 @@ namespace KScr.Compiler.Class
                     if (pState == 0)
                     {
                         // parse name
-                        if (pIndex >= _class.TypeParameters.Count)
+                        if (pIndex >= _class.BaseClass.TypeParameters.Count)
                             throw new CompilerException("Invalid TypeParameter index during compilation");
 
                         _class.TypeParameters.Add(new TypeParameter(ctx.Token.Arg!));

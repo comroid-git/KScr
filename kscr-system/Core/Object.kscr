@@ -7,4 +7,6 @@ public class Object {
     public native long InternalID;
 
     public native str toString(short alt = 0);
+    
+    public native type getType();
 }
