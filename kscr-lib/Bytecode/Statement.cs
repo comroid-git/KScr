@@ -127,6 +127,11 @@ namespace KScr.Lib.Bytecode
                         case BytecodeType.Parentheses:
                             SubStatement!.Evaluate(vm, ref rev);
                             break;
+                        case BytecodeType.TypeExpression:
+                            rev = Package.RootPackage.GetClass(vm, Arg.Split("."))!.SelfRef;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
 
                     break;
@@ -303,48 +308,63 @@ namespace KScr.Lib.Bytecode
                     {
                         case BytecodeType.ExpressionVariable:
                             // read variable
-                            rev = vm[VariableContext, Arg];
+                            rev = vm[VariableContext, Arg]!;
                             break;
                         case BytecodeType.Call:
                             // invoke member
                             if (rev == null)
                                 throw new InternalException("Invalid call; no target found");
-                            if (rev.Value is Class.Instance cli)
+                            if (rev.Value is Class.Instance cli1 
+                                && cli1.DeclaredMembers.ContainsKey(Arg) 
+                                && cli1.DeclaredMembers[Arg] is IMethod mtd1)
                             {
-                                var param = (cli.DeclaredMembers[Arg] as IMethod)!.Parameters;
-                                buf = new ObjectRef(Class.VoidType.DefaultInstance, param.Count);
+                                var param1 = mtd1.Parameters;
+                                buf = new ObjectRef(Class.VoidType.DefaultInstance, param1.Count);
                                 state = SubComponent!.Evaluate(vm, ref buf);
-                                vm.Stack.StepDown(cli, Arg);
-                                for (var i = 0; i < param.Count; i++)
-                                    vm.PutObject(VariableContext.Local, param[i].Name, buf[vm, i]);
+                                vm.Stack.StepDown(cli1, Arg);
+                                for (var i = 0; i < param1.Count; i++)
+                                    vm.PutObject(VariableContext.Local, param1[i].Name, buf[vm, i]);
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
                                 rev = rev.Value!.Invoke(vm, Arg, buf.Stack)!;
                                 vm.Stack.StepUp();
-                            } else if (rev.Value!.Type.Primitive)
+                            } else if (rev.Value!.Type.Primitive 
+                                       && rev.Value!.Type.DeclaredMembers.ContainsKey(Arg)
+                                       && rev.Value!.Type.DeclaredMembers[Arg] is IMethod mtd2)
                             {
-                                buf = new ObjectRef(Class.VoidType.DefaultInstance, 2);
-                                vm.Stack.MethodParams = (rev.Value!.Type.DeclaredMembers[Arg] as IMethod)!.Parameters;
-                                state = SubComponent!.Evaluate(vm, ref rev);
+                                var param2 = mtd2.Parameters;
+                                buf = new ObjectRef(Class.VoidType.DefaultInstance, param2.Count);
+                                state = SubComponent!.Evaluate(vm, ref buf);
+                                vm.Stack.StepDown(rev, Arg);
+                                for (var i = 0; i < param2.Count; i++)
+                                    vm.PutObject(VariableContext.Local, param2[i].Name, buf[vm, i]);
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
                                 rev = rev.Value!.Invoke(vm, Arg, buf.Stack)!;
-                                vm.Stack.MethodParams = null;
-                            } else if ((rev.Type).DeclaredMembers[Arg] is Method mtd)
+                                vm.Stack.StepUp();
+                            } else if (rev.Value!.Type.DeclaredMembers.ContainsKey(Arg) 
+                                       && rev.Type.DeclaredMembers[Arg] is IMethod mtd3)
                             {
-                                buf = new ObjectRef(Class.VoidType.DefaultInstance, mtd.Parameters.Count);
+                                var param3 = mtd3.Parameters;
+                                buf = new ObjectRef(Class.VoidType.DefaultInstance, param3.Count);
+                                state = SubComponent!.Evaluate(vm, ref buf);
+                                vm.Stack.StepDown(rev, Arg);
+                                for (var i = 0; i < param3.Count; i++)
+                                    vm.PutObject(VariableContext.Local, param3[i].Name, buf[vm, i]);
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
-                                vm.Stack.MethodParams = (rev.Value!.Type.DeclaredMembers[Arg] as IMethod)!.Parameters;
-                                state = SubComponent!.Evaluate(vm, ref rev);
-                                mtd.Evaluate(vm, ref state, ref buf);
-                                vm.Stack.MethodParams = null;
-                                rev = buf;
-                                //mpc.Evaluate(vm, null, ref output);
-                            }
+                                mtd3.Evaluate(vm, ref state, ref rev!);
+                                vm.Stack.StepUp();
+                            } else if (rev.Value is Class.Instance cli2
+                                       && cli2.DeclaredMembers.ContainsKey(Arg)
+                                       && cli2.DeclaredMembers[Arg] is Field fld1)
+                                fld1.Evaluate(vm, ref state, ref rev!);
+                            else if (rev.Value!.Type.DeclaredMembers.ContainsKey(Arg)
+                                     && rev.Type.DeclaredMembers[Arg] is Field fld2)
+                                fld2.Evaluate(vm, ref state, ref rev!);
                             else
                             {
-                                throw new System.Exception("Invalid state; not a method");
+                                throw new System.Exception("Invalid state; not a method or property");
                             }
 
                             break;

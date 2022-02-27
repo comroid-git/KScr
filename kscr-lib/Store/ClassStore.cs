@@ -9,7 +9,7 @@ namespace KScr.Lib.Store
     {
         private readonly IDictionary<long, Class.Instance> _cache = new ConcurrentDictionary<long, Class.Instance>();
 
-        public IClassInstance FindType(RuntimeBase vm, Package package, string name)
+        public IClassInstance? FindType(RuntimeBase vm, Package package, string name)
         {
             var cls = package.GetOrCreateClass(vm, name);
             if (cls != null)
@@ -17,8 +17,10 @@ namespace KScr.Lib.Store
             return FindType(RuntimeBase.GetHashCode64(package.FullName + '.' + name));
         }
 
-        public IClassInstance FindType(long typeId)
+        public IClassInstance? FindType(long typeId)
         {
+            if (!_cache.ContainsKey(typeId))
+                return null;
             return _cache[typeId];
         }
 

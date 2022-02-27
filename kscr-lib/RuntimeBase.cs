@@ -156,7 +156,7 @@ namespace KScr.Lib
             return rev?.Value;
         }
 
-        public IClassInstance FindType(string name, Package? package = null)
+        public IClassInstance? FindType(string name, Package? package = null)
         {
             switch (name)
             {

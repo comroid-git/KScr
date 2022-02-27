@@ -19,7 +19,7 @@ namespace KScr.Lib.Bytecode
     
     public sealed class DummyMethod : IMethod
     {
-        public DummyMethod(Class parent, string name, MemberModifier modifier) : this(parent, name, modifier, null)
+        public DummyMethod(Class parent, string name, MemberModifier modifier) : this(parent, name, modifier, new List<MethodParameter>())
         {
         }
 

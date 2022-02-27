@@ -136,6 +136,7 @@ namespace KScr.Compiler.Class
                     ctx.TokenIndex += 2;
                     CompilerLoop(vm, new ExpressionCompiler(this), ref ctx);
                     property.Getter = ctx.ExecutableCode;
+                    ctx.Class.DeclaredMembers[memberName!] = property;
                     ctx.Parent!.TokenIndex = ctx.TokenIndex - 1;
                     ResetData();
                     

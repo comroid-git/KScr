@@ -69,14 +69,27 @@ namespace KScr.Compiler.Code
                     }
                     break;
                 case TokenType.Word:
-                    ctx.Component = new StatementComponent
+                    var type = ctx.FindType(vm, ctx.Token.Arg!);
+
+                    if (type != null)
+                    { // type expression
+                        ctx.Component = new StatementComponent
+                        {
+                            Type = StatementComponentType.Expression,
+                            CodeType = BytecodeType.TypeExpression,
+                            Arg = type.FullName
+                        };
+                    } else
                     {
-                        Type = ctx.Statement.Type == StatementComponentType.Declaration
-                            ? StatementComponentType.Declaration
-                            : StatementComponentType.Provider,
-                        CodeType = BytecodeType.ExpressionVariable,
-                        Arg = ctx.Token.Arg!
-                    };
+                        ctx.Component = new StatementComponent
+                        {
+                            Type = ctx.Statement.Type == StatementComponentType.Declaration
+                                ? StatementComponentType.Declaration
+                                : StatementComponentType.Provider,
+                            CodeType = BytecodeType.ExpressionVariable,
+                            Arg = ctx.Token.Arg!
+                        };
+                    }
                     break;
                 case TokenType.This:
                     ctx.Component = new StatementComponent

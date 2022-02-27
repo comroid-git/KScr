@@ -228,10 +228,10 @@ namespace KScr.Lib.Model
             ExecutableCode.Clear();
         }
 
-        public IClassInstance FindType(RuntimeBase vm, string name)
+        public IClassInstance? FindType(RuntimeBase vm, string name)
         {
             // todo: search in imports
-            return vm.FindType(name);
+            return vm.FindType(name, Package);
         }
     }
 
