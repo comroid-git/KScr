@@ -1,13 +1,44 @@
 # KScr.NET
 A simple interpreter that attempts to grow into an object oriented language (eventually)
 
-Working Code Example Files:
-- [x] `HelloWorld.kscr`
-- [x] `PrintNumbers.kscr`
-- [x] `MathFromIO.kscr`
-- [ ] `ToStringTest.kscr` (requires objects)
-- [ ] `File.kscr` (core class; requires native class members)
-- [ ] `FileIO.kscr` (requires File core class)
-- [ ] `Function.kscr`
+## To-Do List
 
-All files need to be resolved before being able to compile the core module.
+### Statements:
+- - [x] `if` and `else`
+- - [x] `try` and `catch`
+- - - [x] `throw`
+- - - [ ] `finally`
+- - [ ] `do` and `while`
+- - [x] `for`
+- - [x] `forn`
+- - [ ] `foreach`
+- - [ ] `switch` and `case`
+- - - [ ] `break` and `continue`
+
+### Language Features:
+- - [ ] `extends` and `implements`
+- - [ ] Annotations
+- - [x] Computed Properties
+- - [ ] Properties with Getters and Setters
+- - [x] Methods
+- - [ ] `native` Keyword
+- - [ ] Static and Dynamic components
+- - [ ] Prettier StackTrace
+- - [ ] Pipe operators
+- - [ ] Reflection
+- - [ ] Encoding Support
+- - [ ] LLVM Support
+
+### Working Code Example Files:
+- - [x] `HelloWorld.kscr`
+- - [x] `PrintNumbers.kscr`
+- - [x] `MathFromIO.kscr`
+- - [ ] `ToStringTest.kscr` (requires objects)
+- - [ ] `File.kscr` (core class; requires native class members)
+- - [ ] `FileIO.kscr` (requires File core class)
+- - [ ] `Function.kscr`
+
+### Other To-Do Items:
+- - [ ] Automate TokenType scanning
+- - [ ] Something for Databinding
+- - [ ] More system Classes
