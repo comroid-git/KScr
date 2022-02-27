@@ -32,7 +32,7 @@ namespace KScr.Lib.Store
     {
         public const string Delimiter = ".";
         private readonly List<CtxBlob> _dequeue = new();
-        private string _local => _dequeue[^1].Local;
+        private string _local => _dequeue.Count == 0 ? string.Empty : _dequeue[^1].Local;
         public ObjectRef? This => _dequeue[^1].It;
         public IClass? Class => _dequeue[^1].Class ?? _dequeue[^2].Class;
         public string PrefixLocal => _local + Delimiter;
@@ -60,7 +60,7 @@ namespace KScr.Lib.Store
 
         public void StepInside(string sub)
         {
-            _dequeue.Add(new CtxBlob(sub)
+            _dequeue.Add(new CtxBlob(PrefixLocal + sub)
             {
                 Local = sub,
                 Parent = _dequeue.Last()
@@ -70,7 +70,7 @@ namespace KScr.Lib.Store
         // put focus into static class
         public void StepDown(IClass into, object? local = null /*todo implement memberref type*/)
         {
-            _dequeue.Add(new CtxBlob(local?.ToString() ?? "static-" + into.FullName)
+            _dequeue.Add(new CtxBlob(PrefixLocal + local)
             {
                 Local = local?.ToString() ?? string.Empty,
                 Class = into
@@ -80,7 +80,7 @@ namespace KScr.Lib.Store
         // put focus into object instance
         public void StepDown(ObjectRef into, object local /*todo implement memberref type*/)
         {
-            _dequeue.Add(new CtxBlob(local.ToString()!)
+            _dequeue.Add(new CtxBlob(PrefixLocal + local)
             {
                 Local = local.ToString() ?? string.Empty,
                 Class = into.Value!.Type,

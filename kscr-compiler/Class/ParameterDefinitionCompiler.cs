@@ -34,7 +34,7 @@ namespace KScr.Compiler.Class
                     if (pState == 0)
                     {
                         // parse type
-                        if (pIndex >= _method.Parameters.Count)
+                        if (pIndex > _method.Parameters.Count)
                             throw new CompilerException("Invalid parameter index during compilation");
 
                         _method.Parameters.Add(new MethodParameter());
@@ -50,7 +50,6 @@ namespace KScr.Compiler.Class
 
                     break;
                 case TokenType.Comma:
-                    pIndex += 1;
                     pState = 0;
                     break;
                 case TokenType.ParRoundClose:
