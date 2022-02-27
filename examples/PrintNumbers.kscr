@@ -12,10 +12,11 @@ public class PrintNumbers {
         stdio << "and now backwards bcs we're cool:";
         for (int i = range.end(); i; --i)
             { stdio << i; }
+            
+        .second();
         
         stdio << "length of ABC is " + "ABC".length();
-        
-        PrintNumbers.second();
+        stdio << "range was = " + range;
         
         // forever print something to test for loop robustness
         // todo: this does not compile. find solution for empty statements

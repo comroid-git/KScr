@@ -1,4 +1,5 @@
-﻿using KScr.Lib.Bytecode;
+﻿using System.Linq;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
@@ -26,6 +27,8 @@ namespace KScr.Lib.Core
             // try use overrides first
             if (Type.DeclaredMembers.TryGetValue(member, out var icm))
             {
+                if (icm.IsStatic())
+                    throw new InternalException("Static method invoked on object instance");
                 IRuntimeSite? site = icm;
                 State state = State.Normal;
                 ObjectRef? output = vm.ConstantVoid;

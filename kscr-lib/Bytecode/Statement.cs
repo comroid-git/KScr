@@ -284,7 +284,7 @@ namespace KScr.Lib.Bytecode
 
                     if (VariableContext == VariableContext.This)
                     {
-                        rev = vm.Stack.This;
+                        rev = vm.Stack.This ?? vm.Stack.Class!.SelfRef;
                         break;
                     }
 

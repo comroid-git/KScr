@@ -32,6 +32,7 @@ namespace KScr.Lib.Bytecode
                 vm.Stack.StepDown(Parent, Name);
             else vm.Stack.StepDown(rev!, Name);
             state = Body.Evaluate(vm, null, ref rev);
+            vm.Stack.StepUp();
             return null;
         }
 

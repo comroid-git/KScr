@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using KScr.Lib.Core;
+using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 using Array = System.Array;
@@ -48,7 +49,7 @@ namespace KScr.Lib.Bytecode
 
         public Instance DefaultInstance { get; private set; } = null!;
 
-        public ObjectRef SelfRef { get; } = null!;
+        public ObjectRef SelfRef => DefaultInstance.SelfRef;
 
         public IDictionary<string, IClassMember> DeclaredMembers { get; } =
             new ConcurrentDictionary<string, IClassMember>();
@@ -211,8 +212,25 @@ namespace KScr.Lib.Bytecode
                 _ => throw new ArgumentOutOfRangeException(nameof(variant), variant, null)
             };
 
-            public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args) 
-                => throw new NotImplementedException("Reflection is not implemented");
+            public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args)
+            {
+                // try invoke static method
+                if (DeclaredMembers.TryGetValue(member, out var icm))
+                {
+                    if (!icm.IsStatic())
+                        throw new InternalException("Cannot invoke non-static method from static context");
+                    IRuntimeSite? site = icm;
+                    State state = State.Normal;
+                    ObjectRef? output = vm.ConstantVoid;
+                    do
+                    {
+                        site = site.Evaluate(vm, ref state, ref output);
+                    } while (state == State.Normal && site != null);
+
+                    return output;
+                }
+                throw new InternalException("Method not implemented: " + member);
+            }
         }
     }
 

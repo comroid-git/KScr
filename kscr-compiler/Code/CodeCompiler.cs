@@ -67,7 +67,6 @@ namespace KScr.Compiler.Code
                         ctx.LastComponent!.PostComponent.SubComponent = subctx.Component;
                         ctx.TokenIndex = subctx.TokenIndex - 1;
                     }
-
                     break;
                 case TokenType.Word:
                     ctx.Component = new StatementComponent
@@ -293,7 +292,12 @@ namespace KScr.Compiler.Code
                     break;
                 case TokenType.ParAccClose:
                 case TokenType.Terminator:
-                    //ctx.Statement = new Statement();
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Provider,
+                        CodeType = BytecodeType.Statement,
+                        VariableContext = VariableContext.This
+                    };
                     return this;
             }
 
