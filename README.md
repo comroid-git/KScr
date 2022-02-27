@@ -20,6 +20,7 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 - - [ ] Arrays
 - - [ ] Tuple Literals
 - - [ ] `extends` and `implements`
+- - [ ] Variable Caching
 - - [ ] Annotations
 - - [x] Computed Properties
 - - [ ] Properties with Getters and Setters
