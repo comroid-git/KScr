@@ -7,7 +7,7 @@ using KScr.Lib.Store;
 
 namespace KScr.Lib.Bytecode
 {
-    public class ExecutableCode : AbstractBytecode, IStatement<Statement>
+    public class ExecutableCode : AbstractBytecode, IStatement<Statement>, IRuntimeSite
     {
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main;
         public StatementComponentType Type => StatementComponentType.Code;
@@ -15,25 +15,23 @@ namespace KScr.Lib.Bytecode
 
         public List<Statement> Main { get; } = new();
 
-        public State Evaluate(RuntimeBase vm, IEvaluable? _, ref ObjectRef output)
+        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
         {
-            ObjectRef? rev = null;
-            Statement? prev = null;
-            var state = State.Normal;
-
             foreach (var statement in Main)
             {
-                if (vm.StdIoMode)
-                    state = statement.Evaluate(vm, prev, ref output);
-                else state = statement.Evaluate(vm, prev, ref rev);
+                state = statement.Evaluate(vm, ref rev);
                 if (rev?.Value is ReturnValue)
                     state = State.Return;
-                if (state != State.Normal)
-                    output = rev;
-
-                prev = statement;
             }
 
+            return null;
+        }
+
+        public State Evaluate(RuntimeBase vm, ref ObjectRef output)
+        {
+            ObjectRef? rev = null;
+            var state = State.Normal;
+            Evaluate(vm, ref state, ref rev);
             return state;
         }
 

@@ -190,7 +190,7 @@ namespace KScr.Lib.Bytecode
                 {
                     int indexOf = BaseClass.Name.IndexOf('<');
                     return BaseClass.Name.Substring(0, indexOf == -1 ? BaseClass.Name.Length : indexOf)
-                           + (TypeParameters.Count == 0 ? string.Empty : '<' + string.Join(", ", TypeParameters) + '>');
+                           + (TypeParameters.Count == 0 ? string.Empty : '<' + string.Join(", ", TypeParameters.Select(t => t.TargetType?.Name ?? t.Name)) + '>');
                 }
             }
 

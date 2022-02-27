@@ -31,7 +31,9 @@ namespace KScr.Lib.Bytecode
             Parameters = parameters;
         }
 
-        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0) 
+        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev) 
+            => throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
+        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
             => throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
 
         public Class Parent { get; set; }
@@ -59,7 +61,7 @@ namespace KScr.Lib.Bytecode
 
         public override IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
         {
-            state = Body.Evaluate(vm, null, ref rev);
+            state = Body.Evaluate(vm, ref rev);
             return null;
         }
 

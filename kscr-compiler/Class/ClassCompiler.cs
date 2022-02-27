@@ -8,17 +8,17 @@ namespace KScr.Compiler.Class
 {
     public class ClassCompiler : AbstractCompiler
     {
-        private Field field = null!;
         private bool inBody;
         private string? memberName;
         private int memberType;
         private Method method = null!;
+        private Field property = null!;
         private MemberModifier? modifier;
         private ITypeInfo targetType = null!;
 
         private void ResetData()
         {
-            field = null!;
+            property = null!;
             method = null!;
             memberName = null;
             modifier = null!;
@@ -115,19 +115,37 @@ namespace KScr.Compiler.Class
                         memberName = ctx.Token.Arg!;
                     }
 
-                    memberType = 2; // field
+                    memberType = 2; // property
                     break;
-                // into field
-                case TokenType.OperatorEquals:
+                // into computed property
+                // todo: setter
+                case TokenType.OperatorMinus:
                     if (!inBody)
                         break;
+                    if (ctx.NextToken!.Type != TokenType.ParDiamondClose)
+                        break;
+                    if (memberType != 2) // computed property
+                        throw new CompilerException("Could not create field; invalid memberType = " + memberType);
+                    property = new Field(ctx.Class, memberName!, modifier ?? MemberModifier.Protected);
+                    ctx = new CompilerContext(ctx, CompilerType.CodeExpression);
+                    ctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Expression,
+                        TargetType = Lib.Bytecode.Class.VoidType.DefaultInstance // todo support type parameters
+                    };
+                    ctx.TokenIndex += 2;
+                    CompilerLoop(vm, new ExpressionCompiler(this), ref ctx);
+                    property.Getter = ctx.ExecutableCode;
+                    ctx.Parent!.TokenIndex = ctx.TokenIndex - 1;
+                    ResetData();
+                    
                     break;
                 // into method
                 case TokenType.ParRoundOpen:
                     if (!inBody)
                         break;
                     if (memberType != 2)
-                        throw new CompilerException("Could not create method; invalid memberType = " + memberType);
+                        throw new CompilerException("Could not create method; unexpected memberType");
                     memberType = 1; // method
 
                     // compile parameter definition

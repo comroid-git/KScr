@@ -76,7 +76,7 @@ namespace KScr.Lib.Store
                 if (ReadAccessor != null)
                 {
                     var output = Numeric.Constant(vm, i);
-                    ReadAccessor!.Evaluate(vm, null, ref output!);
+                    ReadAccessor!.Evaluate(vm, ref output);
                     return output.Value;
                 }
                 else
@@ -90,7 +90,7 @@ namespace KScr.Lib.Store
                 if (WriteAccessor != null)
                 {
                     var output = new ObjectRef(Class.VoidType.DefaultInstance) { Value = value };
-                    WriteAccessor!.Evaluate(vm, null, ref output!);
+                    WriteAccessor!.Evaluate(vm, ref output);
                 }
                 else
                 {

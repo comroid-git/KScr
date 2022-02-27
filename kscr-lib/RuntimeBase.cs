@@ -209,7 +209,7 @@ namespace KScr.Lib
 
             private sealed class StdioWriter : IEvaluable
             {
-                public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
+                public State Evaluate(RuntimeBase vm, ref ObjectRef rev)
                 {
                     var txt = rev.Value!.ToString(IObject.ToString_ShortName);
                     Console.WriteLine(txt);
@@ -219,7 +219,7 @@ namespace KScr.Lib
 
             private sealed class StdioReader : IEvaluable
             {
-                public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
+                public State Evaluate(RuntimeBase vm, ref ObjectRef rev)
                 {
                     if (rev.Length != 1 || !rev.Type.CanHold(Class.StringType) && !rev.Type.CanHold(Class.NumericType))
                         throw new InternalException("Invalid reference to write string into: " + rev);

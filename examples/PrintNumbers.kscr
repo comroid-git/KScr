@@ -1,6 +1,8 @@
 package org.comroid.kscr.test;
 
 public class PrintNumbers {
+    public static int StackSize -> 64;
+
     // prints numbers 0 to 11
     public static void main() {
         void range = 0~12; // todo: range as non-compile-time constant 
@@ -13,10 +15,10 @@ public class PrintNumbers {
         for (int i = range.end(); i; --i)
             { stdio << i; }
             
-        .second();
+        PrintNumbers.second();
         
         stdio << "length of ABC is " + "ABC".length();
-        .printSomething("range was = " + range, 6345);
+        .printSomething("StackSize: "+PrintNumbers.StackSize+"; range was = " + range, 6345);
         
         // forever print something to test for loop robustness
         // todo: this does not compile. find solution for empty statements

@@ -132,7 +132,7 @@ namespace KScr.Runtime
                 compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - compileTime;
 
                 long executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                state = context.ExecutableCode.Evaluate(VM, null, ref output);
+                state = context.ExecutableCode.Evaluate(VM, ref output);
                 executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - executeTime;
                 context.Clear();
 
