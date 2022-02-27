@@ -16,6 +16,9 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 - - - [ ] `break` and `continue`
 
 ### Language Features:
+- - [ ] Objects
+- - [ ] Arrays
+- - [ ] Tuple Literals
 - - [ ] `extends` and `implements`
 - - [ ] Annotations
 - - [x] Computed Properties
@@ -29,7 +32,7 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 - - [ ] Encoding Support
 - - [ ] LLVM Support
 
-### Working Code Example Files:
+### Working Code Files:
 - - [x] `HelloWorld.kscr`
 - - [x] `PrintNumbers.kscr`
 - - [x] `MathFromIO.kscr`
@@ -37,8 +40,12 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 - - [ ] `File.kscr` (core class; requires native class members)
 - - [ ] `FileIO.kscr` (requires File core class)
 - - [ ] `Function.kscr`
+- - [ ] Core Module
 
 ### Other To-Do Items:
 - - [ ] Automate TokenType scanning
+- - [ ] IDEA Language Support
+- - [ ] VSC Language Support
+- - [ ] Packaging
 - - [ ] Something for Databinding
 - - [ ] More system Classes
