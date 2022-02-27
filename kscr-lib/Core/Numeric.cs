@@ -572,7 +572,7 @@ namespace KScr.Lib.Core
 
         public static string CreateKey(string num)
         {
-            return "num:" + num;
+            return "static-num:" + num;
         }
 
         public static string CreateKey(long num)

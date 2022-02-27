@@ -8,5 +8,7 @@ public class Object {
 
     public native str toString(short alt = 0);
     
+    public native byte equals(Object other);
+    
     public native type getType();
 }

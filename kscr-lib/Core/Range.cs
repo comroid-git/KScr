@@ -53,6 +53,8 @@ namespace KScr.Lib.Core
                     if (args[0] is not Numeric x)
                         throw new ArgumentException("Invalid Argument; expected num");
                     return accumulate(vm, x);
+                case "decremental": // accumulate
+                    return Decremental ? vm.ConstantTrue : vm.ConstantFalse;
             }
 
             throw new NotImplementedException();

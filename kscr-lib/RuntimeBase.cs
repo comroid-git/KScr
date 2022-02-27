@@ -7,6 +7,7 @@ using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
+using Range = KScr.Lib.Core.Range;
 using String = KScr.Lib.Core.String;
 
 namespace KScr.Lib
@@ -46,12 +47,21 @@ namespace KScr.Lib
             Class.NumericLongType.Initialize(this);
             Class.NumericFloatType.Initialize(this);
             Class.NumericDoubleType.Initialize(this);
+
+            Class.InitializePrimitives(this);
+            
             Initialized = true;
         }
 
         public abstract ObjectStore ObjectStore { get; }
         public abstract ClassStore ClassStore { get; }
         public Stack Stack { get; } = new();
+
+        public ObjectRef? this[string name]
+        {
+            get => ObjectStore[Stack, VariableContext.Local, name];
+            set => ObjectStore[Stack, VariableContext.Local, name] = value;
+        }
 
         public ObjectRef? this[VariableContext varctx, string name]
         {
@@ -134,16 +144,19 @@ namespace KScr.Lib
 
         public IObject? Execute(ref State state)
         {
-            var site = Package.RootPackage.FindEntrypoint();
+            var method = Package.RootPackage.FindEntrypoint();
+            IRuntimeSite? site = method;
             ObjectRef? rev = null;
 
+            Stack.StepDown(method.Parent, "main");
             while (site != null)
                 site = site.Evaluate(this, ref state, ref rev);
+            Stack.StepUp();
 
             return rev?.Value;
         }
 
-        public IClassInstance FindType(RuntimeBase vm, string name, Package? package = null)
+        public IClassInstance FindType(string name, Package? package = null)
         {
             switch (name)
             {
@@ -167,13 +180,13 @@ namespace KScr.Lib
                     return Class.VoidType.DefaultInstance;
             }
 
-            return ClassStore.FindType(vm, package!, name);
+            return ClassStore.FindType(this, package!, name);
         }
 
-        public ITypeInfo FindTypeInfo(RuntimeBase vm, string identifier, Class inClass, Package inPackage)
+        public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)
         {
             return (ITypeInfo?)inClass.TypeParameters.FirstOrDefault(tp => tp.FullName == identifier)
-                   ?? FindType(vm, identifier, inPackage)!;
+                   ?? FindType(identifier, inPackage)!;
         }
 
         public sealed class StandardIORef : ObjectRef

@@ -31,7 +31,9 @@ namespace KScr.Lib.Core
                     throw new InternalException("Static method invoked on object instance");
                 IRuntimeSite? site = icm;
                 State state = State.Normal;
-                ObjectRef? output = vm.ConstantVoid;
+                ObjectRef? output = new ObjectRef(Class.VoidType.DefaultInstance, args.Length);
+                for (var i = 0; i < vm.Stack.MethodParams!.Count; i++)
+                    vm.PutObject(VariableContext.Local, vm.Stack.MethodParams![i].Name, output[vm, i]);
                 do
                 {
                     site = site.Evaluate(vm, ref state, ref output);

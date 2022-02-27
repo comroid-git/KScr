@@ -15,8 +15,7 @@ namespace KScr.Compiler.Code
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
-            MethodParameterComponent mpc;
-            ctx.Component = mpc = new MethodParameterComponent
+            ctx.Component = new StatementComponent
             {
                 Type = StatementComponentType.Code,
                 CodeType = BytecodeType.ParameterExpression
@@ -26,13 +25,16 @@ namespace KScr.Compiler.Code
             while (ctx.Token.Type != TokenType.ParRoundClose)
             {
                 var subctx = new CompilerContext(ctx, CompilerType.CodeParameterExpression);
-                CompilerLoop(vm, new ExpressionCompiler(this, false, TokenType.Comma), ref subctx);
-                mpc.Expressions.Add(subctx.Component);
+                subctx.Statement = new Statement
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.ParameterExpression
+                };
+                CompilerLoop(vm, new ExpressionCompiler(this, false, TokenType.Comma, TokenType.ParRoundClose), ref subctx);
+                if (ctx.LastComponent!.InnerCode == null)
+                    ctx.LastComponent!.InnerCode = new ExecutableCode();
+                ctx.LastComponent!.InnerCode!.Main.Add(subctx.Statement);
                 ctx.TokenIndex = subctx.TokenIndex;
-
-                if (ctx.Token.Type != TokenType.Comma)
-                    throw new CompilerException("Invalid expression delimiter in Method parameters; comma expected");
-                ctx.TokenIndex += 1;
             }
 
             _active = false;

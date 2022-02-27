@@ -18,6 +18,7 @@ namespace KScr.Lib.Bytecode
         public BytecodeType CodeType { get; set; } = BytecodeType.Undefined;
         public IClassInstance TargetType { get; set; } = Class.VoidType.DefaultInstance;
         public List<StatementComponent> Main { get; } = new();
+        public string? Arg { get; set; }
 
         public State Evaluate(RuntimeBase vm, IEvaluable? prev, ref ObjectRef rev)
         {
@@ -156,6 +157,17 @@ namespace KScr.Lib.Bytecode
                             if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new InternalException("Invalid return statement; no Expression found");
                             state = SubComponent.Evaluate(vm, this, ref rev) == State.Normal ? State.Return : state;
+                            break;
+                        case BytecodeType.ParameterExpression:
+                            if (InnerCode == null)
+                                break;
+                            rev = new ObjectRef(Class.VoidType.DefaultInstance, InnerCode!.Main.Count);
+                            for (var i = 0; i < InnerCode!.Main.Count; i++)
+                            {
+                                var val = vm.ConstantVoid;
+                                InnerCode!.Main[i].Evaluate(vm, null, ref val!);
+                                rev[vm, i] = val.Value;
+                            }
                             break;
                         case BytecodeType.StmtIf:
                             vm.Stack.StepInside("if");
@@ -298,27 +310,36 @@ namespace KScr.Lib.Bytecode
                             // invoke member
                             if (rev == null)
                                 throw new InternalException("Invalid call; no target found");
-                            if (!(SubComponent is MethodParameterComponent mpc) ||
-                                (SubComponent.Type & StatementComponentType.Code) == 0)
-                                throw new InternalException("Invalid method call; no parameters found");
-                            if (rev.Type.Primitive)
+                            if (rev.Value is Class.Instance cli)
                             {
-                                buf = new ObjectRef(Class.VoidType.DefaultInstance, 2);
-                                state = mpc.Evaluate(vm, null, ref buf);
+                                var param = (cli.DeclaredMembers[Arg] as IMethod)!.Parameters;
+                                buf = new ObjectRef(Class.VoidType.DefaultInstance, param.Count);
+                                state = SubComponent!.Evaluate(vm, null, ref buf);
+                                vm.Stack.StepDown(cli, Arg);
+                                for (var i = 0; i < param.Count; i++)
+                                    vm.PutObject(VariableContext.Local, param[i].Name, buf[vm, i]);
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
                                 rev = rev.Value!.Invoke(vm, Arg, buf.Stack)!;
+                                vm.Stack.StepUp();
+                            } else if (rev.Value!.Type.Primitive)
+                            {
+                                buf = new ObjectRef(Class.VoidType.DefaultInstance, 2);
+                                vm.Stack.MethodParams = (rev.Value!.Type.DeclaredMembers[Arg] as IMethod)!.Parameters;
+                                state = SubComponent!.Evaluate(vm, null, ref rev);
+                                if (state != State.Normal)
+                                    throw new InternalException("Invalid state after evaluating method parameters");
+                                rev = rev.Value!.Invoke(vm, Arg, buf.Stack)!;
+                                vm.Stack.MethodParams = null;
                             } else if ((rev.Type).DeclaredMembers[Arg] is Method mtd)
                             {
                                 buf = new ObjectRef(Class.VoidType.DefaultInstance, mtd.Parameters.Count);
-                                state = mpc.Evaluate(vm, null, ref buf);
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
-                                if (mtd.IsStatic())
-                                    vm.Stack.StepDown(mtd.Parent, mtd.FullName);
-                                else vm.Stack.StepDown(rev, mtd.FullName);
-                                mtd.Evaluate(vm, ref state, ref buf); // todo inspect
-                                vm.Stack.StepUp();
+                                vm.Stack.MethodParams = (rev.Value!.Type.DeclaredMembers[Arg] as IMethod)!.Parameters;
+                                state = SubComponent!.Evaluate(vm, null, ref rev);
+                                mtd.Evaluate(vm, ref state, ref buf);
+                                vm.Stack.MethodParams = null;
                                 rev = buf;
                                 //mpc.Evaluate(vm, null, ref output);
                             }

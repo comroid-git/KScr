@@ -106,7 +106,7 @@ namespace KScr.Compiler.Class
                     {
                         // is return type
                         string targetTypeIdentifier = ctx.Token.Arg!;
-                        targetType = vm.FindTypeInfo(vm, targetTypeIdentifier, ctx.Class, ctx.Package)
+                        targetType = vm.FindTypeInfo(targetTypeIdentifier, ctx.Class, ctx.Package)
                                      ?? throw new CompilerException("Could not find type: " + targetTypeIdentifier);
                     }
                     else if (memberName == null)

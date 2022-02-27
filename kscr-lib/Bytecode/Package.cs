@@ -18,7 +18,7 @@ namespace KScr.Lib.Bytecode
         {
         }
 
-        public IRuntimeSite FindEntrypoint()
+        public Method FindEntrypoint()
         {
             return All().Where(it => it is Class).Cast<Class>()
                 .Where(it => it.DeclaredMembers.ContainsKey("main"))

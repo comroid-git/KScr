@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Model;
 
 namespace KScr.Lib.Store
@@ -35,6 +36,7 @@ namespace KScr.Lib.Store
         public ObjectRef? This => _dequeue[^1].It;
         public IClass? Class => _dequeue[^1].Class ?? _dequeue[^2].Class;
         public string PrefixLocal => _local + Delimiter;
+        public List<MethodParameter>? MethodParams { get; set; }
 
         public IEnumerable<string> CreateKeys(VariableContext varctx, string name)
         {
@@ -68,10 +70,10 @@ namespace KScr.Lib.Store
         // put focus into static class
         public void StepDown(IClass into, object? local = null /*todo implement memberref type*/)
         {
-            _dequeue.Add(new CtxBlob(local?.ToString() ?? "static" + into.FullName)
+            _dequeue.Add(new CtxBlob(local?.ToString() ?? "static-" + into.FullName)
             {
                 Local = local?.ToString() ?? string.Empty,
-                Class = into,
+                Class = into
             });
         }
 

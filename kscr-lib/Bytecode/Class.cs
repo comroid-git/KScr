@@ -165,7 +165,7 @@ namespace KScr.Lib.Bytecode
             public void Initialize(RuntimeBase vm)
             {
                 if (_initialized) return;
-                SelfRef = vm.PutObject(VariableContext.Absolute, "classInstance:" + FullName, this);
+                SelfRef = vm.PutObject(VariableContext.Absolute, "static-classInstance:" + FullName, this);
                 _initialized = true;
             }
 
@@ -221,7 +221,7 @@ namespace KScr.Lib.Bytecode
                         throw new InternalException("Cannot invoke non-static method from static context");
                     IRuntimeSite? site = icm;
                     State state = State.Normal;
-                    ObjectRef? output = vm.ConstantVoid;
+                    ObjectRef? output = new ObjectRef(VoidType.DefaultInstance);
                     do
                     {
                         site = site.Evaluate(vm, ref state, ref output);
@@ -232,6 +232,94 @@ namespace KScr.Lib.Bytecode
                 throw new InternalException("Method not implemented: " + member);
             }
         }
+
+        public static void InitializePrimitives(RuntimeBase runtimeBase)
+        {
+            #region Void Class
+            
+            var toString = new DummyMethod(VoidType, "toString", LibClassModifier, new List<MethodParameter> {
+                new()
+                {
+                    Name = "variant",
+                    Type = NumericShortType
+                }
+            });
+            var equals = new DummyMethod(VoidType, "equals", LibClassModifier, new List<MethodParameter> {
+                new()
+                {
+                    Name = "other",
+                    Type = VoidType.DefaultInstance
+                }
+            });
+            var getType = new DummyMethod(VoidType, "getType", LibClassModifier);
+            
+            AddToClass(VoidType, toString);
+            AddToClass(VoidType, equals);
+            AddToClass(VoidType, getType);
+            
+            #endregion
+  
+            #region Type Class
+            
+            AddToClass(TypeType, toString);
+            AddToClass(TypeType, equals);
+            AddToClass(TypeType, getType);
+            
+            #endregion
+
+            #region Numeric Class
+            
+            AddToClass(NumericType, toString);
+            AddToClass(NumericType, equals);
+            AddToClass(NumericType, getType);
+            
+            #endregion
+
+            #region String Class
+
+            var length = new DummyMethod(StringType, "length", LibClassModifier);
+            
+            AddToClass(StringType, toString);
+            AddToClass(StringType, equals);
+            AddToClass(StringType, length);
+            AddToClass(StringType, getType);
+            
+            #endregion
+
+            #region Range Class
+            
+            var start = new DummyMethod(VoidType, "start", LibClassModifier);
+            var end = new DummyMethod(VoidType, "end", LibClassModifier);
+            var test = new DummyMethod(VoidType, "test", LibClassModifier, new List<MethodParameter> {
+                new()
+                {
+                    Name = "i",
+                    Type = NumericIntType
+                }
+            });
+            var accumulate = new DummyMethod(VoidType, "accumulate", LibClassModifier, new List<MethodParameter> {
+                new()
+                {
+                    Name = "other",
+                    Type = NumericIntType
+                }
+            });
+            var decremental = new DummyMethod(VoidType, "decremental", LibClassModifier);
+
+            AddToClass(RangeType, toString);
+            AddToClass(RangeType, equals);
+            AddToClass(RangeType, start);
+            AddToClass(RangeType, end);
+            AddToClass(RangeType, test);
+            AddToClass(RangeType, accumulate);
+            AddToClass(RangeType, decremental);
+            AddToClass(RangeType, getType);
+            
+            #endregion
+            
+        }
+
+        private static void AddToClass(Class type, DummyMethod dummyMethod) => type.DeclaredMembers[dummyMethod.Name] = dummyMethod;
     }
 
     public sealed class TypeParameter : ITypeParameter

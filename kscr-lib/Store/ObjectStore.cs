@@ -59,8 +59,7 @@ namespace KScr.Lib.Store
         public ObjectRef(IClassInstance type, [Range(1, int.MaxValue)] int len = 1)
         {
             if (len < 1)
-                throw new ArgumentOutOfRangeException(nameof(len), len, "Invalid ObjectRef size");
-
+                len = 1;
             Type = type;
             Stack = new IObject?[len];
         }

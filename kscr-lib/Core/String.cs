@@ -57,7 +57,7 @@ namespace KScr.Lib.Core
         public static ObjectRef Instance(RuntimeBase vm, string str)
         {
             string key = ObjPrefix + '#' + str.GetHashCode();
-            string ptr = "str-literal:" + str;
+            string ptr = "static-str:" + str;
             var rev = vm[VariableContext.Absolute, ptr];
             var obj = rev?.Value;
             if (obj is String strObj && strObj.Str == str)

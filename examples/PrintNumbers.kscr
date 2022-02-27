@@ -16,7 +16,7 @@ public class PrintNumbers {
         .second();
         
         stdio << "length of ABC is " + "ABC".length();
-        stdio << "range was = " + range;
+        .printSomething("range was = " + range);
         
         // forever print something to test for loop robustness
         // todo: this does not compile. find solution for empty statements
@@ -25,5 +25,9 @@ public class PrintNumbers {
     
     public static void second() {
         stdio << "This is another method";
+    }
+    
+    public static void printSomething(str textToPrint) {
+        stdio << "Print this: " + textToPrint;
     }
 }

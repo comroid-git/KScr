@@ -22,6 +22,14 @@ namespace KScr.Compiler.Class
         {
             switch (ctx.Token.Type)
             {
+                case TokenType.IdentNum:
+                case TokenType.IdentStr:
+                case TokenType.IdentNumByte:
+                case TokenType.IdentNumShort:
+                case TokenType.IdentNumInt:
+                case TokenType.IdentNumLong:
+                case TokenType.IdentNumFloat:
+                case TokenType.IdentNumDouble:
                 case TokenType.Word:
                     if (pState == 0)
                     {
@@ -30,7 +38,7 @@ namespace KScr.Compiler.Class
                             throw new CompilerException("Invalid parameter index during compilation");
 
                         _method.Parameters.Add(new MethodParameter());
-                        _method.Parameters[++pIndex].Type = vm.FindType(vm, ctx.Token.Arg!)!;
+                        _method.Parameters[++pIndex].Type = ctx.FindType(vm, ctx.Token.String())!;
                         pState = 1;
                     }
                     else if (pState == 1)

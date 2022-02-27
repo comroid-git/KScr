@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
@@ -11,7 +12,37 @@ namespace KScr.Lib.Bytecode
         public string Name { get; set; }
     }
 
-    public sealed class Method : AbstractClassMember
+    public interface IMethod : IClassMember
+    {
+        List<MethodParameter> Parameters { get; }
+    }
+    
+    public sealed class DummyMethod : IMethod
+    {
+        public DummyMethod(Class parent, string name, MemberModifier modifier) : this(parent, name, modifier, null)
+        {
+        }
+
+        public DummyMethod(Class parent, string name, MemberModifier modifier, List<MethodParameter> parameters)
+        {
+            Parent = parent;
+            Name = name;
+            Modifier = modifier;
+            Parameters = parameters;
+        }
+
+        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0) 
+            => throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
+
+        public Class Parent { get; set; }
+        public string Name { get; set; }
+        public string FullName => Parent.FullName + '.' + Name;
+        public MemberModifier Modifier { get; set; }
+        public List<MethodParameter> Parameters { get; set; }
+        public ClassMemberType Type => ClassMemberType.Method;
+    }
+
+    public sealed class Method : AbstractClassMember, IMethod
     {
         public ExecutableCode Body = null!;
 
@@ -28,11 +59,7 @@ namespace KScr.Lib.Bytecode
 
         public override IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
         {
-            if (Modifier.IsStatic())
-                vm.Stack.StepDown(Parent, Name);
-            else vm.Stack.StepDown(rev!, Name);
             state = Body.Evaluate(vm, null, ref rev);
-            vm.Stack.StepUp();
             return null;
         }
 

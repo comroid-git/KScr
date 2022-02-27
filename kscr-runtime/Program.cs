@@ -36,6 +36,7 @@ namespace KScr.Runtime
                 var paths = new string[args.Length - 1];
                 Array.Copy(args, 1, paths, 0, paths.Length);
                 var files = paths.Select(path => new FileInfo(path)).GetEnumerator();
+                //VM.Stack.MethodParamsExpr = BuildProgramArgsParams(args);
 
                 switch (args[0])
                 {
@@ -70,6 +71,32 @@ namespace KScr.Runtime
             }
 
             return HandleExit(state, yield, compileTime, executeTime);
+        }
+
+        private static StatementComponent BuildProgramArgsParams(string[] args)
+        {
+            var comp = new StatementComponent
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.ParameterExpression,
+                InnerCode = new ExecutableCode()
+            };
+            foreach (string str in args)
+                comp.InnerCode.Main.Add(new Statement
+                {
+                    Type = StatementComponentType.Expression,
+                    CodeType = BytecodeType.LiteralString,
+                    Main =
+                    {
+                        new StatementComponent
+                        {
+                            Type = StatementComponentType.Expression,
+                            CodeType = BytecodeType.LiteralString,
+                            Arg = str
+                        }
+                    }
+                });
+            return comp;
         }
 
         private static void StdIoMode(ref State state, ref IObject yield)
