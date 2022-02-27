@@ -51,6 +51,32 @@ namespace KScr.Compiler.Code
                     }
 
                     return this;
+                case TokenType.Throw:
+                    ctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.Throw,
+                        TargetType = Lib.Bytecode.Class.ThrowableType.DefaultInstance
+                    };
+
+                    // compile exception expression
+                    ctx.TokenIndex += 1;
+                    subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
+                    subctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Expression,
+                        CodeType = BytecodeType.Throw,
+                        TargetType = Lib.Bytecode.Class.ThrowableType.DefaultInstance
+                    };
+                    CompilerLoop(vm, new ExpressionCompiler(this), ref subctx);
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.Throw,
+                        SubStatement = subctx.Statement
+                    };
+                    ctx.TokenIndex = subctx.TokenIndex - 1;
+                    break;
                 case TokenType.If:
                     if (ctx.NextToken?.Type != TokenType.ParRoundOpen)
                         throw new CompilerException("Invalid if-Statement; missing condition");

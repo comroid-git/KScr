@@ -15,7 +15,7 @@ public class PrintNumbers {
         for (int i = range.end(); i; --i)
             { stdio << i; }
             
-        PrintNumbers.second();
+        PrintNumbers.second(false);
         
         stdio << "length of ABC is " + "ABC".length();
         .printSomething("StackSize: "+PrintNumbers.StackSize+"; range was = " + range, 6345);
@@ -23,10 +23,15 @@ public class PrintNumbers {
         // forever print something to test for loop robustness
         // todo: this does not compile. find solution for empty statements
         //for (;;) stdio << "abc";
+            
+        .second(true);
     }
     
-    public static void second() {
+    public static void second(byte thr) {
         stdio << "This is another method";
+        
+        if (thr)
+            throw null;
     }
     
     public static void printSomething(str textToPrint, int andAnInteger) {

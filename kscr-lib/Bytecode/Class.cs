@@ -25,6 +25,7 @@ namespace KScr.Lib.Bytecode
         public static readonly Class StringType = new(LibClassPackage, "str", true, LibClassModifier);
         public static readonly Class RangeType = new(LibClassPackage, "range", true, LibClassModifier);
         public static readonly Class NumericType = new(LibClassPackage, "num", true, LibClassModifier) { TypeParameters = { new TypeParameter("T") } };
+        public static readonly Class ThrowableType = new(LibClassPackage, "Throwable", true, LibClassModifier, ClassType.Interface);
         public static readonly Instance NumericByteType = new(NumericType, new Class(LibClassPackage, "byte", true, LibClassModifier));
         public static readonly Instance NumericShortType = new(NumericType, new Class(LibClassPackage, "short", true, LibClassModifier));
         public static readonly Instance NumericIntType = new(NumericType, new Class(LibClassPackage, "int", true, LibClassModifier));
@@ -316,7 +317,14 @@ namespace KScr.Lib.Bytecode
             AddToClass(RangeType, getType);
             
             #endregion
+
+            #region Throwable Class
+
+            AddToClass(ThrowableType, toString);
+            AddToClass(ThrowableType, equals);
+            AddToClass(ThrowableType, getType);
             
+            #endregion
         }
 
         private static void AddToClass(Class type, DummyMethod dummyMethod) => type.DeclaredMembers[dummyMethod.Name] = dummyMethod;

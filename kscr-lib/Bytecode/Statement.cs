@@ -162,6 +162,11 @@ namespace KScr.Lib.Bytecode
                                 throw new InternalException("Invalid return statement; no Expression found");
                             state = SubComponent.Evaluate(vm, ref rev) == State.Normal ? State.Return : state;
                             break;
+                        case BytecodeType.Throw:
+                            if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
+                                throw new InternalException("Invalid throw statement; no Exception found");
+                            state = SubComponent.Evaluate(vm, ref rev) == State.Normal ? State.Throw : state;
+                            throw new InternalException("+++ EXCEPTION IN CODE: " + rev.Value?.ToString(1) ?? "no message" + " +++");
                         case BytecodeType.ParameterExpression:
                             if (InnerCode == null)
                                 break;

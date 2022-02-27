@@ -40,6 +40,7 @@ namespace KScr.Lib
             Class.ArrayType.Initialize(this);
             Class.StringType.Initialize(this);
             Class.RangeType.Initialize(this);
+            Class.ThrowableType.Initialize(this);
             Class.NumericType.Initialize(this);
             Class.NumericByteType.Initialize(this);
             Class.NumericShortType.Initialize(this);
