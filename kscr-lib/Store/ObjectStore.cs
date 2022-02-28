@@ -39,6 +39,8 @@ namespace KScr.Lib.Store
                     throw new InternalException("Unable to remove local variable " + localKey);
         }
 
+        public bool Remove(string key) => _cache.TryRemove(key, out _);
+
         public void Clear()
         {
             _cache.Clear();

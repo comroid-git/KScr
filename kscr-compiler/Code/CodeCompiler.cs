@@ -91,6 +91,7 @@ namespace KScr.Compiler.Code
                     break;
                 case TokenType.Word:
                     var type = ctx.FindType(vm, ctx.Token.Arg!);
+                    //todo: try use class member instead of type
 
                     if (type != null)
                     { // type expression

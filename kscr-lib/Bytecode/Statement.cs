@@ -134,7 +134,7 @@ namespace KScr.Lib.Bytecode
                     var obj = new CodeObject(vm, type);
                     buf = new ObjectRef(Class.VoidType.DefaultInstance, ctor.Parameters.Count);
                     rev = vm.PutObject(VariableContext.Absolute, "instance-" + type.FullName + "-" + obj.ObjectId, obj);
-                    vm.Stack.StepInside(type.Name + ".ctor", ref rev, _rev =>
+                    vm.Stack.StepInside(vm, type.Name + ".ctor", ref rev, _rev =>
                     {
                         State state = State.Normal;
                         SubComponent.Evaluate(vm, ref buf);
@@ -165,9 +165,9 @@ namespace KScr.Lib.Bytecode
                     break;
                 case (StatementComponentType.Code, BytecodeType.Return):
                     // return
-                    if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
+                    if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new InternalException("Invalid return statement; no Expression found");
-                    state = SubComponent.Evaluate(vm, ref rev) == State.Normal ? State.Return : state;
+                    state = SubStatement.Evaluate(vm, ref rev) == State.Normal ? State.Return : state;
                     break;
                 case (StatementComponentType.Code, BytecodeType.Throw):
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
@@ -188,7 +188,7 @@ namespace KScr.Lib.Bytecode
 
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtIf):
-                    vm.Stack.StepInside("if", ref rev, _rev =>
+                    vm.Stack.StepInside(vm, "if", ref rev, _rev =>
                     {
                         state = SubStatement!.Evaluate(vm, ref buf!);
                         if (buf.ToBool())
@@ -199,7 +199,7 @@ namespace KScr.Lib.Bytecode
                     });
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtFor):
-                    vm.Stack.StepInside("for", ref rev, _rev =>
+                    vm.Stack.StepInside(vm, "for", ref rev, _rev =>
                     {
                         state = SubStatement!.Evaluate(vm, ref buf!);
                         if (state != State.Normal)
@@ -218,7 +218,7 @@ namespace KScr.Lib.Bytecode
                     });
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtForN):
-                    vm.Stack.StepInside("forn", ref rev, _rev =>
+                    vm.Stack.StepInside(vm, "forn", ref rev, _rev =>
                     {
                         state = SubStatement!.Evaluate(vm, ref buf!);
                         if (state != State.Normal)
@@ -339,7 +339,7 @@ namespace KScr.Lib.Bytecode
                                 state = SubComponent!.Evaluate(vm, ref buf);
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
-                                vm.Stack.StepDown(cli1, Arg, ref rev, _rev =>
+                                vm.Stack.StepDown(vm, cli1, cli1.Name + '.' + Arg, ref rev, _rev =>
                                 {
                                     for (var i = 0; i < param1.Count; i++)
                                         vm.PutObject(VariableContext.Local, param1[i].Name, buf[vm, i]);
@@ -355,7 +355,7 @@ namespace KScr.Lib.Bytecode
                                 state = SubComponent!.Evaluate(vm, ref buf);
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
-                                vm.Stack.StepDown(rev, Arg, ref rev, _rev =>
+                                vm.Stack.StepDown(vm, rev, rev.Value.ObjectId + '.' + Arg, ref rev, _rev =>
                                 {
                                     for (var i = 0; i < param2.Count; i++)
                                         vm.PutObject(VariableContext.Local, param2[i].Name, buf[vm, i]);
@@ -370,7 +370,7 @@ namespace KScr.Lib.Bytecode
                                 state = SubComponent!.Evaluate(vm, ref buf);
                                 if (state != State.Normal)
                                     throw new InternalException("Invalid state after evaluating method parameters");
-                                vm.Stack.StepDown(rev, Arg, ref rev, _rev =>
+                                vm.Stack.StepDown(vm, rev, rev.Value.ToString() + '.' + Arg, ref rev, _rev =>
                                 {
                                     for (var i = 0; i < param3.Count; i++)
                                         vm.PutObject(VariableContext.Local, param3[i].Name, buf[vm, i]);

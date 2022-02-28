@@ -27,6 +27,38 @@ namespace KScr.Compiler.Code
             CompilerContext? subctx;
             switch (ctx.Token.Type)
             {
+                case TokenType.Return:
+                case TokenType.Throw:
+                    bool isReturn = ctx.Token.Type == TokenType.Return;
+                    ctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = isReturn ? BytecodeType.Return : BytecodeType.Throw,
+                        TargetType = isReturn 
+                            ? Lib.Bytecode.Class.VoidType.DefaultInstance 
+                            : Lib.Bytecode.Class.ThrowableType.DefaultInstance
+                    };
+
+                    // compile exception expression
+                    ctx.TokenIndex += 1;
+                    subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
+                    subctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Expression,
+                        CodeType = isReturn ? BytecodeType.Return : BytecodeType.Throw,
+                        TargetType = isReturn 
+                            ? Lib.Bytecode.Class.VoidType.DefaultInstance 
+                            : Lib.Bytecode.Class.ThrowableType.DefaultInstance
+                    };
+                    CompilerLoop(vm, new ExpressionCompiler(this), ref subctx);
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = isReturn ? BytecodeType.Return : BytecodeType.Throw,
+                        SubStatement = subctx.Statement
+                    };
+                    ctx.TokenIndex = subctx.TokenIndex - 1;
+                    break;
                 case TokenType.OperatorEquals:
                     if (ctx.Statement.Type == StatementComponentType.Declaration ||
                         ctx.Component.CodeType == BytecodeType.ExpressionVariable)
@@ -51,32 +83,6 @@ namespace KScr.Compiler.Code
                     }
 
                     return this;
-                case TokenType.Throw:
-                    ctx.Statement = new Statement
-                    {
-                        Type = StatementComponentType.Code,
-                        CodeType = BytecodeType.Throw,
-                        TargetType = Lib.Bytecode.Class.ThrowableType.DefaultInstance
-                    };
-
-                    // compile exception expression
-                    ctx.TokenIndex += 1;
-                    subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
-                    subctx.Statement = new Statement
-                    {
-                        Type = StatementComponentType.Expression,
-                        CodeType = BytecodeType.Throw,
-                        TargetType = Lib.Bytecode.Class.ThrowableType.DefaultInstance
-                    };
-                    CompilerLoop(vm, new ExpressionCompiler(this), ref subctx);
-                    ctx.Component = new StatementComponent
-                    {
-                        Type = StatementComponentType.Code,
-                        CodeType = BytecodeType.Throw,
-                        SubStatement = subctx.Statement
-                    };
-                    ctx.TokenIndex = subctx.TokenIndex - 1;
-                    break;
                 case TokenType.If:
                     if (ctx.NextToken?.Type != TokenType.ParRoundOpen)
                         throw new CompilerException("Invalid if-Statement; missing condition");

@@ -150,7 +150,7 @@ namespace KScr.Lib
 
             try
             {
-                Stack.StepDown(method.Parent, "main", ref rev, _rev =>
+                Stack.StepDown(this, method.Parent, "main", ref rev, _rev =>
                 {
                     State state = State.Normal;
                     IRuntimeSite? site = method;

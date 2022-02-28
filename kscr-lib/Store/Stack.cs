@@ -16,6 +16,7 @@ namespace KScr.Lib.Store
 
     public sealed class CtxBlob
     {
+        protected internal List<string> _keys = new List<string>();
 #pragma warning disable CS0628
         protected internal CtxBlob(string local)
         {
@@ -47,6 +48,8 @@ namespace KScr.Lib.Store
                 VariableContext.Absolute => name,
                 _ => throw new ArgumentOutOfRangeException(nameof(varctx), varctx, null)
             };
+            if(varctx == VariableContext.Local && _dequeue.Count > 0 && !_dequeue[^1]._keys.Contains(me))
+                _dequeue[^1]._keys.Add(me);
             CtxBlob? parent;
             var arr = new[] { me };
             if (_dequeue.Count > 0 && (parent = _dequeue[^1].Parent) != null)
@@ -59,29 +62,30 @@ namespace KScr.Lib.Store
             return arr;
         }
 
-        public void StepInside<T>(string sub, ref T t, Func<T,T> exec)
+        public void StepInside<T>(RuntimeBase vm, string sub, ref T t, Func<T,T> exec)
         {
             _dequeue.Add(new CtxBlob(PrefixLocal + sub)
             {
                 Local = sub,
                 Parent = _dequeue.Last()
             });
-            WrapExecution(ref t, exec);
+            WrapExecution(vm, ref t, exec);
         }
         
         // put focus into static class
-        public void StepDown<T>(IClass into, object local, ref T t, Func<T,T> exec)
+        public void StepDown<T>(RuntimeBase vm, IClass into, object local, ref T t, Func<T,T> exec)
         {
             _dequeue.Add(new CtxBlob(PrefixLocal + local)
             {
                 Local = local.ToString() ?? string.Empty,
-                Class = into
+                Class = into,
+                It = into.SelfRef
             });
-            WrapExecution(ref t, exec);
+            WrapExecution(vm, ref t, exec);
         }
 
         // put focus into object instance
-        public void StepDown<T>(ObjectRef into, object local, ref T t, Func<T,T> exec)
+        public void StepDown<T>(RuntimeBase vm, ObjectRef into, object local, ref T t, Func<T,T> exec)
         {
             _dequeue.Add(new CtxBlob(PrefixLocal + local)
             {
@@ -89,10 +93,10 @@ namespace KScr.Lib.Store
                 Class = into.Value!.Type,
                 It = into,
             });
-            WrapExecution(ref t, exec);
+            WrapExecution(vm, ref t, exec);
         }
 
-        private void WrapExecution<T>(ref T t, Func<T,T> exec)
+        private void WrapExecution<T>(RuntimeBase vm, ref T t, Func<T,T> exec)
         {
             try
             {
@@ -104,13 +108,17 @@ namespace KScr.Lib.Store
             }
             finally
             {
-                StepUp();
+                StepUp(vm);
             }
         }
 
-        private void StepUp()
+        private void StepUp(RuntimeBase vm)
         {
+            var it = _dequeue[^1];
+            foreach (string old in it._keys)
+                vm.ObjectStore.Remove(old);
             _dequeue.RemoveAt(_dequeue.Count - 1);
+                
         }
     }
 }

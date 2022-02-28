@@ -28,7 +28,7 @@ namespace KScr.Runtime
             long compileTime = -1, executeTime = -1;
 
             if (args.Length == 0)
-                VM.Stack.StepDown(Class.VoidType, "scratch", ref state, _ =>
+                VM.Stack.StepDown(VM, Class.VoidType, "scratch", ref state, _ =>
                 {
                     StdIoMode(ref state, ref yield);
                     return state;
