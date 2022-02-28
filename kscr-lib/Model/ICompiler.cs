@@ -63,10 +63,10 @@ namespace KScr.Lib.Model
             return -1;
         }
 
-        public string FindCompoundWord(TokenType delimiter = TokenType.Dot)
+        public string FindCompoundWord(TokenType delimiter = TokenType.Dot, TokenType terminator = TokenType.Terminator)
         {
             var str = "";
-            while (Token.Type == TokenType.Word || Token.Type == delimiter)
+            while (Token.Type != terminator && Token.Type == TokenType.Word || Token.Type == delimiter)
             {
                 str += Token.String();
                 TokenIndex += 1;

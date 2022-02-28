@@ -100,7 +100,7 @@ namespace KScr.Lib.Store
             }
             catch (InternalException exc)
             {
-                throw new InternalException($"Internal exception at {_local}", exc);
+                throw new InternalException($"An {exc.GetType().Name} occurred at {_local}", exc);
             }
             finally
             {

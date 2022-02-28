@@ -8,7 +8,7 @@ namespace KScr.Lib.Core
 {
     public sealed class CodeObject : IObject
     {
-        public CodeObject(RuntimeBase vm, Class.Instance type)
+        public CodeObject(RuntimeBase vm, IClassInstance type)
         {
             Type = type;
             ObjectId = vm.NextObjId("obj:" + type.FullName);
@@ -17,12 +17,9 @@ namespace KScr.Lib.Core
         public long ObjectId { get; }
         public bool Primitive => false;
         public IClassInstance Type { get; }
-        public string ToString(short variant)
-        {
-            throw new System.NotImplementedException();
-        }
+        public string ToString(short variant) => Type.Name + "#" + ObjectId;
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args)
+        public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
         {
             // try use overrides first
             if (Type.DeclaredMembers.TryGetValue(member, out var icm))
@@ -36,6 +33,7 @@ namespace KScr.Lib.Core
                     vm.PutObject(VariableContext.Local, vm.Stack.MethodParams![i].Name, output[vm, i]);
                 do
                 {
+                    // todo: step inside context of REV
                     site = site.Evaluate(vm, ref state, ref output);
                 } while (state == State.Normal && site != null);
 

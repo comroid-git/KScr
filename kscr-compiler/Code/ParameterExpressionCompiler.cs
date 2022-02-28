@@ -18,7 +18,8 @@ namespace KScr.Compiler.Code
             ctx.Component = new StatementComponent
             {
                 Type = StatementComponentType.Code,
-                CodeType = BytecodeType.ParameterExpression
+                CodeType = BytecodeType.ParameterExpression,
+                InnerCode = new ExecutableCode()
             };
             //ctx.TokenIndex -= 1;
 
@@ -31,8 +32,6 @@ namespace KScr.Compiler.Code
                     CodeType = BytecodeType.ParameterExpression
                 };
                 CompilerLoop(vm, new ExpressionCompiler(this, false, TokenType.Comma, TokenType.ParRoundClose), ref subctx);
-                if (ctx.LastComponent!.InnerCode == null)
-                    ctx.LastComponent!.InnerCode = new ExecutableCode();
                 ctx.LastComponent!.InnerCode!.Main.Add(subctx.Statement);
                 ctx.TokenIndex = subctx.TokenIndex;
             }

@@ -15,20 +15,23 @@ namespace KScr.Lib.Bytecode
     public interface IMethod : IClassMember
     {
         List<MethodParameter> Parameters { get; }
+        ITypeInfo ReturnType { get; }
     }
     
     public sealed class DummyMethod : IMethod
     {
-        public DummyMethod(Class parent, string name, MemberModifier modifier) : this(parent, name, modifier, new List<MethodParameter>())
+        public DummyMethod(Class parent, string name, MemberModifier modifier, ITypeInfo returnType) 
+            : this(parent, name, modifier, returnType, new List<MethodParameter>())
         {
         }
 
-        public DummyMethod(Class parent, string name, MemberModifier modifier, List<MethodParameter> parameters)
+        public DummyMethod(Class parent, string name, MemberModifier modifier, ITypeInfo returnType, List<MethodParameter> parameters)
         {
             Parent = parent;
             Name = name;
             Modifier = modifier;
             Parameters = parameters;
+            ReturnType = returnType;
         }
 
         public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev) 
@@ -41,6 +44,7 @@ namespace KScr.Lib.Bytecode
         public string FullName => Parent.FullName + '.' + Name;
         public MemberModifier Modifier { get; set; }
         public List<MethodParameter> Parameters { get; set; }
+        public ITypeInfo ReturnType { get; set; }
         public ClassMemberType Type => ClassMemberType.Method;
     }
 
@@ -48,13 +52,15 @@ namespace KScr.Lib.Bytecode
     {
         public ExecutableCode Body = null!;
 
-        public Method(Class parent, string name, MemberModifier modifier) : base(parent, name, modifier)
+        public Method(Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(parent, name, modifier)
         {
+            ReturnType = returnType;
         }
 
         public List<MethodParameter> Parameters { get; } = new();
+        public ITypeInfo ReturnType { get; }
 
-        public override string Name => base.Name + '(' + string.Join(", ", Parameters.Select(it => it.Type)) + ')';
+        public override string FullName => base.FullName + '(' + string.Join(", ", Parameters.Select(it => it.Type)) + ')';
 
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => new[] { Body };
         public override ClassMemberType Type => ClassMemberType.Method;

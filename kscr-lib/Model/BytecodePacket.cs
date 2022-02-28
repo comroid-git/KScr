@@ -44,6 +44,7 @@ namespace KScr.Lib.Model
         StdioExpression = 0x0200_0000,
         ParameterExpression = 0x0100_0000,
         TypeExpression = 0x0400_0000,
+        ConstructorCall = 0x0800_0000,
 
         Call = 0x2000_0000 | Expression,
         Throw = 0x4000_0000 | Statement,

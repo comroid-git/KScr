@@ -2,7 +2,10 @@ package org.comroid.kscr.test;
 
 public class PrintNumbers {
     public static int StackSize -> 64;
-
+    public int StackValue -> 48;
+    
+    public PrintNumbers() {}
+    
     // prints numbers 0 to 11
     public static void main() {
         void range = 0~12; // todo: range as non-compile-time constant 
@@ -25,7 +28,14 @@ public class PrintNumbers {
         // todo: this does not compile. find solution for empty statements
         //for (;;) stdio << "abc";
         
+        range = new PrintNumbers();
+        stdio << "look at my cool object: " + range.toString(0);
+        
         .second(true);
+    }
+    
+    public str toString(short variant) {
+        return "Items in stack: " + StackValue + "/" + PrintNumbers.StackSize;
     }
     
     public static void second(byte thr) {

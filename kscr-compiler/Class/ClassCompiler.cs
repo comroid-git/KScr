@@ -147,10 +147,13 @@ namespace KScr.Compiler.Class
                         break;
                     if (memberType != 2)
                         throw new CompilerException("Could not create method; unexpected memberType");
-                    memberType = 1; // method
-
+                    memberType = memberName == null 
+                        ? 3  // ctor 
+                        : 1; // method
+                    if (memberType == 3 && (modifier & MemberModifier.Static) == 0)
+                        modifier |= MemberModifier.Static; // constructor must be static
                     // compile parameter definition
-                    method = new Method(ctx.Class, memberName!,
+                    method = new Method(ctx.Class, memberName ?? "ctor", targetType,
                         modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation
                             ? MemberModifier.Public
                             : MemberModifier.Protected));
@@ -188,7 +191,7 @@ namespace KScr.Compiler.Class
                     ctx.TokenIndex += 1;
                     CompilerLoop(vm, new StatementCompiler(this), ref ctx);
                     method.Body = ctx.ExecutableCode;
-                    ctx.Class.DeclaredMembers[memberName!] = method;
+                    ctx.Class.DeclaredMembers[memberName ?? "ctor"] = method;
                     ctx.Parent!.TokenIndex = ctx.TokenIndex - 1;
                     ctx = ctx.Parent!;
                     ResetData();

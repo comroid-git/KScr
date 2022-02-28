@@ -49,22 +49,43 @@ namespace KScr.Compiler.Code
                 case TokenType.IdentStr:
                     CompileDeclaration(ctx, Lib.Bytecode.Class.StringType.DefaultInstance);
                     return this;
+                case TokenType.New:
+                    if (ctx.NextToken!.Type != TokenType.Word)
+                        throw new CompilerException("Invalid new-Statement; missing type identifier");
+                    ctx.TokenIndex += 1;
+                    var ctor = ctx.FindType(vm, ctx.FindCompoundWord(terminator: TokenType.ParRoundOpen))!;
+                    if (!ctx.Statement.TargetType.CanHold(ctor))
+                        throw new CompilerException($"Invalid new-Statement; Cannot assign {ctor} to {ctx.Statement.TargetType}");
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Expression,
+                        CodeType = BytecodeType.ConstructorCall,
+                        Arg = ctor.FullName
+                    };
+                    // method call, parse parameter expressions
+                    ctx.TokenIndex += 1;
+                    subctx = new CompilerContext(ctx, CompilerType.CodeParameterExpression);
+                    CompilerLoop(vm, new ParameterExpressionCompiler(this), ref subctx); 
+                    ctx.LastComponent!.SubComponent = subctx.Component;
+                    ctx.TokenIndex = subctx.TokenIndex - 1;
+                    break;
                 case TokenType.Dot:
                     // member call
-                    ctx.LastComponent!.PostComponent = new StatementComponent
+                    var comp = new StatementComponent
                     {
                         Type = StatementComponentType.Provider,
                         CodeType = BytecodeType.Call,
                         Arg = ctx.NextToken!.Arg!
                     };
+                    ctx.LastComponent!.PostComponent = comp;
                     ctx.TokenIndex += 1;
                     if (ctx.NextToken?.Type == TokenType.ParRoundOpen)
                     {
                         // method call, parse parameter expressions
                         ctx.TokenIndex += 2;
                         subctx = new CompilerContext(ctx, CompilerType.CodeParameterExpression);
-                        CompilerLoop(vm, new ParameterExpressionCompiler(this), ref subctx);
-                        ctx.LastComponent!.PostComponent.SubComponent = subctx.Component;
+                        CompilerLoop(vm, new ParameterExpressionCompiler(this), ref subctx); 
+                        ctx.LastComponent!.PostComponent!.SubComponent = subctx.Component;
                         ctx.TokenIndex = subctx.TokenIndex - 1;
                     }
                     break;

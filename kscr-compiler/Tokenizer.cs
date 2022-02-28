@@ -223,6 +223,15 @@ namespace KScr.Compiler
                 case "stdio":
                     token = new Token(TokenType.StdIo) { Complete = true };
                     return;
+                case "try":
+                    token = new Token(TokenType.Try) { Complete = true };
+                    return;
+                case "catch":
+                    token = new Token(TokenType.Catch) { Complete = true };
+                    return;
+                case "finally":
+                    token = new Token(TokenType.Finally) { Complete = true };
+                    return;
                 case "if":
                     token = new Token(TokenType.If) { Complete = true };
                     return;
@@ -245,6 +254,24 @@ namespace KScr.Compiler
                     return;
                 case "foreach":
                     token = new Token(TokenType.ForEach) { Complete = true };
+                    return;
+                case "switch":
+                    token = new Token(TokenType.Switch) { Complete = true };
+                    return;
+                case "case":
+                    token = new Token(TokenType.Case) { Complete = true };
+                    return;
+                case "default":
+                    token = new Token(TokenType.Default) { Complete = true };
+                    return;
+                case "break":
+                    token = new Token(TokenType.Break) { Complete = true };
+                    return;
+                case "continue":
+                    token = new Token(TokenType.Continue) { Complete = true };
+                    return;
+                case "new":
+                    token = new Token(TokenType.New) { Complete = true };
                     return;
                 case "num":
                     token = new Token(TokenType.IdentNum) { Complete = true };

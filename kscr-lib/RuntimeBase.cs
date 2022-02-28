@@ -193,7 +193,7 @@ namespace KScr.Lib
                     return Class.VoidType.DefaultInstance;
             }
 
-            return ClassStore.FindType(this, package!, name);
+            return ClassStore.FindType(this, package ?? Package.RootPackage, name);
         }
 
         public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)

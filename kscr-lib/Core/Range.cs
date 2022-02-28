@@ -31,7 +31,7 @@ namespace KScr.Lib.Core
 
         private static string CreateKey(int start, int end) => $"{start}~{end}";
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args)
+        public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
         {
             switch (member)
             {

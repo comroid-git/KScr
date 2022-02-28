@@ -213,7 +213,7 @@ namespace KScr.Lib.Bytecode
                 _ => throw new ArgumentOutOfRangeException(nameof(variant), variant, null)
             };
 
-            public ObjectRef? Invoke(RuntimeBase vm, string member, params IObject?[] args)
+            public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
             {
                 // try invoke static method
                 if (DeclaredMembers.TryGetValue(member, out var icm))
@@ -238,21 +238,31 @@ namespace KScr.Lib.Bytecode
         {
             #region Void Class
             
-            var toString = new DummyMethod(VoidType, "toString", LibClassModifier, new List<MethodParameter> {
+            var toString = new DummyMethod(
+                VoidType, 
+                "toString",
+                LibClassModifier,
+                StringType,
+                new List<MethodParameter> {
                 new()
                 {
                     Name = "variant",
                     Type = NumericShortType
                 }
             });
-            var equals = new DummyMethod(VoidType, "equals", LibClassModifier, new List<MethodParameter> {
+            var equals = new DummyMethod(
+                VoidType, 
+                "equals",
+                LibClassModifier, 
+                NumericByteType,
+                new List<MethodParameter> {
                 new()
                 {
                     Name = "other",
                     Type = VoidType.DefaultInstance
                 }
             });
-            var getType = new DummyMethod(VoidType, "getType", LibClassModifier);
+            var getType = new DummyMethod(VoidType, "getType", LibClassModifier, TypeType);
             
             AddToClass(VoidType, toString);
             AddToClass(VoidType, equals);
@@ -278,7 +288,7 @@ namespace KScr.Lib.Bytecode
 
             #region String Class
 
-            var length = new DummyMethod(StringType, "length", LibClassModifier);
+            var length = new DummyMethod(StringType, "length", LibClassModifier, NumericIntType);
             
             AddToClass(StringType, toString);
             AddToClass(StringType, equals);
@@ -289,23 +299,33 @@ namespace KScr.Lib.Bytecode
 
             #region Range Class
             
-            var start = new DummyMethod(VoidType, "start", LibClassModifier);
-            var end = new DummyMethod(VoidType, "end", LibClassModifier);
-            var test = new DummyMethod(VoidType, "test", LibClassModifier, new List<MethodParameter> {
+            var start = new DummyMethod(VoidType, "start", LibClassModifier, NumericIntType);
+            var end = new DummyMethod(VoidType, "end", LibClassModifier, NumericIntType);
+            var test = new DummyMethod(
+                VoidType, 
+                "test", 
+                LibClassModifier,
+                NumericByteType,
+                new List<MethodParameter> {
                 new()
                 {
                     Name = "i",
                     Type = NumericIntType
                 }
             });
-            var accumulate = new DummyMethod(VoidType, "accumulate", LibClassModifier, new List<MethodParameter> {
+            var accumulate = new DummyMethod(
+                VoidType, 
+                "accumulate",
+                LibClassModifier,
+                NumericIntType,
+                new List<MethodParameter> {
                 new()
                 {
                     Name = "other",
                     Type = NumericIntType
                 }
             });
-            var decremental = new DummyMethod(VoidType, "decremental", LibClassModifier);
+            var decremental = new DummyMethod(VoidType, "decremental", LibClassModifier, NumericByteType);
 
             AddToClass(RangeType, toString);
             AddToClass(RangeType, equals);
