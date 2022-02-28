@@ -28,12 +28,102 @@
                   language="KScr"
                   extensions="kbin"
         />
+
+        <lang.syntaxHighlighterFactory language="KScr"
+                                       implementationClass="org.comroid.kscr.intellij.parser.KScrSyntaxHighlighter"/>
+
+        <lang.parserDefinition language="KScr"
+                               implementationClass="org.comroid.kscr.intellij.parser.KScrParserDefinition"/>
+
+        <lang.refactoringSupport language="KScr"
+                                 implementationClass="org.comroid.kscr.intellij.refactoring.KScrRefactoringSupport"/>
+
+        <lang.foldingBuilder language="KScr"
+                             implementationClass="org.comroid.kscr.intellij.presentation.KScrFoldingBuilder"/>
+
+        <lang.braceMatcher language="KScr"
+                           implementationClass="org.comroid.kscr.intellij.presentation.KScrBraceMatcher"/>
+
+        <lang.commenter language="KScr"
+                        implementationClass="org.comroid.kscr.intellij.refactoring.KScrCommenter"/>
+
+        <lang.findUsagesProvider language="KScr"
+                                 implementationClass="org.comroid.kscr.intellij.refactoring.KScrFindUsagesProvider"/>
+
+        <completion.contributor language="KScr"
+                                implementationClass="org.comroid.kscr.intellij.completion.KScrKeywordContributor"/>
+
+        <completion.contributor language="KScr"
+                                implementationClass="org.comroid.kscr.intellij.completion.KScrTypeContributor"/>
+
+        <completion.contributor language="KScr"
+                                implementationClass="org.comroid.kscr.intellij.completion.KScrExpressionContributor"/>
+
+        <codeInsight.inlayProvider language="KScr"
+                                   implementationClass="org.comroid.kscr.intellij.presentation.KScrImplicitTypeInlayProvider"/>
+
+        <lang.documentationProvider language="KScr"
+                                    implementationClass="org.comroid.kscr.intellij.presentation.KScrDocumentationProvider"/>
+
+        <applicationConfigurable groupId="language"
+                                 id="preferences.language.kScr"
+                                 displayName="KScr"
+                                 instance="org.comroid.kscr.intellij.sdks.config.KScrLanguageConfiguration"/>
+
+        <runLineMarkerContributor language="KScr"
+                                  implementationClass="org.comroid.kscr.intellij.presentation.KScrProjectRunLineMarkerContributor"/>
+
+        <jvm.declarationSearcher language="KScr"
+                                 implementationClass="org.comroid.kscr.intellij.presentation.KScrJvmDeclarationSearcher"/>
+
+        <compiler.task execute="BEFORE"
+                       implementation="org.comroid.kscr.intellij.compiler.KScrCompileTask"/>
+
+        <frameworkSupport implementation="org.comroid.kscr.intellij.facet.KScrFrameworkSupport"/>
+        <facetType implementation="org.comroid.kscr.intellij.facet.KScrFacetType"/>
+        <jvm.elementProvider implementation="org.comroid.kscr.intellij.presentation.KScrJvmElementProvider"/>
+        <renamePsiElementProcessor implementation="org.comroid.kscr.intellij.refactoring.RenameKScrTypeProcessor"/>
+        <usageTypeProvider implementation="org.comroid.kscr.intellij.refactoring.KScrUsageTypeProvider"/>
+        <fileIconPatcher implementation="org.comroid.kscr.intellij.presentation.KScrFileIconPatcher"/>
         <createFromTemplateHandler implementation="org.comroid.kscr.intellij.KScrTemplates"/>
 
         <internalFileTemplate name="KScr Class"/>
         <internalFileTemplate name="KScr Interface"/>
         <internalFileTemplate name="KScr Enum"/>
         <internalFileTemplate name="KScr Annotation"/>
+        <internalFileTemplate name="KScr Record"/>
+        <internalFileTemplate name="KScr Single"/>
+
+        <localInspection language="KScr"
+                         groupPath="KScr"
+                         enabledByDefault="true" level="ERROR"
+                         groupName="Errors" displayName="Wrong type name for file name"
+                         implementationClass="org.comroid.kscr.intellij.inspections.WrongFileNameForTypeNameInspection"/>
+
+        <localInspection language="KScr"
+                         groupPath="KScr"
+                         enabledByDefault="true" level="ERROR"
+                         groupName="Errors" displayName="Invalid type reference"
+                         implementationClass="org.comroid.kscr.intellij.inspections.InvalidTypeRefInspection"/>
+
+        <localInspection language="KScr"
+                         groupPath="KScr"
+                         enabledByDefault="true" level="ERROR"
+                         groupName="Errors" displayName="'this' in static context"
+                         implementationClass="org.comroid.kscr.intellij.inspections.ThisInStaticMethodInspection"/>
+
+        <localInspection language="KScr"
+                         groupPath="KScr"
+                         enabledByDefault="true" level="ERROR"
+                         groupName="Errors" displayName="Invalid supertype"
+                         implementationClass="org.comroid.kscr.intellij.inspections.InvalidSupertypeInspection"/>
+
+        <intentionAction>
+            <className>org.comroid.kscr.intellij.refactoring.intentions.RemoveParensAction</className>
+        </intentionAction>
+        <intentionAction>
+            <className>org.comroid.kscr.intellij.refactoring.intentions.AddParensAction</className>
+        </intentionAction>
     </extensions>
 
     <actions>

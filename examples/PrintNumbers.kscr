@@ -12,8 +12,9 @@ public class PrintNumbers {
             stdio << i;
         
         stdio << "and now backwards bcs we're cool:";
-        for (int i = range.end(); i; --i)
-            { stdio << i; }
+        for (int i = range.end(); i; --i) {
+            stdio << i;
+        }
             
         PrintNumbers.second(false);
         
@@ -23,7 +24,7 @@ public class PrintNumbers {
         // forever print something to test for loop robustness
         // todo: this does not compile. find solution for empty statements
         //for (;;) stdio << "abc";
-            
+        
         .second(true);
     }
     

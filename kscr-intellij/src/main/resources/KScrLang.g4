@@ -19,7 +19,7 @@ objectType
     : CLASS
     | INTERFACE
     | ENUM
-    | AT ANNOTATION
+    | AT INTERFACE
     ;
 
 member
@@ -85,10 +85,8 @@ rawType
     ;
 
 primitiveType
-    : BOOL
-    | BYTE
+    : BYTE
     | SHORT
-    | CHAR
     | INT
     | LONG
     | FLOAT
@@ -98,7 +96,6 @@ primitiveType
 
 inferType
     : VOID
-    | VAR
     ;
 
 modifiers: modifier*;
@@ -273,7 +270,7 @@ IF: 'if';
 NUMLIT: MINUS? DIGIT+ ((DOT DIGIT+ ('f'? | 'd'))? | ('l' | 'i' | 's' | 'b')?);
 STRLIT: QUOTE (ESCAPE_QUOTE | (~[\r\n"]))*? (QUOTE);
 BOOLLIT: TRUE | FALSE;
-RANGELIT: DIGIT+? DOT DOT DIGIT+?;
+RANGELIT: DIGIT+? TILDE DIGIT+?;
 NULL: 'null';
 
 AND: '&&';
@@ -320,6 +317,7 @@ COMMA: ',';
 EXCLAMATION: '!';
 QUESTION: '?';
 ELIPSES: '...';
+TILDE: '~';
 
 ESCAPE_QUOTE: '\\"';
 QUOTE: '"';

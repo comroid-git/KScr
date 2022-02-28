@@ -1,4 +1,4 @@
 /.gradle/
 /.idea/
 /build/
-/src/main/java/cyclic/intellij/antlr_generated/
+/src/main/java/org/comroid/kscr/intellij/antlr_generated/
