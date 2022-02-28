@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
@@ -17,7 +19,7 @@ namespace KScr.Lib.Core
         public long ObjectId { get; }
         public bool Primitive => false;
         public IClassInstance Type { get; }
-        public string ToString(short variant) => Type.Name + "#" + ObjectId;
+        public string ToString(short variant) => Type.Name + "#" + ObjectId.ToString("X");
 
         public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
         {
@@ -27,17 +29,22 @@ namespace KScr.Lib.Core
                 if (icm.IsStatic())
                     throw new InternalException("Static method invoked on object instance");
                 IRuntimeSite? site = icm;
+                List<MethodParameter>? param = (icm as IMethod)?.Parameters;
                 State state = State.Normal;
-                ObjectRef? output = new ObjectRef(Class.VoidType.DefaultInstance, args.Length);
-                for (var i = 0; i < vm.Stack.MethodParams!.Count; i++)
-                    vm.PutObject(VariableContext.Local, vm.Stack.MethodParams![i].Name, output[vm, i]);
-                do
+                vm.Stack.StepDown(vm, rev, "toString", ref rev, _rev =>
                 {
-                    // todo: step inside context of REV
-                    site = site.Evaluate(vm, ref state, ref output);
-                } while (state == State.Normal && site != null);
+                    for (var i = 0; i < args.Length; i++)
+                        vm.PutObject(VariableContext.Local, param?[i].Name ?? throw new NullReferenceException(), args[i]);
+                    do
+                    {
+                        // todo: step inside context of REV
+                        site = site.Evaluate(vm, ref state, ref _rev!);
+                    } while (state == State.Normal && site != null);
 
-                return output;
+                    return _rev;
+                });
+
+                return rev;
             } else switch (member)
             {
                 case "InternalID":

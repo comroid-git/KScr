@@ -22,7 +22,8 @@ public class PrintNumbers {
         PrintNumbers.second(false);
         
         stdio << "length of ABC is " + "ABC".length();
-        .printSomething("StackSize: "+PrintNumbers.StackSize+"; range was = " + range, 6345);
+        //todo: static methods NEED the class definition currently 
+        PrintNumbers.printSomething("StackSize: "+PrintNumbers.StackSize+"; range was = " + range, 6345);
         
         // forever print something to test for loop robustness
         // todo: this does not compile. find solution for empty statements
@@ -30,8 +31,9 @@ public class PrintNumbers {
         
         range = new PrintNumbers();
         stdio << "look at my cool object: " + range.toString(0);
+        stdio << "and of course i can access it this way too: " + range.StackValue;
         
-        .second(true);
+        PrintNumbers.second(true);
     }
     
     public str toString(short variant) {

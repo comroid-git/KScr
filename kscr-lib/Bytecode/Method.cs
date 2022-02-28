@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 
@@ -68,6 +69,9 @@ namespace KScr.Lib.Bytecode
         public override IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
         {
             state = Body.Evaluate(vm, ref rev);
+            //if (state != State.Return)
+//                throw new InternalException("Invalid state after method: " + state);
+            state = State.Normal;
             return null;
         }
 

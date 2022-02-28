@@ -23,6 +23,7 @@ namespace KScr.Lib.Bytecode
         public State Evaluate(RuntimeBase vm, ref ObjectRef rev)
         {
             var state = State.Normal;
+            rev = vm.Stack.This!;
 
             foreach (var component in Main)
             {
@@ -95,7 +96,7 @@ namespace KScr.Lib.Bytecode
 
         public virtual State Evaluate(RuntimeBase vm, ref ObjectRef rev)
         {
-            ObjectRef? buf = null;
+            ObjectRef? buf = vm.Stack.This!;;
             var state = State.Normal;
             switch (Type, CodeType)
             {
@@ -294,7 +295,7 @@ namespace KScr.Lib.Bytecode
                             if (op == Operator.Plus && rev?.Value?.Type.Name == "str"
                                 || (rev?.Value?.Type.BaseClass.DeclaredMembers.ContainsKey("op" + op) ?? false))
                             {
-                                rev = rev.Value!.Invoke(vm, "op" + op, ref rev, buf.Value)!;
+                                rev = rev.Value!.Invoke(vm, "op" + op, ref buf, buf.Value)!;
                             }
                             else
                             {
@@ -314,22 +315,28 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Provider, _):
                     // non-constant expressions
 
-                    if (VariableContext == VariableContext.This)
-                    {
-                        rev = vm.Stack.This ?? vm.Stack.Class!.SelfRef;
-                        break;
-                    }
-
                     switch (CodeType)
                     {
                         case BytecodeType.ExpressionVariable:
-                            // read variable
-                            rev = vm[VariableContext, Arg]!;
+                            if (rev?.Value is { } obj1
+                                && obj1.Type.DeclaredMembers.ContainsKey(Arg) 
+                                && obj1.Type.DeclaredMembers[Arg] is {} icm1)
+                            { // call member
+                                IRuntimeSite? site = icm1;
+                                while (site != null && state == State.Normal)
+                                    site = site.Evaluate(vm, ref state, ref rev!);
+                            } 
+                            else
+                            { // read variable
+                                rev = vm[VariableContext, Arg]!;
+                            }
                             break;
                         case BytecodeType.Call:
                             // invoke member
                             if (rev == null)
                                 throw new InternalException("Invalid call; no target found");
+                            if (rev.Value == null)
+                                break;
                             if (rev.Value is Class.Instance cli1
                                 && cli1.DeclaredMembers.ContainsKey(Arg)
                                 && cli1.DeclaredMembers[Arg] is IMethod mtd1)
@@ -385,7 +392,7 @@ namespace KScr.Lib.Bytecode
                                 fld1.Evaluate(vm, ref state, ref rev!);
                             }
                             else if (rev.Value!.Type.DeclaredMembers.ContainsKey(Arg)
-                                     && rev.Type.DeclaredMembers[Arg] is Field fld2)
+                                     && rev.Value!.Type.DeclaredMembers[Arg] is Field fld2)
                             {
                                 fld2.Evaluate(vm, ref state, ref rev!);
                             }

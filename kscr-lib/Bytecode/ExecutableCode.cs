@@ -27,9 +27,8 @@ namespace KScr.Lib.Bytecode
             return null;
         }
 
-        public State Evaluate(RuntimeBase vm, ref ObjectRef output)
+        public State Evaluate(RuntimeBase vm, ref ObjectRef rev)
         {
-            ObjectRef? rev = null;
             var state = State.Normal;
             Evaluate(vm, ref state, ref rev);
             return state;
