@@ -55,6 +55,8 @@ namespace KScr.Lib.Core
                         variant = num.ShortValue;
                     else throw new InternalException("Invalid argument: " + args[0]);
                     return String.Instance(vm, ToString(variant));
+                case "equals":
+                    return args[0]!.ObjectId == ObjectId ? vm.ConstantTrue : vm.ConstantFalse;
                 case "getType":
                     return Type.SelfRef;
             }
