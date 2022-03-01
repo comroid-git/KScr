@@ -327,12 +327,14 @@ namespace KScr.Compiler.Code
                     break;
                 case TokenType.ParAccClose:
                 case TokenType.Terminator:
+                    /*
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Provider,
                         CodeType = BytecodeType.Statement,
                         VariableContext = VariableContext.This
                     };
+                    */
                     return this;
             }
 

@@ -4,7 +4,7 @@ public class ToStringTest {
     public num x;
     public num y;
     // the result of z will ALWAYS be up-to-date with the values of x and y 
-    public num z << x + y;
+    public num z -> x + y;
     
     public str toString(num alt) {
         if (alt == 0) {
@@ -27,8 +27,8 @@ public class ToStringTest {
         // invokes numeric '5' on every access to obj.x
         obj.y = 5;
         
-        stdio << "X = " << obj.toString(0) << "\n";
-        stdio << "Y = " << obj.toString(1) << "\n";
-        stdio << "Z = " << obj.toString(2) << "\n";
+        stdio << "X = " + obj.toString(0);
+        stdio << "Y = " + obj.toString(1);
+        stdio << "Z = " + obj.toString(2);
     }
 }
