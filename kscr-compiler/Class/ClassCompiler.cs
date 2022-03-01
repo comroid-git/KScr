@@ -42,20 +42,6 @@ namespace KScr.Compiler.Class
                    var type = ctx.FindType(vm, ctx.FindCompoundWord())!.BaseClass;
                    ctx.Class.Imports[type.Name] = type;
                    break;
-                case TokenType.Public:
-                case TokenType.Protected:
-                case TokenType.Internal:
-                case TokenType.Private:
-                case TokenType.Abstract:
-                case TokenType.Final:
-                case TokenType.Static:
-                    if (!inBody)
-                        break;
-                    var mod = ctx.Token.Type.Modifier() ?? MemberModifier.Protected;
-                    if (modifier == null)
-                        modifier = mod;
-                    else modifier |= mod;
-                    break;
                 case TokenType.IdentVar:
                 case TokenType.IdentVoid:
                     if (!inBody)
@@ -199,6 +185,16 @@ namespace KScr.Compiler.Class
                     ctx = ctx.Parent!;
                     ResetData();
 
+                    break;
+                default:
+                    if (!inBody)
+                        break;
+                    var mod = ctx.Token.Type.Modifier();
+                    if (mod == null)
+                        break;
+                    if (modifier == null)
+                        modifier = mod;
+                    else modifier |= mod;
                     break;
             }
 

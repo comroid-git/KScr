@@ -19,7 +19,8 @@ namespace KScr.Compiler.Code
             {
                 Type = StatementComponentType.Code,
                 CodeType = BytecodeType.ParameterExpression,
-                InnerCode = new ExecutableCode()
+                InnerCode = new ExecutableCode(),
+                SourcefilePosition = ctx.Token.SourcefilePosition
             };
             //ctx.TokenIndex -= 1;
 

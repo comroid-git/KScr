@@ -18,13 +18,15 @@ namespace KScr.Lib.Store
     {
         protected internal List<string> _keys = new List<string>();
 #pragma warning disable CS0628
-        protected internal CtxBlob(string local)
+        protected internal CtxBlob(SourcefilePosition callLocation, string local)
         {
+            CallLocation = callLocation;
             Local = local;
         }
+
+        public SourcefilePosition CallLocation { get; }
         public CtxBlob? Parent { get; protected internal set; }
         public string Local { get; protected internal set; }
-
         public ObjectRef? It { get; protected internal set; }
         public IClass? Class { get; protected internal set; }
 #pragma warning restore CS0628
@@ -62,9 +64,9 @@ namespace KScr.Lib.Store
             return arr;
         }
 
-        public void StepInside<T>(RuntimeBase vm, string sub, ref T t, Func<T,T> exec)
+        public void StepInside<T>(RuntimeBase vm, SourcefilePosition callLocation, string sub, ref T t, Func<T,T> exec)
         {
-            _dequeue.Add(new CtxBlob(PrefixLocal + sub)
+            _dequeue.Add(new CtxBlob(callLocation, PrefixLocal + sub)
             {
                 Local = sub,
                 Parent = _dequeue.Last()
@@ -73,9 +75,9 @@ namespace KScr.Lib.Store
         }
         
         // put focus into static class
-        public void StepDown<T>(RuntimeBase vm, IClass into, object local, ref T t, Func<T,T> exec)
+        public void StepInto<T>(RuntimeBase vm, SourcefilePosition callLocation, IClass into, object local, ref T t, Func<T,T> exec)
         {
-            _dequeue.Add(new CtxBlob(PrefixLocal + local)
+            _dequeue.Add(new CtxBlob(callLocation, PrefixLocal + local)
             {
                 Local = local.ToString() ?? string.Empty,
                 Class = into,
@@ -85,9 +87,9 @@ namespace KScr.Lib.Store
         }
 
         // put focus into object instance
-        public void StepDown<T>(RuntimeBase vm, ObjectRef into, object local, ref T t, Func<T,T> exec)
+        public void StepInto<T>(RuntimeBase vm, SourcefilePosition callLocation, ObjectRef into, object local, ref T t, Func<T,T> exec)
         {
-            _dequeue.Add(new CtxBlob(PrefixLocal + local)
+            _dequeue.Add(new CtxBlob(callLocation, PrefixLocal + local)
             {
                 Local = local.ToString() ?? string.Empty,
                 Class = into.Value!.Type,
@@ -95,6 +97,8 @@ namespace KScr.Lib.Store
             });
             WrapExecution(vm, ref t, exec);
         }
+        
+        public readonly List<StackTraceException> StackTrace = new();
 
         private void WrapExecution<T>(RuntimeBase vm, ref T t, Func<T,T> exec)
         {
@@ -102,9 +106,18 @@ namespace KScr.Lib.Store
             {
                 t = exec(t);
             }
-            catch (InternalException exc)
+            catch (StackTraceException ex)
             {
-                throw new InternalException($"An {exc.GetType().Name} occurred at {_local}", exc);
+                var next = new StackTraceException(_dequeue[^1].CallLocation, _local, ex);
+                StackTrace.Add(next);
+#pragma warning disable CA2200
+                // ReSharper disable once PossibleIntendedRethrow
+                throw ex;
+#pragma warning restore CA2200
+            }
+            catch (System.Exception ex)
+            {
+                throw new StackTraceException(_dequeue[^1].CallLocation, _local, ex);
             }
             finally
             {

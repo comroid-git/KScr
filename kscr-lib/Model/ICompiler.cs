@@ -278,7 +278,7 @@ namespace KScr.Lib.Model
         public CompilerContext CompileClass(RuntimeBase vm, FileInfo file, ref CompilerContext context)
         {
             string? source = File.ReadAllText(file.FullName);
-            var tokenlist = vm.Tokenizer.Tokenize(vm,
+            var tokenlist = vm.Tokenizer.Tokenize(vm, file.FullName,
                 source ?? throw new FileNotFoundException("Source file not found: " + file.FullName));
             var tokens = new TokenContext(tokenlist);
             string clsName = file.Name.Substring(0, file.Name.Length - FileAppendix.Length);
@@ -345,6 +345,7 @@ namespace KScr.Lib.Model
 
         private ClassInfo FindClassInfo(TokenContext ctx, string? clsName)
         {
+            ctx.TokenIndex = 0;
             // skip package and imports if necessary
             string packageName = FindClassPackageName(ctx);
             ctx.SkipImports();
@@ -352,18 +353,10 @@ namespace KScr.Lib.Model
             if (ctx.Token.Type == TokenType.Terminator)
                 ctx.TokenIndex += 1;
 
-            var mod = MemberModifier.None;
-            ClassType? type;
+            var mod = ctx.Token.Type.Modifier();
+            ClassType? type = ctx.Token.Type.ClassType();
             string name;
-
-            while ((type = ctx.Token.Type.ClassType()) == null)
-            {
-                var m = ctx.Token.Type.Modifier();
-                if (m != null)
-                    mod |= m.Value;
-                ctx.TokenIndex += 1;
-            }
-
+            
             ctx.TokenIndex += 1;
 
             if (ctx.Token.Type == TokenType.Word)
@@ -372,7 +365,7 @@ namespace KScr.Lib.Model
                 else name = ctx.Token.Arg!;
             else throw new CompilerException("Missing Class name");
 
-            return new ClassInfo(mod, type.Value, name, packageName + '.' + name);
+            return new ClassInfo(mod.Value, type.Value, name, packageName + '.' + name);
         }
 
         public static void CompilerLoop(RuntimeBase vm, ICompiler use, ref CompilerContext context)

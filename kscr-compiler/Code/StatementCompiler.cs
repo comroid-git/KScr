@@ -55,7 +55,8 @@ namespace KScr.Compiler.Code
                     {
                         Type = StatementComponentType.Code,
                         CodeType = isReturn ? BytecodeType.Return : BytecodeType.Throw,
-                        SubStatement = subctx.Statement
+                        SubStatement = subctx.Statement,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     ctx.TokenIndex = subctx.TokenIndex - 1;
                     break;
@@ -66,7 +67,8 @@ namespace KScr.Compiler.Code
                         // assignment
                         ctx.Component = new StatementComponent
                         {
-                            Type = StatementComponentType.Setter
+                            Type = StatementComponentType.Setter,
+                            SourcefilePosition = ctx.Token.SourcefilePosition
                         };
 
                         ctx.TokenIndex += 1;
@@ -94,7 +96,8 @@ namespace KScr.Compiler.Code
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Code,
-                        CodeType = BytecodeType.StmtIf
+                        CodeType = BytecodeType.StmtIf,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     
                     ctx.TokenIndex += 2;
@@ -130,7 +133,8 @@ namespace KScr.Compiler.Code
                     {
                         Type = StatementComponentType.Code,
                         CodeType = BytecodeType.StmtElse,
-                        InnerCode = subctx.ExecutableCode
+                        InnerCode = subctx.ExecutableCode,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     ctx.TokenIndex = subctx.TokenIndex;
                     return this;
@@ -145,7 +149,8 @@ namespace KScr.Compiler.Code
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Code,
-                        CodeType = BytecodeType.StmtFor
+                        CodeType = BytecodeType.StmtFor,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
 
                     // parse start statement
@@ -192,7 +197,8 @@ namespace KScr.Compiler.Code
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Code,
-                        CodeType = BytecodeType.StmtForN
+                        CodeType = BytecodeType.StmtForN,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     
                     ctx.TokenIndex += 2;

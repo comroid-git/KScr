@@ -81,6 +81,7 @@ namespace KScr.Lib.Bytecode
         public VariableContext VariableContext { get; set; }
         public string Arg { get; set; } = string.Empty;
         public ulong ByteArg { get; set; } = 0x0;
+        public SourcefilePosition SourcefilePosition { get; set; }
         public Statement? SubStatement { get; set; }
         public Statement? AltStatement { get; set; }
         public StatementComponent? SubComponent { get; set; }
@@ -96,7 +97,7 @@ namespace KScr.Lib.Bytecode
 
         public virtual State Evaluate(RuntimeBase vm, ref ObjectRef rev)
         {
-            ObjectRef? buf = vm.Stack.This!;;
+            ObjectRef? buf = vm.Stack.This!;
             var state = State.Normal;
             switch (Type, CodeType)
             {
@@ -129,13 +130,15 @@ namespace KScr.Lib.Bytecode
                     break;
                 case (StatementComponentType.Expression, BytecodeType.ConstructorCall):
                     if (SubComponent?.CodeType != BytecodeType.ParameterExpression)
-                        throw new InternalException("Invalid constructor call; missing parameter expression");
+                        throw new InternalException(
+                            "Invalid constructor call; missing parameter expression");
                     var type = vm.FindType(Arg)!;
                     var ctor = (type.DeclaredMembers["ctor"] as IMethod)!;
                     var obj = new CodeObject(vm, type);
                     buf = new ObjectRef(Class.VoidType.DefaultInstance, ctor.Parameters.Count);
-                    rev = vm.PutObject(VariableContext.Absolute, "instance-" + type.FullName + "-" + obj.ObjectId, obj);
-                    vm.Stack.StepInside(vm, type.Name + ".ctor", ref rev, _rev =>
+                    rev = vm.PutObject(VariableContext.Absolute, "instance-" + type.FullName + "-" + obj.ObjectId,
+                        obj);
+                    vm.Stack.StepInside(vm, SourcefilePosition, type.Name + ".ctor", ref rev, _rev =>
                     {
                         State state = State.Normal;
                         SubComponent.Evaluate(vm, ref buf);
@@ -157,9 +160,11 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Code, BytecodeType.Assignment):
                     // assignment
                     if (rev == null)
-                        throw new InternalException("Invalid assignment; missing variable name");
+                        throw new InternalException(
+                            "Invalid assignment; missing variable name");
                     if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
-                        throw new InternalException("Invalid assignment; no Expression found");
+                        throw new InternalException(
+                            "Invalid assignment; no Expression found");
                     buf = null;
                     state = SubComponent.Evaluate(vm, ref buf!);
                     rev.Value = buf?.Value;
@@ -167,15 +172,17 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Code, BytecodeType.Return):
                     // return
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
-                        throw new InternalException("Invalid return statement; no Expression found");
+                        throw new InternalException(
+                            "Invalid return statement; no Expression found");
                     state = SubStatement.Evaluate(vm, ref rev) == State.Normal ? State.Return : state;
                     break;
                 case (StatementComponentType.Code, BytecodeType.Throw):
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
-                        throw new InternalException("Invalid throw statement; no Exception found");
+                        throw new InternalException(
+                            "Invalid throw statement; no Exception found");
                     state = SubStatement.Evaluate(vm, ref rev) == State.Normal ? State.Throw : state;
-                    throw new InternalException("+++ EXCEPTION IN CODE: " + (rev.Value?.ToString(1) ?? "no message") +
-                                                " +++");
+                    throw new InternalException(
+                        "+++ EXCEPTION IN CODE: " + (rev.Value?.ToString(1) ?? "no message") + " +++");
                 case (StatementComponentType.Code, BytecodeType.ParameterExpression):
                     if (InnerCode == null)
                         break;
@@ -189,7 +196,7 @@ namespace KScr.Lib.Bytecode
 
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtIf):
-                    vm.Stack.StepInside(vm, "if", ref rev, _rev =>
+                    vm.Stack.StepInside(vm, SourcefilePosition, "if", ref rev, _rev =>
                     {
                         state = SubStatement!.Evaluate(vm, ref buf!);
                         if (buf.ToBool())
@@ -200,7 +207,7 @@ namespace KScr.Lib.Bytecode
                     });
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtFor):
-                    vm.Stack.StepInside(vm, "for", ref rev, _rev =>
+                    vm.Stack.StepInside(vm, SourcefilePosition, "for", ref rev, _rev =>
                     {
                         state = SubStatement!.Evaluate(vm, ref buf!);
                         if (state != State.Normal)
@@ -219,7 +226,7 @@ namespace KScr.Lib.Bytecode
                     });
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtForN):
-                    vm.Stack.StepInside(vm, "forn", ref rev, _rev =>
+                    vm.Stack.StepInside(vm, SourcefilePosition, "forn", ref rev, _rev =>
                     {
                         state = SubStatement!.Evaluate(vm, ref buf!);
                         if (state != State.Normal)
@@ -244,17 +251,22 @@ namespace KScr.Lib.Bytecode
                     switch (op)
                     {
                         case Operator.LogicalNot:
-                            if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
-                                throw new InternalException("Invalid unary operator; missing right operand");
+                            if (SubComponent == null ||
+                                (SubComponent.Type & StatementComponentType.Expression) == 0)
+                                throw new InternalException(
+                                    "Invalid unary operator; missing right operand");
                             state = SubComponent.Evaluate(vm, ref buf!);
                             rev = rev.LogicalNot(vm);
                             break;
                         case Operator.Equals:
                         case Operator.NotEquals:
                             if (rev == null)
-                                throw new InternalException("Invalid binary operator; missing left operand");
-                            if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
-                                throw new InternalException("Invalid binary operator; missing right operand");
+                                throw new InternalException(
+                                    "Invalid binary operator; missing left operand");
+                            if (SubComponent == null ||
+                                (SubComponent.Type & StatementComponentType.Expression) == 0)
+                                throw new InternalException(
+                                    "Invalid binary operator; missing right operand");
                             state = SubComponent.Evaluate(vm, ref buf!);
                             rev = rev.Value!.Invoke(vm, "equals", ref rev, buf.Value) ?? vm.ConstantFalse;
                             if (op == Operator.NotEquals)
@@ -263,17 +275,21 @@ namespace KScr.Lib.Bytecode
                         case Operator.IncrementRead:
                         case Operator.DecrementRead:
                         case Operator.ArithmeticNot:
-                            if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
-                                throw new InternalException("Invalid unary operator; missing right numeric operand");
+                            if (SubComponent == null ||
+                                (SubComponent.Type & StatementComponentType.Expression) == 0)
+                                throw new InternalException(
+                                    "Invalid unary operator; missing right numeric operand");
                             state = SubComponent.Evaluate(vm, ref buf!);
                             if (buf.Value is not Numeric right2)
-                                throw new InternalException("Invalid unary operator; missing right numeric operand");
+                                throw new InternalException(
+                                    "Invalid unary operator; missing right numeric operand");
                             buf.Value = right2.Operator(vm, op).Value;
                             break;
                         case Operator.ReadIncrement:
                         case Operator.ReadDecrement:
                             if (rev.Value is not Numeric left2)
-                                throw new InternalException("Invalid unary operator; missing left numeric operand");
+                                throw new InternalException(
+                                    "Invalid unary operator; missing left numeric operand");
                             rev = left2.Operator(vm, op);
                             break;
                         case Operator.Plus:
@@ -319,17 +335,20 @@ namespace KScr.Lib.Bytecode
                     {
                         case BytecodeType.ExpressionVariable:
                             if (rev?.Value is { } obj1
-                                && obj1.Type.DeclaredMembers.ContainsKey(Arg) 
-                                && obj1.Type.DeclaredMembers[Arg] is {} icm1)
-                            { // call member
+                                && obj1.Type.DeclaredMembers.ContainsKey(Arg)
+                                && obj1.Type.DeclaredMembers[Arg] is { } icm1)
+                            {
+                                // call member
                                 IRuntimeSite? site = icm1;
                                 while (site != null && state == State.Normal)
                                     site = site.Evaluate(vm, ref state, ref rev!);
-                            } 
+                            }
                             else
-                            { // read variable
+                            {
+                                // read variable
                                 rev = vm[VariableContext, Arg]!;
                             }
+
                             break;
                         case BytecodeType.Call:
                             // invoke member
@@ -345,8 +364,9 @@ namespace KScr.Lib.Bytecode
                                 buf = new ObjectRef(Class.VoidType.DefaultInstance, param1.Count);
                                 state = SubComponent!.Evaluate(vm, ref buf);
                                 if (state != State.Normal)
-                                    throw new InternalException("Invalid state after evaluating method parameters");
-                                vm.Stack.StepDown(vm, cli1, cli1.Name + '.' + Arg, ref rev, _rev =>
+                                    throw new InternalException(
+                                        "Invalid state after evaluating method parameters");
+                                vm.Stack.StepInto(vm, SourcefilePosition, cli1, cli1.Name + '.' + Arg, ref rev, _rev =>
                                 {
                                     for (var i = 0; i < param1.Count; i++)
                                         vm.PutObject(VariableContext.Local, param1[i].Name, buf[vm, i]);
@@ -361,8 +381,9 @@ namespace KScr.Lib.Bytecode
                                 buf = new ObjectRef(Class.VoidType.DefaultInstance, param2.Count);
                                 state = SubComponent!.Evaluate(vm, ref buf);
                                 if (state != State.Normal)
-                                    throw new InternalException("Invalid state after evaluating method parameters");
-                                vm.Stack.StepDown(vm, rev, rev.Value.ObjectId + '.' + Arg, ref rev, _rev =>
+                                    throw new InternalException(
+                                        "Invalid state after evaluating method parameters");
+                                vm.Stack.StepInto(vm, SourcefilePosition, rev, rev.Value.ObjectId + '.' + Arg, ref rev, _rev =>
                                 {
                                     for (var i = 0; i < param2.Count; i++)
                                         vm.PutObject(VariableContext.Local, param2[i].Name, buf[vm, i]);
@@ -376,8 +397,9 @@ namespace KScr.Lib.Bytecode
                                 buf = new ObjectRef(Class.VoidType.DefaultInstance, param3.Count);
                                 state = SubComponent!.Evaluate(vm, ref buf);
                                 if (state != State.Normal)
-                                    throw new InternalException("Invalid state after evaluating method parameters");
-                                vm.Stack.StepDown(vm, rev, rev.Value.ToString() + '.' + Arg, ref rev, _rev =>
+                                    throw new InternalException(
+                                        "Invalid state after evaluating method parameters");
+                                vm.Stack.StepInto(vm, SourcefilePosition, rev, rev.Value.ToString() + '.' + Arg, ref rev, _rev =>
                                 {
                                     for (var i = 0; i < param3.Count; i++)
                                         vm.PutObject(VariableContext.Local, param3[i].Name, buf[vm, i]);
@@ -411,9 +433,11 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Setter, _):
                     // assignment
                     if (rev == null)
-                        throw new InternalException("Invalid assignment; missing variable name");
+                        throw new InternalException(
+                            "Invalid assignment; missing variable name");
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
-                        throw new InternalException("Invalid assignment; no Expression found");
+                        throw new InternalException(
+                            "Invalid assignment; no Expression found");
                     buf = null;
                     state = SubStatement!.Evaluate(vm, ref buf!);
                     rev.Value = buf.Value;
@@ -422,7 +446,8 @@ namespace KScr.Lib.Bytecode
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new InternalException("Invalid emitter; no Expression found");
                     if (!rev.IsPipe)
-                        throw new InternalException("Cannot emit value into non-pipe accessor");
+                        throw new InternalException(
+                            "Cannot emit value into non-pipe accessor");
                     state = SubStatement.Evaluate(vm, ref buf!);
                     rev.WriteAccessor!.Evaluate(vm, ref buf);
                     break;
@@ -430,7 +455,8 @@ namespace KScr.Lib.Bytecode
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Declaration) == 0)
                         throw new InternalException("Invalid consumer; no declaration found");
                     if (!rev.IsPipe)
-                        throw new InternalException("Cannot consume value from non-pipe accessor");
+                        throw new InternalException(
+                            "Cannot consume value from non-pipe accessor");
                     state = SubStatement.Evaluate(vm, ref buf!);
                     rev.ReadAccessor!.Evaluate(vm, ref buf);
                     break;

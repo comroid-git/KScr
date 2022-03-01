@@ -23,6 +23,9 @@ namespace KScr.Lib
     {
         public static Encoding Encoding = Encoding.ASCII;
 
+        public static readonly SourcefilePosition MainInvocPos = new()
+            { SourcefilePath = "org/comroid/kscr/core/System.kscr", SourcefileLine = 0 };
+
         public bool Initialized = false;
         private uint _lastObjId = 0xF;
 
@@ -150,7 +153,7 @@ namespace KScr.Lib
 
             try
             {
-                Stack.StepDown(this, method.Parent, "main", ref rev, _rev =>
+                Stack.StepInto(this, MainInvocPos, method.Parent, "main", ref rev, _rev =>
                 {
                     State state = State.Normal;
                     IRuntimeSite? site = method;
@@ -159,7 +162,13 @@ namespace KScr.Lib
                     return _rev;
                 });
             }
-            catch (InternalException exc)
+            catch (StackTraceException stc)
+            {
+                Console.WriteLine($"An exception occurred:\t{stc.Message}");
+                foreach (var stackTraceElement in Stack.StackTrace)
+                    Console.WriteLine($"\t- Caused by:\t{stackTraceElement.Message}");
+            }
+            catch (System.Exception exc)
             {
                 Console.WriteLine($"An internal exception occurred:\t{exc.Message}");
                 while (exc.InnerException is InternalException inner && (exc = inner) != null)

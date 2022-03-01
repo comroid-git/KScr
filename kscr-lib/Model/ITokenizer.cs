@@ -197,59 +197,72 @@ namespace KScr.Lib.Model
 
         public static MemberModifier? Modifier(this TokenType type)
         {
-            return type switch
-            {
-                TokenType.Public => MemberModifier.Public,
-                TokenType.Protected => MemberModifier.Protected,
-                TokenType.Internal => MemberModifier.Internal,
-                TokenType.Private => MemberModifier.Private,
-                TokenType.Static => MemberModifier.Static,
-                TokenType.Abstract => MemberModifier.Abstract,
-                TokenType.Final => MemberModifier.Final,
-                _ => null
-            };
+            var mod = MemberModifier.None;
+            if ((type & TokenType.Public) == TokenType.Public)
+                mod |= MemberModifier.Public;
+            if ((type & TokenType.Protected) == TokenType.Protected)
+                mod |= MemberModifier.Protected;
+            if ((type & TokenType.Internal) == TokenType.Internal)
+                mod |= MemberModifier.Internal;
+            if ((type & TokenType.Private) == TokenType.Private)
+                mod |= MemberModifier.Private;
+            if ((type & TokenType.Static) == TokenType.Static)
+                mod |= MemberModifier.Static;
+            if ((type & TokenType.Abstract) == TokenType.Abstract)
+                mod |= MemberModifier.Abstract;
+            if ((type & TokenType.Final) == TokenType.Final)
+                mod |= MemberModifier.Final;
+            return mod == 0 ? null : mod;
         }
 
         public static ClassType? ClassType(this TokenType type)
         {
-            return type switch
-            {
-                TokenType.Class => Model.ClassType.Class,
-                TokenType.Interface => Model.ClassType.Interface,
-                TokenType.Enum => Model.ClassType.Enum,
-                TokenType.Annotation => Model.ClassType.Annotation,
-                _ => null
-            };
+            if ((type & TokenType.Class) == TokenType.Class)
+                return Model.ClassType.Class;
+            if ((type & TokenType.Interface) == TokenType.Interface)
+                return Model.ClassType.Interface;
+            if ((type & TokenType.Enum) == TokenType.Enum)
+                return Model.ClassType.Enum;
+            if ((type & TokenType.Annotation) == TokenType.Annotation)
+                return Model.ClassType.Annotation;
+            return null;
         }
     }
 
     public interface ITokenizer
     {
         bool PushToken();
-        bool PushToken(IToken? token);
-        bool PushToken(ref IToken? token);
-        IList<IToken> Tokenize(RuntimeBase vm, string source);
+        bool PushToken(Token? token);
+        bool PushToken(ref Token? token);
+        IList<IToken> Tokenize(RuntimeBase vm, string sourcefilePath, string source);
         void Accept(char c, char n, char p, ref int i, ref string str);
+    }
+
+    public struct SourcefilePosition
+    {
+        public string SourcefilePath;
+        public int SourcefileLine;
     }
 
     public interface IToken
     {
         TokenType Type { get; set; }
         string? Arg { get; }
+        SourcefilePosition SourcefilePosition { get; }
     }
 
     public abstract class AbstractToken : IToken
     {
-        public bool Complete;
-
-        public AbstractToken(TokenType type = TokenType.Whitespace, string arg = null!)
+        public AbstractToken(SourcefilePosition sourcefilePosition, TokenType type = TokenType.Whitespace, string arg = null!)
         {
+            SourcefilePosition = sourcefilePosition;
             Type = type;
             Arg = arg;
         }
 
         public TokenType Type { get; set; }
         public string? Arg { get; set; }
+        public SourcefilePosition SourcefilePosition { get; }
 
         public override string ToString()
         {
@@ -257,16 +270,9 @@ namespace KScr.Lib.Model
         }
     }
 
-    public sealed class ClassToken : AbstractToken
-    {
-        public ClassToken(TokenType type = TokenType.Whitespace, string arg = null!) : base(type, arg)
-        {
-        }
-    }
-
     public sealed class Token : AbstractToken
     {
-        public Token(TokenType type = TokenType.Whitespace, string arg = null!) : base(type, arg)
+        public Token(SourcefilePosition pos, TokenType type = TokenType.Whitespace, string arg = null!) : base(pos, type, arg)
         {
         }
     }

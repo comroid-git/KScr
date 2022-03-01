@@ -34,7 +34,8 @@ namespace KScr.Compiler.Code
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
-                        CodeType = BytecodeType.Parentheses
+                        CodeType = BytecodeType.Parentheses,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
 
                     // compile inner expression
@@ -55,7 +56,8 @@ namespace KScr.Compiler.Code
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
-                        CodeType = BytecodeType.Null
+                        CodeType = BytecodeType.Null,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     break;
                 case TokenType.LiteralNum:
@@ -68,7 +70,8 @@ namespace KScr.Compiler.Code
                     {
                         Type = StatementComponentType.Expression,
                         CodeType = BytecodeType.LiteralNumeric,
-                        Arg = numstr
+                        Arg = numstr,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     break;
                 case TokenType.LiteralStr:
@@ -78,7 +81,8 @@ namespace KScr.Compiler.Code
                     {
                         Type = StatementComponentType.Expression,
                         CodeType = BytecodeType.LiteralString,
-                        Arg = ctx.Token.Arg!
+                        Arg = ctx.Token.Arg!,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     break;
                 case TokenType.LiteralTrue:
@@ -87,7 +91,8 @@ namespace KScr.Compiler.Code
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
-                        CodeType = BytecodeType.LiteralTrue
+                        CodeType = BytecodeType.LiteralTrue,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     break;
                 case TokenType.LiteralFalse:
@@ -96,7 +101,8 @@ namespace KScr.Compiler.Code
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
-                        CodeType = BytecodeType.LiteralFalse
+                        CodeType = BytecodeType.LiteralFalse,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     break;
                 // range literal
@@ -115,7 +121,8 @@ namespace KScr.Compiler.Code
                         ByteArg = BitConverter.ToUInt64(new[]{
                             sb[0],sb[1],sb[2],sb[3],
                             eb[0],eb[1],eb[2],eb[3]
-                        })
+                        }),
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     if (end != -1)
                         ctx.TokenIndex += 1;

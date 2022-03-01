@@ -60,7 +60,8 @@ namespace KScr.Compiler.Code
                     {
                         Type = StatementComponentType.Expression,
                         CodeType = BytecodeType.ConstructorCall,
-                        Arg = ctor.FullName
+                        Arg = ctor.FullName,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     // method call, parse parameter expressions
                     ctx.TokenIndex += 1;
@@ -75,7 +76,8 @@ namespace KScr.Compiler.Code
                     {
                         Type = StatementComponentType.Provider,
                         CodeType = BytecodeType.Call,
-                        Arg = ctx.NextToken!.Arg!
+                        Arg = ctx.NextToken!.Arg!,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     ctx.LastComponent!.PostComponent = comp;
                     ctx.TokenIndex += 1;
@@ -99,7 +101,8 @@ namespace KScr.Compiler.Code
                         {
                             Type = StatementComponentType.Expression,
                             CodeType = BytecodeType.TypeExpression,
-                            Arg = type.FullName
+                            Arg = type.FullName,
+                            SourcefilePosition = ctx.Token.SourcefilePosition
                         };
                     } else
                     {
@@ -109,7 +112,8 @@ namespace KScr.Compiler.Code
                                 ? StatementComponentType.Declaration
                                 : StatementComponentType.Provider,
                             CodeType = BytecodeType.ExpressionVariable,
-                            Arg = ctx.Token.Arg!
+                            Arg = ctx.Token.Arg!,
+                            SourcefilePosition = ctx.Token.SourcefilePosition
                         };
                     }
                     break;
@@ -117,14 +121,16 @@ namespace KScr.Compiler.Code
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Provider,
-                        VariableContext = VariableContext.This
+                        VariableContext = VariableContext.This,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     break;
                 case TokenType.StdIo:
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Provider,
-                        CodeType = BytecodeType.StdioExpression
+                        CodeType = BytecodeType.StdioExpression,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     break;
                 // equality operators
@@ -135,7 +141,8 @@ namespace KScr.Compiler.Code
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Operator,
-                        ByteArg = (ulong)Operator.Equals
+                        ByteArg = (ulong)Operator.Equals,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     ctx.NextIntoSub = true;
                     break;
@@ -147,7 +154,8 @@ namespace KScr.Compiler.Code
                             ctx.Component = new StatementComponent
                             {
                                 Type = StatementComponentType.Operator,
-                                ByteArg = (ulong)Operator.ReadIncrement
+                                ByteArg = (ulong)Operator.ReadIncrement,
+                                SourcefilePosition = ctx.Token.SourcefilePosition
                             };
                             ctx.TokenIndex += 1;
                             break;
@@ -158,7 +166,8 @@ namespace KScr.Compiler.Code
                             ctx.Component = new StatementComponent
                             {
                                 Type = StatementComponentType.Operator,
-                                ByteArg = (ulong)Operator.IncrementRead
+                                ByteArg = (ulong)Operator.IncrementRead,
+                                SourcefilePosition = ctx.Token.SourcefilePosition
                             };
                             ctx.NextIntoSub = true;
                         } else ctx.TokenIndex -= 1;
@@ -169,7 +178,8 @@ namespace KScr.Compiler.Code
                         ctx.Component = new()
                         {
                             Type = StatementComponentType.Operator,
-                            ByteArg = (ulong)Operator.Plus
+                            ByteArg = (ulong)Operator.Plus,
+                            SourcefilePosition = ctx.Token.SourcefilePosition
                         };
                         ctx.NextIntoSub = true;
                     }
@@ -195,7 +205,8 @@ namespace KScr.Compiler.Code
                             ctx.Component = new StatementComponent
                             {
                                 Type = StatementComponentType.Operator,
-                                ByteArg = (ulong)Operator.ReadDecrement
+                                ByteArg = (ulong)Operator.ReadDecrement,
+                                SourcefilePosition = ctx.Token.SourcefilePosition
                             };
                             ctx.TokenIndex += 1;
                             break;
@@ -206,7 +217,8 @@ namespace KScr.Compiler.Code
                             ctx.Component = new StatementComponent
                             {
                                 Type = StatementComponentType.Operator,
-                                ByteArg = (ulong)Operator.DecrementRead
+                                ByteArg = (ulong)Operator.DecrementRead,
+                                SourcefilePosition = ctx.Token.SourcefilePosition
                             };
                             ctx.NextIntoSub = true;
                         } else ctx.TokenIndex -= 1;
@@ -217,7 +229,8 @@ namespace KScr.Compiler.Code
                         ctx.Component = new()
                         {
                             Type = StatementComponentType.Operator,
-                            ByteArg = (ulong)Operator.Minus
+                            ByteArg = (ulong)Operator.Minus,
+                            SourcefilePosition = ctx.Token.SourcefilePosition
                         };
                         ctx.NextIntoSub = true;
                     }
@@ -230,7 +243,8 @@ namespace KScr.Compiler.Code
                             ctx.Component = new StatementComponent
                             {
                                 Type = StatementComponentType.Operator,
-                                ByteArg = (ulong)Operator.NotEquals
+                                ByteArg = (ulong)Operator.NotEquals,
+                                SourcefilePosition = ctx.Token.SourcefilePosition
                             };
                             ctx.NextIntoSub = true;
                             break;
@@ -238,7 +252,8 @@ namespace KScr.Compiler.Code
                             ctx.Component = new StatementComponent
                             {
                                 Type = StatementComponentType.Operator,
-                                ByteArg = (ulong)Operator.LogicalNot
+                                ByteArg = (ulong)Operator.LogicalNot,
+                                SourcefilePosition = ctx.Token.SourcefilePosition
                             };
                             ctx.NextIntoSub = true;
                             break;
@@ -261,7 +276,8 @@ namespace KScr.Compiler.Code
                             TokenType.OperatorModulus => Operator.Modulus,
                             TokenType.Circumflex => Operator.Circumflex,
                             _ => throw new ArgumentOutOfRangeException()
-                        })
+                        }),
+                        SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     ctx.NextIntoSub = true;
                     break;
@@ -272,7 +288,8 @@ namespace KScr.Compiler.Code
                         // compile Emitter
                         ctx.Component = new StatementComponent
                         {
-                            Type = StatementComponentType.Emitter
+                            Type = StatementComponentType.Emitter,
+                            SourcefilePosition = ctx.Token.SourcefilePosition
                         };
                         ctx.TokenIndex += 2;
                         subctx = new CompilerContext(ctx, CompilerType.PipeEmitter);
@@ -293,7 +310,8 @@ namespace KScr.Compiler.Code
                         ctx.Component = new StatementComponent
                         {
                             Type = StatementComponentType.Operator,
-                            ByteArg = (ulong)(ctx.NextToken!.Type == TokenType.OperatorEquals ? Operator.LesserEq : Operator.Lesser)
+                            ByteArg = (ulong)(ctx.NextToken!.Type == TokenType.OperatorEquals ? Operator.LesserEq : Operator.Lesser),
+                            SourcefilePosition = ctx.Token.SourcefilePosition
                         };
                         ctx.NextIntoSub = true;
                     }
@@ -305,7 +323,8 @@ namespace KScr.Compiler.Code
                         // compile Emitter
                         ctx.Component = new StatementComponent
                         {
-                            Type = StatementComponentType.Consumer
+                            Type = StatementComponentType.Consumer,
+                            SourcefilePosition = ctx.Token.SourcefilePosition
                         };
                         ctx.TokenIndex += 2;
                         subctx = new CompilerContext(ctx, CompilerType.PipeConsumer);
@@ -319,7 +338,8 @@ namespace KScr.Compiler.Code
                         ctx.Component = new StatementComponent
                         {
                             Type = StatementComponentType.Operator,
-                            ByteArg = (ulong)(ctx.NextToken!.Type == TokenType.OperatorEquals ? Operator.GreaterEq : Operator.Greater)
+                            ByteArg = (ulong)(ctx.NextToken!.Type == TokenType.OperatorEquals ? Operator.GreaterEq : Operator.Greater),
+                            SourcefilePosition = ctx.Token.SourcefilePosition
                         };
                         ctx.NextIntoSub = true;
                     }

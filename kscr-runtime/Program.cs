@@ -28,7 +28,7 @@ namespace KScr.Runtime
             long compileTime = -1, executeTime = -1;
 
             if (args.Length == 0)
-                VM.Stack.StepDown(VM, Class.VoidType, "scratch", ref state, _ =>
+                VM.Stack.StepInto(VM, RuntimeBase.MainInvocPos, Class.VoidType, "main", ref state, _ =>
                 {
                     StdIoMode(ref state, ref yield);
                     return state;
@@ -123,7 +123,7 @@ namespace KScr.Runtime
                 string code = "stdio << " + expr + ';';
 
                 long compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                var tokens = new TokenContext(new Tokenizer().Tokenize(VM, code));
+                var tokens = new TokenContext(new Tokenizer().Tokenize(VM, Directory.GetCurrentDirectory(), code));
                 var context = new CompilerContext(contextBase, tokens, CompilerType.CodeStatement);
                 AbstractCompiler.CompilerLoop(VM, compiler, ref context);
                 compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - compileTime;
