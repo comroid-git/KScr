@@ -16,14 +16,15 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 - - - [ ] `break` and `continue`
 
 ### Language Features:
-- - [ ] Objects
+- - [x] Objects
 - - [ ] Arrays
 - - [ ] Tuple Literals
+- - [x] Computed Properties
+- - [ ] Properties with Getters and Setters
+- - [ ] Properties with Value storage
 - - [ ] `extends` and `implements`
 - - [ ] Variable Caching
 - - [ ] Annotations
-- - [x] Computed Properties
-- - [ ] Properties with Getters and Setters
 - - [x] Methods
 - - [ ] `native` Keyword
 - - [ ] Static and Dynamic components
