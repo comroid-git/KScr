@@ -54,6 +54,8 @@ namespace KScr.Lib.Bytecode
 
         public IDictionary<string, IClassMember> DeclaredMembers { get; } =
             new ConcurrentDictionary<string, IClassMember>();
+        public IDictionary<string, IClass> Imports { get; } =
+            new ConcurrentDictionary<string, IClass>();
 
         public ClassType ClassType { get; }
 

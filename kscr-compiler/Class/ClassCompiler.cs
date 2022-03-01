@@ -37,8 +37,11 @@ namespace KScr.Compiler.Class
             {
                 case TokenType.Package:
                     ctx.SkipPackage();
-                    ctx.SkipImports();
                     break;
+               case TokenType.Import:
+                   var type = ctx.FindType(vm, ctx.FindCompoundWord())!.BaseClass;
+                   ctx.Class.Imports[type.Name] = type;
+                   break;
                 case TokenType.Public:
                 case TokenType.Protected:
                 case TokenType.Internal:
