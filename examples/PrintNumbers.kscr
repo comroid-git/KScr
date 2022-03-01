@@ -33,13 +33,16 @@ public class PrintNumbers {
         stdio << "look at my cool object: " + range.toString(0);
         stdio << "and of course i can access it this way too: " + range.StackValue;
         
-        PrintNumbers.throingMethod(true);
+        PrintNumbers.callThroingMethod();
     }
     
     public str toString(short variant) {
         return "Items in stack: " + StackValue + "/" + PrintNumbers.StackSize;
     }
     
+    public static void callThroingMethod() {
+        PrintNumbers.throingMethod(true);
+    }
     public static void throingMethod(byte thr) {
         stdio << "This is another method. Will it throw? " + thr;
         

@@ -6,6 +6,7 @@ using KScr.Compiler.Code;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
+using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 using Array = System.Array;
@@ -47,13 +48,14 @@ namespace KScr.Runtime
                         VM.CompileFiles(files);
                         compileTime = RuntimeBase.UnixTime() - compileTime;
                         WriteClasses(DefaultOutput);
+
                         break;
                     case "execute":
                         compileTime = RuntimeBase.UnixTime();
                         VM.CompileFiles(files);
                         compileTime = RuntimeBase.UnixTime() - compileTime;
-                        
                         yield = VM.Execute(out executeTime);
+
                         break;
                     case "run":
                         string classpath = args.Length >= 2 ? args[1] : Directory.GetCurrentDirectory();
@@ -100,6 +102,7 @@ namespace KScr.Runtime
         private static void StdIoMode(ref State state, ref IObject yield)
         {
             Console.WriteLine("Entering StdIoMode - Only Expressions are allowed");
+            VM.StdIoMode = true;
 
             var compiler = new StatementCompiler();
             var contextBase = new CompilerContext();

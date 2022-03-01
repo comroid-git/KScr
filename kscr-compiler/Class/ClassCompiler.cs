@@ -96,7 +96,7 @@ namespace KScr.Compiler.Class
                         // is return type
                         string targetTypeIdentifier = ctx.Token.Arg!;
                         targetType = vm.FindTypeInfo(targetTypeIdentifier, ctx.Class, ctx.Package)
-                                     ?? throw new CompilerException("Could not find type: " + targetTypeIdentifier);
+                                     ?? throw new CompilerException(ctx.Token.SourcefilePosition, "Could not find type: " + targetTypeIdentifier);
                     }
                     else if (memberName == null)
                         // is name
@@ -114,7 +114,7 @@ namespace KScr.Compiler.Class
                     if (ctx.NextToken!.Type != TokenType.ParDiamondClose)
                         break;
                     if (memberType != 2) // computed property
-                        throw new CompilerException("Could not create field; invalid memberType = " + memberType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Could not create field; invalid memberType = " + memberType);
                     property = new Field(ctx.Class, memberName!, modifier ?? MemberModifier.Protected);
                     ctx = new CompilerContext(ctx, CompilerType.CodeExpression);
                     ctx.Statement = new Statement
@@ -135,7 +135,7 @@ namespace KScr.Compiler.Class
                     if (!inBody)
                         break;
                     if (memberType != 2)
-                        throw new CompilerException("Could not create method; unexpected memberType");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Could not create method; unexpected memberType");
                     memberType = memberName == null 
                         ? 3  // ctor 
                         : 1; // method

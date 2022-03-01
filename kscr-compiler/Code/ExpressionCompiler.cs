@@ -64,7 +64,7 @@ namespace KScr.Compiler.Code
                     if (ctx.NextToken?.Type == TokenType.Tilde)
                         return this; // parse ranges completely
                     if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
-                        throw new CompilerException("Invalid Numeric literal; expected " + ctx.Statement.TargetType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid Numeric literal; expected " + ctx.Statement.TargetType);
                     var numstr = Numeric.Compile(vm, ctx.Token.Arg!).Value!.ToString(IObject.ToString_LongName);
                     ctx.Component = new StatementComponent
                     {
@@ -76,7 +76,7 @@ namespace KScr.Compiler.Code
                     break;
                 case TokenType.LiteralStr:
                     if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.StringType))
-                        throw new CompilerException("Invalid Numeric literal; expected " + ctx.Statement.TargetType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid String literal; expected " + ctx.Statement.TargetType);
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
@@ -87,7 +87,7 @@ namespace KScr.Compiler.Code
                     break;
                 case TokenType.LiteralTrue:
                     if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
-                        throw new CompilerException("Invalid Numeric literal; expected " + ctx.Statement.TargetType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid Boolean literal; expected " + ctx.Statement.TargetType);
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
@@ -97,7 +97,7 @@ namespace KScr.Compiler.Code
                     break;
                 case TokenType.LiteralFalse:
                     if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
-                        throw new CompilerException("Invalid Numeric literal; expected " + ctx.Statement.TargetType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid Boolean literal; expected " + ctx.Statement.TargetType);
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,

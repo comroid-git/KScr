@@ -51,11 +51,11 @@ namespace KScr.Compiler.Code
                     return this;
                 case TokenType.New:
                     if (ctx.NextToken!.Type != TokenType.Word)
-                        throw new CompilerException("Invalid new-Statement; missing type identifier");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid new-Statement; missing type identifier");
                     ctx.TokenIndex += 1;
                     var ctor = ctx.FindType(vm, ctx.FindCompoundWord(terminator: TokenType.ParRoundOpen))!;
                     if (!ctx.Statement.TargetType.CanHold(ctor))
-                        throw new CompilerException($"Invalid new-Statement; Cannot assign {ctor} to {ctx.Statement.TargetType}");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, $"Invalid new-Statement; Cannot assign {ctor} to {ctx.Statement.TargetType}");
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
@@ -364,7 +364,7 @@ namespace KScr.Compiler.Code
         private static void CompileDeclaration(CompilerContext ctx, IClassInstance targetType)
         {
             if (ctx.NextToken?.Type != TokenType.Word)
-                throw new CompilerException("Invalid declaration; missing variable name");
+                throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid declaration; missing variable name");
 
             ctx.Statement = new Statement
             {

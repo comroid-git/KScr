@@ -27,7 +27,7 @@ namespace KScr.Compiler.Class
                     {
                         // parse name
                         if (pIndex >= _class.BaseClass.TypeParameters.Count)
-                            throw new CompilerException("Invalid TypeParameter index during compilation");
+                            throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid TypeParameter index during compilation");
 
                         _class.TypeParameters.Add(new TypeParameter(ctx.Token.Arg!));
                         pIndex += 1;
@@ -54,16 +54,16 @@ namespace KScr.Compiler.Class
                     if (ctx.PrevToken!.Type != ctx.Token.Type
                         || ctx.Token.Type != ctx.NextToken!.Type
                         || ctx.NextToken!.Type != TokenType.Dot)
-                        throw new CompilerException("Invalid Dot token");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid Dot token");
                     if (_class.TypeParameters[pIndex].Specialization == TypeParameterSpecializationType.N)
-                        throw new CompilerException("Cannot list N");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Cannot list N");
                     _class.TypeParameters[pIndex].Specialization = TypeParameterSpecializationType.List;
                     ctx.TokenIndex += 1;
                     return this;
                 case TokenType.ParDiamondClose:
                     _active = false;
                     return Parent;
-                default: throw new CompilerException("Unexpected token: " + ctx.Token);
+                default: throw new CompilerException(ctx.Token.SourcefilePosition, "Unexpected token: " + ctx.Token);
             }
 
             return this;

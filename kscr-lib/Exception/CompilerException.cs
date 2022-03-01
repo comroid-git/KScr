@@ -1,23 +1,17 @@
 ﻿using System.Runtime.Serialization;
+using KScr.Lib.Model;
 
 namespace KScr.Lib.Exception
 {
-    public class CompilerException : System.Exception
+    public class CompilerException : System.Exception, IStackTrace
     {
-        public CompilerException()
+        public CompilerException(SourcefilePosition srcPos, string? message) : base(message)
         {
+            SrcPos = srcPos;
         }
 
-        protected CompilerException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
+        public override string Message => base.Message + $"\n\tin File {SrcPos.SourcefilePath} line {SrcPos.SourcefileLine} pos {SrcPos.SourcefileCursor}";
 
-        public CompilerException(string? message) : base(message)
-        {
-        }
-
-        public CompilerException(string? message, System.Exception? innerException) : base(message, innerException)
-        {
-        }
+        public SourcefilePosition SrcPos { get; }
     }
 }

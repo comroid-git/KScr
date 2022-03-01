@@ -242,6 +242,7 @@ namespace KScr.Lib.Model
     {
         public string SourcefilePath;
         public int SourcefileLine;
+        public int SourcefileCursor;
     }
 
     public interface IToken

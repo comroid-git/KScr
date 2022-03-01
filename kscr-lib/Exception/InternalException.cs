@@ -17,7 +17,6 @@ namespace KScr.Lib.Exception
     public interface IStackTrace
     {
         SourcefilePosition SrcPos { get; }
-        System.Exception? InnerTrace { get; }
         string Message { get; }
     }
 
@@ -27,7 +26,7 @@ namespace KScr.Lib.Exception
         public System.Exception? InnerTrace { get; }
         public string Local { get; }
 
-        public override string Message => $"({SrcPos.SourcefilePath}:{SrcPos.SourcefileLine} {Local}) {base.Message}";
+        public override string Message => $"({SrcPos.SourcefilePath}:{SrcPos.SourcefileLine}-{SrcPos.SourcefileCursor} {Local}) {base.Message}";
 
         public StackTraceException(SourcefilePosition srcPos, string local, System.Exception innerTrace)
             : base(innerTrace.Message, innerTrace)

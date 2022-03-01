@@ -11,7 +11,7 @@ namespace KScr.Lib.Core
     public sealed class CodeObject : IObject
     {
         public static readonly SourcefilePosition ToStringInvocPos = new()
-            { SourcefilePath = "org/comroid/kscr/core/Object.kscr", SourcefileLine = 0 };
+            { SourcefilePath = "<native>org/comroid/kscr/core/Object.kscr" };
 
         public CodeObject(RuntimeBase vm, IClassInstance type)
         {

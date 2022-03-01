@@ -12,7 +12,9 @@ namespace KScr.Compiler
         private bool isLineComment;
         private bool isStringLiteral;
         private int lineNumber = 1;
+        private int charNumber = 1;
         private string filePath;
+        private SourcefilePosition srcPos;
 
         private bool doneAnything = false;
         private Token token;
@@ -62,8 +64,12 @@ namespace KScr.Compiler
         public void Accept(char c, char n, char p, ref int i, ref string str)
         {
             if (c == '\n')
+            {
                 lineNumber += 1;
-            
+                charNumber = 1;
+            }
+            else charNumber += 1;
+
             // string literals
             if (isStringLiteral)
             {
@@ -104,96 +110,97 @@ namespace KScr.Compiler
                     //token = new Token{Complete = true};
                 }
 
+                srcPos = new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber, SourcefileCursor = charNumber};
                 switch (c)
                 {
                     // terminator
                     case ';':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Terminator);
+                        token = new Token(srcPos, TokenType.Terminator);
                         return;
                     // logistical symbols
                     case '.':
                         if (str.Length == 0 || !char.IsDigit(str[^1]))
-                            token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Dot);
+                            token = new Token(srcPos, TokenType.Dot);
                         else
-                            LexicalToken(isWhitespace, ref str, c, n, ref i);
+                            LexicalToken(srcPos, isWhitespace, ref str, c, n, ref i);
                         break;
                     case ',':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Comma);
+                        token = new Token(srcPos, TokenType.Comma);
                         break;
                     // arithmetic operators
                     case '+':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.OperatorPlus);
+                        token = new Token(srcPos, TokenType.OperatorPlus);
                         break;
                     case '-':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.OperatorMinus);
+                        token = new Token(srcPos, TokenType.OperatorMinus);
                         break;
                     case '*':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.OperatorMultiply);
+                        token = new Token(srcPos, TokenType.OperatorMultiply);
                         break;
                     case '/':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.OperatorDivide);
+                        token = new Token(srcPos, TokenType.OperatorDivide);
                         break;
                     case '%':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.OperatorModulus);
+                        token = new Token(srcPos, TokenType.OperatorModulus);
                         break;
                     case '^':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Circumflex);
+                        token = new Token(srcPos, TokenType.Circumflex);
                         break;
                     case '&':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Ampersand);
+                        token = new Token(srcPos, TokenType.Ampersand);
                         break;
                     case '|':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.VertBar);
+                        token = new Token(srcPos, TokenType.VertBar);
                         break;
                     case '!':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Exclamation);
+                        token = new Token(srcPos, TokenType.Exclamation);
                         break;
                     case '?':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Question);
+                        token = new Token(srcPos, TokenType.Question);
                         break;
                     case ':':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Colon);
+                        token = new Token(srcPos, TokenType.Colon);
                         break;
                     case '~':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Tilde);
+                        token = new Token(srcPos, TokenType.Tilde);
                         break;
                     // parentheses
                     case '(':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.ParRoundOpen);
+                        token = new Token(srcPos, TokenType.ParRoundOpen);
                         break;
                     case ')':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.ParRoundClose);
+                        token = new Token(srcPos, TokenType.ParRoundClose);
                         break;
                     case '[':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.ParSquareOpen);
+                        token = new Token(srcPos, TokenType.ParSquareOpen);
                         break;
                     case ']':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.ParSquareClose);
+                        token = new Token(srcPos, TokenType.ParSquareClose);
                         break;
                     case '{':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.ParAccOpen);
+                        token = new Token(srcPos, TokenType.ParAccOpen);
                         break;
                     case '}':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.ParAccClose);
+                        token = new Token(srcPos, TokenType.ParAccClose);
                         break;
                     case '<':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.ParDiamondOpen);
+                        token = new Token(srcPos, TokenType.ParDiamondOpen);
                         break;
                     case '>':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.ParDiamondClose);
+                        token = new Token(srcPos, TokenType.ParDiamondClose);
                         break;
                     case '"':
                         // ReSharper disable once AssignmentInConditionalExpression
                         isStringLiteral = true;
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.LiteralStr, "");
+                        token = new Token(srcPos, TokenType.LiteralStr, "");
                         break;
                     // equals operand
                     case '=':
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.OperatorEquals);
+                        token = new Token(srcPos, TokenType.OperatorEquals);
                         break;
                     // lexical tokens
                     default:
-                        LexicalToken(isWhitespace, ref str, c, n, ref i);
+                        LexicalToken(srcPos, isWhitespace, ref str, c, n, ref i);
                         break;
                 }
             }
@@ -206,7 +213,8 @@ namespace KScr.Compiler
             }
         }
 
-        private void LexicalToken(bool isWhitespace, ref string str, char c, char n, ref int i)
+        private void LexicalToken(SourcefilePosition srcPos, bool isWhitespace, ref string str, char c,
+            char n, ref int i)
         {
             if (!isWhitespace)
                 str += c;
@@ -216,117 +224,117 @@ namespace KScr.Compiler
             switch (str)
             {
                 case "return":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Return);
+                    token = new Token(srcPos, TokenType.Return);
                     return;
                 case "throw":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Throw);
+                    token = new Token(srcPos, TokenType.Throw);
                     return;
                 case "this":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.This);
+                    token = new Token(srcPos, TokenType.This);
                     return;
                 case "stdio":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.StdIo);
+                    token = new Token(srcPos, TokenType.StdIo);
                     return;
                 case "try":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Try);
+                    token = new Token(srcPos, TokenType.Try);
                     return;
                 case "catch":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Catch);
+                    token = new Token(srcPos, TokenType.Catch);
                     return;
                 case "finally":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Finally);
+                    token = new Token(srcPos, TokenType.Finally);
                     return;
                 case "if":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.If);
+                    token = new Token(srcPos, TokenType.If);
                     return;
                 case "else":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Else);
+                    token = new Token(srcPos, TokenType.Else);
                     return;
                 case "do":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Do);
+                    token = new Token(srcPos, TokenType.Do);
                     return;
                 case "while":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.While);
+                    token = new Token(srcPos, TokenType.While);
                     return;
                 case "for":
                     if (n is 'n' or 'e')
                         break;
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.For);
+                    token = new Token(srcPos, TokenType.For);
                     return;
                 case "forn":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.ForN);
+                    token = new Token(srcPos, TokenType.ForN);
                     return;
                 case "foreach":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.ForEach);
+                    token = new Token(srcPos, TokenType.ForEach);
                     return;
                 case "switch":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Switch);
+                    token = new Token(srcPos, TokenType.Switch);
                     return;
                 case "case":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Case);
+                    token = new Token(srcPos, TokenType.Case);
                     return;
                 case "default":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Default);
+                    token = new Token(srcPos, TokenType.Default);
                     return;
                 case "break":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Break);
+                    token = new Token(srcPos, TokenType.Break);
                     return;
                 case "continue":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Continue);
+                    token = new Token(srcPos, TokenType.Continue);
                     return;
                 case "new":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.New);
+                    token = new Token(srcPos, TokenType.New);
                     return;
                 case "num":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.IdentNum);
+                    token = new Token(srcPos, TokenType.IdentNum);
                     break;
                 case "byte":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.IdentNumByte);
+                    token = new Token(srcPos, TokenType.IdentNumByte);
                     break;
                 case "short":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.IdentNumShort);
+                    token = new Token(srcPos, TokenType.IdentNumShort);
                     break;
                 case "int":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.IdentNumInt);
+                    token = new Token(srcPos, TokenType.IdentNumInt);
                     break;
                 case "long":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.IdentNumLong);
+                    token = new Token(srcPos, TokenType.IdentNumLong);
                     break;
                 case "float":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.IdentNumFloat);
+                    token = new Token(srcPos, TokenType.IdentNumFloat);
                     break;
                 case "double":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.IdentNumDouble);
+                    token = new Token(srcPos, TokenType.IdentNumDouble);
                     break;
                 case "str":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.IdentStr);
+                    token = new Token(srcPos, TokenType.IdentStr);
                     break;
                 case "void":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.IdentVoid);
+                    token = new Token(srcPos, TokenType.IdentVoid);
                     break;
                 case "true":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.LiteralTrue);
+                    token = new Token(srcPos, TokenType.LiteralTrue);
                     break;
                 case "false":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.LiteralFalse);
+                    token = new Token(srcPos, TokenType.LiteralFalse);
                     break;
                 case "null":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.LiteralNull);
+                    token = new Token(srcPos, TokenType.LiteralNull);
                     break;
                 case "super":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Super);
+                    token = new Token(srcPos, TokenType.Super);
                     break;
                 case "extends":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Extends);
+                    token = new Token(srcPos, TokenType.Extends);
                     break;
                 case "implements":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Implements);
+                    token = new Token(srcPos, TokenType.Implements);
                     break;
                 case "package":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Package);
+                    token = new Token(srcPos, TokenType.Package);
                     break;
                 case "import":
-                    token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Import);
+                    token = new Token(srcPos, TokenType.Import);
                     break;
                 case "public":
                     AddToToken(TokenType.Public);
@@ -373,16 +381,16 @@ namespace KScr.Compiler
                             i++;
                         }
 
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.LiteralNum, str);
+                        token = new Token(srcPos, TokenType.LiteralNum, str);
                     }
                     else if (str.Length >= 2 && str[0] == '"' && str[^1] == '"')
                     {
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.LiteralStr, str.Substring(1, str.Length - 2))
+                        token = new Token(srcPos, TokenType.LiteralStr, str.Substring(1, str.Length - 2))
                            ;
                     }
                     else if (!char.IsLetterOrDigit(n) && str != string.Empty && !char.IsDigit(str[^1]))
                     {
-                        token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, TokenType.Word, str);
+                        token = new Token(srcPos, TokenType.Word, str);
                     }
 
                     break;
@@ -393,7 +401,7 @@ namespace KScr.Compiler
         {
             if (lastToken.Type.Modifier() != null)
                 lastToken.Type |= tokenType;
-            else token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber}, tokenType);
+            else token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber, SourcefileCursor = charNumber}, tokenType);
             doneAnything = true;
         }
     }

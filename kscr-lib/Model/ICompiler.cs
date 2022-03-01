@@ -242,8 +242,6 @@ namespace KScr.Lib.Model
 
         // compile at package level. context is created from root package
         CompilerContext Compile(RuntimeBase vm, DirectoryInfo dir);
-        CompilerContext CompileClass(RuntimeBase vm, FileInfo file);
-        CompilerContext CompileClass(RuntimeBase vm, FileInfo file, ref CompilerContext context);
 
         ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext context);
     }
@@ -264,54 +262,14 @@ namespace KScr.Lib.Model
         {
             var context = new CompilerContext();
 
-            CompilePackage(vm, dir, ref context);
+            vm.CompilePackage(dir, ref context, this);
 
             return context;
         }
 
-        public CompilerContext CompileClass(RuntimeBase vm, FileInfo file)
-        {
-            CompilerContext context = null!;
-            return CompileClass(vm, file, ref context);
-        }
-
-        public CompilerContext CompileClass(RuntimeBase vm, FileInfo file, ref CompilerContext context)
-        {
-            string? source = File.ReadAllText(file.FullName);
-            var tokenlist = vm.Tokenizer.Tokenize(vm, file.FullName,
-                source ?? throw new FileNotFoundException("Source file not found: " + file.FullName));
-            var tokens = new TokenContext(tokenlist);
-            string clsName = file.Name.Substring(0, file.Name.Length - FileAppendix.Length);
-            // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
-            var pkg = context?.Package ?? Package.RootPackage;
-            pkg = ResolvePackage(pkg, FindClassPackageName(tokens).Split("."));
-            var classInfo = FindClassInfo(tokens, clsName);
-            var cls = pkg.GetOrCreateClass(vm, clsName, classInfo.Modifier);
-            var prev = context;
-            context = new CompilerContext(context ?? new CompilerContext(new CompilerContext(), pkg), cls, tokens,
-                CompilerType.Class);
-            CompilerLoop(vm, vm.Compiler, ref context);
-            return prev == null ? context : context = prev;
-        }
-
         public abstract ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx);
 
-        private void CompilePackage(RuntimeBase vm, DirectoryInfo dir, ref CompilerContext context)
-        {
-            foreach (var subDir in dir.EnumerateDirectories())
-            {
-                var pkg = new Package(context.Package, subDir.Name);
-                var prev = context;
-                context = new CompilerContext(context, pkg);
-                CompilePackage(vm, subDir, ref context);
-                context = prev;
-            }
-
-            foreach (var subFile in dir.EnumerateFiles('*' + FileAppendix))
-                CompileClass(vm, subFile, ref context);
-        }
-
-        private Package ResolvePackage(Package inside, string[] names, int i = 0)
+        public Package ResolvePackage(Package inside, string[] names, int i = 0)
         {
             inside = inside.GetOrCreatePackage(names[i]);
             if (i + 1 >= names.Length)
@@ -319,11 +277,11 @@ namespace KScr.Lib.Model
             return ResolvePackage(inside, names, i + 1);
         }
 
-        private string FindClassPackageName(TokenContext ctx)
+        public string FindClassPackageName(TokenContext ctx)
         {
             ctx.TokenIndex = 0;
             if (ctx.Token.Type != TokenType.Package)
-                throw new CompilerException("Missing Package name at index 0");
+                throw new CompilerException(ctx.Token.SourcefilePosition, "Missing Package name at index 0");
             ctx.TokenIndex += 1;
             return ctx.FindCompoundWord();
         }
@@ -343,7 +301,7 @@ namespace KScr.Lib.Model
             return yields;
         }
 
-        private ClassInfo FindClassInfo(TokenContext ctx, string? clsName)
+        public ClassInfo FindClassInfo(TokenContext ctx, string? clsName)
         {
             ctx.TokenIndex = 0;
             // skip package and imports if necessary
@@ -361,9 +319,9 @@ namespace KScr.Lib.Model
 
             if (ctx.Token.Type == TokenType.Word)
                 if (clsName != null && clsName != ctx.Token.Arg)
-                    throw new CompilerException("Declared Class name mismatches File name");
+                    throw new CompilerException(ctx.Token.SourcefilePosition, "Declared Class name mismatches File name");
                 else name = ctx.Token.Arg!;
-            else throw new CompilerException("Missing Class name");
+            else throw new CompilerException(ctx.Token.SourcefilePosition, "Missing Class name");
 
             return new ClassInfo(mod.Value, type.Value, name, packageName + '.' + name);
         }

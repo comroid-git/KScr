@@ -87,7 +87,7 @@ namespace KScr.Compiler.Code
                     return this;
                 case TokenType.If:
                     if (ctx.NextToken?.Type != TokenType.ParRoundOpen)
-                        throw new CompilerException("Invalid if-Statement; missing condition");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid if-Statement; missing condition");
                     ctx.Statement = new Statement
                     {
                         Type = StatementComponentType.Code,
@@ -123,7 +123,7 @@ namespace KScr.Compiler.Code
                     return this;
                 case TokenType.Else:
                     if (ctx.LastComponent?.CodeType != BytecodeType.StmtIf)
-                        throw new CompilerException("Invalid else-Statement; missing if Statement");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid else-Statement; missing if Statement");
                     ctx.TokenIndex += 1;
                     // parse body
                     subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
@@ -140,7 +140,7 @@ namespace KScr.Compiler.Code
                     return this;
                 case TokenType.For:
                     if (ctx.NextToken?.Type != TokenType.ParRoundOpen)
-                        throw new CompilerException("Invalid for-Statement; missing specification");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid for-Statement; missing specification");
                     ctx.Statement = new Statement
                     {
                         Type = StatementComponentType.Code,
@@ -188,7 +188,7 @@ namespace KScr.Compiler.Code
                     return this;
                 case TokenType.ForN:
                     if (ctx.NextToken?.Type != TokenType.ParRoundOpen)
-                        throw new CompilerException("Invalid forn-Statement; missing specification");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid forn-Statement; missing specification");
                     ctx.Statement = new Statement
                     {
                         Type = StatementComponentType.Code,
@@ -204,13 +204,13 @@ namespace KScr.Compiler.Code
                     ctx.TokenIndex += 2;
                     // parse n's name
                     if (ctx.Token.Type != TokenType.Word)
-                        throw new CompilerException("Invalid forn-Statement; missing n Identifier");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid forn-Statement; missing n Identifier");
                     ctx.LastComponent!.Arg = ctx.Token.Arg!;
 
                     // parse range
                     ctx.TokenIndex += 2;
                     if (ctx.PrevToken!.Type != TokenType.Colon)
-                        throw new CompilerException("Invalid forn-Statement; missing delimiter colon");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid forn-Statement; missing delimiter colon");
                     subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
                     subctx.Statement = new Statement
                     {

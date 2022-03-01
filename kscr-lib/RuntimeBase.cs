@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using KScr.Lib.Bytecode;
@@ -24,7 +25,7 @@ namespace KScr.Lib
         public static Encoding Encoding = Encoding.ASCII;
 
         public static readonly SourcefilePosition MainInvocPos = new()
-            { SourcefilePath = "org/comroid/kscr/core/System.kscr", SourcefileLine = 0 };
+            { SourcefilePath = "<native>org/comroid/kscr/core/System.kscr" };
 
         public bool Initialized = false;
         private uint _lastObjId = 0xF;
@@ -253,5 +254,7 @@ namespace KScr.Lib
                 }
             }
         }
+
+        public abstract void CompilePackage(DirectoryInfo dir, ref CompilerContext context, AbstractCompiler abstractCompiler);
     }
 }
