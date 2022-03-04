@@ -1,4 +1,5 @@
 ﻿using KScr.Lib.Bytecode;
+using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 
@@ -9,7 +10,7 @@ namespace KScr.Lib.Core
         public const int ToString_TypeName = -1;
         public const int ToString_ShortName = 0;
         public const int ToString_LongName = 1;
-        public static readonly IObject Null = new ConstantValue(Numeric.Zero);
+        public static readonly IObject Null = new VoidValue();
 
         long ObjectId { get; }
 
@@ -18,6 +19,18 @@ namespace KScr.Lib.Core
         string ToString(short variant);
 
         public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args);
+    }
+    
+    internal sealed class VoidValue : IObject
+    {
+        public long ObjectId => 0;
+        public IClassInstance Type => Class.VoidType.DefaultInstance;
+        public string ToString(short variant) => "null";
+
+        public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
+        {
+            throw new InternalException("NullPointerException");
+        }
     }
 
     internal sealed class ConstantValue : IObject

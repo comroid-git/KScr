@@ -78,7 +78,7 @@ namespace KScr.Lib
         public abstract ICompiler Compiler { get; }
 
         public ObjectRef ConstantVoid =>
-            ComputeObject(VariableContext.Absolute, Numeric.CreateKey(-1), () => IObject.Null);
+            ComputeObject(VariableContext.Absolute, "static-void:null", () => IObject.Null);
 
         public ObjectRef ConstantFalse =>
             ComputeObject(VariableContext.Absolute, Numeric.CreateKey(0), () => Numeric.Zero);

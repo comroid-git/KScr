@@ -79,7 +79,7 @@ namespace KScr.Lib.Bytecode
 
         public bool CanHold(IClass? type)
         {
-            return Name == "void" || type?.BaseClass == BaseClass;
+            return Name == "void" || type?.BaseClass.Name == "void" || type?.BaseClass == BaseClass;
         }
 
         public bool Primitive { get; }

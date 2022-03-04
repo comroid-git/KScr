@@ -96,14 +96,21 @@ namespace KScr.Compiler.Code
                     //todo: try use class member instead of type
 
                     if (type != null)
-                    { // type expression
-                        ctx.Component = new StatementComponent
-                        {
-                            Type = StatementComponentType.Expression,
-                            CodeType = BytecodeType.TypeExpression,
-                            Arg = type.FullName,
-                            SourcefilePosition = ctx.Token.SourcefilePosition
-                        };
+                    {
+                        if (ctx.NextToken?.Type == TokenType.Word)
+                        { // declaration
+                            CompileDeclaration(ctx,type);
+                        }
+                        else
+                        { // type expression
+                            ctx.Component = new StatementComponent
+                            {
+                                Type = StatementComponentType.Expression,
+                                CodeType = BytecodeType.TypeExpression,
+                                Arg = type.FullName,
+                                SourcefilePosition = ctx.Token.SourcefilePosition
+                            };
+                        }
                     } else
                     {
                         ctx.Component = new StatementComponent

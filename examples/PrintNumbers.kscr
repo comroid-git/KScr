@@ -29,9 +29,9 @@ public class PrintNumbers {
         // todo: this does not compile. find solution for empty statements
         //for (;;) stdio << "abc";
         
-        range = new PrintNumbers();
-        stdio << "look at my cool object: " + range.toString(0);
-        stdio << "and of course i can access it this way too: " + range.StackValue;
+        PrintNumbers obj = null;
+        stdio << "look at my cool object: " + obj.toString(0);
+        stdio << "and of course i can access it this way too: " + obj.StackValue;
         
         PrintNumbers.callThroingMethod();
     }

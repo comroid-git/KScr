@@ -53,7 +53,7 @@ namespace KScr.Lib.Store
 
         public readonly IClassInstance Type;
 
-        public ObjectRef(IClassInstance type, IObject? value) : this(type)
+        public ObjectRef(IClassInstance type, IObject value) : this(type)
         {
             Value = value;
         }
