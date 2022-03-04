@@ -10,7 +10,10 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/kscr-runtime/bin/Debug/net5.0/kscr.dll",
-            "args": [],
+            "args": [
+                "execute",
+                "${workspaceFolder}/examples/PrintNumbers.kscr"
+            ],
             "cwd": "${workspaceFolder}/kscr-runtime",
             "console": "internalConsole",
             "stopAtEntry": false
