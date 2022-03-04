@@ -32,9 +32,8 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/kscr-runtime/kscr-runtime.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
+                "--project",
+                "${workspaceFolder}/kscr-runtime/kscr-runtime.csproj"
             ],
             "problemMatcher": "$msCompile"
         }
