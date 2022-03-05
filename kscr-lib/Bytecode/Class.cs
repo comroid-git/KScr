@@ -54,6 +54,10 @@ namespace KScr.Lib.Bytecode
 
         public IDictionary<string, IClassMember> DeclaredMembers { get; } =
             new ConcurrentDictionary<string, IClassMember>();
+
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers =>
+            DeclaredMembers.Values.Cast<AbstractBytecode>();
+
         public IDictionary<string, IClass> Imports { get; } =
             new ConcurrentDictionary<string, IClass>();
 
@@ -110,16 +114,27 @@ namespace KScr.Lib.Bytecode
 
         public override void Write(Stream stream)
         {
-            stream.Write(BitConverter.GetBytes(Name.Length));
-            stream.Write(RuntimeBase.Encoding.GetBytes(Name));
+            byte[] buf = RuntimeBase.Encoding.GetBytes(Name);
+            stream.Write(BitConverter.GetBytes(buf.Length));
+            stream.Write(buf);
+            stream.Write(BitConverter.GetBytes((byte)ClassType));
             stream.Write(BitConverter.GetBytes((uint)Modifier));
+            stream.Write(BitConverter.GetBytes(Imports.Count));
+            foreach (var clsName in Imports.Keys)
+            {
+                buf = RuntimeBase.Encoding.GetBytes(clsName);
+                stream.Write(BitConverter.GetBytes(buf.Length));
+                stream.Write(buf);
+            }
 
-            stream.Write(BitConverter.GetBytes(DeclaredMembers.Count));
+            stream.Write(BitConverter.GetBytes(BytecodeMembers.Count()));
+            stream.Write(NewLineBytes);
             foreach (var member in BytecodeMembers)
             {
                 member.Write(stream);
                 stream.Write(NewLineBytes);
             }
+            stream.Flush();
         }
 
         public override void Load(RuntimeBase vm, byte[] data, ref int index)
@@ -180,7 +195,9 @@ namespace KScr.Lib.Bytecode
             public List<TypeParameter> TypeParameters => BaseClass.TypeParameters;
             public MemberModifier Modifier => BaseClass.Modifier;
             public ClassType ClassType => BaseClass.ClassType;
-            public string FullName => BaseClass.FullName;
+
+            public string FullName => BaseClass.Parent?.FullName +
+                                      (BaseClass.IsRoot ? string.Empty : (BaseClass.Parent?.IsRoot ?? true ? string.Empty : '.') + Name);
 
             public Instance CreateInstance(RuntimeBase vm, params IClass[] typeParameters)
             {
@@ -193,7 +210,7 @@ namespace KScr.Lib.Bytecode
                 {
                     int indexOf = BaseClass.Name.IndexOf('<');
                     return BaseClass.Name.Substring(0, indexOf == -1 ? BaseClass.Name.Length : indexOf)
-                           + (TypeParameters.Count == 0 ? string.Empty : '<' + string.Join(", ", TypeParameters.Select(t => t.TargetType?.Name ?? t.Name)) + '>');
+                           + (TypeParameters.Count == 0 ? string.Empty : '<' + string.Join(", ", TypeParameterInstances.Select(t => t.TargetType.Name)) + '>');
                 }
             }
 

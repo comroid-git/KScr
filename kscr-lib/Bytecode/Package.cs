@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -32,9 +33,11 @@ namespace KScr.Lib.Bytecode
                 if (member is Package pkg)
                     pkg.Write(dir.CreateSubdirectory(member.Name));
                 else if (member is Class cls)
-                    cls.Write(new FileInfo(Path.Combine(dir.FullName, member.Name, ".kbin")));
+                    cls.Write(new FileInfo(Path.Combine(dir.FullName, member.Name + ".kbin")));
                 else throw new NotSupportedException("Member is of unsupported type: " + member.GetType());
         }
+
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => throw new NotSupportedException();
 
         public override void Write(Stream stream)
         {

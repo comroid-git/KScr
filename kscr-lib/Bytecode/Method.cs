@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
@@ -51,6 +52,7 @@ namespace KScr.Lib.Bytecode
 
     public sealed class Method : AbstractClassMember, IMethod
     {
+        public const string ConstructorName = "ctor";
         public ExecutableCode Body = null!;
 
         public Method(Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(parent, name, modifier)
@@ -73,6 +75,15 @@ namespace KScr.Lib.Bytecode
 //                throw new InternalException("Invalid state after method: " + state);
             state = State.Normal;
             return null;
+        }
+
+        public override void Write(Stream stream)
+        {
+            base.Write(stream);
+            byte[] buf = RuntimeBase.Encoding.GetBytes(ReturnType.FullName);
+            stream.Write(BitConverter.GetBytes(buf.Length));
+            stream.Write(buf);
+            Body.Write(stream);
         }
 
         public override void Load(RuntimeBase vm, byte[] data, ref int i)

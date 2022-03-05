@@ -115,7 +115,7 @@ namespace KScr.Compiler.Class
                         break;
                     if (memberType != 2) // computed property
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Could not create field; invalid memberType = " + memberType);
-                    property = new Field(ctx.Class, memberName!, modifier ?? MemberModifier.Protected);
+                    property = new Field(ctx.Class, memberName!, targetType, modifier ?? MemberModifier.Protected);
                     ctx = new CompilerContext(ctx, CompilerType.CodeExpression);
                     ctx.Statement = new Statement
                     {

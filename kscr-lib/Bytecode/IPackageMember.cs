@@ -32,8 +32,6 @@ namespace KScr.Lib.Bytecode
             Modifier = modifier;
         }
 
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers => Members.Values.Cast<AbstractBytecode>();
-
         public IDictionary<string, IPackageMember> Members { get; } =
             new ConcurrentDictionary<string, IPackageMember>();
 

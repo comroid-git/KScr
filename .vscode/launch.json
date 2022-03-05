@@ -12,6 +12,7 @@
             "program": "${workspaceFolder}/kscr-runtime/bin/Debug/net5.0/kscr.dll",
             "args": [
                 "execute",
+                "${workspaceFolder}/examples/MathFromIO.kscr",
                 "${workspaceFolder}/examples/PrintNumbers.kscr"
             ],
             "cwd": "${workspaceFolder}/kscr-runtime",

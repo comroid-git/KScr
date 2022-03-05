@@ -6,8 +6,8 @@ namespace KScr.Lib.Bytecode
 {
     public enum ClassMemberType : byte
     {
-        Method,
-        Field
+        Method = 0x1,
+        Field = 0x2
     }
 
     public interface IClassMember : IRuntimeSite, IModifierContainer
@@ -42,9 +42,9 @@ namespace KScr.Lib.Bytecode
         public override void Write(Stream stream)
         {
             stream.Write(new[] { (byte)Type });
+            stream.Write(BitConverter.GetBytes((int)Modifier));
             stream.Write(BitConverter.GetBytes(Name.Length));
             stream.Write(RuntimeBase.Encoding.GetBytes(Name));
-            stream.Write(BitConverter.GetBytes((int)Modifier));
         }
 
         public override void Load(RuntimeBase vm, byte[] data)
@@ -61,7 +61,7 @@ namespace KScr.Lib.Bytecode
             AbstractClassMember member = type switch
             {
                 ClassMemberType.Method => new Method(parent, name, null, modifier), // todo fixme
-                ClassMemberType.Field => new Field(parent, name, modifier),
+                ClassMemberType.Field => new Field(parent, name, null, modifier),
                 _ => throw new ArgumentOutOfRangeException()
             };
             member.Load(vm, data, ref index);
@@ -73,12 +73,12 @@ namespace KScr.Lib.Bytecode
             int len;
             byte type = data[index];
             index += 1;
+            modifier = (MemberModifier)BitConverter.ToInt32(data, index);
+            index += 4;
             len = BitConverter.ToInt32(data, index);
             index += 4;
             name = RuntimeBase.Encoding.GetString(data, index, len);
             index += len;
-            modifier = (MemberModifier)BitConverter.ToInt32(data, index);
-            index += 4;
             return (ClassMemberType)type;
         }
     }
