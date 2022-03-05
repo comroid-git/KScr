@@ -22,10 +22,12 @@ namespace KScr.Runtime
     {
         [Option(HelpText = "The compile classpath to load before compilation")]
         public IEnumerable<DirectoryInfo> Classpath { get; set; }
-        [Option(HelpText = "The source paths to compile")]
+        [Option(HelpText = "The source paths to compile", Required = true)]
         public IEnumerable<string> Sources { get; set; }
         [Option(HelpText = "The path of the output directory. Defaults to ./build/compile")]
         public DirectoryInfo? Output{ get; set; }
+        [Option(HelpText = "Whether or not this operation is compiling the system package")]
+        public bool System { get; set; }
     }
     
     [Verb("execute", HelpText = "Compile and Execute one or more .kscr Files")]
@@ -33,14 +35,14 @@ namespace KScr.Runtime
     {
         [Option(HelpText = "The compile classpath to load before compilation")]
         public IEnumerable<DirectoryInfo> Classpath { get; set; }
-        [Option(HelpText = "The source paths to compile")]
+        [Option(HelpText = "The source paths to compile", Required = true)]
         public IEnumerable<string> Sources { get; set; }
     }
     
     [Verb("run", HelpText = "Load and Execute one or more .kbin Files")]
     public sealed class CmdRun
     {
-        [Option(HelpText = "The classpath to execute")]
+        [Option(HelpText = "The classpath to execute", Required = true)]
         public string Classpath { get; set; }
     }
     
@@ -70,7 +72,8 @@ namespace KScr.Runtime
                     foreach (var classpath in cmd.Classpath)
                         Package.Read(VM, classpath);
                     compileTime = RuntimeBase.UnixTime();
-                    VM.CompileFiles(cmd.Sources.Select(path => new FileInfo(path)));
+                    VM.CompileFiles(cmd.Sources.SelectMany(path => Directory.Exists(path)
+                        ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories) : new[]{ new FileInfo(path) }));
                     compileTime = RuntimeBase.UnixTime() - compileTime;
                     WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput));
                 })

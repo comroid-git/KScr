@@ -34,4 +34,8 @@ Global
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC2B0380-B6FA-4BA3-B9DD-081E9B98F3B9}
 	EndGlobalSection
+	GlobalSection(RiderSharedRunConfigurations) = postSolution
+		File = Test Runtime.run.xml
+		File = Compile System Package.run.xml
+	EndGlobalSection
 EndGlobal
