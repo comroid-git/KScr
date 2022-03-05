@@ -2,7 +2,9 @@
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
@@ -121,6 +123,16 @@ namespace KScr.Lib
         {
             var epochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return (DateTime.UtcNow - epochStart).Ticks / 10;
+        }
+
+        public static DirectoryInfo GetSdkHome()
+        {
+            return Environment.GetEnvironmentVariable("PATH")!
+                .Split(Path.PathSeparator)
+                .Select(path => new DirectoryInfo(path))
+                .Where(dir => dir.Exists)
+                .First(dir => dir.EnumerateFiles("*.exe")
+                    .Any(f => f.Name == "kscr.exe"));
         }
 
         public void Clear()

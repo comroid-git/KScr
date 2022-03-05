@@ -17,8 +17,9 @@ namespace KScr.Compiler
         public override ITokenizer Tokenizer => new Tokenizer();
         public override ClassCompiler Compiler => new();
 
-        public void CompileFiles(IEnumerator<FileInfo> files)
+        public void CompileFiles(IEnumerable<FileInfo> sources)
         {
+            var files = sources.GetEnumerator();
             var compiler = Compiler;
             if (!files.MoveNext())
                 throw new ArgumentException("Missing compiler Classpath");

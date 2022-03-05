@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using CommandLine;
+using CommandLine.Text;
 using KScr.Compiler;
 using KScr.Compiler.Code;
 using KScr.Lib;
@@ -13,62 +17,92 @@ using Array = System.Array;
 
 namespace KScr.Runtime
 {
+    [Verb("compile", HelpText = "Compile and Write one or more .kscr Files to .kbin Files")]
+    public sealed class CmdCompile
+    {
+        [Option(HelpText = "The compile classpath to load before compilation")]
+        public IEnumerable<DirectoryInfo> Classpath { get; set; }
+        [Option(HelpText = "The source paths to compile")]
+        public IEnumerable<string> Sources { get; set; }
+        [Option(HelpText = "The path of the output directory. Defaults to ./build/compile")]
+        public DirectoryInfo? Output{ get; set; }
+    }
+    
+    [Verb("execute", HelpText = "Compile and Execute one or more .kscr Files")]
+    public sealed class CmdExecute
+    {
+        [Option(HelpText = "The compile classpath to load before compilation")]
+        public IEnumerable<DirectoryInfo> Classpath { get; set; }
+        [Option(HelpText = "The source paths to compile")]
+        public IEnumerable<string> Sources { get; set; }
+    }
+    
+    [Verb("run", HelpText = "Load and Execute one or more .kbin Files")]
+    public sealed class CmdRun
+    {
+        [Option(HelpText = "The classpath to execute")]
+        public string Classpath { get; set; }
+    }
+    
     internal class Program
     {
         private static readonly KScrRuntime VM = new();
 
         private static readonly string
             DefaultOutput = Path.Combine(Directory.GetCurrentDirectory(), "build", "compile");
+        private static readonly string
+            StdPackageLocation = Path.Combine(RuntimeBase.GetSdkHome().FullName, "std");
 
         private static int Main(string[] args)
         {
             VM.Initialize();
-            
             var state = State.Normal;
             var yield = VM.ConstantVoid.Value!;
             long compileTime = -1, executeTime = -1;
 
-            if (args.Length == 0)
-                VM.Stack.StepInto(VM, RuntimeBase.MainInvocPos, Class.VoidType, "main", ref state, _ =>
+            var parserResult = Parser.Default.ParseArguments<CmdCompile, CmdExecute, CmdRun>(args);
+            parserResult
+                .WithParsed<CmdCompile>(cmd =>
                 {
-                    StdIoMode(ref state, ref yield);
-                    return state;
+                    // load std package
+                    Package.Read(VM, new DirectoryInfo(StdPackageLocation));
+                    // load additional classpath packages
+                    foreach (var classpath in cmd.Classpath)
+                        Package.Read(VM, classpath);
+                    compileTime = RuntimeBase.UnixTime();
+                    VM.CompileFiles(cmd.Sources.Select(path => new FileInfo(path)));
+                    compileTime = RuntimeBase.UnixTime() - compileTime;
+                    WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput));
+                })
+                .WithParsed<CmdExecute>(cmd =>
+                {
+                    // load std package
+                    Package.Read(VM, new DirectoryInfo(StdPackageLocation));
+                    // load additional classpath packages
+                    foreach (var classpath in cmd.Classpath)
+                        Package.Read(VM, classpath);
+                    compileTime = RuntimeBase.UnixTime();
+                    VM.CompileFiles(cmd.Sources.Select(path => new FileInfo(path)));
+                    compileTime = RuntimeBase.UnixTime() - compileTime;
+                    yield = VM.Execute(out executeTime);
+                })
+                .WithParsed<CmdRun>(cmd =>
+                {
+                    // load std package
+                    Package.Read(VM, new DirectoryInfo(StdPackageLocation));
+                    // load classpath packages
+                    Package.Read(VM, new DirectoryInfo(cmd.Classpath));
+                    yield = VM.Execute(out executeTime);
+                })
+                .WithNotParsed(errors =>
+                {
+                    if (!errors.Any())
+                        VM.Stack.StepInto(VM, RuntimeBase.MainInvocPos, Class.VoidType, "main", ref state, _ =>
+                        {
+                            StdIoMode(ref state, ref yield);
+                            return state;
+                        });
                 });
-            else
-            {
-                var paths = new string[args.Length - 1];
-                Array.Copy(args, 1, paths, 0, paths.Length);
-                var files = paths.Select(path => new FileInfo(path)).GetEnumerator();
-                //VM.Stack.MethodParamsExpr = BuildProgramArgsParams(args);
-
-                switch (args[0])
-                {
-                    case "compile":
-                        compileTime = RuntimeBase.UnixTime();
-                        VM.CompileFiles(files);
-                        compileTime = RuntimeBase.UnixTime() - compileTime;
-                        WriteClasses(DefaultOutput);
-
-                        break;
-                    case "execute":
-                        compileTime = RuntimeBase.UnixTime();
-                        VM.CompileFiles(files);
-                        compileTime = RuntimeBase.UnixTime() - compileTime;
-                        yield = VM.Execute(out executeTime);
-
-                        break;
-                    case "run":
-                        string classpath = args.Length >= 2 ? args[1] : Directory.GetCurrentDirectory();
-                        Package.Read(VM, new DirectoryInfo(classpath));
-                        yield = VM.Execute(out executeTime);
-                        break;
-                    default:
-                        Console.WriteLine("Invalid arguments: " + string.Join(' ', args));
-                        break;
-                }
-
-                files.Dispose();
-            }
 
             return HandleExit(state, yield, compileTime, executeTime);
         }
@@ -140,9 +174,9 @@ namespace KScr.Runtime
             }
         }
 
-        private static void WriteClasses(string output)
+        private static void WriteClasses(DirectoryInfo output)
         {
-            Package.RootPackage.Write(new DirectoryInfo(output));
+            Package.RootPackage.Write(output);
         }
 
         private static void HandleResult(State state, IObject? result, long compileTime, long executeTime)
