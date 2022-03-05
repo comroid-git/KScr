@@ -58,10 +58,10 @@ namespace KScr.Lib.Bytecode
         protected override IEnumerable<AbstractBytecode> BytecodeMembers =>
             DeclaredMembers.Values.Cast<AbstractBytecode>();
 
-        public IDictionary<string, IClass> Imports { get; } =
-            new ConcurrentDictionary<string, IClass>();
+        public IList<string> Imports { get; } =
+            new List<string>();
 
-        public ClassType ClassType { get; }
+        public ClassType ClassType { get; private set; }
 
         public Instance CreateInstance(RuntimeBase vm, params IClass[] typeParameters)
         {
@@ -117,16 +117,16 @@ namespace KScr.Lib.Bytecode
             byte[] buf = RuntimeBase.Encoding.GetBytes(Name);
             stream.Write(BitConverter.GetBytes(buf.Length));
             stream.Write(buf);
-            stream.Write(BitConverter.GetBytes((byte)ClassType));
+            stream.Write(new[]{(byte)ClassType});
             stream.Write(BitConverter.GetBytes((uint)Modifier));
+            
             stream.Write(BitConverter.GetBytes(Imports.Count));
-            foreach (var clsName in Imports.Keys)
+            foreach (var clsName in Imports)
             {
                 buf = RuntimeBase.Encoding.GetBytes(clsName);
                 stream.Write(BitConverter.GetBytes(buf.Length));
                 stream.Write(buf);
             }
-
             stream.Write(BitConverter.GetBytes(BytecodeMembers.Count()));
             stream.Write(NewLineBytes);
             foreach (var member in BytecodeMembers)
@@ -146,10 +146,25 @@ namespace KScr.Lib.Bytecode
             index += 4;
             _name = RuntimeBase.Encoding.GetString(data, index, len);
             index += len;
-            Modifier = (MemberModifier)BitConverter.ToInt32(data, index);
+            ClassType = (ClassType)data[index];
+            index += 1;
+            Modifier = (MemberModifier)BitConverter.ToUInt32(data, index);
             index += 4;
+            
+            // imports
             len = BitConverter.ToInt32(data, index);
             index += 4;
+            for (; len > 0; len--)
+            {
+                int len2 = BitConverter.ToInt32(data, index);
+                index += 4;
+                Imports.Add(RuntimeBase.Encoding.GetString(data, index, len2));
+            }
+            
+            // members
+            len = BitConverter.ToInt32(data, index);
+            index += 4;
+            index += NewLineBytes.Length;
             for (var i = 0; i < len; i++)
             {
                 var member = AbstractClassMember.Read(vm, this, data, ref index);
@@ -162,7 +177,7 @@ namespace KScr.Lib.Bytecode
 
         public static Class Read(RuntimeBase vm, FileInfo file, Package package)
         {
-            var cls = new Class(package, file.Name, false);
+            var cls = new Class(package, file.Name.Substring(0, file.Name.IndexOf(".kbin")), false);
             cls.Load(vm, File.ReadAllBytes(file.FullName));
             return cls;
         }

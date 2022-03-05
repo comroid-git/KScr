@@ -43,8 +43,9 @@ namespace KScr.Lib.Bytecode
         {
             stream.Write(new[] { (byte)Type });
             stream.Write(BitConverter.GetBytes((int)Modifier));
-            stream.Write(BitConverter.GetBytes(Name.Length));
-            stream.Write(RuntimeBase.Encoding.GetBytes(Name));
+            byte[] buf = RuntimeBase.Encoding.GetBytes(Name);
+            stream.Write(BitConverter.GetBytes(buf.Length));
+            stream.Write(buf);
         }
 
         public override void Load(RuntimeBase vm, byte[] data)
@@ -71,7 +72,7 @@ namespace KScr.Lib.Bytecode
         private static ClassMemberType _Load(byte[] data, ref int index, out string name, out MemberModifier modifier)
         {
             int len;
-            byte type = data[index];
+            var type = (ClassMemberType)data[index];
             index += 1;
             modifier = (MemberModifier)BitConverter.ToInt32(data, index);
             index += 4;
@@ -79,7 +80,7 @@ namespace KScr.Lib.Bytecode
             index += 4;
             name = RuntimeBase.Encoding.GetString(data, index, len);
             index += len;
-            return (ClassMemberType)type;
+            return type;
         }
     }
 }

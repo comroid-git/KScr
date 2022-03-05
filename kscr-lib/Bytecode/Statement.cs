@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
@@ -43,22 +44,29 @@ namespace KScr.Lib.Bytecode
 
         public override void Write(Stream stream)
         {
-            stream.Write(BitConverter.GetBytes((byte)Type));
-            //stream.Write(BitConverter.GetBytes(TargetType.TypeId));
+            stream.Write(BitConverter.GetBytes((uint)Type));
+            stream.Write(BitConverter.GetBytes((uint)CodeType));
+            byte[] buf = RuntimeBase.Encoding.GetBytes(TargetType.FullName);
+            stream.Write(BitConverter.GetBytes(buf.Length));
+            stream.Write(buf);
             stream.Write(BitConverter.GetBytes(Main.Count));
             foreach (var component in Main)
-                component!.Write(stream);
+                component.Write(stream);
         }
 
         public override void Load(RuntimeBase vm, byte[] data, ref int index)
         {
             Main.Clear();
 
-            Type = (StatementComponentType)BitConverter.ToInt16(data, index);
-            index += 2;
-            TargetType = vm.ClassStore.FindType(BitConverter.ToInt64(data, index)).BaseClass.DefaultInstance!;
-            index += 8;
-            var len = BitConverter.ToInt32(data, index);
+            Type = (StatementComponentType)BitConverter.ToUInt32(data, index);
+            index += 4;
+            CodeType = (BytecodeType)BitConverter.ToUInt32(data, index);
+            index += 4;
+            int len = BitConverter.ToInt32(data, index);
+            index += 4;
+            TargetType = vm.FindType(RuntimeBase.Encoding.GetString(data, index, len))!;
+            index += len;
+            len = BitConverter.ToInt32(data, index);
             index += 4;
             StatementComponent stmt;
             for (var i = 0; i < len; i++)
@@ -73,6 +81,18 @@ namespace KScr.Lib.Bytecode
         {
             Main.Clear();
         }
+    }
+
+    [Flags]
+    public enum ComponentMember : byte
+    {
+        None = 0x0,
+        SubStatement = 0x01,
+        AltStatement = 0x02,
+        SubComponent = 0x04,
+        AltComponent = 0x08,
+        PostComponent = 0x10,
+        InnerCode = 0x20
     }
 
     public class StatementComponent : AbstractBytecode, IStatementComponent
@@ -473,43 +493,133 @@ namespace KScr.Lib.Bytecode
 
         public override void Write(Stream stream)
         {
-            stream.Write(BitConverter.GetBytes((byte)Type));
-            stream.Write(BitConverter.GetBytes((byte)VariableContext));
+            stream.Write(BitConverter.GetBytes((uint)Type));
             stream.Write(BitConverter.GetBytes((uint)CodeType));
-            stream.Write(BitConverter.GetBytes(Arg.Length));
-            stream.Write(RuntimeBase.Encoding.GetBytes(Arg));
-            bool b;
-            stream.Write(BitConverter.GetBytes(b = SubComponent != null));
-            if (b)
+            stream.Write(new[]{(byte)VariableContext});
+            stream.Write(BitConverter.GetBytes((ulong)ByteArg));
+            byte[] buf = RuntimeBase.Encoding.GetBytes(Arg);
+            stream.Write(BitConverter.GetBytes(buf.Length));
+            stream.Write(buf);
+            //todo: write & load SourcecodePosition
+            ComponentMember memberState = ComponentMember.None;
+            if (SubStatement != null)
+                memberState |= ComponentMember.SubStatement;
+            if (AltStatement != null)
+                memberState |= ComponentMember.AltStatement;
+            if (SubComponent != null)
+                memberState |= ComponentMember.SubComponent;
+            if (AltComponent != null)
+                memberState |= ComponentMember.AltComponent;
+            if (PostComponent != null)
+                memberState |= ComponentMember.PostComponent;
+            if (InnerCode != null)
+                memberState |= ComponentMember.InnerCode;
+            stream.Write(new[]{(byte)memberState});
+            if ((memberState & ComponentMember.SubStatement) != 0)
+                SubStatement!.Write(stream);
+            if ((memberState & ComponentMember.AltStatement) != 0)
+                AltStatement!.Write(stream);
+            if ((memberState & ComponentMember.SubComponent) != 0)
                 SubComponent!.Write(stream);
+            if ((memberState & ComponentMember.AltComponent) != 0)
+                AltComponent!.Write(stream);
+            if ((memberState & ComponentMember.PostComponent) != 0)
+                PostComponent!.Write(stream);
+            if ((memberState & ComponentMember.InnerCode) != 0)
+                InnerCode!.Write(stream);
         }
 
         public override void Load(RuntimeBase vm, byte[] data, ref int index)
         {
-            _Load(vm, data, ref index, out var sct, out var vct, out var bty, out string arg, out var sub);
+            _Load(vm, data, ref index, 
+                out var sct,
+                out var vct,
+                out var bty,
+                out var byteArg, 
+                out string arg,
+                out Statement? subStmt,
+                out Statement? altStmt,
+                out StatementComponent? subComp,
+                out StatementComponent? altComp,
+                out StatementComponent? postComp,
+                out ExecutableCode? innerCode
+                );
             Type = sct;
             VariableContext = vct;
             CodeType = bty;
+            ByteArg = byteArg;
             Arg = arg;
-            SubComponent = sub;
+            SubStatement = subStmt;
+            AltStatement = altStmt;
+            SubComponent = subComp;
+            AltComponent = altComp;
+            PostComponent = postComp;
+            InnerCode = innerCode;
         }
 
-        private static void _Load(RuntimeBase vm, byte[] data, ref int index, out StatementComponentType sct,
-            out VariableContext vct, out BytecodeType bty, out string arg, out StatementComponent? sub)
-        {
-            sct = (StatementComponentType)data[index];
-            index += 1;
-            vct = (VariableContext)data[index];
-            index += 1;
+        private static void _Load(RuntimeBase vm, byte[] data, ref int index,
+            out StatementComponentType sct,
+            out VariableContext vct,
+            out BytecodeType bty,
+            out ulong bya,
+            out string arg, 
+            out Statement? subStmt,
+            out Statement? altStmt,
+            out StatementComponent? subComp,
+            out StatementComponent? altComp,
+            out StatementComponent? postComp,
+            out ExecutableCode? innerCode
+            ) {
+            sct = (StatementComponentType)BitConverter.ToUInt32(data, index);
+            index += 4;
             bty = (BytecodeType)BitConverter.ToUInt32(data, index);
             index += 4;
+            vct = (VariableContext)data[index];
+            index += 1;
+            bya = BitConverter.ToUInt64(data, index);
+            index += 8;
             var len = BitConverter.ToInt32(data, index);
             index += 4;
             arg = RuntimeBase.Encoding.GetString(data, index, len);
             index += len;
-            if (BitConverter.ToBoolean(data, index++))
-                sub = Read(vm, data, index);
-            else sub = null;
+            ComponentMember memberState = (ComponentMember)data[index];
+            index += 1;
+            if ((memberState & ComponentMember.SubStatement) == ComponentMember.SubStatement)
+            {
+                subStmt = new Statement();
+                subStmt.Load(vm, data, ref index);
+            }
+            else subStmt = null;
+            if ((memberState & ComponentMember.AltStatement) == ComponentMember.AltStatement)
+            {
+                altStmt = new Statement();
+                altStmt.Load(vm, data, ref index);
+            }
+            else altStmt = null;
+            if ((memberState & ComponentMember.SubComponent) == ComponentMember.SubComponent)
+            {
+                subComp = new StatementComponent();
+                subComp.Load(vm, data, ref index);
+            }
+            else subComp = null;
+            if ((memberState & ComponentMember.AltComponent) == ComponentMember.AltComponent)
+            {
+                altComp = new StatementComponent();
+                altComp.Load(vm, data, ref index);
+            }
+            else altComp = null;
+            if ((memberState & ComponentMember.PostComponent) == ComponentMember.PostComponent)
+            {
+                postComp = new StatementComponent();
+                postComp.Load(vm, data, ref index);
+            }
+            else postComp = null;
+            if ((memberState & ComponentMember.InnerCode) == ComponentMember.InnerCode)
+            {
+                innerCode = new ExecutableCode();
+                innerCode.Load(vm, data, ref index);
+            }
+            else innerCode = null;
         }
 
         private static StatementComponent Read(RuntimeBase vm, byte[] data, int index)

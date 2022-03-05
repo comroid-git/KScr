@@ -28,6 +28,8 @@ namespace KScr.Runtime
         public DirectoryInfo? Output{ get; set; }
         [Option(HelpText = "Whether or not this operation is compiling the system package")]
         public bool System { get; set; }
+        [Option(HelpText = "Whether or not to keep the program open until a key is pressed after the action")]
+        public bool Confirm { get; set; }
     }
     
     [Verb("execute", HelpText = "Compile and Execute one or more .kscr Files")]
@@ -37,6 +39,8 @@ namespace KScr.Runtime
         public IEnumerable<DirectoryInfo> Classpath { get; set; }
         [Option(HelpText = "The source paths to compile", Required = true)]
         public IEnumerable<string> Sources { get; set; }
+        [Option(HelpText = "Whether or not to keep the program open until a key is pressed after the action")]
+        public bool Confirm { get; set; }
     }
     
     [Verb("run", HelpText = "Load and Execute one or more .kbin Files")]
@@ -44,6 +48,8 @@ namespace KScr.Runtime
     {
         [Option(HelpText = "The classpath to execute", Required = true)]
         public string Classpath { get; set; }
+        [Option(HelpText = "Whether or not to keep the program open until a key is pressed after the action")]
+        public bool Confirm { get; set; }
     }
     
     internal class Program
@@ -61,16 +67,17 @@ namespace KScr.Runtime
             var state = State.Normal;
             var yield = VM.ConstantVoid.Value!;
             long compileTime = -1, executeTime = -1;
+            bool pressToExit = false;
 
-            var parserResult = Parser.Default.ParseArguments<CmdCompile, CmdExecute, CmdRun>(args);
-            parserResult
+            Parser.Default.ParseArguments<CmdCompile, CmdExecute, CmdRun>(args)
                 .WithParsed<CmdCompile>(cmd =>
                 {
+                    pressToExit = cmd.Confirm;
                     // load std package
-                    Package.Read(VM, new DirectoryInfo(StdPackageLocation));
+                    Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
                     // load additional classpath packages
-                    foreach (var classpath in cmd.Classpath)
-                        Package.Read(VM, classpath);
+                    foreach (var classpath in cmd.Classpath.Where(dir => dir.Exists))
+                        Package.ReadAll(VM, classpath);
                     compileTime = RuntimeBase.UnixTime();
                     VM.CompileFiles(cmd.Sources.SelectMany(path => Directory.Exists(path)
                         ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories) : new[]{ new FileInfo(path) }));
@@ -79,11 +86,12 @@ namespace KScr.Runtime
                 })
                 .WithParsed<CmdExecute>(cmd =>
                 {
+                    pressToExit = cmd.Confirm;
                     // load std package
-                    Package.Read(VM, new DirectoryInfo(StdPackageLocation));
+                    Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
                     // load additional classpath packages
-                    foreach (var classpath in cmd.Classpath)
-                        Package.Read(VM, classpath);
+                    foreach (var classpath in cmd.Classpath.Where(dir => dir.Exists))
+                        Package.ReadAll(VM, classpath);
                     compileTime = RuntimeBase.UnixTime();
                     VM.CompileFiles(cmd.Sources.Select(path => new FileInfo(path)));
                     compileTime = RuntimeBase.UnixTime() - compileTime;
@@ -91,10 +99,11 @@ namespace KScr.Runtime
                 })
                 .WithParsed<CmdRun>(cmd =>
                 {
+                    pressToExit = cmd.Confirm;
                     // load std package
-                    Package.Read(VM, new DirectoryInfo(StdPackageLocation));
+                    Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
                     // load classpath packages
-                    Package.Read(VM, new DirectoryInfo(cmd.Classpath));
+                    Package.ReadAll(VM, new DirectoryInfo(cmd.Classpath));
                     yield = VM.Execute(out executeTime);
                 })
                 .WithNotParsed(errors =>
@@ -107,7 +116,7 @@ namespace KScr.Runtime
                         });
                 });
 
-            return HandleExit(state, yield, compileTime, executeTime);
+            return HandleExit(state, yield, compileTime, executeTime, pressToExit);
         }
 
         private static StatementComponent BuildProgramArgsParams(string[] args)
@@ -188,7 +197,7 @@ namespace KScr.Runtime
             //Console.WriteLine($"Type: {result?.Type} - Value: {result?.ToString(0)}");
         }
 
-        private static int HandleExit(State state, IObject? result, long compileTime = -1, long executeTime = -1)
+        private static int HandleExit(State state, IObject? result, long compileTime = -1, long executeTime = -1, bool pressToExit = false)
         {
             if (compileTime != -1)
                 Console.Write($"Compile took {(double)compileTime/1000:#,##0.00}ms");
@@ -227,7 +236,8 @@ namespace KScr.Runtime
                 Console.WriteLine("with exit message: " + result.ToString(0));
             }
 
-            //PressToExit();
+            if (pressToExit)
+                PressToExit();
             return state switch
             {
                 State.Normal => 0,

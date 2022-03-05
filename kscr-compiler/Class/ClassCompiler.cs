@@ -40,7 +40,7 @@ namespace KScr.Compiler.Class
                     break;
                case TokenType.Import:
                    var type = ctx.FindType(vm, ctx.FindCompoundWord())!.BaseClass;
-                   ctx.Class.Imports[type.Name] = type;
+                   ctx.Class.Imports.Add(type.FullName);
                    break;
                 case TokenType.IdentVar:
                 case TokenType.IdentVoid:

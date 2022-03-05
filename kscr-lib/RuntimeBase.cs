@@ -193,27 +193,36 @@ namespace KScr.Lib
 
         public IClassInstance? FindType(string name, Package? package = null)
         {
-            switch (name)
-            {
-                case "num":
-                    return Class.NumericType.DefaultInstance;
-                case "byte":
+            if (name.Contains("num"))
+                if (name.EndsWith("byte>"))
                     return Class.NumericByteType;
-                case "short":
+                else if (name.EndsWith("short>"))
                     return Class.NumericShortType;
-                case "int":
+                else if (name.EndsWith("int>"))
                     return Class.NumericIntType;
-                case "long":
+                else if (name.EndsWith("long>"))
                     return Class.NumericLongType;
-                case "float":
+                else if (name.EndsWith("float>"))
                     return Class.NumericFloatType;
-                case "double":
+                else if (name.EndsWith("double>"))
                     return Class.NumericDoubleType;
-                case "str":
-                    return Class.StringType.DefaultInstance;
-                case "void":
-                    return Class.VoidType.DefaultInstance;
-            }
+                else return Class.NumericType.DefaultInstance;
+            if (name.EndsWith("byte"))
+                return Class.NumericByteType;
+            if (name.EndsWith("short"))
+                return Class.NumericShortType;
+            if (name.EndsWith("int"))
+                return Class.NumericIntType;
+            if (name.EndsWith("long"))
+                return Class.NumericLongType;
+            if (name.EndsWith("float"))
+                return Class.NumericFloatType;
+            if (name.EndsWith("double"))
+                return Class.NumericDoubleType;
+            if (name.EndsWith("str"))
+                return Class.StringType.DefaultInstance;
+            if (name.EndsWith("void"))
+                return Class.VoidType.DefaultInstance;
 
             return ClassStore.FindType(this, package ?? Package.RootPackage, name);
         }

@@ -61,7 +61,7 @@ namespace KScr.Lib.Bytecode
         }
 
         public List<MethodParameter> Parameters { get; } = new();
-        public ITypeInfo ReturnType { get; }
+        public ITypeInfo ReturnType { get; private set; }
 
         public override string FullName => base.FullName + '(' + string.Join(", ", Parameters.Select(it => it.Type)) + ')';
 
@@ -88,6 +88,11 @@ namespace KScr.Lib.Bytecode
 
         public override void Load(RuntimeBase vm, byte[] data, ref int i)
         {
+            int len = BitConverter.ToInt32(data, i);
+            i += 4;
+            ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len))!;
+            i += len;
+            Body = new ExecutableCode();
             Body.Load(vm, data, ref i);
         }
 

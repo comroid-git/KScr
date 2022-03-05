@@ -54,7 +54,7 @@ namespace KScr.Lib.Bytecode
             var len = BitConverter.ToInt32(data, index);
             index += 4;
             Statement stmt;
-            for (var i = 0; i < len; i++)
+            for (; len > 0; len--)
             {
                 stmt = new Statement();
                 stmt.Load(vm, data, ref index);

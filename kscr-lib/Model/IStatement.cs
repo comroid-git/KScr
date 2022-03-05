@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace KScr.Lib.Model
 {
     [Flags]
-    public enum StatementComponentType : ushort
+    public enum StatementComponentType : uint
     {
         Undefined = 0,
         // basetypes

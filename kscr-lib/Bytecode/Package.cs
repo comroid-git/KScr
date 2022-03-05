@@ -44,6 +44,12 @@ namespace KScr.Lib.Bytecode
             Write(new FileInfo((stream as FileStream)!.Name).Directory!);
         }
 
+        public static void ReadAll(RuntimeBase vm, DirectoryInfo dir)
+        {
+            foreach (var sub in dir.EnumerateDirectories())
+                Read(vm, sub);
+        }
+
         public static Package Read(RuntimeBase vm, DirectoryInfo dir, Package? parent = null)
         {
             if (!dir.Exists)
@@ -55,7 +61,7 @@ namespace KScr.Lib.Bytecode
                 it.Members[pkg.Name] = pkg;
             }
 
-            foreach (var cls in dir.EnumerateFiles(".kbin"))
+            foreach (var cls in dir.EnumerateFiles("*.kbin"))
             {
                 var kls = Class.Read(vm, cls, it);
                 it.Members[kls.Name] = kls;

@@ -18,7 +18,7 @@ namespace KScr.Lib.Bytecode
         }
 
         public override ClassMemberType Type => ClassMemberType.Field;
-        public ITypeInfo ReturnType { get; }
+        public ITypeInfo ReturnType { get; private set; }
 
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => new[] { Getter, Setter };
 
@@ -34,12 +34,26 @@ namespace KScr.Lib.Bytecode
             stream.Write(BitConverter.GetBytes(buf.Length));
             stream.Write(buf);
             Getter.Write(stream);
+            stream.Write(BitConverter.GetBytes(Setter != null));
             Setter?.Write(stream);
         }
 
         public override void Load(RuntimeBase vm, byte[] data, ref int i)
         {
             base.Load(vm, data, ref i);
+            int len = BitConverter.ToInt32(data, i);
+            i += 4;
+            ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len))!;
+            i += len;
+            Getter = new ExecutableCode();
+            Getter.Load(vm, data, ref i);
+            bool settable = BitConverter.ToBoolean(data, i);
+            i += 1;
+            if (settable)
+            {
+                Setter = new ExecutableCode();
+                Setter.Load(vm, data, ref i);
+            }
         }
 
         public new static Field Read(RuntimeBase vm, Class parent, byte[] data, ref int i)
