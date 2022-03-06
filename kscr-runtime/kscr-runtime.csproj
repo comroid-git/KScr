@@ -8,7 +8,8 @@
         <AssemblyName>kscr</AssemblyName>
         <Company>comroid</Company>
         <Product>kscr</Product>
-        <AssemblyVersion>0.1.0</AssemblyVersion>
+        <AssemblyVersion>0.2.0</AssemblyVersion>
+        <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
     </PropertyGroup>
 
     <ItemGroup>
@@ -20,4 +21,8 @@
       <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
     </ItemGroup>
 
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+      <Exec Command="mkdir $(TargetDir)\std" />
+    </Target>
+    
 </Project>
