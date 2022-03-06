@@ -193,6 +193,8 @@ namespace KScr.Lib
 
         public IClassInstance? FindType(string name, Package? package = null)
         {
+            if (name == "num")
+                return Class.NumericType.DefaultInstance;
             if (name.Contains("num"))
                 if (name.EndsWith("byte>"))
                     return Class.NumericByteType;
