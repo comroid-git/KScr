@@ -500,7 +500,7 @@ namespace KScr.Lib.Bytecode
             byte[] buf = RuntimeBase.Encoding.GetBytes(Arg);
             stream.Write(BitConverter.GetBytes(buf.Length));
             stream.Write(buf);
-            //todo: write & load SourcecodePosition
+            //SourcefilePosition.Write(stream);
             ComponentMember memberState = ComponentMember.None;
             if (SubStatement != null)
                 memberState |= ComponentMember.SubStatement;
@@ -537,6 +537,7 @@ namespace KScr.Lib.Bytecode
                 out var bty,
                 out var byteArg, 
                 out string arg,
+                //out SourcefilePosition srcPos,
                 out Statement? subStmt,
                 out Statement? altStmt,
                 out StatementComponent? subComp,
@@ -549,6 +550,7 @@ namespace KScr.Lib.Bytecode
             CodeType = bty;
             ByteArg = byteArg;
             Arg = arg;
+            //SourcefilePosition = srcPos;
             SubStatement = subStmt;
             AltStatement = altStmt;
             SubComponent = subComp;
@@ -563,6 +565,7 @@ namespace KScr.Lib.Bytecode
             out BytecodeType bty,
             out ulong bya,
             out string arg, 
+            //out SourcefilePosition srcPos, 
             out Statement? subStmt,
             out Statement? altStmt,
             out StatementComponent? subComp,
@@ -582,6 +585,7 @@ namespace KScr.Lib.Bytecode
             index += 4;
             arg = RuntimeBase.Encoding.GetString(data, index, len);
             index += len;
+            //srcPos = SourcefilePosition.Read(vm, data, ref index);
             ComponentMember memberState = (ComponentMember)data[index];
             index += 1;
             if ((memberState & ComponentMember.SubStatement) == ComponentMember.SubStatement)
