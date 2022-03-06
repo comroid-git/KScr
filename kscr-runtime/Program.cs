@@ -31,7 +31,7 @@ namespace KScr.Runtime
             VM.Initialize();
             var state = State.Normal;
             var yield = VM.ConstantVoid.Value!;
-            long compileTime = -1, executeTime = -1;
+            long compileTime = -1, executeTime = -1, ioTime = -1;
 
             Parser.Default.ParseArguments<CmdCompile, CmdExecute, CmdRun>(args)
                 .WithParsed<CmdCompile>(cmd =>
@@ -47,7 +47,9 @@ namespace KScr.Runtime
                     VM.CompileFiles(cmd.Sources.SelectMany(path => Directory.Exists(path)
                         ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories) : new[]{ new FileInfo(path) }));
                     compileTime = RuntimeBase.UnixTime() - compileTime;
+                    ioTime = RuntimeBase.UnixTime();
                     WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput));
+                    ioTime = RuntimeBase.UnixTime() - ioTime;
                 })
                 .WithParsed<CmdExecute>(cmd =>
                 {
@@ -70,8 +72,10 @@ namespace KScr.Runtime
                     // load std package
                     Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
                     // load classpath packages
+                    ioTime = RuntimeBase.UnixTime();
                     foreach (var classpath in cmd.Classpath.Where(dir => dir.Exists))
                         Package.ReadAll(VM, classpath);
+                    ioTime = RuntimeBase.UnixTime() - ioTime;
                     yield = VM.Execute(out executeTime);
                 })
                 .WithNotParsed(errors =>
@@ -84,7 +88,7 @@ namespace KScr.Runtime
                         });
                 });
 
-            return HandleExit(state, yield, compileTime, executeTime, RuntimeBase.ConfirmExit);
+            return HandleExit(state, yield, compileTime, executeTime, ioTime, RuntimeBase.ConfirmExit);
         }
 
         private static StatementComponent BuildProgramArgsParams(string[] args)
@@ -167,11 +171,15 @@ namespace KScr.Runtime
             //Console.WriteLine($"Type: {result?.Type} - Value: {result?.ToString(0)}");
         }
 
-        private static int HandleExit(State state, IObject? result, long compileTime = -1, long executeTime = -1, bool pressToExit = false)
+        private static int HandleExit(State state, IObject? result, long compileTime = -1, long executeTime = -1, long ioTime = -1, bool pressToExit = false)
         {
             if (compileTime != -1)
                 Console.Write($"Compile took {(double)compileTime/1000:#,##0.00}ms");
-            if (compileTime != -1 && executeTime != -1)
+            if (compileTime != -1 && (ioTime != -1 || executeTime != -1))
+                Console.Write("; ");
+            if (ioTime != -1)
+                Console.Write($"Read/Write took {(double)ioTime/1000:#,##0.00}ms");
+            if (ioTime != -1 && executeTime != -1)
                 Console.Write("; ");
             if (executeTime != -1)
                 Console.Write($"Execute took {(double)executeTime/1000:#,##0.00}ms");
