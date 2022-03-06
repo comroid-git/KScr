@@ -31,8 +31,6 @@ namespace KScr.Lib.Bytecode
         public void Write(DirectoryInfo dir, ClassInfo[]? names = null)
         {
             names ??= Array.Empty<ClassInfo>();
-            if (FullName == "org.comroid.kscr.core")
-                return;
             foreach (var member in Members.Values)
                 if (!names.Any(name => name.FullName.StartsWith(member.FullName)))
                     // ReSharper disable once RedundantJumpStatement

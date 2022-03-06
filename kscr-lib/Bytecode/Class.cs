@@ -70,7 +70,7 @@ namespace KScr.Lib.Bytecode
             new List<IClassInstance>();
 
         protected override IEnumerable<AbstractBytecode> BytecodeMembers =>
-            DeclaredMembers.Values.Cast<AbstractBytecode>();
+            DeclaredMembers.Values.Where(it => it is AbstractBytecode).Cast<AbstractBytecode>();
 
         public IList<string> Imports { get; } =
             new List<string>();
@@ -145,6 +145,8 @@ namespace KScr.Lib.Bytecode
             stream.Write(new[]{(byte)ClassType});
             stream.Write(BitConverter.GetBytes((uint)Modifier));
             
+            // imports
+            stream.Write(NewLineBytes);
             stream.Write(BitConverter.GetBytes(Imports.Count));
             foreach (var clsName in Imports)
             {
@@ -152,8 +154,30 @@ namespace KScr.Lib.Bytecode
                 stream.Write(BitConverter.GetBytes(buf.Length));
                 stream.Write(buf);
             }
-            stream.Write(BitConverter.GetBytes(BytecodeMembers.Count()));
+            
+            // superclasses
             stream.Write(NewLineBytes);
+            stream.Write(BitConverter.GetBytes(Superclasses.Count));
+            foreach (var superclass in Superclasses)
+            {
+                buf = RuntimeBase.Encoding.GetBytes(superclass.FullName);
+                stream.Write(BitConverter.GetBytes(buf.Length));
+                stream.Write(buf);
+            }
+            
+            // interfaces
+            stream.Write(NewLineBytes);
+            stream.Write(BitConverter.GetBytes(Interfaces.Count));
+            foreach (var iface in Interfaces)
+            {
+                buf = RuntimeBase.Encoding.GetBytes(iface.FullName);
+                stream.Write(BitConverter.GetBytes(buf.Length));
+                stream.Write(buf);
+            }
+
+            // members
+            stream.Write(NewLineBytes);
+            stream.Write(BitConverter.GetBytes(BytecodeMembers.Count()));
             stream.Flush();
             foreach (var member in BytecodeMembers)
             {
@@ -180,6 +204,7 @@ namespace KScr.Lib.Bytecode
             Initialize(vm);
             
             // imports
+            index += NewLineBytes.Length;
             len = BitConverter.ToInt32(data, index);
             index += 4;
             for (; len > 0; len--)
@@ -187,12 +212,37 @@ namespace KScr.Lib.Bytecode
                 int len2 = BitConverter.ToInt32(data, index);
                 index += 4;
                 Imports.Add(RuntimeBase.Encoding.GetString(data, index, len2));
+                index += len2;
+            }
+            
+            // superclasses
+            index += NewLineBytes.Length;
+            len = BitConverter.ToInt32(data, index);
+            index += 4;
+            for (; len > 0; len--)
+            {
+                int len2 = BitConverter.ToInt32(data, index);
+                index += 4;
+                Superclasses.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2))!);
+                index += len2;
+            }
+            
+            // interfaces
+            index += NewLineBytes.Length;
+            len = BitConverter.ToInt32(data, index);
+            index += 4;
+            for (; len > 0; len--)
+            {
+                int len2 = BitConverter.ToInt32(data, index);
+                index += 4;
+                Interfaces.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2))!);
+                index += len2;
             }
             
             // members
+            index += NewLineBytes.Length;
             len = BitConverter.ToInt32(data, index);
             index += 4;
-            index += NewLineBytes.Length;
             for (var i = 0; i < len; i++)
             {
                 index += NewLineBytes.Length;
