@@ -64,6 +64,15 @@ namespace KScr.Runtime
                     compileTime = RuntimeBase.UnixTime();
                     VM.CompileFiles(cmd.Sources.Select(path => new FileInfo(path)));
                     compileTime = RuntimeBase.UnixTime() - compileTime;
+                    if (cmd.Output != null)
+                    {
+                        ioTime = RuntimeBase.UnixTime();
+                        WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput), cmd.Sources.SelectMany(path =>
+                            Directory.Exists(path)
+                                ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories)
+                                : new[] { new FileInfo(path) }));
+                        ioTime = RuntimeBase.UnixTime() - ioTime;
+                    }
                     yield = VM.Execute(out executeTime);
                 })
                 .WithParsed<CmdRun>(cmd =>

@@ -41,8 +41,9 @@ namespace KScr.Runtime
     }
     
     [Verb("execute", HelpText = "Compile and Execute one or more .kscr Files")]
-    public sealed class CmdExecute : IClasspathCmd, ISourcesCmd
+    public sealed class CmdExecute : IClasspathCmd, ISourcesCmd, IOutputCmd
     {
+        public DirectoryInfo? Output { get; set; }
         public IEnumerable<DirectoryInfo> Classpath { get; set; }
         public IEnumerable<string> Sources { get; set; }
         public bool Confirm { get; set; }
