@@ -10,8 +10,8 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 - - - [ ] `finally`
 - - [ ] `do` and `while`
 - - [x] `for`
-- - [x] `forn`
-- - [ ] `foreach`
+- - [ ] ~~`forn`~~ Replaced by foreach because Range implements Iterable
+- - [x] `foreach`
 - - [ ] `switch` and `case`
 - - - [ ] `break` and `continue`
 
