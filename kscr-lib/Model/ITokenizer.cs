@@ -249,9 +249,9 @@ namespace KScr.Lib.Model
         {
             stream.Write(BitConverter.GetBytes(SourcefileLine));
             stream.Write(BitConverter.GetBytes(SourcefileCursor));
-            var buf = RuntimeBase.Encoding.GetBytes(SourcefilePath);
+            /*var buf = RuntimeBase.Encoding.GetBytes(SourcefilePath);
             stream.Write(BitConverter.GetBytes(buf.Length));
-            stream.Write(buf);
+            stream.Write(buf);*/
         }
 
         public void Load(RuntimeBase vm, byte[] data, ref int index)
@@ -260,9 +260,9 @@ namespace KScr.Lib.Model
             index += 4;
             SourcefileCursor = BitConverter.ToInt32(data, index);
             index += 4;
-            int len = BitConverter.ToInt32(data, index);
+            /*int len = BitConverter.ToInt32(data, index);
             index += 4;
-            SourcefilePath = RuntimeBase.Encoding.GetString(data, index, len);
+            SourcefilePath = RuntimeBase.Encoding.GetString(data, index, len);*/
         }
 
         public static SourcefilePosition Read(RuntimeBase vm, byte[] data, ref int i)
