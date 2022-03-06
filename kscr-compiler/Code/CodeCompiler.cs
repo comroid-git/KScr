@@ -115,7 +115,17 @@ namespace KScr.Compiler.Code
                     {
                         ctx.Component = new StatementComponent
                         {
-                            Type = ctx.Statement.Type == StatementComponentType.Declaration
+                            Type = ctx.PrevToken?.Type is TokenType.Word 
+                                or TokenType.IdentNum
+                                or TokenType.IdentNumByte 
+                                or TokenType.IdentNumShort 
+                                or TokenType.IdentNumInt 
+                                or TokenType.IdentNumLong
+                                or TokenType.IdentNumFloat
+                                or TokenType.IdentNumDouble
+                                or TokenType.IdentStr
+                                or TokenType.IdentVar
+                                or TokenType.IdentVoid
                                 ? StatementComponentType.Declaration
                                 : StatementComponentType.Provider,
                             CodeType = BytecodeType.ExpressionVariable,
