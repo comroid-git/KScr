@@ -16,7 +16,7 @@ namespace KScr.Lib.Core
         {
             Start = start;
             End = end;
-            ObjectId = vm.NextObjId($"range:{CreateKey(start,end)}");
+            ObjectId = vm.NextObjId(CreateKey(start,end));
         }
 
         public bool Primitive => true;
@@ -26,10 +26,10 @@ namespace KScr.Lib.Core
         {
             1 => Start.ToString(),
             2 => End.ToString(),
-            _ => CreateKey(Start, End)
+            _ => $"{Start}~{End}"
         };
 
-        private static string CreateKey(int start, int end) => $"{start}~{end}";
+        private static string CreateKey(int start, int end) => $"static-range:{start}~{end}";
 
         public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
         {
@@ -41,6 +41,8 @@ namespace KScr.Lib.Core
                     if (args[0] is not Range other)
                         return vm.ConstantFalse;
                     return Start == other.Start && End == other.End ? vm.ConstantTrue : vm.ConstantFalse;
+                case "getType":
+                    return Type.SelfRef;
                 case "start": // get first value
                     return start(vm);
                 case "end": // get last value

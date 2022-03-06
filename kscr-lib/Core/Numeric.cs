@@ -109,6 +109,8 @@ namespace KScr.Lib.Core
                         NumericMode.Double => Math.Abs(DoubleValue - other.DoubleValue) < delta.DoubleValue,
                         _ => throw new ArgumentOutOfRangeException()
                     } ? vm.ConstantTrue : vm.ConstantFalse;
+                case "getType":
+                    return Type.SelfRef;
                 default:
                     throw new NotImplementedException();
             }

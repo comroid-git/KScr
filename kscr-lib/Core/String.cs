@@ -40,6 +40,8 @@ namespace KScr.Lib.Core
                     return Instance(vm, Str);
                 case "equals":
                     return args[0] is String other && Str == other.Str ? vm.ConstantTrue : vm.ConstantFalse;
+                case "getType":
+                    return Type.SelfRef;
                 case "opPlus":
                     return OpPlus(vm, (args[0]?.Invoke(vm, "toString", ref rev)?.Value as String)?.Str ?? "null");
                 case "length":

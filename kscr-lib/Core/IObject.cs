@@ -1,4 +1,5 @@
-﻿using KScr.Lib.Bytecode;
+﻿using System;
+using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
@@ -29,7 +30,18 @@ namespace KScr.Lib.Core
 
         public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
         {
-            throw new InternalException("NullPointerException");
+            switch (member)
+            {
+                case "toString":
+                    return String.Instance(vm, "null");
+                case "equals":
+                    return args[0] is VoidValue || args[0] is Numeric num && num.ByteValue != 0 
+                        ? vm.ConstantTrue : vm.ConstantFalse;
+                case "getType":
+                    return Type.SelfRef;
+                default:
+                    throw new InternalException("NullPointerException");
+            }
         }
     }
 
