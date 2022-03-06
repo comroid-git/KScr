@@ -263,7 +263,8 @@ namespace KScr.Lib.Model
                 return baseCls.CreateInstance(vm, Class, args.ToArray());
             }
 
-            return baseCls.TypeParameters.First(x => x.Name == Token.Arg);
+            return baseCls.TypeParameters.FirstOrDefault(x => x.Name == Token.Arg) 
+                   ?? throw new CompilerException(PrevComponent.SourcefilePosition, "Unable to find class: " + Token.Arg);
         }
     }
 
