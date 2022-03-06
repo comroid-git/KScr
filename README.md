@@ -22,12 +22,12 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 - - [x] Computed Properties
 - - [ ] Properties with Getters and Setters
 - - [ ] Properties with Value storage
-- - [ ] `extends` and `implements`
+- - [x] `extends` and `implements`
 - - [ ] Variable Caching
 - - [ ] Annotations
 - - [x] Methods
 - - [ ] `native` Keyword
-- - [ ] Static and Dynamic components
+- - [x] Static and Dynamic components
 - - [x] Prettier StackTrace
 - - [x] Compiling into Bytecode
 - - [ ] Pipe operators
