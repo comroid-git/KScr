@@ -8,8 +8,9 @@
         <AssemblyName>kscr</AssemblyName>
         <Company>comroid</Company>
         <Product>kscr</Product>
-        <AssemblyVersion>0.2.0</AssemblyVersion>
+        <AssemblyVersion>0.2.1</AssemblyVersion>
         <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+        <PackageVersion>0.2.1</PackageVersion>
     </PropertyGroup>
 
     <ItemGroup>

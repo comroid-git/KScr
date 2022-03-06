@@ -5,7 +5,8 @@
         <RootNamespace>KScr.Lib</RootNamespace>
         <Nullable>enable</Nullable>
         <Company>comroid</Company>
-        <AssemblyVersion>0.2.0</AssemblyVersion>
+        <AssemblyVersion>0.2.1</AssemblyVersion>
+        <PackageVersion>0.2.1</PackageVersion>
     </PropertyGroup>
 
 </Project>
