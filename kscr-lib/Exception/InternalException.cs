@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using KScr.Lib.Model;
+using KScr.Lib.Store;
 
 namespace KScr.Lib.Exception
 {
@@ -16,30 +17,30 @@ namespace KScr.Lib.Exception
 
     public interface IStackTrace
     {
-        SourcefilePosition SrcPos { get; }
+        CallLocation CallLoc { get; }
         string Message { get; }
     }
 
     public class StackTraceException : System.Exception, IStackTrace
     {
-        public SourcefilePosition SrcPos { get; }
+        public CallLocation CallLoc { get; }
         public System.Exception? InnerTrace { get; }
         public string Local { get; }
 
-        public override string Message => $"({SrcPos.SourcefilePath}:{SrcPos.SourcefileLine}-{SrcPos.SourcefileCursor} {Local}) {base.Message}";
+        public override string Message => $"({CallLoc.SourceName} line {CallLoc.SourceLine} pos {CallLoc.SourceCursor}) {base.Message}";
 
-        public StackTraceException(SourcefilePosition srcPos, string local, System.Exception innerTrace)
+        public StackTraceException(CallLocation srcPos, string local, System.Exception innerTrace)
             : base(innerTrace.Message, innerTrace)
         {
-            SrcPos = srcPos;
+            CallLoc = srcPos;
             Local = local;
             InnerTrace = innerTrace;
         }
 
-        public StackTraceException(SourcefilePosition srcPos, string local, StackTraceException innerTrace, string? message = null)
+        public StackTraceException(CallLocation srcPos, string local, StackTraceException innerTrace, string? message = null)
             : base(message ?? "<...>", innerTrace)
         {
-            SrcPos = srcPos;
+            CallLoc = srcPos;
             Local = local;
         }
     }

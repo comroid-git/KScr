@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using KScr.Lib.Bytecode;
+using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
+using String = System.String;
 
 namespace KScr.Lib.Store
 {
@@ -14,17 +16,31 @@ namespace KScr.Lib.Store
         Absolute
     }
 
+    public struct CallLocation
+    {
+        public CallLocation(SourcefilePosition srcPos)
+        {
+            SourceName = srcPos.SourcefilePath;
+            SourceLine = srcPos.SourcefileLine;
+            SourceCursor = srcPos.SourcefileCursor;
+        }
+
+        public string SourceName { get; set; }
+        public int SourceLine { get; set; }
+        public int SourceCursor { get; set; }
+    }
+
     public sealed class CtxBlob
     {
         protected internal List<string> _keys = new List<string>();
 #pragma warning disable CS0628
-        protected internal CtxBlob(SourcefilePosition callLocation, string local)
+        protected internal CtxBlob(CallLocation callLocation, string local)
         {
             CallLocation = callLocation;
             Local = local;
         }
 
-        public SourcefilePosition CallLocation { get; }
+        public CallLocation CallLocation { get; }
         public CtxBlob? Parent { get; protected internal set; }
         public string Local { get; protected internal set; }
         public ObjectRef? It { get; protected internal set; }
@@ -36,7 +52,7 @@ namespace KScr.Lib.Store
     {
         public const string Delimiter = ".";
         private readonly List<CtxBlob> _dequeue = new();
-        private string _local => _dequeue.Count == 0 ? string.Empty : _dequeue[^1].Local;
+        private string _local => _dequeue.Count == 0 ? "org.comroid.kscr.core.Object.main()" : _dequeue[^1].Local;
         public ObjectRef? This => _dequeue[^1].It;
         public IClass? Class => _dequeue[^1].Class ?? _dequeue[^2].Class;
         public string PrefixLocal => _local + Delimiter;
@@ -64,9 +80,14 @@ namespace KScr.Lib.Store
             return arr;
         }
 
-        public void StepInside<T>(RuntimeBase vm, SourcefilePosition callLocation, string sub, ref T t, Func<T,T> exec)
+        public void StepInside<T>(RuntimeBase vm, SourcefilePosition srcPos, string sub, ref T t, Func<T,T> exec)
         {
-            _dequeue.Add(new CtxBlob(callLocation, PrefixLocal + sub)
+            _dequeue.Add(new CtxBlob(new CallLocation
+            {
+                SourceName = _local,
+                SourceLine = srcPos.SourcefileLine,
+                SourceCursor = srcPos.SourcefileCursor
+            }, PrefixLocal + sub)
             {
                 Local = sub,
                 Parent = _dequeue.Last()
@@ -75,25 +96,45 @@ namespace KScr.Lib.Store
         }
         
         // put focus into static class
-        public void StepInto<T>(RuntimeBase vm, SourcefilePosition callLocation, IClass into, object local, ref T t, Func<T,T> exec)
+        public void StepInto<T>(RuntimeBase vm, SourcefilePosition srcPos, IClassMember local, ref T t, Func<T,T> exec)
         {
-            _dequeue.Add(new CtxBlob(callLocation, PrefixLocal + local)
+            IClass cls = local.Parent;
+            string localStr = cls.FullName + '.' + local.Name + (local is IMethod mtd
+                ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) + ')'
+                : string.Empty);
+            _dequeue.Add(new CtxBlob(new CallLocation
             {
-                Local = local.ToString() ?? string.Empty,
-                Class = into,
-                It = into.SelfRef
+                SourceName = _local,
+                SourceLine = srcPos.SourcefileLine,
+                SourceCursor = srcPos.SourcefileCursor
+            }, PrefixLocal + local)
+            {
+                Local = localStr,
+                Class = cls,
+                It = cls.SelfRef
             });
             WrapExecution(vm, ref t, exec);
         }
 
         // put focus into object instance
-        public void StepInto<T>(RuntimeBase vm, SourcefilePosition callLocation, ObjectRef into, object local, ref T t, Func<T,T> exec)
+        public void StepInto<T>(RuntimeBase vm, SourcefilePosition srcPos, ObjectRef? into, IClassMember local, ref T t, Func<T,T> exec)
         {
-            _dequeue.Add(new CtxBlob(callLocation, PrefixLocal + local)
+            into ??= vm.ConstantVoid;
+            var cls = local.Parent;
+            string localStr = cls.FullName + '#' + (into.Value??IObject.Null).ObjectId.ToString("X") 
+                              + '.' + local.Name + (local is IMethod mtd
+                                  ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) + ')'
+                                  : string.Empty);
+            _dequeue.Add(new CtxBlob(new CallLocation
             {
-                Local = local.ToString() ?? string.Empty,
+                SourceName = _local,
+                SourceLine = srcPos.SourcefileLine,
+                SourceCursor = srcPos.SourcefileCursor
+            }, PrefixLocal + cls.Name)
+            {
+                Local = localStr,
                 Class = into.Value!.Type,
-                It = into,
+                It = into
             });
             WrapExecution(vm, ref t, exec);
         }
@@ -113,10 +154,13 @@ namespace KScr.Lib.Store
 #pragma warning disable CA2200
                 // ReSharper disable once PossibleIntendedRethrow
                 throw ex;
-#pragma warning restore CA2200
             }
             catch (System.Exception ex)
             {
+                if (RuntimeBase.DebugMode)
+                    // ReSharper disable once PossibleIntendedRethrow
+                    throw ex;
+#pragma warning restore CA2200
                 throw new StackTraceException(_dequeue[^1].CallLocation, _local, ex);
             }
             finally

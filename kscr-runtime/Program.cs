@@ -117,7 +117,7 @@ namespace KScr.Runtime
                 .WithNotParsed(errors =>
                 {
                     if (!errors.Any())
-                        VM.Stack.StepInto(VM, RuntimeBase.MainInvocPos, Class.VoidType, "main", ref state, _ =>
+                        VM.Stack.StepInto(VM, RuntimeBase.MainInvocPos, RuntimeBase.MainInvoc, ref state, _ =>
                         {
                             StdIoMode(ref state, ref yield);
                             return state;

@@ -13,9 +13,9 @@ namespace KScr.Lib.Bytecode
 {
     public sealed class Class : AbstractPackageMember, IClass, IRuntimeSite
     {
-        private const MemberModifier LibClassModifier =
-            MemberModifier.Public | MemberModifier.Static | MemberModifier.Final;
-        private static readonly Package LibClassPackage = Package.RootPackage.GetOrCreatePackage("org")
+        public const MemberModifier LibClassModifier =
+            MemberModifier.Public | MemberModifier.Final;
+        public static readonly Package LibClassPackage = Package.RootPackage.GetOrCreatePackage("org")
             .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr").GetOrCreatePackage("core");
 
         public const string StaticInitializer = "initializer_static";

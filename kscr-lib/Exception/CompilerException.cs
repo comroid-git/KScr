@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using KScr.Lib.Model;
+using KScr.Lib.Store;
 
 namespace KScr.Lib.Exception
 {
@@ -7,11 +8,11 @@ namespace KScr.Lib.Exception
     {
         public CompilerException(SourcefilePosition srcPos, string? message) : base(message)
         {
-            SrcPos = srcPos;
+            CallLoc = new CallLocation(srcPos);
         }
 
-        public override string Message => base.Message + $"\n\tin File {SrcPos.SourcefilePath} line {SrcPos.SourcefileLine} pos {SrcPos.SourcefileCursor}";
+        public override string Message => base.Message + $"\n\tin File {CallLoc.SourceName} line {CallLoc.SourceLine} pos {CallLoc.SourceCursor}";
 
-        public SourcefilePosition SrcPos { get; }
+        public CallLocation CallLoc{ get; }
     }
 }

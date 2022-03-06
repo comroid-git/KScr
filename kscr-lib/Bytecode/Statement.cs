@@ -386,7 +386,7 @@ namespace KScr.Lib.Bytecode
                                 if (state != State.Normal)
                                     throw new InternalException(
                                         "Invalid state after evaluating method parameters");
-                                vm.Stack.StepInto(vm, SourcefilePosition, cli1, cli1.Name + '.' + Arg, ref rev, _rev =>
+                                vm.Stack.StepInto(vm, SourcefilePosition, cli1.SelfRef, mtd1, ref rev, _rev =>
                                 {
                                     for (var i = 0; i < param1.Count; i++)
                                         vm.PutObject(VariableContext.Local, param1[i].Name, buf[vm, i]);
@@ -403,7 +403,7 @@ namespace KScr.Lib.Bytecode
                                 if (state != State.Normal)
                                     throw new InternalException(
                                         "Invalid state after evaluating method parameters");
-                                vm.Stack.StepInto(vm, SourcefilePosition, rev, rev.Value.ObjectId + '.' + Arg, ref rev, _rev =>
+                                vm.Stack.StepInto(vm, SourcefilePosition, rev, mtd2, ref rev, _rev =>
                                 {
                                     for (var i = 0; i < param2.Count; i++)
                                         vm.PutObject(VariableContext.Local, param2[i].Name, buf[vm, i]);
@@ -419,7 +419,7 @@ namespace KScr.Lib.Bytecode
                                 if (state != State.Normal)
                                     throw new InternalException(
                                         "Invalid state after evaluating method parameters");
-                                vm.Stack.StepInto(vm, SourcefilePosition, rev, rev.Value.ToString() + '.' + Arg, ref rev, _rev =>
+                                vm.Stack.StepInto(vm, SourcefilePosition, rev, mtd3, ref rev, _rev =>
                                 {
                                     for (var i = 0; i < param3.Count; i++)
                                         vm.PutObject(VariableContext.Local, param3[i].Name, buf[vm, i]);

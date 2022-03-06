@@ -26,6 +26,7 @@ namespace KScr.Lib
     {
         public static Encoding Encoding = Encoding.ASCII;
 
+        public static readonly DummyMethod MainInvoc = new(Class.VoidType, "main", Class.LibClassModifier | MemberModifier.Static, Class.NumericIntType);
         public static readonly SourcefilePosition MainInvocPos = new()
             { SourcefilePath = "<native>org/comroid/kscr/core/System.kscr" };
 
@@ -164,16 +165,16 @@ namespace KScr.Lib
         public IObject? Execute()
         {
             var method = Package.RootPackage.FindEntrypoint();
-            ObjectRef? rev = null;
+            ObjectRef? rev = Class.VoidType.SelfRef;
 
             try
             {
-                Stack.StepInto(this, MainInvocPos, method.Parent, "main", ref rev, _rev =>
+                Stack.StepInto(this, MainInvocPos, method, ref rev, _rev =>
                 {
                     State state = State.Normal;
                     IRuntimeSite? site = method;
                     while (site != null)
-                        site = site.Evaluate(this, ref state, ref _rev);
+                        site = site.Evaluate(this, ref state, ref _rev!);
                     return _rev;
                 });
             }
