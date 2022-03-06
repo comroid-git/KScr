@@ -115,7 +115,8 @@ namespace KScr.Lib.Bytecode
             stream.Write(BitConverter.GetBytes(Parameters.Count));
             foreach (var parameter in Parameters)
                 parameter.Write(stream);
-            Body.Write(stream);
+            if (!this.IsAbstract())
+                Body.Write(stream);
         }
 
         public override void Load(RuntimeBase vm, byte[] data, ref int i)
@@ -129,8 +130,11 @@ namespace KScr.Lib.Bytecode
             Parameters.Clear();
             for (; len > 0; len--)
                 Parameters.Add(MethodParameter.Read(vm, data, ref i));
-            Body = new ExecutableCode();
-            Body.Load(vm, data, ref i);
+            if (!this.IsAbstract())
+            {
+                Body = new ExecutableCode();
+                Body.Load(vm, data, ref i);
+            }
         }
 
         public new static Method Read(RuntimeBase vm, Class parent, byte[] data, ref int i)

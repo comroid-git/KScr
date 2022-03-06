@@ -32,13 +32,17 @@ namespace KScr.Lib.Bytecode
         {
             names ??= Array.Empty<ClassInfo>();
             foreach (var member in Members.Values)
-                if (!names.Any(name => name.FullName.StartsWith(member.FullName)))
+                if (!names.Any(name => name.FullName.StartsWith(member.FullName.Contains("<") 
+                        ? member.FullName.Substring(0, member.FullName.IndexOf('<'))
+                        : member.FullName)))
                     // ReSharper disable once RedundantJumpStatement
                     continue;
                 else if (member is Package pkg)
                     pkg.Write(dir.CreateSubdirectory(member.Name), names);
                 else if (member is Class cls)
-                    cls.Write(new FileInfo(Path.Combine(dir.FullName, member.Name + ".kbin")));
+                    cls.Write(new FileInfo(Path.Combine(dir.FullName, (member.Name.Contains("<")
+                        ? member.Name.Substring(0, member.Name.IndexOf("<", StringComparison.Ordinal)) 
+                        : member.Name)  + ".kbin")));
                 else throw new NotSupportedException("Member is of unsupported type: " + member.GetType());
         }
 

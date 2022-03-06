@@ -101,7 +101,7 @@ namespace KScr.Compiler.Class
                     while (ctx.NextToken?.Type == TokenType.Word)
                     {
                         ctx.TokenIndex += 1;
-                        var cls = ctx.FindFullTypeInfo(vm) as IClassInstance;
+                        var cls = ctx.FindTypeInfo(vm) as IClassInstance;
                         if (cls == null)
                             throw new CompilerException(ctx.Token.SourcefilePosition,
                                 "Invalid extends-Token; Type not found");
@@ -120,7 +120,7 @@ namespace KScr.Compiler.Class
                     while (ctx.NextToken?.Type == TokenType.Word)
                     {
                         ctx.TokenIndex += 1;
-                        var cls = ctx.FindFullTypeInfo(vm) as IClassInstance;
+                        var cls = ctx.FindTypeInfo(vm) as IClassInstance;
                         if (cls == null)
                             throw new CompilerException(ctx.Token.SourcefilePosition,
                                 "Invalid implements-Token; Type not found: " + ctx.NextToken?.Arg!);
@@ -138,7 +138,7 @@ namespace KScr.Compiler.Class
                     if (targetType == null)
                     {
                         // is return type
-                        targetType = ctx.FindFullTypeInfo(vm);
+                        targetType = ctx.FindTypeInfo(vm);
                     }
                     else if (memberName == null)
                         // is name

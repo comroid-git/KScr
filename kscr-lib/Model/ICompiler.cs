@@ -240,7 +240,7 @@ namespace KScr.Lib.Model
             return vm.FindType(name, Package);
         }
 
-        public ITypeInfo FindFullTypeInfo(RuntimeBase vm, bool _rec = false)
+        public ITypeInfo FindTypeInfo(RuntimeBase vm, bool _rec = false)
         {
             var type = FindType(vm, Token.Arg!);
             if (type?.Name == Token.Arg && NextToken?.Type != TokenType.ParDiamondOpen)
@@ -256,7 +256,7 @@ namespace KScr.Lib.Model
                 do
                 {
                     TokenIndex += 2;
-                    args.Add(FindFullTypeInfo(vm, true));
+                    args.Add(FindTypeInfo(vm, true));
                 } while (NextToken?.Type == TokenType.Comma);
 
                 TokenIndex += 1;

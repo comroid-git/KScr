@@ -257,12 +257,9 @@ namespace KScr.Compiler
                     token = new Token(srcPos, TokenType.While);
                     return;
                 case "for":
-                    if (n is 'n' or 'e')
+                    if (n is 'e')
                         break;
                     token = new Token(srcPos, TokenType.For);
-                    return;
-                case "forn":
-                    token = new Token(srcPos, TokenType.ForN);
                     return;
                 case "foreach":
                     token = new Token(srcPos, TokenType.ForEach);

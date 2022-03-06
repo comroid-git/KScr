@@ -23,6 +23,8 @@ namespace KScr.Lib.Bytecode
         public static readonly Class StringType = new(LibClassPackage, "str", true, MemberModifier.Public | MemberModifier.Final);
         public static readonly Class RangeType = new(LibClassPackage, "range", true, MemberModifier.Public | MemberModifier.Final);
         public static readonly Class NumericType = new(LibClassPackage, "num", true, MemberModifier.Public | MemberModifier.Final) { TypeParameters = { new TypeParameter("T") } };
+        public static readonly Class IteratorType = new(LibClassPackage, "Iterator", true, MemberModifier.Public, ClassType.Interface) { TypeParameters = { new TypeParameter("T") } };
+        public static readonly Class IterableType = new(LibClassPackage, "Iterable", true, MemberModifier.Public, ClassType.Interface) { TypeParameters = { new TypeParameter("T") } };
         public static readonly Class ThrowableType = new(LibClassPackage, "Throwable", true, MemberModifier.Public, ClassType.Interface);
         public static readonly Instance NumericByteType = new(NumericType, (ITypeInfo) 
             new Class(LibClassPackage, "byte", true, MemberModifier.Public | MemberModifier.Final));
@@ -93,7 +95,7 @@ namespace KScr.Lib.Bytecode
 
         public Class BaseClass => this;
         public List<ITypeInfo> TypeParameters { get; } = new();
-        public TypeParameter.Instance[] TypeParameterInstances { get; } = Array.Empty<TypeParameter.Instance>();
+        public TypeParameter.Instance[] TypeParameterInstances { get; private set; } = Array.Empty<TypeParameter.Instance>();
 
         public override string Name => base.Name +
                                        (TypeParameters.Count == 0
@@ -357,7 +359,7 @@ namespace KScr.Lib.Bytecode
             }
         }
 
-        public static void InitializePrimitives(RuntimeBase runtimeBase)
+        public static void InitializePrimitives(RuntimeBase vm)
         {
             #region Void Class
             
@@ -449,6 +451,10 @@ namespace KScr.Lib.Bytecode
                 }
             });
             var decremental = new DummyMethod(VoidType, "decremental", MemberModifier.Public | MemberModifier.Final, NumericByteType);
+            
+            // iterable methods
+            var iterator = new DummyMethod(IterableType, "iterator", MemberModifier.Public | MemberModifier.Abstract, 
+                IteratorType.CreateInstance(vm, IterableType, IterableType.TypeParameters[0]));
 
             AddToClass(RangeType, toString);
             AddToClass(RangeType, equals);
@@ -458,6 +464,32 @@ namespace KScr.Lib.Bytecode
             AddToClass(RangeType, accumulate);
             AddToClass(RangeType, decremental);
             AddToClass(RangeType, getType);
+            AddToClass(RangeType, iterator);
+            RangeType.Interfaces.Add(IterableType.CreateInstance(vm, RangeType, NumericIntType));
+            
+            #endregion
+
+            #region Iterator Class
+            
+            var current = new DummyMethod(IteratorType, "current", MemberModifier.Public | MemberModifier.Abstract, IteratorType.TypeParameters[0]);
+            var next = new DummyMethod(IteratorType, "next", MemberModifier.Public | MemberModifier.Abstract, IteratorType.TypeParameters[0]);
+            var hasNext = new DummyMethod(IteratorType, "hasNext", MemberModifier.Public | MemberModifier.Abstract, NumericByteType);
+
+            AddToClass(IteratorType, toString);
+            AddToClass(IteratorType, equals);
+            AddToClass(IteratorType, getType);
+            AddToClass(IteratorType, current);
+            AddToClass(IteratorType, next);
+            AddToClass(IteratorType, hasNext);
+            
+            #endregion
+
+            #region Iterable Class
+
+            AddToClass(IterableType, toString);
+            AddToClass(IterableType, equals);
+            AddToClass(IterableType, getType);
+            AddToClass(IterableType, iterator);
             
             #endregion
 
@@ -543,6 +575,15 @@ namespace KScr.Lib.Bytecode
             public string Name => TypeParameter.Name;
             public string FullName => TypeParameter.FullName;
             public List<ITypeInfo> TypeParameters { get; } = new();
+
+            public IClassInstance ResolveType(RuntimeBase vm, IClassInstance usingClass)
+            {
+                if (usingClass.TypeParameterInstances.Length == 0 
+                    || usingClass.TypeParameterInstances.All(x => x.TypeParameter.Name != TypeParameter.Name))
+                    throw new ArgumentException("Invalid resolver class");
+                return vm.FindType(usingClass.TypeParameterInstances
+                    .First(x => x.TypeParameter.Name == TypeParameter.Name).TargetType.FullName)!;
+            }
         }
     }
 }

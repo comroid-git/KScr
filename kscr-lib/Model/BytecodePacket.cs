@@ -38,8 +38,7 @@ namespace KScr.Lib.Model
         StmtDo = 0x0021_0000 | Statement,
         StmtWhile = 0x0022_0000 | Statement,
         StmtFor = 0x0041_0000 | Statement,
-        StmtForN = 0x0042_0000 | Statement,
-        StmtForEach = 0x0044_0000 | Statement,
+        StmtForEach = 0x00422_0000 | Statement,
 
         StdioExpression = 0x0200_0000,
         ParameterExpression = 0x0100_0000,

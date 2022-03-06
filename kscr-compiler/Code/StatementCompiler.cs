@@ -186,18 +186,18 @@ namespace KScr.Compiler.Code
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
                     return this;
-                case TokenType.ForN:
+                case TokenType.ForEach:
                     if (ctx.NextToken?.Type != TokenType.ParRoundOpen)
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid forn-Statement; missing specification");
                     ctx.Statement = new Statement
                     {
                         Type = StatementComponentType.Code,
-                        CodeType = BytecodeType.StmtForN 
+                        CodeType = BytecodeType.StmtForEach
                     };
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Code,
-                        CodeType = BytecodeType.StmtForN,
+                        CodeType = BytecodeType.StmtForEach,
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     
@@ -216,7 +216,7 @@ namespace KScr.Compiler.Code
                     {
                         Type = StatementComponentType.Code,
                         CodeType = BytecodeType.Expression,
-                        TargetType = Lib.Bytecode.Class.RangeType.DefaultInstance
+                        TargetType = Lib.Bytecode.Class.IterableType.DefaultInstance
                     };
                     CompilerLoop(vm, new ExpressionCompiler(this, false, TokenType.ParRoundClose), ref subctx);
                     ctx.LastComponent!.SubStatement = subctx.Statement;
@@ -230,8 +230,6 @@ namespace KScr.Compiler.Code
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
                     return this;
-                case TokenType.ForEach:
-                    throw new NotImplementedException("ForEach");
                 case TokenType.ParAccClose:
                     _active = false;
                     return this;

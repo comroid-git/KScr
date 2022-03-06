@@ -48,6 +48,8 @@ namespace KScr.Lib
             Class.ArrayType.Initialize(this);
             Class.StringType.Initialize(this);
             Class.RangeType.Initialize(this);
+            Class.IterableType.Initialize(this);
+            Class.IteratorType.Initialize(this);
             Class.ThrowableType.Initialize(this);
             Class.NumericType.Initialize(this);
             Class.NumericByteType.Initialize(this);

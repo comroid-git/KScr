@@ -99,7 +99,7 @@ namespace KScr.Compiler.Code
                     {
                         if (ctx.NextToken?.Type == TokenType.Word)
                         { // declaration
-                            CompileDeclaration(ctx,type);
+                            CompileDeclaration(ctx, type);
                         }
                         else
                         { // type expression

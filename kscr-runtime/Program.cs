@@ -39,7 +39,8 @@ namespace KScr.Runtime
                     RuntimeBase.ConfirmExit = cmd.Confirm;
                     RuntimeBase.DebugMode = cmd.Debug;
                     // load std package
-                    Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
+                    if (!cmd.System)
+                        Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
                     // load additional classpath packages
                     foreach (var classpath in cmd.Classpath.Where(dir => dir.Exists))
                         Package.ReadAll(VM, classpath);

@@ -248,20 +248,22 @@ namespace KScr.Lib.Bytecode
                         return _rev;
                     });
                     break;
-                case (StatementComponentType.Code, BytecodeType.StmtForN):
-                    vm.Stack.StepInside(vm, SourcefilePosition, "forn", ref rev, _rev =>
+                case (StatementComponentType.Code, BytecodeType.StmtForEach):
+                    vm.Stack.StepInside(vm, SourcefilePosition, "foreach", ref rev, _rev =>
                     {
                         state = SubStatement!.Evaluate(vm, ref buf!);
                         if (state != State.Normal)
                             return _rev;
-                        var range = (buf.Value as Range)!;
-                        var n = vm[VariableContext.Local, Arg] = new ObjectRef(Class.NumericIntType);
-                        n.Value = range.start(vm).Value;
-                        do
+                        var iterable = (buf.Value as IObject)!;
+                        var iter = iterable.Invoke(vm, "iterator", ref buf!);
+                        var iterator = iter.Value;
+                        var n = vm[VariableContext.Local, Arg] = new ObjectRef(iterator.Type.TypeParameterInstances[0].ResolveType(vm, iterator.Type));
+                        while (state == State.Normal && iterator.Invoke(vm, "hasNext", ref n).ToBool())
                         {
+                            n.Value = iterator.Invoke(vm, "next", ref iter).Value;
+                            iter.Value = iterator;
                             state = InnerCode!.Evaluate(vm, ref _rev);
-                            n.Value = range.accumulate(vm, (n.Value as Numeric)!).Value;
-                        } while (state == State.Normal && range.test(vm, (n.Value as Numeric)!).ToBool());
+                        }
 
                         vm[VariableContext.Local, Arg] = null;
                         return _rev;

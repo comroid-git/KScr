@@ -1,4 +1,5 @@
-﻿using KScr.Lib;
+﻿using System.Linq;
+using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
@@ -29,6 +30,9 @@ namespace KScr.Compiler.Class
                         if (pIndex >= _class.BaseClass.TypeParameters.Count)
                             throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid TypeParameter index during compilation");
 
+                        var context = ctx;
+                        if (_class.TypeParameters.Any(x => x.Name == context.Token.Arg!))
+                            break;
                         _class.TypeParameters.Add(new TypeParameter(ctx.Token.Arg!));
                         pIndex += 1;
                         pState += 1;

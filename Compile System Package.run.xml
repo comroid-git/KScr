@@ -1,7 +1,7 @@
 ﻿<component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Compile System Package" type="DotNetProject" factoryName=".NET Project">
     <option name="EXE_PATH" value="$PROJECT_DIR$/kscr-runtime/bin/Debug/net5.0/kscr.exe" />
-    <option name="PROGRAM_PARAMETERS" value="compile --system true --sources kscr-system/ --output kscr-runtime/bin/Debug/net5.0/std/" />
+    <option name="PROGRAM_PARAMETERS" value="compile --system --sources kscr-system/core/Throwable.kscr kscr-system/core/Iterator.kscr kscr-system/core/Iterable.kscr --output kscr-runtime/bin/Debug/net5.0/std/" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/" />
     <option name="PASS_PARENT_ENVS" value="1" />
     <option name="USE_EXTERNAL_CONSOLE" value="0" />

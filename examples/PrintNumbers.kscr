@@ -1,6 +1,7 @@
 package org.comroid.kscr.test;
 
 import org.comroid.kscr.core.Throwable;
+import org.comroid.kscr.core.Iterable;
 
 public class PrintNumbers implements Throwable {
     public static int StackSize -> 64;
@@ -12,10 +13,10 @@ public class PrintNumbers implements Throwable {
     
     // prints numbers 0 to 11
     public static void main() {
-        void range = 0~12; // todo: range as non-compile-time constant 
+        Iterable range = 0~12; // todo: range as non-compile-time constant 
         
         stdio << "print numbers " + range.start() + " to (exclusive) " + (range.end() - 1 + 1) + ":";
-        forn (i : range)
+        foreach (i : range)
             stdio << i;
         
         stdio << "and now backwards bcs we're cool:";
