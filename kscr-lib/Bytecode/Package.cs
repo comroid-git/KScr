@@ -90,13 +90,13 @@ namespace KScr.Lib.Bytecode
             return pkg;
         }
 
-        public Class? GetOrCreateClass(RuntimeBase vm, string name, MemberModifier mod = MemberModifier.None)
+        public Class? GetOrCreateClass(RuntimeBase vm, string name, MemberModifier mod = MemberModifier.None, ClassType type = ClassType.Class)
         {
             if (Members.TryGetValue(name, out var pm) && pm is Class cls)
                 return cls;
             if (mod == MemberModifier.None)
                 return null;
-            Add(cls = new Class(this, name, false, mod));
+            Add(cls = new Class(this, name, false, mod, type));
             cls.Initialize(vm);
             return cls;
         }

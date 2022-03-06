@@ -72,7 +72,7 @@ namespace KScr.Lib.Bytecode
 
         public Class Parent { get; set; }
         public string Name { get; set; }
-        public string FullName => Parent.FullName + '.' + Name;
+        public string FullName => Parent.FullName + '.' + Name + ": " + ReturnType.FullName;
         public MemberModifier Modifier { get; set; }
         public List<MethodParameter> Parameters { get; set; }
         public ITypeInfo ReturnType { get; set; }

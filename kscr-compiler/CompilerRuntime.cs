@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using KScr.Compiler.Class;
+using KScr.Compiler.Code;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
@@ -14,43 +15,42 @@ namespace KScr.Compiler
     {
         public override ObjectStore ObjectStore => null!;
         public override ClassStore ClassStore { get; } = new();
-        public override ITokenizer Tokenizer => new Tokenizer();
-        public override ClassCompiler Compiler => new();
 
         public void CompileFiles(IEnumerable<FileInfo> sources)
         {
-            var files = sources.GetEnumerator();
-            var compiler = Compiler;
-            if (!files.MoveNext())
-                throw new ArgumentException("Missing compiler Classpath");
-            var context = CompileClass(files.Current, compiler);
-            while (files.MoveNext())
-                CompileClass(files.Current, ref context, compiler);
+            try
+            {
+                var files = sources.GetEnumerator();
+                while (files.MoveNext())
+                    CompileClass(files.Current);
+            }/*
+            catch (CompilerException ex)
+            {
+                if (DebugMode)
+#pragma warning disable CA2200
+                    // ReSharper disable once PossibleIntendedRethrow
+                    throw ex;
+#pragma warning restore CA2200
+                Console.WriteLine("An CompilerException occurred: " + ex);
+            }*/
+            finally {}
         }
 
-        public CompilerContext CompileClass(FileInfo file, AbstractCompiler abstractCompiler)
-        {
-            CompilerContext context = null!;
-            return CompileClass(file, ref context, abstractCompiler);
-        }
-
-        public CompilerContext CompileClass(FileInfo file, ref CompilerContext context, AbstractCompiler abstractCompiler)
+        public void CompileClass(FileInfo file)
         {
             string? source = File.ReadAllText(file.FullName);
-            var tokenlist = Tokenizer.Tokenize(file.FullName,
+            var tokenlist = new Tokenizer().Tokenize(file.FullName,
                 source ?? throw new FileNotFoundException("Source file not found: " + file.FullName));
             var tokens = new TokenContext(tokenlist);
             string clsName = file.Name.Substring(0, file.Name.Length - AbstractCompiler.FileAppendix.Length);
             // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
-            var pkg = context?.Package ?? Package.RootPackage;
-            pkg = abstractCompiler.ResolvePackage(pkg, AbstractCompiler.FindClassPackageName(tokens).Split("."));
+            var pkg = Package.RootPackage;
+            pkg = AbstractCompiler.ResolvePackage(pkg, AbstractCompiler.FindClassPackageName(tokens).Split("."));
             var classInfo = AbstractCompiler.FindClassInfo(AbstractCompiler.FindClassPackageName(tokens), tokens, clsName);
-            var cls = pkg.GetOrCreateClass(this, clsName, classInfo.Modifier);
-            var prev = context;
-            context = new CompilerContext(context ?? new CompilerContext(new CompilerContext(), pkg), cls, tokens,
+            var cls = pkg.GetOrCreateClass(this, clsName, classInfo.Modifier, classInfo.ClassType);
+            var context = new CompilerContext(new CompilerContext(new CompilerContext(), pkg), cls, tokens,
                 CompilerType.Class);
-            AbstractCompiler.CompilerLoop(this, Compiler, ref context);
-            return prev == null ? context : context = prev;
+            AbstractCompiler.CompilerLoop(this, new ClassCompiler(), ref context);
         }
 
         public override void CompilePackage(DirectoryInfo dir, ref CompilerContext context, AbstractCompiler abstractCompiler)
@@ -64,7 +64,7 @@ namespace KScr.Compiler
                 context = prev;
             }
 
-            foreach (var subFile in dir.EnumerateFiles('*' + AbstractCompiler.FileAppendix)) CompileClass(subFile, ref context, abstractCompiler);
+            foreach (var subFile in dir.EnumerateFiles('*' + AbstractCompiler.FileAppendix)) CompileClass(subFile);
         }
     }
 }

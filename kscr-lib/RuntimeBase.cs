@@ -26,7 +26,8 @@ namespace KScr.Lib
     {
         public static Encoding Encoding = Encoding.ASCII;
 
-        public static readonly DummyMethod MainInvoc = new(Class.VoidType, "main", Class.LibClassModifier | MemberModifier.Static, Class.NumericIntType);
+        public static readonly DummyMethod MainInvoc = new(Class.VoidType, "main", 
+            MemberModifier.Public | MemberModifier.Final | MemberModifier.Static, Class.NumericIntType);
         public static readonly SourcefilePosition MainInvocPos = new()
             { SourcefilePath = "<native>org/comroid/kscr/core/System.kscr" };
 
@@ -77,9 +78,6 @@ namespace KScr.Lib
             set => ObjectStore[Stack, varctx, name] = value;
         }
 
-        public abstract ITokenizer Tokenizer { get; }
-        public abstract ICompiler Compiler { get; }
-
         public ObjectRef ConstantVoid =>
             ComputeObject(VariableContext.Absolute, "static-void:null", () => IObject.Null);
 
@@ -94,6 +92,7 @@ namespace KScr.Lib
         public bool StdIoMode { get; set; } = false;
         public static bool ConfirmExit { get; set; }
         public static bool DebugMode { get; set; }
+        public static int ExitCode { get; set; } = 0;
 
         public uint NextObjId()
         {

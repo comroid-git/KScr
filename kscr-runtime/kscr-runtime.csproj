@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="mkdir $(TargetDir)\std" />
+      <Exec Command="mkdir $(TargetDir)\std" ContinueOnError="true" />
     </Target>
     
 </Project>

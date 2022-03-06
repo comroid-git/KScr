@@ -7,12 +7,15 @@ using KScr.Lib.Store;
 
 namespace KScr.Lib.Bytecode
 {
-    public sealed class Field : AbstractClassMember
+    public sealed class Property : AbstractClassMember
     {
-        public ExecutableCode Getter = null!;
-        public ExecutableCode Setter = null!;
+        public bool Gettable;
+        public bool Settable;
+        public ExecutableCode? Getter = null!;
+        public ExecutableCode? Setter = null!;
+        public override string FullName => Parent.FullName + '.' + Name + ": " + ReturnType.FullName;
 
-        public Field(Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(parent, name, modifier)
+        public Property(Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(parent, name, modifier)
         {
             ReturnType = returnType;
         }
@@ -20,11 +23,12 @@ namespace KScr.Lib.Bytecode
         public override ClassMemberType Type => ClassMemberType.Field;
         public ITypeInfo ReturnType { get; private set; }
 
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers => new[] { Getter, Setter };
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => new[] { Getter, Setter }
+            .Where(x => x != null).Cast<ExecutableCode>();
 
         public override IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
         {
-            return (alt == 0 ? Getter : Setter).Evaluate(vm, ref state, ref rev);
+            return (alt == 0 ? Getter! : Setter!).Evaluate(vm, ref state, ref rev);
         }
 
         public override void Write(Stream stream)
@@ -33,7 +37,8 @@ namespace KScr.Lib.Bytecode
             byte[] buf = RuntimeBase.Encoding.GetBytes(ReturnType.FullName);
             stream.Write(BitConverter.GetBytes(buf.Length));
             stream.Write(buf);
-            Getter.Write(stream);
+            stream.Write(BitConverter.GetBytes(Getter != null));
+            Getter?.Write(stream);
             stream.Write(BitConverter.GetBytes(Setter != null));
             Setter?.Write(stream);
         }
@@ -45,20 +50,25 @@ namespace KScr.Lib.Bytecode
             i += 4;
             ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len))!;
             i += len;
-            Getter = new ExecutableCode();
-            Getter.Load(vm, data, ref i);
-            bool settable = BitConverter.ToBoolean(data, i);
+            Gettable = BitConverter.ToBoolean(data, i);
             i += 1;
-            if (settable)
+            if (Gettable)
+            {
+                Getter = new ExecutableCode();
+                Getter.Load(vm, data, ref i);
+            }
+            Settable = BitConverter.ToBoolean(data, i);
+            i += 1;
+            if (Settable)
             {
                 Setter = new ExecutableCode();
                 Setter.Load(vm, data, ref i);
             }
         }
 
-        public new static Field Read(RuntimeBase vm, Class parent, byte[] data, ref int i)
+        public new static Property Read(RuntimeBase vm, Class parent, byte[] data, ref int i)
         {
-            return (AbstractClassMember.Read(vm, parent, data, ref i) as Field)!;
+            return (AbstractClassMember.Read(vm, parent, data, ref i) as Property)!;
         }
     }
 }

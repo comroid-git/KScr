@@ -1,8 +1,12 @@
 package org.comroid.kscr.test;
 
-public class PrintNumbers {
+import org.comroid.kscr.core.Throwable;
+
+public class PrintNumbers implements Throwable {
     public static int StackSize -> 64;
     public int StackValue -> 48;
+    public str Message -> "hello world";
+    public int ExitCode -> 3;
     
     public PrintNumbers() {}
     
@@ -47,7 +51,7 @@ public class PrintNumbers {
         stdio << "This is another method. Will it throw? " + thr;
         
         if (thr)
-            throw null;
+            throw this;
     }
     
     public static void printSomething(str textToPrint, int andAnInteger) {

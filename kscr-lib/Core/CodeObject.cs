@@ -11,7 +11,7 @@ namespace KScr.Lib.Core
     public sealed class CodeObject : IObject
     {
         public static readonly DummyMethod ToStringInvoc =
-            new(Class.VoidType, "toString", Class.LibClassModifier, Class.StringType);
+            new(Class.VoidType, "toString", MemberModifier.Public, Class.StringType);
         public static readonly SourcefilePosition ToStringInvocPos = new()
             { SourcefilePath = "<native>org/comroid/kscr/core/Object.kscr" };
 
@@ -39,7 +39,8 @@ namespace KScr.Lib.Core
                 vm.Stack.StepInto(vm, ToStringInvocPos, rev!, ToStringInvoc, ref rev, _rev =>
                 {
                     for (var i = 0; i < args.Length; i++)
-                        vm.PutObject(VariableContext.Local, param?[i].Name ?? throw new NullReferenceException(), args[i]);
+                        vm.PutObject(VariableContext.Local, param?[i].Name ?? throw new NullReferenceException(),
+                            args[i]);
                     do
                     {
                         // todo: step inside context of REV
@@ -49,6 +50,13 @@ namespace KScr.Lib.Core
                     return _rev;
                 });
 
+                return rev;
+            } else if (Type.BaseClass.Superclasses.Concat(Type.BaseClass.Interfaces)
+                       .SelectMany(x => x.DeclaredMembers.Values)
+                       .FirstOrDefault(x => x.Name == member && !x.IsAbstract()) is {} superMember)
+            {
+                var state = State.Normal;
+                superMember.Evaluate(vm, ref state, ref rev);
                 return rev;
             } else switch (member)
             {
@@ -65,6 +73,7 @@ namespace KScr.Lib.Core
                 case "getType":
                     return Type.SelfRef;
             }
+
             throw new InternalException("Method not implemented: " + member);
         }
     }

@@ -47,7 +47,7 @@ namespace KScr.Compiler.Class
                     // default state
                     break;
                 case TokenType.Super:
-                    _class.TypeParameters[pIndex].Specialization = TypeParameterSpecializationType.Super;
+                    (_class.TypeParameters[pIndex] as TypeParameter)!.Specialization = TypeParameterSpecializationType.Super;
                     break;
                 case TokenType.Dot:
                     ctx.TokenIndex += 1;
@@ -55,14 +55,14 @@ namespace KScr.Compiler.Class
                         || ctx.Token.Type != ctx.NextToken!.Type
                         || ctx.NextToken!.Type != TokenType.Dot)
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid Dot token");
-                    if (_class.TypeParameters[pIndex].Specialization == TypeParameterSpecializationType.N)
+                    if ((_class.TypeParameters[pIndex] as TypeParameter)!.Specialization == TypeParameterSpecializationType.N)
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Cannot list N");
-                    _class.TypeParameters[pIndex].Specialization = TypeParameterSpecializationType.List;
+                    (_class.TypeParameters[pIndex] as TypeParameter)!.Specialization = TypeParameterSpecializationType.List;
                     ctx.TokenIndex += 1;
                     return this;
                 case TokenType.ParDiamondClose:
                     _active = false;
-                    return Parent;
+                    return this;
                 default: throw new CompilerException(ctx.Token.SourcefilePosition, "Unexpected token: " + ctx.Token);
             }
 

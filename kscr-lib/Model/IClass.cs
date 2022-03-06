@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Store;
@@ -10,6 +11,14 @@ namespace KScr.Lib.Model
     {
         string Name { get; }
         string FullName { get; }
+        List<ITypeInfo> TypeParameters { get; }
+    }
+    
+    public struct TypeInfo : ITypeInfo
+    {
+        public string Name { get; set; }
+        public string FullName { get; set; }
+        public List<ITypeInfo> TypeParameters { get; set; }
     }
 
     public interface IClassInfo : ITypeInfo
@@ -26,12 +35,11 @@ namespace KScr.Lib.Model
         Class BaseClass { get; }
         ObjectRef SelfRef { get; }
         IDictionary<string, IClassMember> DeclaredMembers { get; }
-        Class.Instance CreateInstance(RuntimeBase vm, params IClass[] typeParameters);
+        Class.Instance CreateInstance(RuntimeBase vm, params ITypeInfo[] typeParameters);
     }
 
     public interface IClassInstance : IClass, IObject
     {
-        List<TypeParameter> TypeParameters { get; }
         TypeParameter.Instance[] TypeParameterInstances { get; }
     }
 
@@ -43,12 +51,14 @@ namespace KScr.Lib.Model
             ClassType = classType;
             Name = name;
             FullName = fullName;
+            TypeParameters = null!;
         }
 
         public MemberModifier Modifier { get; }
         public ClassType ClassType { get; }
         public string Name { get; }
         public string FullName { get; }
+        public List<ITypeInfo> TypeParameters { get; set; }
 
         public bool CanHold(IClass? type)
         {
@@ -60,6 +70,7 @@ namespace KScr.Lib.Model
 
     public enum ClassType : byte
     {
+        Unknown = 0,
         Class,
         Enum,
         Interface,
@@ -72,7 +83,7 @@ namespace KScr.Lib.Model
 
     public interface ITypeParameterInstance : ITypeParameterInfo
     {
-        IClass? TargetType { get; }
+        ITypeInfo? TargetType { get; }
     }
 
     public interface ITypeParameter : ITypeParameterInstance

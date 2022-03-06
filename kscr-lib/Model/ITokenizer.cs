@@ -84,16 +84,16 @@ namespace KScr.Lib.Model
         Implements = 0x0201_20,
 
         // accessibility keywords
-        Public = 0x0202_11,
-        Internal = 0x0202_12,
-        Protected = 0x0202_14,
-        Private = 0x0202_18,
+        Public     = 0b1000000010_00000001,
+        Internal   = 0b1000000010_00000010,
+        Protected  = 0b1000000010_00000100,
+        Private    = 0b1000000010_00001000,
 
         // class models
-        Class = 0x0204_10,
-        Interface = 0x0204_20,
-        Enum = 0x0204_40,
-        Annotation = 0x0204_80,
+        Class      = 0b1000000100_00010000,
+        Interface  = 0b1000000100_00100000,
+        Enum       = 0b1000000100_01000000,
+        Annotation = 0b1000000100_10000000,
 
         // static
         Static = 0x0208_10,

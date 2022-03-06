@@ -53,7 +53,8 @@ namespace KScr.Lib.Store
         public const string Delimiter = ".";
         private readonly List<CtxBlob> _dequeue = new();
         private string _local => _dequeue.Count == 0 ? "org.comroid.kscr.core.Object.main()" : _dequeue[^1].Local;
-        public ObjectRef? This => _dequeue[^1].It;
+        // todo fixme: these two need to go up until they find something
+        public ObjectRef? This => _dequeue[^1].It ??  _dequeue[^2].It;
         public IClass? Class => _dequeue[^1].Class ?? _dequeue[^2].Class;
         public string PrefixLocal => _local + Delimiter;
         public List<MethodParameter>? MethodParams { get; set; }

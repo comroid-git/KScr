@@ -209,9 +209,9 @@ namespace KScr.Runtime
                     break;
             }
 
-            if (result == null)
+            if (result == null || result.Type.Name == "type")
             {
-                Console.WriteLine("without exit value;");
+                Console.WriteLine("without exit value");
             }
             else if (result is Numeric num)
             {
@@ -226,13 +226,7 @@ namespace KScr.Runtime
 
             if (pressToExit)
                 PressToExit();
-            return state switch
-            {
-                State.Normal => 0,
-                State.Return => 1,
-                State.Throw => -1,
-                _ => throw new ArgumentOutOfRangeException()
-            };
+            return RuntimeBase.ExitCode;
         }
 
         private static void PressToExit()

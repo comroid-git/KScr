@@ -122,7 +122,7 @@ namespace KScr.Compiler
                         if (str.Length == 0 || !char.IsDigit(str[^1]))
                             token = new Token(srcPos, TokenType.Dot);
                         else
-                            LexicalToken(srcPos, isWhitespace, ref str, c, n, ref i);
+                            LexicalToken(isWhitespace, ref str, c, n, ref i);
                         break;
                     case ',':
                         token = new Token(srcPos, TokenType.Comma);
@@ -200,7 +200,7 @@ namespace KScr.Compiler
                         break;
                     // lexical tokens
                     default:
-                        LexicalToken(srcPos, isWhitespace, ref str, c, n, ref i);
+                        LexicalToken(isWhitespace, ref str, c, n, ref i);
                         break;
                 }
             }
@@ -213,7 +213,7 @@ namespace KScr.Compiler
             }
         }
 
-        private void LexicalToken(SourcefilePosition srcPos, bool isWhitespace, ref string str, char c,
+        private void LexicalToken(bool isWhitespace, ref string str, char c,
             char n, ref int i)
         {
             if (!isWhitespace)
@@ -295,6 +295,8 @@ namespace KScr.Compiler
                     token = new Token(srcPos, TokenType.IdentNumShort);
                     break;
                 case "int":
+                    if (char.IsLetter(n))
+                        break;
                     token = new Token(srcPos, TokenType.IdentNumInt);
                     break;
                 case "long":

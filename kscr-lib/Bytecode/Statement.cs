@@ -201,8 +201,11 @@ namespace KScr.Lib.Bytecode
                         throw new InternalException(
                             "Invalid throw statement; no Exception found");
                     state = SubStatement.Evaluate(vm, ref rev) == State.Normal ? State.Throw : state;
-                    throw new InternalException(
-                        "+++ EXCEPTION IN CODE: " + (rev.Value?.ToString(1) ?? "no message") + " +++");
+                    if (!Class.ThrowableType.CanHold(rev.Value.Type)
+                        || rev.Value is not CodeObject throwable)
+                        throw new InternalException("Value is not instanceof Throwable: " + rev.Value.ToString(0));
+                    RuntimeBase.ExitCode = (throwable.Invoke(vm, "ExitCode", ref rev).Value as Numeric).IntValue;
+                    throw new InternalException(throwable.Type.Name + ": " + throwable.Invoke(vm, "Message", ref rev).Value.ToString(0));
                 case (StatementComponentType.Code, BytecodeType.ParameterExpression):
                     if (InnerCode == null)
                         break;
@@ -429,12 +432,12 @@ namespace KScr.Lib.Bytecode
                             }
                             else if (rev.Value is Class.Instance cli2
                                      && cli2.DeclaredMembers.ContainsKey(Arg)
-                                     && cli2.DeclaredMembers[Arg] is Field fld1)
+                                     && cli2.DeclaredMembers[Arg] is Property fld1)
                             {
                                 fld1.Evaluate(vm, ref state, ref rev!);
                             }
                             else if (rev.Value!.Type.DeclaredMembers.ContainsKey(Arg)
-                                     && rev.Value!.Type.DeclaredMembers[Arg] is Field fld2)
+                                     && rev.Value!.Type.DeclaredMembers[Arg] is Property fld2)
                             {
                                 fld2.Evaluate(vm, ref state, ref rev!);
                             }

@@ -1,4 +1,6 @@
-﻿using KScr.Compiler.Code;
+﻿using System;
+using System.Linq;
+using KScr.Compiler.Code;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
@@ -12,9 +14,12 @@ namespace KScr.Compiler.Class
         private string? memberName;
         private int memberType;
         private Method method = null!;
-        private Field property = null!;
+        private Property property = null!;
         private MemberModifier? modifier;
         private ITypeInfo targetType = null!;
+        private bool _active = true;
+
+        public override bool Active => _active;
 
         private void ResetData()
         {
@@ -39,6 +44,7 @@ namespace KScr.Compiler.Class
                     ctx.SkipPackage();
                     break;
                case TokenType.Import:
+                   ctx.TokenIndex += 1;
                    var type = ctx.FindType(vm, ctx.FindCompoundWord())!.BaseClass;
                    ctx.Class.Imports.Add(type.FullName);
                    break;
@@ -88,15 +94,51 @@ namespace KScr.Compiler.Class
                         break;
                     targetType = Lib.Bytecode.Class.StringType;
                     break;
+                case TokenType.Extends:
+                    if (inBody)
+                        throw new CompilerException(ctx.Token.SourcefilePosition,
+                            "Invalid extends-Token inside class body");
+                    while (ctx.NextToken?.Type == TokenType.Word)
+                    {
+                        ctx.TokenIndex += 1;
+                        var cls = ctx.FindFullTypeInfo(vm) as IClassInstance;
+                        if (cls == null)
+                            throw new CompilerException(ctx.Token.SourcefilePosition,
+                                "Invalid extends-Token; Type not found");
+                        if (cls.ClassType != ctx.Class.ClassType)
+                            throw new CompilerException(ctx.Token.SourcefilePosition,
+                                "Invalid extends-Token; Type is not "+ctx.Class.ClassType+": " + cls.FullName);
+                        ctx.Class.Interfaces.Add(cls);
+                        ctx.TokenIndex += 1;
+                    }
+                    ctx.TokenIndex -= 1;
+                    break;
+                case TokenType.Implements:
+                    if (inBody)
+                        throw new CompilerException(ctx.Token.SourcefilePosition,
+                            "Invalid implements-Token inside class body");
+                    while (ctx.NextToken?.Type == TokenType.Word)
+                    {
+                        ctx.TokenIndex += 1;
+                        var cls = ctx.FindFullTypeInfo(vm) as IClassInstance;
+                        if (cls == null)
+                            throw new CompilerException(ctx.Token.SourcefilePosition,
+                                "Invalid implements-Token; Type not found: " + ctx.NextToken?.Arg!);
+                        if (cls.ClassType != ClassType.Interface)
+                            throw new CompilerException(ctx.Token.SourcefilePosition,
+                                "Invalid implements-Token; Type is not interface: " + cls.FullName);
+                        ctx.Class.Interfaces.Add(cls);
+                        ctx.TokenIndex += 1;
+                    }
+                    ctx.TokenIndex -= 1;
+                    break;
                 case TokenType.Word:
                     if (!inBody)
                         break;
                     if (targetType == null)
                     {
                         // is return type
-                        string targetTypeIdentifier = ctx.Token.Arg!;
-                        targetType = vm.FindTypeInfo(targetTypeIdentifier, ctx.Class, ctx.Package)
-                                     ?? throw new CompilerException(ctx.Token.SourcefilePosition, "Could not find type: " + targetTypeIdentifier);
+                        targetType = ctx.FindFullTypeInfo(vm);
                     }
                     else if (memberName == null)
                         // is name
@@ -105,6 +147,24 @@ namespace KScr.Compiler.Class
                     }
 
                     memberType = 2; // property
+                    if (ctx.NextToken?.Type == TokenType.ParAccOpen)
+                    {
+                        ctx.TokenIndex += 3;
+                        bool gettable, settable;
+                        gettable = ctx.PrevToken?.Type == TokenType.Word && ctx.PrevToken?.Arg == "get";
+                        settable = ctx.NextToken?.Type == TokenType.Word && ctx.NextToken?.Arg == "set";
+                        
+                        ctx.Class.DeclaredMembers[memberName!] = property = new Property(ctx.Class, memberName!, targetType,
+                            modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation 
+                                ? MemberModifier.Public | MemberModifier.Abstract 
+                                : MemberModifier.Protected))
+                        {
+                            Gettable = gettable,
+                            Settable = settable
+                        };
+                        ctx.TokenIndex += settable ? 3 : 1;
+                        ResetData();
+                    }
                     break;
                 // into computed property
                 // todo: setter
@@ -115,7 +175,10 @@ namespace KScr.Compiler.Class
                         break;
                     if (memberType != 2) // computed property
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Could not create field; invalid memberType = " + memberType);
-                    property = new Field(ctx.Class, memberName!, targetType, modifier ?? MemberModifier.Protected);
+                    ctx.Class.DeclaredMembers[memberName!] = property = new Property(ctx.Class, memberName!, targetType,
+                        modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation 
+                            ? MemberModifier.Public 
+                            : MemberModifier.Protected));
                     ctx = new CompilerContext(ctx, CompilerType.CodeExpression);
                     ctx.Statement = new Statement
                     {
@@ -142,9 +205,9 @@ namespace KScr.Compiler.Class
                     if (memberType == 3 && (modifier & MemberModifier.Static) == 0)
                         modifier |= MemberModifier.Static; // constructor must be static
                     // compile parameter definition
-                    method = new Method(ctx.Class, memberName ?? "ctor", targetType,
+                    ctx.Class.DeclaredMembers[memberName ?? "ctor"] = method = new Method(ctx.Class, memberName ?? "ctor", targetType,
                         modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation
-                            ? MemberModifier.Public
+                            ? MemberModifier.Public | MemberModifier.Abstract
                             : MemberModifier.Protected));
                     ctx = new CompilerContext(ctx, CompilerType.ParameterDefintion);
                     ctx.TokenIndex += 1;
@@ -160,7 +223,7 @@ namespace KScr.Compiler.Class
                         ctx = new CompilerContext(ctx, CompilerType.TypeParameterDefinition);
                         ctx.TokenIndex += 1;
                         CompilerLoop(vm, new TypeParameterDefinitionCompiler(this, ctx.Class), ref ctx);
-                        ctx.Parent!.TokenIndex = ctx.TokenIndex;
+                        ctx.Parent!.TokenIndex = ctx.TokenIndex - 1;
                         ctx = ctx.Parent!;
                     }
 
@@ -175,6 +238,7 @@ namespace KScr.Compiler.Class
                     if (method == null)
                         break;
 
+                    if (ctx.Class.ClassType is not (ClassType.Interface or ClassType.Annotation))
                     // compile method body
                     ctx = new CompilerContext(ctx, CompilerType.CodeStatement);
                     ctx.TokenIndex += 1;
@@ -184,6 +248,30 @@ namespace KScr.Compiler.Class
                     ctx.Parent!.TokenIndex = ctx.TokenIndex - 1;
                     ctx = ctx.Parent!;
                     ResetData();
+
+                    break;
+                case TokenType.Terminator:
+                    if (!inBody)
+                        break;
+                    if (method != null || property != null)
+                        ResetData();
+                    break;
+                case TokenType.ParAccClose:
+                    if (inBody)
+                    {
+                        _active = false;
+                        // validate class
+                        var context = ctx;
+                        var unimplemented = ctx.Class.Superclasses.Concat(ctx.Class.Interfaces)
+                            .SelectMany(x => x.DeclaredMembers.Values)
+                            .Where(x => x.IsAbstract())
+                            .Where(x => !context.Class.DeclaredMembers.ContainsKey(x.Name))
+                            .Select(x => x.FullName)
+                            .ToArray();
+                        if (unimplemented.Length > 0)
+                            throw new CompilerException(ctx.Token.SourcefilePosition,
+                                $"Class {ctx.Class} does not implement the following abstract members:\n\t-\t{string.Join("\n\t-\t", unimplemented)}");
+                    }
 
                     break;
                 default:

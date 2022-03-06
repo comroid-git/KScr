@@ -62,7 +62,7 @@ namespace KScr.Lib.Bytecode
             AbstractClassMember member = type switch
             {
                 ClassMemberType.Method => new Method(parent, name, null, modifier), // todo fixme
-                ClassMemberType.Field => new Field(parent, name, null, modifier),
+                ClassMemberType.Field => new Property(parent, name, null, modifier),
                 _ => throw new ArgumentOutOfRangeException()
             };
             member.Load(vm, data, ref index);

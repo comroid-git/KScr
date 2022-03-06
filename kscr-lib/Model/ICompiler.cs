@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Linq;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 
@@ -230,8 +232,38 @@ namespace KScr.Lib.Model
 
         public IClassInstance? FindType(RuntimeBase vm, string name)
         {
-            // todo: search in imports
+            if (Class.Imports.Contains(name))
+                return vm.FindType(name);
+            var imported = Class.Imports.FirstOrDefault(x => x.EndsWith(name));
+            if (imported != null)
+                return vm.FindType(imported);
             return vm.FindType(name, Package);
+        }
+
+        public ITypeInfo FindFullTypeInfo(RuntimeBase vm, bool _rec = false)
+        {
+            var type = FindType(vm, Token.Arg!);
+            if (type?.Name == Token.Arg && NextToken?.Type != TokenType.ParDiamondOpen)
+                return type!;
+            var baseCls = type?.BaseClass ?? Class;
+            if (baseCls == null && Class.TypeParameters.Any(x => x.Name == Token.Arg))
+            { // find base type param
+                return Class.TypeParameters.Find(x => x.Name == Token.Arg)!;
+            }
+            if (baseCls!.TypeParameters.Count > 0 && NextToken?.Type == TokenType.ParDiamondOpen)
+            {
+                List<ITypeInfo> args = new List<ITypeInfo>();
+                do
+                {
+                    TokenIndex += 2;
+                    args.Add(FindFullTypeInfo(vm, true));
+                } while (NextToken?.Type == TokenType.Comma);
+
+                TokenIndex += 1;
+                return baseCls.CreateInstance(vm, Class, args.ToArray());
+            }
+
+            return baseCls.TypeParameters.First(x => x.Name == Token.Arg);
         }
     }
 
@@ -269,7 +301,7 @@ namespace KScr.Lib.Model
 
         public abstract ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx);
 
-        public Package ResolvePackage(Package inside, string[] names, int i = 0)
+        public static Package ResolvePackage(Package inside, string[] names, int i = 0)
         {
             inside = inside.GetOrCreatePackage(names[i]);
             if (i + 1 >= names.Length)
