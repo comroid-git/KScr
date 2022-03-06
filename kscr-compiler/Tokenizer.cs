@@ -39,7 +39,7 @@ namespace KScr.Compiler
             return true;
         }
 
-        public IList<IToken> Tokenize(RuntimeBase vm, string sourcefilePath, string source)
+        public IList<IToken> Tokenize(string sourcefilePath, string source)
         {
             filePath=sourcefilePath;
             int len = source.Length;

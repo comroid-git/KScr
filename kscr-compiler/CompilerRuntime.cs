@@ -37,14 +37,14 @@ namespace KScr.Compiler
         public CompilerContext CompileClass(FileInfo file, ref CompilerContext context, AbstractCompiler abstractCompiler)
         {
             string? source = File.ReadAllText(file.FullName);
-            var tokenlist = Tokenizer.Tokenize(this, file.FullName,
+            var tokenlist = Tokenizer.Tokenize(file.FullName,
                 source ?? throw new FileNotFoundException("Source file not found: " + file.FullName));
             var tokens = new TokenContext(tokenlist);
             string clsName = file.Name.Substring(0, file.Name.Length - AbstractCompiler.FileAppendix.Length);
             // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
             var pkg = context?.Package ?? Package.RootPackage;
-            pkg = abstractCompiler.ResolvePackage(pkg, abstractCompiler.FindClassPackageName(tokens).Split("."));
-            var classInfo = abstractCompiler.FindClassInfo(tokens, clsName);
+            pkg = abstractCompiler.ResolvePackage(pkg, AbstractCompiler.FindClassPackageName(tokens).Split("."));
+            var classInfo = AbstractCompiler.FindClassInfo(AbstractCompiler.FindClassPackageName(tokens), tokens, clsName);
             var cls = pkg.GetOrCreateClass(this, clsName, classInfo.Modifier);
             var prev = context;
             context = new CompilerContext(context ?? new CompilerContext(new CompilerContext(), pkg), cls, tokens,

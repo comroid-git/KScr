@@ -235,7 +235,7 @@ namespace KScr.Lib.Model
         bool PushToken();
         bool PushToken(Token? token);
         bool PushToken(ref Token? token);
-        IList<IToken> Tokenize(RuntimeBase vm, string sourcefilePath, string source);
+        IList<IToken> Tokenize(string sourcefilePath, string source);
         void Accept(char c, char n, char p, ref int i, ref string str);
     }
 

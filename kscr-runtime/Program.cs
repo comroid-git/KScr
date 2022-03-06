@@ -48,7 +48,8 @@ namespace KScr.Runtime
                         ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories) : new[]{ new FileInfo(path) }));
                     compileTime = RuntimeBase.UnixTime() - compileTime;
                     ioTime = RuntimeBase.UnixTime();
-                    WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput));
+                    WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput), cmd.Sources.SelectMany(path => Directory.Exists(path)
+                        ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories) : new[]{ new FileInfo(path) }));
                     ioTime = RuntimeBase.UnixTime() - ioTime;
                 })
                 .WithParsed<CmdExecute>(cmd =>
@@ -144,7 +145,7 @@ namespace KScr.Runtime
                 string code = "stdio << " + expr + ';';
 
                 long compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                var tokens = new TokenContext(new Tokenizer().Tokenize(VM, Directory.GetCurrentDirectory(), code));
+                var tokens = new TokenContext(new Tokenizer().Tokenize(Directory.GetCurrentDirectory(), code));
                 var context = new CompilerContext(contextBase, tokens, CompilerType.CodeStatement);
                 AbstractCompiler.CompilerLoop(VM, compiler, ref context);
                 compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - compileTime;
@@ -158,11 +159,11 @@ namespace KScr.Runtime
             }
         }
 
-        private static void WriteClasses(DirectoryInfo output)
+        private static void WriteClasses(DirectoryInfo output, IEnumerable<FileInfo> sources)
         {
             if (output.Exists)
                 output.Delete(true);
-            Package.RootPackage.Write(output);
+            Package.RootPackage.Write(output, sources.Select(f => AbstractCompiler.FindClassInfo(f, new Tokenizer())).ToArray());
         }
 
         private static void HandleResult(State state, IObject? result, long compileTime, long executeTime)

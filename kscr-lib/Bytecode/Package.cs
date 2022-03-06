@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using KScr.Lib.Model;
 
 namespace KScr.Lib.Bytecode
 {
@@ -27,13 +28,17 @@ namespace KScr.Lib.Bytecode
                 .First(it => it.IsStatic());
         }
 
-        public void Write(DirectoryInfo dir)
+        public void Write(DirectoryInfo dir, ClassInfo[]? names = null)
         {
+            names ??= Array.Empty<ClassInfo>();
             if (FullName == "org.comroid.kscr.core")
                 return;
             foreach (var member in Members.Values)
-                if (member is Package pkg)
-                    pkg.Write(dir.CreateSubdirectory(member.Name));
+                if (!names.Any(name => name.FullName.StartsWith(member.FullName)))
+                    // ReSharper disable once RedundantJumpStatement
+                    continue;
+                else if (member is Package pkg)
+                    pkg.Write(dir.CreateSubdirectory(member.Name), names);
                 else if (member is Class cls)
                     cls.Write(new FileInfo(Path.Combine(dir.FullName, member.Name + ".kbin")));
                 else throw new NotSupportedException("Member is of unsupported type: " + member.GetType());
@@ -43,7 +48,7 @@ namespace KScr.Lib.Bytecode
 
         public override void Write(Stream stream)
         {
-            Write(new FileInfo((stream as FileStream)!.Name).Directory!);
+            throw new InvalidOperationException();
         }
 
         public static void ReadAll(RuntimeBase vm, DirectoryInfo dir)

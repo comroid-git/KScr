@@ -277,7 +277,7 @@ namespace KScr.Lib.Model
             return ResolvePackage(inside, names, i + 1);
         }
 
-        public string FindClassPackageName(TokenContext ctx)
+        public static string FindClassPackageName(TokenContext ctx)
         {
             ctx.TokenIndex = 0;
             if (ctx.Token.Type != TokenType.Package)
@@ -301,11 +301,18 @@ namespace KScr.Lib.Model
             return yields;
         }
 
-        public ClassInfo FindClassInfo(TokenContext ctx, string? clsName)
+        public static ClassInfo FindClassInfo(FileInfo file, ITokenizer tokenizer)
+        {
+            var tokens = new TokenContext(tokenizer.Tokenize(file.FullName, File.ReadAllText(file.FullName)));
+            return FindClassInfo(FindClassPackageName(tokens), tokens, file.Name.Substring(0, file.Name.IndexOf('.')));
+        }
+
+        public static ClassInfo FindClassInfo(string findClassPackageName, TokenContext ctx, string? clsName)
         {
             ctx.TokenIndex = 0;
             // skip package and imports if necessary
-            string packageName = FindClassPackageName(ctx);
+            string packageName = findClassPackageName;
+            ctx.SkipPackage();
             ctx.SkipImports();
 
             if (ctx.Token.Type == TokenType.Terminator)
