@@ -29,6 +29,7 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 - - [ ] `native` Keyword
 - - [ ] Static and Dynamic components
 - - [x] Prettier StackTrace
+- - [x] Compiling into Bytecode
 - - [ ] Pipe operators
 - - [ ] Reflection
 - - [ ] Encoding Support
