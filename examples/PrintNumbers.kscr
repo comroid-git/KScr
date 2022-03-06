@@ -19,7 +19,8 @@ public class PrintNumbers {
             stdio << i;
         }
             
-        PrintNumbers.throingMethod(false);
+        PrintNumbers obj = new PrintNumbers();
+        obj.throingMethod(null);
         
         stdio << "length of ABC is " + "ABC".length();
         //todo: static methods NEED the class definition currently 
@@ -29,21 +30,20 @@ public class PrintNumbers {
         // todo: this does not compile. find solution for empty statements
         //for (;;) stdio << "abc";
         
-        PrintNumbers obj = null;
         stdio << "look at my cool object: " + obj.toString(0);
         stdio << "and of course i can access it this way too: " + obj.StackValue;
         
-        PrintNumbers.callThroingMethod();
+        obj.callThroingMethod();
     }
     
     public str toString(short variant) {
         return "Items in stack: " + StackValue + "/" + PrintNumbers.StackSize;
     }
     
-    public static void callThroingMethod() {
-        PrintNumbers.throingMethod(true);
+    public void callThroingMethod() {
+        this.throingMethod(true);
     }
-    public static void throingMethod(byte thr) {
+    public void throingMethod(byte thr) {
         stdio << "This is another method. Will it throw? " + thr;
         
         if (thr)
