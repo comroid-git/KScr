@@ -115,10 +115,10 @@ namespace KScr.Lib.Store
                 throw ex;
 #pragma warning restore CA2200
             }
-            catch (System.Exception ex)
+            /*catch (System.Exception ex)
             {
                 throw new StackTraceException(_dequeue[^1].CallLocation, _local, ex);
-            }
+            }*/
             finally
             {
                 StepUp(vm);

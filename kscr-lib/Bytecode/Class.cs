@@ -109,7 +109,9 @@ namespace KScr.Lib.Bytecode
 
         public void Write(FileInfo file)
         {
-            Write(file.OpenWrite());
+            var write = file.OpenWrite();
+            Write(write);
+            write.Close();
         }
 
         public override void Write(Stream stream)
@@ -129,12 +131,14 @@ namespace KScr.Lib.Bytecode
             }
             stream.Write(BitConverter.GetBytes(BytecodeMembers.Count()));
             stream.Write(NewLineBytes);
+            stream.Flush();
             foreach (var member in BytecodeMembers)
             {
+                stream.Write(NewLineBytes);
                 member.Write(stream);
                 stream.Write(NewLineBytes);
+                stream.Flush();
             }
-            stream.Flush();
         }
 
         public override void Load(RuntimeBase vm, byte[] data, ref int index)
@@ -150,6 +154,7 @@ namespace KScr.Lib.Bytecode
             index += 1;
             Modifier = (MemberModifier)BitConverter.ToUInt32(data, index);
             index += 4;
+            Initialize(vm);
             
             // imports
             len = BitConverter.ToInt32(data, index);
@@ -167,6 +172,7 @@ namespace KScr.Lib.Bytecode
             index += NewLineBytes.Length;
             for (var i = 0; i < len; i++)
             {
+                index += NewLineBytes.Length;
                 var member = AbstractClassMember.Read(vm, this, data, ref index);
                 DeclaredMembers[member.Name] = member;
                 index += NewLineBytes.Length;
@@ -256,7 +262,7 @@ namespace KScr.Lib.Bytecode
                         throw new InternalException("Cannot invoke non-static method from static context");
                     IRuntimeSite? site = icm;
                     State state = State.Normal;
-                    ObjectRef? output = new ObjectRef(VoidType.DefaultInstance);
+                    ObjectRef? output = vm.Stack.This;
                     do
                     {
                         site = site.Evaluate(vm, ref state, ref output);

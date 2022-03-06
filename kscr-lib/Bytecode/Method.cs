@@ -8,10 +8,39 @@ using KScr.Lib.Store;
 
 namespace KScr.Lib.Bytecode
 {
-    public class MethodParameter
+    public class MethodParameter : IBytecode
     {
         public IClassInstance Type { get; set; }
         public string Name { get; set; }
+
+        public void Write(Stream stream)
+        {
+            byte[] buf = RuntimeBase.Encoding.GetBytes(Name);
+            stream.Write(BitConverter.GetBytes(buf.Length));
+            stream.Write(buf);
+            buf = RuntimeBase.Encoding.GetBytes(Type.FullName);
+            stream.Write(BitConverter.GetBytes(buf.Length));
+            stream.Write(buf);
+        }
+
+        public void Load(RuntimeBase vm, byte[] data, ref int index)
+        {
+            int len = BitConverter.ToInt32(data, index);
+            index += 4;
+            Name = RuntimeBase.Encoding.GetString(data, index, len);
+            index += len;
+            len = BitConverter.ToInt32(data, index);
+            index += 4;
+            Type = vm.FindType(RuntimeBase.Encoding.GetString(data, index, len))!;
+            index += len;
+        }
+
+        public static MethodParameter Read(RuntimeBase vm, byte[] data, ref int i)
+        {
+            var param = new MethodParameter();
+            param.Load(vm, data, ref i);
+            return param;
+        }
     }
 
     public interface IMethod : IClassMember
@@ -83,6 +112,9 @@ namespace KScr.Lib.Bytecode
             byte[] buf = RuntimeBase.Encoding.GetBytes(ReturnType.FullName);
             stream.Write(BitConverter.GetBytes(buf.Length));
             stream.Write(buf);
+            stream.Write(BitConverter.GetBytes(Parameters.Count));
+            foreach (var parameter in Parameters)
+                parameter.Write(stream);
             Body.Write(stream);
         }
 
@@ -92,6 +124,11 @@ namespace KScr.Lib.Bytecode
             i += 4;
             ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len))!;
             i += len;
+            len = BitConverter.ToInt32(data, i);
+            i += 4;
+            Parameters.Clear();
+            for (; len > 0; len--)
+                Parameters.Add(MethodParameter.Read(vm, data, ref i));
             Body = new ExecutableCode();
             Body.Load(vm, data, ref i);
         }

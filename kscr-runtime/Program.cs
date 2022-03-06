@@ -188,6 +188,8 @@ namespace KScr.Runtime
 
         private static void WriteClasses(DirectoryInfo output)
         {
+            if (output.Exists)
+                output.Delete(true);
             Package.RootPackage.Write(output);
         }
 

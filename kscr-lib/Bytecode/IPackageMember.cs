@@ -30,6 +30,9 @@ namespace KScr.Lib.Bytecode
             Parent = parent;
             _name = name;
             Modifier = modifier;
+
+            if (Parent != null)
+                Parent.Members[name] = this;
         }
 
         public IDictionary<string, IPackageMember> Members { get; } =

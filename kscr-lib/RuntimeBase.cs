@@ -180,13 +180,13 @@ namespace KScr.Lib
                 Console.WriteLine($"An exception occurred:\t{stc.Message}");
                 foreach (var stackTraceElement in Stack.StackTrace)
                     Console.WriteLine($"\t- Caused by:\t{stackTraceElement.Message}");
-            }
+            }/*
             catch (System.Exception exc)
             {
                 Console.WriteLine($"An internal exception occurred:\t{exc.Message}");
                 while (exc.InnerException is InternalException inner && (exc = inner) != null)
                     Console.WriteLine($"\t\t- Caused by:\t{inner.Message}");
-            }
+            }*/
 
             return rev?.Value;
         }
@@ -207,17 +207,17 @@ namespace KScr.Lib
                 else if (name.EndsWith("double>"))
                     return Class.NumericDoubleType;
                 else return Class.NumericType.DefaultInstance;
-            if (name.EndsWith("byte"))
+            if (name == "byte")
                 return Class.NumericByteType;
-            if (name.EndsWith("short"))
+            if (name == "short")
                 return Class.NumericShortType;
-            if (name.EndsWith("int"))
+            if (name == "int")
                 return Class.NumericIntType;
-            if (name.EndsWith("long"))
+            if (name == "long")
                 return Class.NumericLongType;
-            if (name.EndsWith("float"))
+            if (name == "float")
                 return Class.NumericFloatType;
-            if (name.EndsWith("double"))
+            if (name == "double")
                 return Class.NumericDoubleType;
             if (name.EndsWith("str"))
                 return Class.StringType.DefaultInstance;

@@ -37,5 +37,6 @@ Global
 	GlobalSection(RiderSharedRunConfigurations) = postSolution
 		File = Test Runtime.run.xml
 		File = Compile System Package.run.xml
+		File = Test Compile.run.xml
 	EndGlobalSection
 EndGlobal

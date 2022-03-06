@@ -71,7 +71,7 @@ namespace KScr.Lib.Bytecode
             StatementComponent stmt;
             for (var i = 0; i < len; i++)
             {
-                stmt = new StatementComponent();
+                stmt = new StatementComponent{Statement = this};
                 stmt.Load(vm, data, ref index);
                 Main.Add(stmt);
             }
@@ -146,7 +146,7 @@ namespace KScr.Lib.Bytecode
                     SubStatement!.Evaluate(vm, ref rev);
                     break;
                 case (StatementComponentType.Expression, BytecodeType.TypeExpression):
-                    rev = Package.RootPackage.GetClass(vm, Arg.Split("."))!.SelfRef;
+                    rev = vm.FindType(Arg).SelfRef;
                     break;
                 case (StatementComponentType.Expression, BytecodeType.ConstructorCall):
                     if (SubComponent?.CodeType != BytecodeType.ParameterExpression)

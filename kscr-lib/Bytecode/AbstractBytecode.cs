@@ -3,7 +3,13 @@ using System.IO;
 
 namespace KScr.Lib.Bytecode
 {
-    public abstract class AbstractBytecode
+    public interface IBytecode
+    {
+        void Write(Stream stream);
+        void Load(RuntimeBase vm, byte[] data, ref int index);
+    }
+
+    public abstract class AbstractBytecode : IBytecode
     {
         protected static readonly byte[] NewLineBytes = RuntimeBase.Encoding.GetBytes("\n");
         protected abstract IEnumerable<AbstractBytecode> BytecodeMembers { get; }

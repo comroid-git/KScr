@@ -29,6 +29,8 @@ namespace KScr.Lib.Bytecode
 
         public void Write(DirectoryInfo dir)
         {
+            if (FullName == "org.comroid.kscr.core")
+                return;
             foreach (var member in Members.Values)
                 if (member is Package pkg)
                     pkg.Write(dir.CreateSubdirectory(member.Name));
@@ -58,13 +60,13 @@ namespace KScr.Lib.Bytecode
             foreach (var sub in dir.EnumerateDirectories())
             {
                 var pkg = Read(vm, sub, it);
-                it.Members[pkg.Name] = pkg;
+                //it.Members[pkg.Name] = pkg;
             }
 
             foreach (var cls in dir.EnumerateFiles("*.kbin"))
             {
                 var kls = Class.Read(vm, cls, it);
-                it.Members[kls.Name] = kls;
+                //it.Members[kls.Name] = kls;
             }
 
             return it;
