@@ -26,10 +26,12 @@ namespace KScr.Runtime
         public IEnumerable<string> Sources { get; set; }
         [Option(HelpText = "The path of the output directory. Defaults to ./build/compile")]
         public DirectoryInfo? Output{ get; set; }
-        [Option(HelpText = "Whether or not this operation is compiling the system package")]
+        [Option(HelpText = "Whether this operation is compiling the system package")]
         public bool System { get; set; }
-        [Option(HelpText = "Whether or not to keep the program open until a key is pressed after the action")]
+        [Option(HelpText = "Whether to keep the program open until a key is pressed after the action")]
         public bool Confirm { get; set; }
+        [Option(HelpText = "Whether to run in Debug mode")]
+        public bool Debug { get; set; }
     }
     
     [Verb("execute", HelpText = "Compile and Execute one or more .kscr Files")]
@@ -39,8 +41,10 @@ namespace KScr.Runtime
         public IEnumerable<DirectoryInfo> Classpath { get; set; }
         [Option(HelpText = "The source paths to compile", Required = true)]
         public IEnumerable<string> Sources { get; set; }
-        [Option(HelpText = "Whether or not to keep the program open until a key is pressed after the action")]
+        [Option(HelpText = "Whether to keep the program open until a key is pressed after the action")]
         public bool Confirm { get; set; }
+        [Option(HelpText = "Whether to run in Debug mode")]
+        public bool Debug { get; set; }
     }
     
     [Verb("run", HelpText = "Load and Execute one or more .kbin Files")]
@@ -48,8 +52,10 @@ namespace KScr.Runtime
     {
         [Option(HelpText = "The classpath to execute", Required = true)]
         public string Classpath { get; set; }
-        [Option(HelpText = "Whether or not to keep the program open until a key is pressed after the action")]
+        [Option(HelpText = "Whether to keep the program open until a key is pressed after the action")]
         public bool Confirm { get; set; }
+        [Option(HelpText = "Whether to run in Debug mode")]
+        public bool Debug { get; set; }
     }
     
     internal class Program
@@ -67,12 +73,12 @@ namespace KScr.Runtime
             var state = State.Normal;
             var yield = VM.ConstantVoid.Value!;
             long compileTime = -1, executeTime = -1;
-            bool pressToExit = false;
 
             Parser.Default.ParseArguments<CmdCompile, CmdExecute, CmdRun>(args)
                 .WithParsed<CmdCompile>(cmd =>
                 {
-                    pressToExit = cmd.Confirm;
+                    RuntimeBase.ConfirmExit = cmd.Confirm;
+                    RuntimeBase.DebugMode = cmd.Debug;
                     // load std package
                     Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
                     // load additional classpath packages
@@ -86,7 +92,8 @@ namespace KScr.Runtime
                 })
                 .WithParsed<CmdExecute>(cmd =>
                 {
-                    pressToExit = cmd.Confirm;
+                    RuntimeBase.ConfirmExit = cmd.Confirm;
+                    RuntimeBase.DebugMode = cmd.Debug;
                     // load std package
                     Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
                     // load additional classpath packages
@@ -99,7 +106,8 @@ namespace KScr.Runtime
                 })
                 .WithParsed<CmdRun>(cmd =>
                 {
-                    pressToExit = cmd.Confirm;
+                    RuntimeBase.ConfirmExit = cmd.Confirm;
+                    RuntimeBase.DebugMode = cmd.Debug;
                     // load std package
                     Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
                     // load classpath packages
@@ -116,7 +124,7 @@ namespace KScr.Runtime
                         });
                 });
 
-            return HandleExit(state, yield, compileTime, executeTime, pressToExit);
+            return HandleExit(state, yield, compileTime, executeTime, RuntimeBase.ConfirmExit);
         }
 
         private static StatementComponent BuildProgramArgsParams(string[] args)

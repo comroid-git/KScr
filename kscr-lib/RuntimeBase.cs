@@ -91,6 +91,8 @@ namespace KScr.Lib
         public ObjectRef StdioRef { get; } = new StandardIORef();
 
         public bool StdIoMode { get; set; } = false;
+        public static bool ConfirmExit { get; set; }
+        public static bool DebugMode { get; set; }
 
         public uint NextObjId()
         {
@@ -180,13 +182,16 @@ namespace KScr.Lib
                 Console.WriteLine($"An exception occurred:\t{stc.Message}");
                 foreach (var stackTraceElement in Stack.StackTrace)
                     Console.WriteLine($"\t\tat\t{stackTraceElement.Message}");
-            }/*
+            }
             catch (System.Exception exc)
             {
+                if (DebugMode)
+                    // ReSharper disable once PossibleIntendedRethrow
+                    throw exc;
                 Console.WriteLine($"An internal exception occurred:\t{exc.Message}");
                 while (exc.InnerException is InternalException inner && (exc = inner) != null)
                     Console.WriteLine($"\t\t- Caused by:\t{inner.Message}");
-            }*/
+            }
 
             return rev?.Value;
         }
