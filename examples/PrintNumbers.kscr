@@ -25,8 +25,8 @@ public class PrintNumbers implements Throwable {
             stdio << i;
         }
         
-        int i = range.end();
         stdio << "and once more:";
+        int i = range.end();
         while (i--) {
             stdio << "number: " + i;
         }
@@ -59,7 +59,7 @@ public class PrintNumbers implements Throwable {
     public void throingMethod(byte thr) {
         stdio << "This is another method. Will it throw? " + thr;
         
-        if (true) {
+        if (true) { // any 'multipart' statement
             if (thr)
                 throw this;
             stdio << "This only is printed when it does not throw";
