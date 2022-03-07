@@ -269,6 +269,14 @@ namespace KScr.Lib.Bytecode
                         return _rev;
                     });
                     break;
+                case (StatementComponentType.Code, BytecodeType.StmtWhile):
+                    vm.Stack.StepInside(vm, SourcefilePosition, "while", ref rev, _rev =>
+                    {
+                        while ((state = SubStatement.Evaluate(vm, ref buf)) == State.Normal && buf.ToBool())
+                            state = InnerCode.Evaluate(vm, ref _rev);
+                        return _rev;
+                    });
+                    break;
                 case (StatementComponentType.Operator, _):
                     if (state != State.Normal)
                         break;
@@ -485,10 +493,8 @@ namespace KScr.Lib.Bytecode
                     state = SubStatement.Evaluate(vm, ref buf!);
                     rev.ReadAccessor!.Evaluate(vm, ref buf);
                     break;
-                case (StatementComponentType.Lambda, _):
-                    throw new NotImplementedException();
                 default:
-                    throw new NotImplementedException(CodeType.ToString());
+                    throw new NotImplementedException("Not Implemented: " + CodeType.ToString());
             }
 
             if (state == State.Normal && PostComponent != null)

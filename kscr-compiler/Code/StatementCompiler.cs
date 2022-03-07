@@ -230,6 +230,40 @@ namespace KScr.Compiler.Code
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
                     return this;
+                case TokenType.While:
+                    if (ctx.NextToken?.Type != TokenType.ParRoundOpen)
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid while-Statement; missing condition");
+                    ctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.StmtWhile
+                    };
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.StmtWhile,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
+                    };
+                    
+                    // parse condition
+                    ctx.TokenIndex += 2;
+                    subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
+                    subctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Expression,
+                        CodeType = BytecodeType.StmtCond
+                    };
+                    CompilerLoop(vm, new ExpressionCompiler(this, false, TokenType.ParRoundClose), ref subctx);
+                    ctx.LastComponent!.SubStatement = subctx.Statement;
+                    ctx.TokenIndex = subctx.TokenIndex + 1;
+                    
+                    // parse body
+                    subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    CompilerLoop(vm, new ExpressionCompiler(this, false,
+                        ctx.Token.Type == TokenType.ParAccOpen ? TokenType.ParAccClose : TokenType.Terminator), ref subctx);
+                    ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
+                    ctx.TokenIndex = subctx.TokenIndex;
+                    break;
                 case TokenType.ParAccClose:
                     _active = false;
                     return this;

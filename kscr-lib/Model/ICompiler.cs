@@ -240,7 +240,7 @@ namespace KScr.Lib.Model
             return vm.FindType(name, Package);
         }
 
-        public ITypeInfo FindTypeInfo(RuntimeBase vm, bool _rec = false)
+        public ITypeInfo? FindTypeInfo(RuntimeBase vm, bool _rec = false)
         {
             var type = FindType(vm, Token.Arg!);
             if (type?.Name == Token.Arg && NextToken?.Type != TokenType.ParDiamondOpen)
@@ -256,15 +256,14 @@ namespace KScr.Lib.Model
                 do
                 {
                     TokenIndex += 2;
-                    args.Add(FindTypeInfo(vm, true));
+                    args.Add(FindTypeInfo(vm, true) ?? throw new InvalidOperationException());
                 } while (NextToken?.Type == TokenType.Comma);
 
                 TokenIndex += 1;
                 return baseCls.CreateInstance(vm, Class, args.ToArray());
             }
 
-            return baseCls.TypeParameters.FirstOrDefault(x => x.Name == Token.Arg) 
-                   ?? throw new CompilerException(PrevComponent.SourcefilePosition, "Unable to find class: " + Token.Arg);
+            return baseCls.TypeParameters.FirstOrDefault(x => x.Name == Token.Arg);
         }
     }
 

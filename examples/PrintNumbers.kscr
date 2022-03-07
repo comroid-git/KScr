@@ -9,7 +9,7 @@ public class PrintNumbers implements Throwable {
     public str Message -> "hello world";
     public int ExitCode -> 3;
     
-    public PrintNumbers() {}
+    public PrintNumbers();
     
     // prints numbers 0 to 11
     public static void main() {
@@ -23,6 +23,13 @@ public class PrintNumbers implements Throwable {
         for (int i = range.end(); i; --i) {
             stdio << i;
         }
+        
+        int i = range.end();
+        stdio << "and once more:";
+        while (i--) {
+            stdio << "number: " + i;
+        }
+        stdio << "i is now " + i; // should be 0
             
         PrintNumbers obj = new PrintNumbers();
         obj.throingMethod(null);

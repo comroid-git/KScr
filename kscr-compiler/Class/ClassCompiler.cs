@@ -205,7 +205,8 @@ namespace KScr.Compiler.Class
                     if (memberType == 3 && (modifier & MemberModifier.Static) == 0)
                         modifier |= MemberModifier.Static; // constructor must be static
                     // compile parameter definition
-                    ctx.Class.DeclaredMembers[memberName ?? "ctor"] = method = new Method(ctx.Class, memberName ?? "ctor", targetType,
+                    ctx.Class.DeclaredMembers[memberName ?? Method.ConstructorName] = method
+                        = new Method(ctx.Class, memberName ?? Method.ConstructorName, targetType,
                         modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation
                             ? MemberModifier.Public | MemberModifier.Abstract
                             : MemberModifier.Protected));
@@ -244,7 +245,7 @@ namespace KScr.Compiler.Class
                     ctx.TokenIndex += 1;
                     CompilerLoop(vm, new StatementCompiler(this), ref ctx);
                     method.Body = ctx.ExecutableCode;
-                    ctx.Class.DeclaredMembers[memberName ?? "ctor"] = method;
+                    ctx.Class.DeclaredMembers[memberName ?? Method.ConstructorName] = method;
                     ctx.Parent!.TokenIndex = ctx.TokenIndex - 1;
                     ctx = ctx.Parent!;
                     ResetData();
@@ -254,7 +255,16 @@ namespace KScr.Compiler.Class
                     if (!inBody)
                         break;
                     if (method != null || property != null)
+                    {
+                        if (method != null && method.Body == null)
+                            if (method.Name == Method.ConstructorName)
+                                method.Body = new ExecutableCode();
+                            else if (!method.IsAbstract())
+                                throw new CompilerException(ctx.Token.SourcefilePosition,
+                                    $"Invalid method {method.Name}: Not abstract and no body defined");
                         ResetData();
+                    }
+
                     break;
                 case TokenType.ParAccClose:
                     if (inBody)
