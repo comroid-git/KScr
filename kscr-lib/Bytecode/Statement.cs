@@ -20,23 +20,32 @@ namespace KScr.Lib.Bytecode
         public StatementComponentType Type { get; set; }
         public IClassInstance TargetType { get; set; } = Class.VoidType.DefaultInstance;
         public List<StatementComponent> Main { get; } = new();
+        public ExecutableCode? Finally { get; set; }
 
         public State Evaluate(RuntimeBase vm, ref ObjectRef rev)
         {
             var state = State.Normal;
-            rev = vm.Stack.This!;
-
-            foreach (var component in Main)
+            try
             {
-                switch (component.Type)
+                rev = vm.Stack.This!;
+
+                foreach (var component in Main)
                 {
-                    default:
-                        state = component.Evaluate(vm, ref rev);
+                    switch (component.Type)
+                    {
+                        default:
+                            state = component.Evaluate(vm, ref rev);
+                            break;
+                    }
+
+                    if (state != State.Normal)
                         break;
                 }
-
-                if (state != State.Normal)
-                    break;
+            }
+            finally
+            {
+                if (Finally != null)
+                    Finally.Evaluate(vm, ref rev);
             }
 
             return state;
@@ -52,6 +61,8 @@ namespace KScr.Lib.Bytecode
             stream.Write(BitConverter.GetBytes(Main.Count));
             foreach (var component in Main)
                 component.Write(stream);
+            stream.Write(BitConverter.GetBytes(Finally != null));
+            Finally?.Write(stream);
         }
 
         public override void Load(RuntimeBase vm, byte[] data, ref int index)
@@ -74,6 +85,11 @@ namespace KScr.Lib.Bytecode
                 stmt = new StatementComponent{Statement = this};
                 stmt.Load(vm, data, ref index);
                 Main.Add(stmt);
+            }
+            if (BitConverter.ToBoolean(data, index++))
+            {
+                Finally = new ExecutableCode();
+                Finally.Load(vm, data, ref index);
             }
         }
 
@@ -117,8 +133,8 @@ namespace KScr.Lib.Bytecode
 
         public virtual State Evaluate(RuntimeBase vm, ref ObjectRef rev)
         {
-            ObjectRef? buf = vm.Stack.This!;
             var state = State.Normal;
+            ObjectRef? buf = vm.Stack.This!;
             switch (Type, CodeType)
             {
                 case (StatementComponentType.Expression, BytecodeType.LiteralNumeric):
@@ -205,7 +221,8 @@ namespace KScr.Lib.Bytecode
                         || rev.Value is not CodeObject throwable)
                         throw new InternalException("Value is not instanceof Throwable: " + rev.Value.ToString(0));
                     RuntimeBase.ExitCode = (throwable.Invoke(vm, "ExitCode", ref rev).Value as Numeric).IntValue;
-                    throw new InternalException(throwable.Type.Name + ": " + throwable.Invoke(vm, "Message", ref rev).Value.ToString(0));
+                    throw new InternalException(throwable.Type.Name + ": " +
+                                                throwable.Invoke(vm, "Message", ref rev).Value.ToString(0));
                 case (StatementComponentType.Code, BytecodeType.ParameterExpression):
                     if (InnerCode == null)
                         break;
@@ -257,7 +274,8 @@ namespace KScr.Lib.Bytecode
                         var iterable = (buf.Value as IObject)!;
                         var iter = iterable.Invoke(vm, "iterator", ref buf!);
                         var iterator = iter.Value;
-                        var n = vm[VariableContext.Local, Arg] = new ObjectRef(iterator.Type.TypeParameterInstances[0].ResolveType(vm, iterator.Type));
+                        var n = vm[VariableContext.Local, Arg] =
+                            new ObjectRef(iterator.Type.TypeParameterInstances[0].ResolveType(vm, iterator.Type));
                         while (state == State.Normal && iterator.Invoke(vm, "hasNext", ref n).ToBool())
                         {
                             n.Value = iterator.Invoke(vm, "next", ref iter).Value;
@@ -496,7 +514,7 @@ namespace KScr.Lib.Bytecode
                 default:
                     throw new NotImplementedException("Not Implemented: " + CodeType.ToString());
             }
-
+            
             if (state == State.Normal && PostComponent != null)
                 state = PostComponent.Evaluate(vm, ref rev!);
             return state;

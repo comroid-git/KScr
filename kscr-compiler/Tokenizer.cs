@@ -369,6 +369,8 @@ namespace KScr.Compiler
                     AddToToken(TokenType.Abstract);
                     break;
                 case "final":
+                    if (char.IsLetter(n))
+                        break;
                     AddToToken(TokenType.Final);
                     break;
                 default:

@@ -264,6 +264,19 @@ namespace KScr.Compiler.Code
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
                     break;
+                case TokenType.Finally:
+                    if (ctx.Statement == null)
+                        throw new CompilerException(ctx.Token.SourcefilePosition,
+                            "Invalid finally-Statement; cannot be first statement");
+                    
+                    // parse body
+                    ctx.TokenIndex += 1;
+                    subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    CompilerLoop(vm, new ExpressionCompiler(this, false,
+                        ctx.Token.Type == TokenType.ParAccOpen ? TokenType.ParAccClose : TokenType.Terminator), ref subctx);
+                    ctx.Statement.Finally = subctx.ExecutableCode;
+                    ctx.TokenIndex = subctx.TokenIndex;
+                    break;
                 case TokenType.ParAccClose:
                     _active = false;
                     return this;

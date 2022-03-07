@@ -27,7 +27,8 @@ namespace KScr.Lib.Exception
         public System.Exception? InnerTrace { get; }
         public string Local { get; }
 
-        public override string Message => $"({CallLoc.SourceName} line {CallLoc.SourceLine} pos {CallLoc.SourceCursor}) {base.Message}";
+        public override string Message => $"({CallLoc.SourceName}" + (CallLoc.SourceLine == 0 ? string.Empty 
+            : $" [line {CallLoc.SourceLine} pos {CallLoc.SourceCursor}]") + ") " + base.Message;
 
         public StackTraceException(CallLocation srcPos, string local, System.Exception innerTrace)
             : base(innerTrace.Message, innerTrace)

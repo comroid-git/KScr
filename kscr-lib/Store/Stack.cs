@@ -45,6 +45,7 @@ namespace KScr.Lib.Store
         public string Local { get; protected internal set; }
         public ObjectRef? It { get; protected internal set; }
         public IClass? Class { get; protected internal set; }
+        public bool IsSub { get; protected internal set; }
 #pragma warning restore CS0628
     }
 
@@ -67,8 +68,8 @@ namespace KScr.Lib.Store
                 VariableContext.Absolute => name,
                 _ => throw new ArgumentOutOfRangeException(nameof(varctx), varctx, null)
             };
-            if(varctx == VariableContext.Local && _dequeue.Count > 0 && !_dequeue[^1]._keys.Contains(me))
-                _dequeue[^1]._keys.Add(me);
+            if(varctx == VariableContext.Local && _dequeue.Count > 0 && !_dequeue[^1].IsSub && !_dequeue[^1]._keys.Contains(me))
+                _dequeue[^1]._keys.Add(me); // cache in stack for cleanup
             CtxBlob? parent;
             var arr = new[] { me };
             if (_dequeue.Count > 0 && (parent = _dequeue[^1].Parent) != null)
@@ -77,7 +78,7 @@ namespace KScr.Lib.Store
                     VariableContext.Local => parent.Local + Delimiter + name,
                     VariableContext.Absolute => name,
                     _ => throw new ArgumentOutOfRangeException(nameof(varctx), varctx, null)
-                });
+                }).Distinct();
             return arr;
         }
 
@@ -85,13 +86,13 @@ namespace KScr.Lib.Store
         {
             _dequeue.Add(new CtxBlob(new CallLocation
             {
-                SourceName = _local,
+                SourceName = _local + ".." + sub,
                 SourceLine = srcPos.SourcefileLine,
                 SourceCursor = srcPos.SourcefileCursor
-            }, PrefixLocal + sub)
+            }, _local)
             {
-                Local = sub,
-                Parent = _dequeue.Last()
+                Parent = _dequeue.Last(),
+                IsSub = true
             });
             WrapExecution(vm, ref t, exec);
         }

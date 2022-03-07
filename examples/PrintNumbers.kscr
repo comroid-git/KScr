@@ -18,6 +18,7 @@ public class PrintNumbers implements Throwable {
         stdio << "print numbers " + range.start() + " to (exclusive) " + (range.end() - 1 + 1) + ":";
         foreach (i : range)
             stdio << i;
+        //stdio << "i is now " + i; // should error (it did last time)
         
         stdio << "and now backwards bcs we're cool:";
         for (int i = range.end(); i; --i) {
@@ -58,8 +59,11 @@ public class PrintNumbers implements Throwable {
     public void throingMethod(byte thr) {
         stdio << "This is another method. Will it throw? " + thr;
         
-        if (thr)
-            throw this;
+        if (true) {
+            if (thr)
+                throw this;
+            stdio << "This only is printed when it does not throw";
+        } finally stdio << "This sums up the throingMethod";
     }
     
     public static void printSomething(str textToPrint, int andAnInteger) {
