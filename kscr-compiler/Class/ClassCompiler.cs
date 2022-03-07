@@ -237,7 +237,11 @@ namespace KScr.Compiler.Class
                     }
 
                     if (method == null)
-                        break;
+                        if (modifier == MemberModifier.Static && memberName == null)
+                            ctx.Class.DeclaredMembers[memberName ?? Method.StaticInitializerName]
+                                = method = new Method(ctx.Class, Method.StaticInitializerName,
+                                    Lib.Bytecode.Class.VoidType, MemberModifier.Private | MemberModifier.Static);
+                        else break;
 
                     if (ctx.Class.ClassType is not (ClassType.Interface or ClassType.Annotation))
                     // compile method body
@@ -245,7 +249,6 @@ namespace KScr.Compiler.Class
                     ctx.TokenIndex += 1;
                     CompilerLoop(vm, new StatementCompiler(this), ref ctx);
                     method.Body = ctx.ExecutableCode;
-                    ctx.Class.DeclaredMembers[memberName ?? Method.ConstructorName] = method;
                     ctx.Parent!.TokenIndex = ctx.TokenIndex - 1;
                     ctx = ctx.Parent!;
                     ResetData();

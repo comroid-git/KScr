@@ -82,6 +82,7 @@ namespace KScr.Lib.Bytecode
     public sealed class Method : AbstractClassMember, IMethod
     {
         public const string ConstructorName = "ctor";
+        public const string StaticInitializerName = "cctor";
         public ExecutableCode Body = null!;
 
         public Method(Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(parent, name, modifier)

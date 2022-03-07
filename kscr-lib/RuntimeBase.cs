@@ -45,6 +45,7 @@ namespace KScr.Lib
             if (Initialized) return;
             Class.TypeType.Initialize(this);
             Class.VoidType.Initialize(this);
+            Class.EnumType.Initialize(this);
             Class.ArrayType.Initialize(this);
             Class.StringType.Initialize(this);
             Class.RangeType.Initialize(this);
@@ -60,6 +61,17 @@ namespace KScr.Lib
             Class.NumericDoubleType.Initialize(this);
 
             Class.InitializePrimitives(this);
+            
+            Class.TypeType.LateInitialization(this);
+            Class.VoidType.LateInitialization(this);
+            Class.EnumType.LateInitialization(this);
+            Class.ArrayType.LateInitialization(this);
+            Class.StringType.LateInitialization(this);
+            Class.RangeType.LateInitialization(this);
+            Class.IterableType.LateInitialization(this);
+            Class.IteratorType.LateInitialization(this);
+            Class.ThrowableType.LateInitialization(this);
+            Class.NumericType.LateInitialization(this);
             
             Initialized = true;
         }

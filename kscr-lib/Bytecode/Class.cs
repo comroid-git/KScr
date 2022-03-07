@@ -16,7 +16,6 @@ namespace KScr.Lib.Bytecode
         public static readonly Package LibClassPackage = Package.RootPackage.GetOrCreatePackage("org")
             .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr").GetOrCreatePackage("core");
 
-        public const string StaticInitializerName = "cctor";
         public static readonly Class VoidType = new(LibClassPackage, "Object", true, MemberModifier.Public);
         public static readonly Class TypeType = new(LibClassPackage, "type", true, MemberModifier.Public | MemberModifier.Final);
         public static readonly Class EnumType = new(LibClassPackage, "Enum", true, MemberModifier.Public | MemberModifier.Final) { TypeParameters = { new TypeParameter("T") } };
@@ -48,6 +47,7 @@ namespace KScr.Lib.Bytecode
         }
 
         private bool _initialized = false;
+        private bool _lateInitialized = false;
         
         public void Initialize(RuntimeBase vm) {
             if (_initialized) return;
@@ -68,6 +68,15 @@ namespace KScr.Lib.Bytecode
                 .Cast<ITypeInfo>()
                 .ToArray());
             _initialized = true;
+        }
+        
+        public void LateInitialization(RuntimeBase vm)
+        {
+            if (_lateInitialized) return;
+            State state = State.Normal;
+            ObjectRef? rev = null;
+            Evaluate(vm, ref state, ref rev);
+            _lateInitialized = true;
         }
 
         public Instance DefaultInstance { get; private set; } = null!;
@@ -123,9 +132,16 @@ namespace KScr.Lib.Bytecode
 
         public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
         {
-            return (this as IClass).ClassMembers
-                .First(x => x.Name == StaticInitializerName)
-                .Evaluate(vm, ref state, ref rev, alt);
+            var icm = DeclaredMembers.Values.FirstOrDefault(x => x.Name == Method.StaticInitializerName);
+            if (icm == null)
+                return null;
+            vm.Stack.StepInto(vm, new SourcefilePosition(), icm, ref rev, _rev =>
+            {
+                State _state = State.Normal;
+                icm.Evaluate(vm, ref _state, ref _rev);
+                return _rev;
+            });
+            return icm;
         }
 
         public static IClassInstance _NumericType(NumericMode mode)
@@ -213,6 +229,7 @@ namespace KScr.Lib.Bytecode
             index += 1;
             Modifier = (MemberModifier)BitConverter.ToUInt32(data, index);
             index += 4;
+            
             Initialize(vm);
             
             // imports
@@ -262,6 +279,8 @@ namespace KScr.Lib.Bytecode
                 DeclaredMembers[member.Name] = member;
                 index += NewLineBytes.Length;
             }
+            
+            LateInitialization(vm);
         }
 
         public override string ToString() => FullName;

@@ -48,9 +48,9 @@ namespace KScr.Compiler
             pkg = AbstractCompiler.ResolvePackage(pkg, AbstractCompiler.FindClassPackageName(tokens).Split("."));
             var classInfo = AbstractCompiler.FindClassInfo(AbstractCompiler.FindClassPackageName(tokens), tokens, clsName);
             var cls = pkg.GetOrCreateClass(this, clsName, classInfo.Modifier, classInfo.ClassType);
-            var context = new CompilerContext(new CompilerContext(new CompilerContext(), pkg), cls, tokens,
-                CompilerType.Class);
+            var context = new CompilerContext(new CompilerContext(new CompilerContext(), pkg), cls, tokens, CompilerType.Class);
             AbstractCompiler.CompilerLoop(this, new ClassCompiler(), ref context);
+            cls.LateInitialization(this);
         }
 
         public override void CompilePackage(DirectoryInfo dir, ref CompilerContext context, AbstractCompiler abstractCompiler)

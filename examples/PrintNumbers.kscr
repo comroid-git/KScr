@@ -9,6 +9,10 @@ public class PrintNumbers implements Throwable {
     public str Message -> "hello world";
     public int ExitCode -> 3;
     
+    static {
+        stdio << "this is a static initializer";
+    }
+    
     public PrintNumbers();
     
     // prints numbers 0 to 11
