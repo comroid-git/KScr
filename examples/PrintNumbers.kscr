@@ -33,7 +33,7 @@ public class PrintNumbers implements Throwable {
         stdio << "i is now " + i; // should be 0
             
         PrintNumbers obj = new PrintNumbers();
-        obj.throingMethod(null);
+        obj.throingMethod(false);
         
         stdio << "length of ABC is " + "ABC".length();
         //todo: static methods NEED the class definition currently 
