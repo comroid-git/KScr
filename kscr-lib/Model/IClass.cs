@@ -34,7 +34,12 @@ namespace KScr.Lib.Model
     {
         Class BaseClass { get; }
         ObjectRef SelfRef { get; }
+        IEnumerable<IClassMember> ClassMembers => DeclaredMembers.Values.Concat(InheritedMembers);
+        IEnumerable<IClassMember> InheritedMembers => Inheritors.Where(it => it != null).SelectMany(it => it.ClassMembers);
         IDictionary<string, IClassMember> DeclaredMembers { get; }
+        IEnumerable<IClassInstance> Inheritors => Superclasses.Concat(Interfaces);
+        IList<IClassInstance> Superclasses { get; }
+        IList<IClassInstance> Interfaces { get; }
         Class.Instance CreateInstance(RuntimeBase vm, params ITypeInfo[] typeParameters);
     }
 

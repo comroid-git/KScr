@@ -29,7 +29,7 @@ namespace KScr.Lib.Core
         public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
         {
             // try use overrides first
-            if (Type.DeclaredMembers.TryGetValue(member, out var icm))
+            if (Type.ClassMembers.FirstOrDefault(x => x.Name == member) is {} icm)
             {
                 if (icm.IsStatic())
                     throw new InternalException("Static method invoked on object instance");
@@ -51,8 +51,7 @@ namespace KScr.Lib.Core
                 });
 
                 return rev;
-            } else if (Type.BaseClass.Superclasses.Concat(Type.BaseClass.Interfaces)
-                       .SelectMany(x => x.DeclaredMembers.Values)
+            } else if ((Type.BaseClass as IClass).InheritedMembers
                        .FirstOrDefault(x => x.Name == member && !x.IsAbstract()) is {} superMember)
             {
                 var state = State.Normal;

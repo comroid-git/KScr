@@ -272,10 +272,9 @@ namespace KScr.Compiler.Class
                         _active = false;
                         // validate class
                         var context = ctx;
-                        var unimplemented = ctx.Class.Superclasses.Concat(ctx.Class.Interfaces)
-                            .SelectMany(x => x.DeclaredMembers.Values)
+                        var unimplemented = (ctx.Class as IClass).InheritedMembers
                             .Where(x => x.IsAbstract())
-                            .Where(x => !context.Class.DeclaredMembers.ContainsKey(x.Name))
+                            .Where(x => !(context.Class as IClass).DeclaredMembers.ContainsKey(x.Name))
                             .Select(x => x.FullName)
                             .ToArray();
                         if (unimplemented.Length > 0)

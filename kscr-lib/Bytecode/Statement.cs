@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
@@ -169,12 +170,12 @@ namespace KScr.Lib.Bytecode
                         throw new InternalException(
                             "Invalid constructor call; missing parameter expression");
                     var type = vm.FindType(Arg)!;
-                    var ctor = (type.DeclaredMembers["ctor"] as IMethod)!;
+                    var ctor = (type.ClassMembers.First(x => x.Name == Method.ConstructorName) as IMethod)!;
                     var obj = new CodeObject(vm, type);
                     buf = new ObjectRef(Class.VoidType.DefaultInstance, ctor.Parameters.Count);
                     rev = vm.PutObject(VariableContext.Absolute, "instance-" + type.FullName + "-" + obj.ObjectId,
                         obj);
-                    vm.Stack.StepInside(vm, SourcefilePosition, type.Name + ".ctor", ref rev, _rev =>
+                    vm.Stack.StepInside(vm, SourcefilePosition, type.Name + '.' + Method.ConstructorName, ref rev, _rev =>
                     {
                         State state = State.Normal;
                         SubComponent.Evaluate(vm, ref buf);
@@ -360,7 +361,7 @@ namespace KScr.Lib.Bytecode
                             state = SubComponent.Evaluate(vm, ref buf!);
                             // try to use overrides
                             if (op == Operator.Plus && rev?.Value?.Type.Name == "str"
-                                || (rev?.Value?.Type.BaseClass.DeclaredMembers.ContainsKey("op" + op) ?? false))
+                                || ((rev?.Value?.Type.BaseClass as IClass).ClassMembers.Any(x => x.Name == "op" + op)))
                             {
                                 rev = rev.Value!.Invoke(vm, "op" + op, ref buf, buf.Value)!;
                             }
@@ -386,8 +387,7 @@ namespace KScr.Lib.Bytecode
                     {
                         case BytecodeType.ExpressionVariable:
                             if (rev?.Value is { } obj1
-                                && obj1.Type.DeclaredMembers.ContainsKey(Arg)
-                                && obj1.Type.DeclaredMembers[Arg] is { } icm1)
+                                && obj1.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm1)
                             {
                                 // call member
                                 IRuntimeSite? site = icm1;
@@ -408,8 +408,7 @@ namespace KScr.Lib.Bytecode
                             if (rev.Value == null)
                                 break;
                             if (rev.Value is Class.Instance cli1
-                                && cli1.DeclaredMembers.ContainsKey(Arg)
-                                && cli1.DeclaredMembers[Arg] is IMethod mtd1)
+                                && (cli1 as IClass).ClassMembers.FirstOrDefault(x => x.Name == Arg) is IMethod mtd1)
                             {
                                 var param1 = mtd1.Parameters;
                                 buf = new ObjectRef(Class.VoidType.DefaultInstance, param1.Count);
@@ -425,8 +424,7 @@ namespace KScr.Lib.Bytecode
                                 });
                             }
                             else if (rev.Value!.Type.Primitive
-                                     && rev.Value.Type.DeclaredMembers.ContainsKey(Arg)
-                                     && rev.Value.Type.DeclaredMembers[Arg] is IMethod mtd2)
+                                     && rev.Value.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is IMethod mtd2)
                             {
                                 var param2 = mtd2.Parameters;
                                 buf = new ObjectRef(Class.VoidType.DefaultInstance, param2.Count);
@@ -441,8 +439,7 @@ namespace KScr.Lib.Bytecode
                                     return _rev.Value!.Invoke(vm, Arg, ref _rev!, buf.Stack)!;
                                 });
                             }
-                            else if (rev.Value!.Type.DeclaredMembers.ContainsKey(Arg)
-                                     && rev.Value.Type.DeclaredMembers[Arg] is IMethod mtd3)
+                            else if (rev.Value!.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg)is IMethod mtd3)
                             {
                                 var param3 = mtd3.Parameters;
                                 buf = new ObjectRef(Class.VoidType.DefaultInstance, param3.Count);
@@ -459,13 +456,11 @@ namespace KScr.Lib.Bytecode
                                 });
                             }
                             else if (rev.Value is Class.Instance cli2
-                                     && cli2.DeclaredMembers.ContainsKey(Arg)
-                                     && cli2.DeclaredMembers[Arg] is Property fld1)
+                                     && (cli2 as IClass).ClassMembers.FirstOrDefault(x => x.Name == Arg) is Property fld1)
                             {
                                 fld1.Evaluate(vm, ref state, ref rev!);
                             }
-                            else if (rev.Value!.Type.DeclaredMembers.ContainsKey(Arg)
-                                     && rev.Value!.Type.DeclaredMembers[Arg] is Property fld2)
+                            else if (rev.Value!.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is Property fld2)
                             {
                                 fld2.Evaluate(vm, ref state, ref rev!);
                             }

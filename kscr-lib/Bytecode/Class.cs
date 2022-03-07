@@ -16,10 +16,11 @@ namespace KScr.Lib.Bytecode
         public static readonly Package LibClassPackage = Package.RootPackage.GetOrCreatePackage("org")
             .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr").GetOrCreatePackage("core");
 
-        public const string StaticInitializer = "initializer_static";
-        public static readonly Class VoidType = new(LibClassPackage, "void", true, MemberModifier.Public | MemberModifier.Final);
+        public const string StaticInitializerName = "cctor";
+        public static readonly Class VoidType = new(LibClassPackage, "Object", true, MemberModifier.Public);
         public static readonly Class TypeType = new(LibClassPackage, "type", true, MemberModifier.Public | MemberModifier.Final);
-        public static readonly Class ArrayType = new(LibClassPackage, "array", true, MemberModifier.Public | MemberModifier.Final);
+        public static readonly Class EnumType = new(LibClassPackage, "Enum", true, MemberModifier.Public | MemberModifier.Final) { TypeParameters = { new TypeParameter("T") } };
+        public static readonly Class ArrayType = new(LibClassPackage, "array", true, MemberModifier.Public | MemberModifier.Final) { TypeParameters = { new TypeParameter("T") } };
         public static readonly Class StringType = new(LibClassPackage, "str", true, MemberModifier.Public | MemberModifier.Final);
         public static readonly Class RangeType = new(LibClassPackage, "range", true, MemberModifier.Public | MemberModifier.Final);
         public static readonly Class NumericType = new(LibClassPackage, "num", true, MemberModifier.Public | MemberModifier.Final) { TypeParameters = { new TypeParameter("T") } };
@@ -50,12 +51,21 @@ namespace KScr.Lib.Bytecode
         
         public void Initialize(RuntimeBase vm) {
             if (_initialized) return;
+            switch (ClassType)
+            {
+                    case ClassType.Class:
+                        Superclasses.Add(VoidType.DefaultInstance);
+                        break;
+                    case ClassType.Enum:
+                        Superclasses.Add(EnumType.DefaultInstance);
+                        break;
+            }
             DefaultInstance = CreateInstance(vm, TypeParameters
                 .Cast<ITypeParameter?>()
                 .Select(tp => tp?.SpecializationTarget)
                 .Where(it => it != null)
                 // ReSharper disable once SuspiciousTypeConversion.Global
-                .Cast<IClass>()
+                .Cast<ITypeInfo>()
                 .ToArray());
             _initialized = true;
         }
@@ -66,13 +76,12 @@ namespace KScr.Lib.Bytecode
 
         public IDictionary<string, IClassMember> DeclaredMembers { get; } =
             new ConcurrentDictionary<string, IClassMember>();
-        public IList<IClassInstance> Superclasses { get; } =
-            new List<IClassInstance>();
-        public IList<IClassInstance> Interfaces { get; } =
-            new List<IClassInstance>();
+
+        public IList<IClassInstance> Superclasses { get; } = new List<IClassInstance>();
+        public IList<IClassInstance> Interfaces { get; } = new List<IClassInstance>();
 
         protected override IEnumerable<AbstractBytecode> BytecodeMembers =>
-            DeclaredMembers.Values.Where(it => it is AbstractBytecode).Cast<AbstractBytecode>();
+            (this as IClass).ClassMembers.Where(it => it is AbstractBytecode).Cast<AbstractBytecode>();
 
         public IList<string> Imports { get; } =
             new List<string>();
@@ -107,15 +116,16 @@ namespace KScr.Lib.Bytecode
             return Name == "void" 
                    || type?.BaseClass.Name == "void" 
                    || type?.BaseClass == BaseClass 
-                   || type!.BaseClass.Superclasses.Select(x => x.BaseClass).Any(super => super.FullName == FullName)
-                   || type!.BaseClass.Interfaces.Select(x => x.BaseClass).Any(super => super.FullName == FullName);
+                   || (type?.BaseClass as IClass)!.Inheritors.Select(x => x.BaseClass).Any(super => super.FullName == FullName);
         }
 
         public bool Primitive { get; }
 
         public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
         {
-            return DeclaredMembers[StaticInitializer].Evaluate(vm, ref state, ref rev, alt);
+            return (this as IClass).ClassMembers
+                .First(x => x.Name == StaticInitializerName)
+                .Evaluate(vm, ref state, ref rev, alt);
         }
 
         public static IClassInstance _NumericType(NumericMode mode)
@@ -297,6 +307,8 @@ namespace KScr.Lib.Bytecode
             public ObjectRef SelfRef { get; internal set; } = null!;
             public TypeParameter.Instance[] TypeParameterInstances { get; }
             public IDictionary<string, IClassMember> DeclaredMembers => BaseClass.DeclaredMembers;
+            public IList<IClassInstance> Superclasses => BaseClass.Superclasses;
+            public IList<IClassInstance> Interfaces => BaseClass.Interfaces;
 
             public List<ITypeInfo> TypeParameters => BaseClass.TypeParameters;
             public MemberModifier Modifier => BaseClass.Modifier;
@@ -402,6 +414,21 @@ namespace KScr.Lib.Bytecode
             AddToClass(TypeType, getType);
             
             #endregion
+  
+            #region Enum Class
+
+            var name = new Property(EnumType, "name", StringType, MemberModifier.Public);
+            var values = new DummyMethod(
+                EnumType, 
+                "values",
+                MemberModifier.Public | MemberModifier.Static,
+                ArrayType.CreateInstance(vm, EnumType, EnumType.TypeParameters[0]));
+            
+            AddToClass(EnumType, toString);
+            AddToClass(EnumType, equals);
+            AddToClass(EnumType, getType);
+            
+            #endregion
 
             #region Numeric Class
             
@@ -502,7 +529,7 @@ namespace KScr.Lib.Bytecode
             #endregion
         }
 
-        private static void AddToClass(Class type, DummyMethod dummyMethod) => type.DeclaredMembers[dummyMethod.Name] = dummyMethod;
+        private static void AddToClass(Class type, IClassMember dummyMethod) => type.DeclaredMembers[dummyMethod.Name] = dummyMethod;
     }
 
     public sealed class TypeParameter : ITypeParameter
