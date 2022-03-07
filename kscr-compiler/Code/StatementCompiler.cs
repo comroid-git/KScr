@@ -188,7 +188,7 @@ namespace KScr.Compiler.Code
                     return this;
                 case TokenType.ForEach:
                     if (ctx.NextToken?.Type != TokenType.ParRoundOpen)
-                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid forn-Statement; missing specification");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid foreach-Statement; missing specification");
                     ctx.Statement = new Statement
                     {
                         Type = StatementComponentType.Code,
@@ -204,13 +204,13 @@ namespace KScr.Compiler.Code
                     ctx.TokenIndex += 2;
                     // parse n's name
                     if (ctx.Token.Type != TokenType.Word)
-                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid forn-Statement; missing n Identifier");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid foreach-Statement; missing n Identifier");
                     ctx.LastComponent!.Arg = ctx.Token.Arg!;
 
                     // parse range
                     ctx.TokenIndex += 2;
                     if (ctx.PrevToken!.Type != TokenType.Colon)
-                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid forn-Statement; missing delimiter colon");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid foreach-Statement; missing delimiter colon");
                     subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
                     subctx.Statement = new Statement
                     {
