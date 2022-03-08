@@ -17,18 +17,23 @@ using Array = System.Array;
 
 namespace KScr.Runtime
 {
-    internal class Program
+    public class Program
     {
-        private static readonly KScrRuntime VM = new();
+        public static readonly KScrRuntime VM;
 
         private static readonly string
             DefaultOutput = Path.Combine(Directory.GetCurrentDirectory(), "build", "compile");
         private static readonly string
             StdPackageLocation = Path.Combine(RuntimeBase.GetSdkHome().FullName, "std");
 
-        private static int Main(string[] args)
+        static Program()
         {
+            VM = new();
             VM.Initialize();
+        }
+
+        public static int Main(params string[] args)
+        {
             var state = State.Normal;
             var yield = VM.ConstantVoid.Value!;
             long compileTime = -1, executeTime = -1, ioTime = -1;

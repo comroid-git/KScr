@@ -71,7 +71,7 @@ namespace KScr.Lib.Store
         public virtual IEvaluable? ReadAccessor { get; set; }
         public virtual IEvaluable? WriteAccessor { get; set; }
 
-        public IObject? this[RuntimeBase vm, int i]
+        public IObject this[RuntimeBase vm, int i]
         {
             get
             {
@@ -83,12 +83,12 @@ namespace KScr.Lib.Store
                 }
                 else
                 {
-                    return Stack[i];
+                    return Stack[i] ?? IObject.Null;
                 }
             }
             set
             {
-                CheckTypeCompat(value!.Type);
+                CheckTypeCompat(value.Type);
                 if (WriteAccessor != null)
                 {
                     var output = new ObjectRef(Class.VoidType.DefaultInstance) { Value = value };
@@ -101,12 +101,12 @@ namespace KScr.Lib.Store
             }
         }
 
-        public IObject? Value
+        public IObject Value
         {
-            get => Stack[0];
+            get => Stack[0] ?? IObject.Null;
             set
             {
-                CheckTypeCompat(value!.Type);
+                CheckTypeCompat(value.Type);
                 InsertToStack(0, value);
             }
         }

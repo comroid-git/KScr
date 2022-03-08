@@ -454,6 +454,7 @@ namespace KScr.Lib.Bytecode
             AddToClass(NumericType, toString);
             AddToClass(NumericType, equals);
             AddToClass(NumericType, getType);
+            NumericType.Interfaces.Add(ThrowableType.DefaultInstance);
             
             #endregion
 

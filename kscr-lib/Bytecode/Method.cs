@@ -103,7 +103,6 @@ namespace KScr.Lib.Bytecode
             state = Body.Evaluate(vm, ref rev);
             //if (state != State.Return)
 //                throw new InternalException("Invalid state after method: " + state);
-            state = State.Normal;
             return null;
         }
 

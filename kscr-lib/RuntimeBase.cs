@@ -106,7 +106,7 @@ namespace KScr.Lib
         public bool StdIoMode { get; set; } = false;
         public static bool ConfirmExit { get; set; }
         public static bool DebugMode { get; set; }
-        public static int ExitCode { get; set; } = 0;
+        public static int ExitCode { get; set; } = int.MinValue;
 
         public uint NextObjId()
         {
@@ -178,7 +178,7 @@ namespace KScr.Lib
         public IObject? Execute()
         {
             var method = Package.RootPackage.FindEntrypoint();
-            ObjectRef? rev = Class.VoidType.SelfRef;
+            ObjectRef rev = Class.VoidType.SelfRef;
 
             try
             {
@@ -206,8 +206,8 @@ namespace KScr.Lib
                 while (exc.InnerException is InternalException inner && (exc = inner) != null)
                     Console.WriteLine($"\t\t- Caused by:\t{inner.Message}");
             }
-
-            return rev?.Value;
+            ExitCode = rev.Value is Numeric num ? num.IntValue : rev.ToBool() ? 0 : ExitCode;
+            return rev.Value;
         }
 
         public IClassInstance? FindType(string name, Package? package = null)

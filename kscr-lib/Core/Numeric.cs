@@ -92,6 +92,8 @@ namespace KScr.Lib.Core
             {
                 case "toString":
                     return String.Instance(vm, StringValue);
+                case "ExitCode":
+                    return Constant(vm, IntValue);
                 case "equals":
                     if (args[0] is not Numeric other)
                         return vm.ConstantFalse;

@@ -38,11 +38,15 @@ namespace KScr.Compiler
 
         public void CompileClass(FileInfo file)
         {
-            string? source = File.ReadAllText(file.FullName);
-            var tokenlist = new Tokenizer().Tokenize(file.FullName,
-                source ?? throw new FileNotFoundException("Source file not found: " + file.FullName));
-            var tokens = new TokenContext(tokenlist);
             string clsName = file.Name.Substring(0, file.Name.Length - AbstractCompiler.FileAppendix.Length);
+            CompileClass(clsName, File.ReadAllText(file.FullName), file.FullName);
+        }
+        
+        public void CompileClass(string clsName, string source, string filePath = "org/comroid/kscr/core/System.kscr")
+        {
+            var tokenlist = new Tokenizer().Tokenize(filePath,
+                source ?? throw new FileNotFoundException("Source file not found: " + filePath));
+            var tokens = new TokenContext(tokenlist);
             // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
             var pkg = Package.RootPackage;
             pkg = AbstractCompiler.ResolvePackage(pkg, AbstractCompiler.FindClassPackageName(tokens).Split("."));

@@ -219,7 +219,7 @@ namespace KScr.Lib.Bytecode
                             "Invalid throw statement; no Exception found");
                     state = SubStatement.Evaluate(vm, ref rev) == State.Normal ? State.Throw : state;
                     if (!Class.ThrowableType.CanHold(rev.Value.Type)
-                        || rev.Value is not CodeObject throwable)
+                        || rev.Value is not { } throwable)
                         throw new InternalException("Value is not instanceof Throwable: " + rev.Value.ToString(0));
                     RuntimeBase.ExitCode = (throwable.Invoke(vm, "ExitCode", ref rev).Value as Numeric).IntValue;
                     throw new InternalException(throwable.Type.Name + ": " +
