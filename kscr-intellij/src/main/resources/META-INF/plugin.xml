@@ -16,13 +16,13 @@
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
 
-        <fileType name="KScr Source File"
+        <fileType name="KScr File"
                   implementationClass="org.comroid.kscr.intellij.KScrSourceFileType"
                   fieldName="FILE_TYPE"
                   language="KScr"
                   extensions="kscr"
         />
-        <fileType name="KScr Binary File"
+        <fileType name="KScr File"
                   implementationClass="org.comroid.kscr.intellij.KScrBinaryFileType"
                   fieldName="FILE_TYPE"
                   language="KScr"
@@ -31,7 +31,7 @@
 
         <lang.syntaxHighlighterFactory language="KScr"
                                        implementationClass="org.comroid.kscr.intellij.parser.KScrSyntaxHighlighter"/>
-
+<!--
         <lang.parserDefinition language="KScr"
                                implementationClass="org.comroid.kscr.intellij.parser.KScrParserDefinition"/>
 
@@ -85,14 +85,13 @@
         <renamePsiElementProcessor implementation="org.comroid.kscr.intellij.refactoring.RenameKScrTypeProcessor"/>
         <usageTypeProvider implementation="org.comroid.kscr.intellij.refactoring.KScrUsageTypeProvider"/>
         <fileIconPatcher implementation="org.comroid.kscr.intellij.presentation.KScrFileIconPatcher"/>
+        -->
         <createFromTemplateHandler implementation="org.comroid.kscr.intellij.KScrTemplates"/>
 
         <internalFileTemplate name="KScr Class"/>
         <internalFileTemplate name="KScr Interface"/>
         <internalFileTemplate name="KScr Enum"/>
         <internalFileTemplate name="KScr Annotation"/>
-        <internalFileTemplate name="KScr Record"/>
-        <internalFileTemplate name="KScr Single"/>
 
         <localInspection language="KScr"
                          groupPath="KScr"
@@ -118,12 +117,14 @@
                          groupName="Errors" displayName="Invalid supertype"
                          implementationClass="org.comroid.kscr.intellij.inspections.InvalidSupertypeInspection"/>
 
+        <!--
         <intentionAction>
             <className>org.comroid.kscr.intellij.refactoring.intentions.RemoveParensAction</className>
         </intentionAction>
         <intentionAction>
             <className>org.comroid.kscr.intellij.refactoring.intentions.AddParensAction</className>
         </intentionAction>
+        -->
     </extensions>
 
     <actions>

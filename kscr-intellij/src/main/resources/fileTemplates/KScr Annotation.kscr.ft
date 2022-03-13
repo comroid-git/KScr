@@ -1,6 +1,5 @@
-#if (${PACKAGE_NAME} != "")package ${PACKAGE_NAME};
+package ${PACKAGE_NAME};
 
-#end
-public annotation ${NAME}{
+public annotation ${NAME} {
 
 }

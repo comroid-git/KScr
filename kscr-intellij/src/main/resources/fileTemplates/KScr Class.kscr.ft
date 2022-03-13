@@ -1,6 +1,5 @@
-#if (${PACKAGE_NAME} != "")package ${PACKAGE_NAME};
+package ${PACKAGE_NAME};
 
-#end
-public class ${NAME}{
+public class ${NAME} {
 
 }
