@@ -317,9 +317,7 @@ namespace KScr.Lib.Bytecode
             public void Initialize(RuntimeBase vm)
             {
                 if (_initialized) return;
-                SelfRef = vm.ComputeObject(VariableContext.Absolute, "class-instance:" +(_owner != null
-                    ? _owner.FullName + '<' + FullName + '>'
-                    : FullName), () => this);
+                SelfRef = vm.ComputeObject(VariableContext.Absolute, GetKey(), () => this);
                 _initialized = true;
             }
 
@@ -389,6 +387,10 @@ namespace KScr.Lib.Bytecode
                 }
                 throw new InternalException("Method not implemented: " + member);
             }
+
+            public string GetKey() => "class-instance:" + (_owner != null
+                ? _owner.FullName + '<' + FullName + '>'
+                : FullName);
         }
 
         public static void InitializePrimitives(RuntimeBase vm)

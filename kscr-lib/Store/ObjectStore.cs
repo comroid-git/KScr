@@ -47,7 +47,17 @@ namespace KScr.Lib.Store
         }
     }
 
-    public class ObjectRef
+    public interface IObjectRef
+    {
+        int Length { get; }
+        bool IsPipe { get; }
+        IEvaluable? ReadAccessor { get; set; }
+        IEvaluable? WriteAccessor { get; set; }
+        IObject Value { get; set; }
+        IObject this[RuntimeBase vm, int i] { get; set; }
+    }
+
+    public class ObjectRef : IObjectRef
     {
         public readonly IObject?[] Stack;
 

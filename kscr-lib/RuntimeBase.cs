@@ -93,13 +93,13 @@ namespace KScr.Lib
         }
 
         public ObjectRef ConstantVoid =>
-            ComputeObject(VariableContext.Absolute, "static-void:null", () => IObject.Null);
+            ComputeObject(VariableContext.Absolute, IObject.Null.GetKey(), () => IObject.Null);
 
         public ObjectRef ConstantFalse =>
-            ComputeObject(VariableContext.Absolute, Numeric.CreateKey(0), () => Numeric.Zero);
+            ComputeObject(VariableContext.Absolute, Numeric.Zero.GetKey(), () => Numeric.Zero);
 
         public ObjectRef ConstantTrue =>
-            ComputeObject(VariableContext.Absolute, Numeric.CreateKey(1), () => Numeric.One);
+            ComputeObject(VariableContext.Absolute, Numeric.One.GetKey(), () => Numeric.One);
 
         public ObjectRef StdioRef { get; } = new StandardIORef();
 
@@ -159,12 +159,15 @@ namespace KScr.Lib
 
         public ObjectRef ComputeObject(VariableContext varctx, string key, Func<IObject> func)
         {
-            return this[varctx, key] ?? PutObject(varctx, key, func());
+            return this[varctx, key] ?? PutObject(varctx, func());
         }
 
-        public ObjectRef PutObject(VariableContext varctx, string key, IObject? value)
+        public ObjectRef PutLocal(string name, IObject? value) =>
+            PutObject(VariableContext.Local, value ?? IObject.Null, name);
+
+        public ObjectRef PutObject(VariableContext varctx, IObject value, string? key = null)
         {
-            return this[varctx, key] = new ObjectRef(value?.Type ?? Class.VoidType.DefaultInstance, value ?? IObject.Null);
+            return this[varctx, key ?? value.GetKey()] = new ObjectRef(value.Type, value);
         }
 
         public IObject? Execute(out long timeµs)
@@ -197,6 +200,7 @@ namespace KScr.Lib
                 foreach (var stackTraceElement in Stack.StackTrace)
                     Console.WriteLine($"\t\tat\t{stackTraceElement.Message}");
             }
+#if !DEBUG
             catch (System.Exception exc)
             {
                 //if (DebugMode)
@@ -206,6 +210,7 @@ namespace KScr.Lib
                 while (exc.InnerException is InternalException inner && (exc = inner) != null)
                     Console.WriteLine($"\t\t- Caused by:\t{inner.Message}");
             }
+#endif
             ExitCode = rev.Value is Numeric num ? num.IntValue : rev.ToBool() ? 0 : ExitCode;
             return rev.Value;
         }

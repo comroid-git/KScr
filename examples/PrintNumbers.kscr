@@ -6,14 +6,16 @@ import org.comroid.kscr.core.Iterable;
 public class PrintNumbers implements Throwable {
     public static int StackSize -> 64;
     public int StackValue -> 48;
-    public str Message -> "hello world";
+    public str Message { get; set; }
     public int ExitCode -> 3;
     
     static {
         stdio << "this is a static initializer";
     }
     
-    public PrintNumbers();
+    public PrintNumbers() {
+        this.Message = "hello world";
+    }
     
     // prints numbers 0 to 11
     public static void main() {
@@ -46,6 +48,7 @@ public class PrintNumbers implements Throwable {
         // forever print something to test for loop robustness
         // todo: this does not compile. find solution for empty statements
         //for (;;) stdio << "abc";
+        obj.Message = "hello world2";
         
         stdio << "look at my cool object: " + obj.toString(0);
         stdio << "and of course i can access it this way too: " + obj.StackValue;

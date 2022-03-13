@@ -7,6 +7,19 @@ using KScr.Lib.Store;
 
 namespace KScr.Lib.Model
 {
+    public static class TypeInfoExt
+    {
+        public static IClassInstance ResolveType(this ITypeInfo typeInfo, IClassInstance classInstance)
+        {
+            if (typeInfo is IClassInstance ici)
+                return ici;
+            if (typeInfo is Class cls)
+                return cls.DefaultInstance;
+            return classInstance.TypeParameterInstances.First(it => it.TypeParameter.Name == typeInfo.Name)
+                .TargetType.ResolveType(classInstance);
+        }
+    }
+    
     public interface ITypeInfo
     {
         string Name { get; }

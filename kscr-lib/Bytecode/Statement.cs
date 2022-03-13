@@ -169,20 +169,20 @@ namespace KScr.Lib.Bytecode
                     var type = vm.FindType(Arg)!;
                     var ctor = (type.ClassMembers.First(x => x.Name == Method.ConstructorName) as IMethod)!;
                     var obj = new CodeObject(vm, type);
+                    var objRef = rev = vm.PutObject(VariableContext.Absolute, obj);
                     buf = new ObjectRef(Class.VoidType.DefaultInstance, ctor.Parameters.Count);
-                    rev = vm.PutObject(VariableContext.Absolute, "instance-" + type.FullName + "-" + obj.ObjectId,
-                        obj);
-                    vm.Stack.StepInside(vm, SourcefilePosition, type.Name + '.' + Method.ConstructorName, ref rev, _rev =>
+                    vm.Stack.StepInto(vm, SourcefilePosition, rev, ctor, ref rev, _rev =>
                     {
                         State state = State.Normal;
                         SubComponent.Evaluate(vm, ref buf);
                         for (var i = 0; i < ctor.Parameters.Count; i++)
-                            vm.PutObject(VariableContext.Local, ctor.Parameters[i].Name, buf[vm, i]);
+                            vm.PutLocal(ctor.Parameters[i].Name, buf[vm, i]);
                         IRuntimeSite? site = ctor;
                         while (site != null)
                             site = site.Evaluate(vm, ref state, ref _rev!);
                         return _rev;
-                    });
+                    }); 
+                    rev = objRef;
                     break;
                 case (StatementComponentType.Declaration, _):
                     // variable declaration
@@ -220,7 +220,7 @@ namespace KScr.Lib.Bytecode
                         throw new InternalException("Value is not instanceof Throwable: " + rev.Value.ToString(0));
                     RuntimeBase.ExitCode = (throwable.Invoke(vm, "ExitCode", ref rev).Value as Numeric).IntValue;
                     throw new InternalException(throwable.Type.Name + ": " +
-                                                throwable.Invoke(vm, "Message", ref rev).Value.ToString(0));
+                                                throwable.Invoke(vm, "Message", ref buf).Value.ToString(0));
                 case (StatementComponentType.Code, BytecodeType.ParameterExpression):
                     if (InnerCode == null)
                         break;
@@ -424,7 +424,7 @@ namespace KScr.Lib.Bytecode
                                 vm.Stack.StepInto(vm, SourcefilePosition, cli1.SelfRef, mtd1, ref rev, _rev =>
                                 {
                                     for (var i = 0; i < param1.Count; i++)
-                                        vm.PutObject(VariableContext.Local, param1[i].Name, buf[vm, i]);
+                                        vm.PutLocal(param1[i].Name, buf[vm, i]);
                                     return _rev.Value!.Invoke(vm, Arg, ref _rev!, buf.Stack)!;
                                 });
                             }
@@ -440,7 +440,7 @@ namespace KScr.Lib.Bytecode
                                 vm.Stack.StepInto(vm, SourcefilePosition, rev, mtd2, ref rev, _rev =>
                                 {
                                     for (var i = 0; i < param2.Count; i++)
-                                        vm.PutObject(VariableContext.Local, param2[i].Name, buf[vm, i]);
+                                        vm.PutLocal(param2[i].Name, buf[vm, i]);
                                     return _rev.Value!.Invoke(vm, Arg, ref _rev!, buf.Stack)!;
                                 });
                             }
@@ -455,7 +455,7 @@ namespace KScr.Lib.Bytecode
                                 vm.Stack.StepInto(vm, SourcefilePosition, rev, mtd3, ref rev, _rev =>
                                 {
                                     for (var i = 0; i < param3.Count; i++)
-                                        vm.PutObject(VariableContext.Local, param3[i].Name, buf[vm, i]);
+                                        vm.PutLocal(param3[i].Name, buf[vm, i]);
                                     mtd3.Evaluate(vm, ref state, ref _rev!);
                                     return _rev;
                                 });
@@ -485,7 +485,7 @@ namespace KScr.Lib.Bytecode
                     // assignment
                     if (rev == null)
                         throw new InternalException(
-                            "Invalid assignment; missing variable name");
+                            "Invalid assignment; missing target");
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new InternalException(
                             "Invalid assignment; no Expression found");

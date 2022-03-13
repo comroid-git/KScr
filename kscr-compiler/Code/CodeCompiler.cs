@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
@@ -10,15 +11,25 @@ namespace KScr.Compiler.Code
     public abstract class AbstractCodeCompiler : AbstractCompiler
     {
         protected bool _active = true;
+        private readonly bool _endBeforeTerminator;
+        private readonly TokenType[] _terminators;
 
-        protected AbstractCodeCompiler(ICompiler parent) : base(parent)
+        protected AbstractCodeCompiler(ICompiler parent, bool endBeforeTerminator, TokenType[] terminators) : base(parent)
         {
+            _endBeforeTerminator = endBeforeTerminator;
+            _terminators = terminators;
         }
 
         public override bool Active => _active;
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
+            if (ctx.TokenIndex >= ctx.Tokens.Count)
+            {
+                _active = false;
+                return this;
+            }
+
             CompilerContext subctx;
             switch (ctx.Token.Type)
             {
@@ -298,7 +309,7 @@ namespace KScr.Compiler.Code
                     };
                     ctx.NextIntoSub = true;
                     break;
-                // pipe operands
+                // pipe operators
                 case TokenType.ParDiamondOpen:
                     if (ctx.NextToken!.Type == TokenType.ParDiamondOpen)
                     {
@@ -364,6 +375,17 @@ namespace KScr.Compiler.Code
                     break;
                 case TokenType.ParAccClose:
                 case TokenType.Terminator:
+                    if (ctx.Statement.Type == StatementComponentType.Undefined
+                        && ctx.Statement.CodeType == BytecodeType.Undefined
+                        && ctx.Statement.Main.Count > 0)
+                    {
+                        ctx.Statement.Type = StatementComponentType.Code;
+                        ctx.Statement.CodeType = BytecodeType.Statement;
+                    }
+                    if (!_terminators.Contains(ctx.NextToken!.Type) 
+                        && (ctx.Statement.Type != StatementComponentType.Undefined 
+                            || ctx.Statement.CodeType != BytecodeType.Undefined))
+                        ctx.Statement = new Statement();
                     /*
                     ctx.Component = new StatementComponent
                     {
@@ -372,7 +394,14 @@ namespace KScr.Compiler.Code
                         VariableContext = VariableContext.This
                     };
                     */
-                    return this;
+                    break;
+            }
+            
+            if (_terminators.Contains(ctx.NextToken!.Type))
+            {
+                if (_endBeforeTerminator)
+                    ctx.TokenIndex -= 1;
+                _active = false;
             }
 
             return this;

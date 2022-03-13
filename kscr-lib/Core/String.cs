@@ -8,12 +8,10 @@ namespace KScr.Lib.Core
 {
     public sealed class String : IObject
     {
-        private const string ObjPrefix = "kscr.string";
-
         private String(RuntimeBase vm, string str)
         {
-            ObjectId = vm.NextObjId("str:" + str);
             Str = str;
+            ObjectId = vm.NextObjId(GetKey());
         }
 
         public string Str { get; }
@@ -51,6 +49,10 @@ namespace KScr.Lib.Core
             }
         }
 
+        public string GetKey() => CreateKey(Str);
+
+        private static string CreateKey(string str) => "static-str:" + str;
+
         private ObjectRef OpPlus(RuntimeBase vm, string other)
         {
             return Instance(vm, Str + other);
@@ -58,16 +60,15 @@ namespace KScr.Lib.Core
 
         public static ObjectRef Instance(RuntimeBase vm, string str)
         {
-            string key = ObjPrefix + '#' + str.GetHashCode();
-            string ptr = "static-str:" + str;
-            var rev = vm[VariableContext.Absolute, ptr];
+            string key = CreateKey(str);
+            var rev = vm[VariableContext.Absolute, key];
             var obj = rev?.Value;
             if (obj is String strObj && strObj.Str == str)
                 return rev!;
             if (obj != null)
                 throw new InternalException("Unexpected object at key " + key);
             if (rev == null)
-                rev = vm.ComputeObject(VariableContext.Absolute, ptr, () => new String(vm, str));
+                rev = vm.ComputeObject(VariableContext.Absolute, key, () => new String(vm, str));
             return rev;
         }
 

@@ -16,7 +16,7 @@ namespace KScr.Lib.Core
         public Array(RuntimeBase vm, ObjectRef[] list)
         {
             List = list;
-            ObjectId = vm.NextObjId("array");
+            ObjectId = vm.NextObjId(GetKey());
         }
 
         public ObjectRef[] List { get; }
@@ -43,5 +43,7 @@ namespace KScr.Lib.Core
 
             return null;
         }
+
+        public string GetKey() => $"{Type.Name}[{List.Length}]";
     }
 }

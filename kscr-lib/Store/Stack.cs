@@ -158,6 +158,7 @@ namespace KScr.Lib.Store
                 // ReSharper disable once PossibleIntendedRethrow
                 throw ex;
             }
+#if !DEBUG
             catch (System.Exception ex)
             {
                 //if (RuntimeBase.DebugMode)
@@ -166,6 +167,7 @@ namespace KScr.Lib.Store
 #pragma warning restore CA2200
                 throw new StackTraceException(_dequeue[^1].CallLocation, _local, ex);
             }
+#endif
             finally
             {
                 StepUp(vm);

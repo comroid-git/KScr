@@ -44,7 +44,8 @@ namespace KScr.Lib.Core
                 case "getType":
                     return Type.SelfRef;
                 case "iterator":
-                    return vm.PutObject(VariableContext.Local, "iterator", new RangeIterator(vm, this));
+                    var iterator = new RangeIterator(vm, this);
+                    return vm.PutObject(VariableContext.Local, iterator);
                 case "start": // get first value
                     return start(vm);
                 case "end": // get last value
@@ -63,6 +64,8 @@ namespace KScr.Lib.Core
 
             throw new NotImplementedException();
         }
+
+        public string GetKey() => CreateKey(Start, End);
 
         private class RangeIterator : IObject
         {
@@ -96,6 +99,8 @@ namespace KScr.Lib.Core
                         throw new InvalidOperationException();
                 }
             }
+
+            public string GetKey() => $"{_range.ToString(0)}-iterator#{ObjectId}";
         }
 
         public ObjectRef start(RuntimeBase vm) => Numeric.Constant(vm, Start);

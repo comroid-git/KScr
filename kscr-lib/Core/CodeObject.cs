@@ -18,7 +18,7 @@ namespace KScr.Lib.Core
         public CodeObject(RuntimeBase vm, IClassInstance type)
         {
             Type = type;
-            ObjectId = vm.NextObjId("obj:" + type.FullName);
+            ObjectId = vm.NextObjId(GetKey());
         }
 
         public long ObjectId { get; }
@@ -34,16 +34,15 @@ namespace KScr.Lib.Core
                 if (icm.IsStatic())
                     throw new InternalException("Static method invoked on object instance");
                 IRuntimeSite? site = icm;
-                List<MethodParameter>? param = (icm as IMethod)?.Parameters;
+                List<MethodParameter> param = (icm as IMethod)?.Parameters!;
                 State state = State.Normal;
+                // todo: use correct callLocation
                 vm.Stack.StepInto(vm, ToStringInvocPos, rev!, ToStringInvoc, ref rev, _rev =>
                 {
                     for (var i = 0; i < args.Length; i++)
-                        vm.PutObject(VariableContext.Local, param?[i].Name ?? throw new NullReferenceException(),
-                            args[i]);
+                        vm.PutLocal(param[i].Name, args[i]);
                     do
                     {
-                        // todo: step inside context of REV
                         site = site.Evaluate(vm, ref state, ref _rev!);
                     } while (state == State.Normal && site != null);
 
@@ -75,5 +74,7 @@ namespace KScr.Lib.Core
 
             throw new InternalException("Method not implemented: " + member);
         }
+
+        public string GetKey() => $"instance:{Type.FullName}-{ObjectId:X}";
     }
 }

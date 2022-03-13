@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using KScr.Lib.Core;
+using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 
@@ -28,8 +30,20 @@ namespace KScr.Lib.Bytecode
 
         public override IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
         {
-            return (alt == 0 ? Getter! : Setter!).Evaluate(vm, ref state, ref rev);
+            if (alt == 0 && Getter != null)
+                return Getter.Evaluate(vm, ref state, ref rev);
+            if (alt == 0 && Setter != null)
+                return Setter.Evaluate(vm, ref state, ref rev);
+            var value = rev!.Value;
+            string subKey = CreateSubKey(value.GetKey());
+            var clsInst = value.Type;
+            if (vm[VariableContext.Absolute, subKey] == null)
+                rev = vm[VariableContext.Absolute, subKey] = new ObjectRef(ReturnType.ResolveType(clsInst));
+            else rev = vm[VariableContext.Absolute, CreateSubKey(rev.Value.GetKey())];
+            return null;
         }
+
+        private string CreateSubKey(string ownerKey) => $"property-{ownerKey}.{Name}";
 
         public override void Write(Stream stream)
         {

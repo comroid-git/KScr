@@ -10,14 +10,10 @@ namespace KScr.Compiler.Code
 {
     public class ExpressionCompiler : AbstractCodeCompiler
     {
-        private readonly bool _endBeforeTerminator;
-        private readonly TokenType[] _terminators;
 
         public ExpressionCompiler(ICompiler parent, bool endBeforeTerminator = false, params TokenType[] terminators) :
-            base(parent)
+            base(parent, endBeforeTerminator, terminators)
         {
-            _endBeforeTerminator = endBeforeTerminator;
-            _terminators = terminators;
         }
 
         public ExpressionCompiler(ICompiler parent, bool endBeforeTerminator = false,
@@ -28,6 +24,12 @@ namespace KScr.Compiler.Code
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
+            if (ctx.TokenIndex >= ctx.Tokens.Count)
+            {
+                _active = false;
+                return this;
+            }
+            
             switch (ctx.Token.Type)
             {
                 case TokenType.ParRoundOpen:
@@ -129,16 +131,7 @@ namespace KScr.Compiler.Code
                     break;
             }
 
-            var use = base.AcceptToken(vm, ref ctx);
-            if (_terminators.Contains(ctx.NextToken?.Type ?? TokenType.Terminator))
-            {
-                if (_endBeforeTerminator)
-                    ctx.TokenIndex -= 1;
-                _active = false;
-                return _endBeforeTerminator ? Parent : this;
-            }
-
-            return use;
+            return base.AcceptToken(vm, ref ctx);
         }
     }
 }

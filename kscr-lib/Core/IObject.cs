@@ -20,6 +20,8 @@ namespace KScr.Lib.Core
         string ToString(short variant);
 
         public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args);
+
+        public string GetKey();
     }
     
     internal sealed class VoidValue : IObject
@@ -43,5 +45,7 @@ namespace KScr.Lib.Core
                     throw new InternalException("NullPointerException");
             }
         }
+
+        public string GetKey() => "static-void:null";
     }
 }

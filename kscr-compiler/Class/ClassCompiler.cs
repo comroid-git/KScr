@@ -25,6 +25,7 @@ namespace KScr.Compiler.Class
         {
             property = null!;
             method = null!;
+            memberType = 0;
             memberName = null;
             modifier = null!;
             targetType = null!;
@@ -163,6 +164,10 @@ namespace KScr.Compiler.Class
                             Settable = settable
                         };
                         ctx.TokenIndex += settable ? 3 : 1;
+
+                        if (ctx.NextToken?.Type == TokenType.OperatorEquals)
+                        { //todo: parse initializer
+                        }
                         ResetData();
                     }
                     break;
@@ -189,7 +194,7 @@ namespace KScr.Compiler.Class
                     CompilerLoop(vm, new ExpressionCompiler(this), ref ctx);
                     property.Getter = ctx.ExecutableCode;
                     ctx.Class.DeclaredMembers[memberName!] = property;
-                    ctx.Parent!.TokenIndex = ctx.TokenIndex - 1;
+                    ctx.Parent!.TokenIndex = ctx.TokenIndex;
                     ResetData();
                     
                     break;
@@ -247,9 +252,9 @@ namespace KScr.Compiler.Class
                     // compile method body
                     ctx = new CompilerContext(ctx, CompilerType.CodeStatement);
                     ctx.TokenIndex += 1;
-                    CompilerLoop(vm, new StatementCompiler(this), ref ctx);
+                    CompilerLoop(vm, new StatementCompiler(this, false, TokenType.ParAccClose), ref ctx);
                     method.Body = ctx.ExecutableCode;
-                    ctx.Parent!.TokenIndex = ctx.TokenIndex - 1;
+                    ctx.Parent!.TokenIndex = ctx.TokenIndex;
                     ctx = ctx.Parent!;
                     ResetData();
 

@@ -10,21 +10,23 @@ namespace KScr.Compiler.Code
 {
     public class StatementCompiler : AbstractCodeCompiler
     {
-        private readonly bool _endBeforeTerminator;
-        private readonly TokenType[] _terminators;
 
         public StatementCompiler() : this(null!)
         {
         }
 
-        public StatementCompiler(ICompiler parent, bool endBeforeTerminator = false, params TokenType[] terminators) : base(parent)
+        public StatementCompiler(ICompiler parent, bool endBeforeTerminator = false, params TokenType[] terminators) : base(parent, endBeforeTerminator, terminators)
         {
-            _endBeforeTerminator = endBeforeTerminator;
-            _terminators = terminators;
         }
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
+            if (ctx.TokenIndex >= ctx.Tokens.Count)
+            {
+                _active = false;
+                return this;
+            }
+            
             CompilerContext? subctx;
             bool hasParensBody;
             switch (ctx.Token.Type)
@@ -64,7 +66,8 @@ namespace KScr.Compiler.Code
                     break;
                 case OperatorEquals:
                     if (ctx.Statement.Type == StatementComponentType.Declaration ||
-                        ctx.Component.CodeType == BytecodeType.ExpressionVariable)
+                        ctx.Component.CodeType == BytecodeType.ExpressionVariable ||
+                        ctx.Component.Type == StatementComponentType.Provider)
                     {
                         // assignment
                         ctx.Component = new StatementComponent
@@ -85,8 +88,7 @@ namespace KScr.Compiler.Code
                         ctx.LastComponent!.SubStatement = subctx.Statement;
                         ctx.TokenIndex = subctx.TokenIndex - 1;
                     }
-
-                    return this;
+                    break;
                 case If:
                     if (ctx.NextToken?.Type != ParRoundOpen)
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid if-Statement; missing condition");
@@ -123,7 +125,7 @@ namespace KScr.Compiler.Code
                         hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex - (hasParensBody ? 0 : 1);
-                    return this;
+                    break;
                 case Else:
                     if (ctx.LastComponent?.CodeType != BytecodeType.StmtIf)
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid else-Statement; missing if Statement");
@@ -141,7 +143,7 @@ namespace KScr.Compiler.Code
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     ctx.TokenIndex = subctx.TokenIndex;
-                    return this;
+                    break;
                 case For:
                     if (ctx.NextToken?.Type != ParRoundOpen)
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid for-Statement; missing specification");
@@ -190,7 +192,7 @@ namespace KScr.Compiler.Code
                         hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
-                    return this;
+                    break;
                 case ForEach:
                     if (ctx.NextToken?.Type != ParRoundOpen)
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid foreach-Statement; missing specification");
@@ -235,7 +237,7 @@ namespace KScr.Compiler.Code
                         hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
-                    return this;
+                    break;
                 case While:
                     if (ctx.NextToken?.Type != ParRoundOpen)
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid while-Statement; missing condition");
@@ -319,21 +321,9 @@ namespace KScr.Compiler.Code
                     ctx.Statement.Finally = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
                     break;
-                case ParAccClose:
-                    _active = false;
-                    return this;
             }
             
-            var use = base.AcceptToken(vm, ref ctx);
-            if (_terminators.Contains(ctx.Token.Type) 
-                || _terminators.Contains(ctx.NextToken?.Type ?? Terminator))
-            {
-                if (_endBeforeTerminator)
-                    ctx.TokenIndex -= 1;
-                _active = false;
-                return _endBeforeTerminator ? Parent : this;
-            }
-            return use;
+            return base.AcceptToken(vm, ref ctx);
         }
     }
 }

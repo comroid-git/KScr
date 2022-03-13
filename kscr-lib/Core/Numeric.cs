@@ -118,6 +118,16 @@ namespace KScr.Lib.Core
             }
         }
 
+        public string GetKey() => Mode switch {
+            NumericMode.Byte => CreateKey(LongValue),
+            NumericMode.Short => CreateKey(LongValue),
+            NumericMode.Int => CreateKey(LongValue),
+            NumericMode.Long => CreateKey(LongValue),
+            NumericMode.Float => CreateKey(FloatValue),
+            NumericMode.Double => CreateKey(DoubleValue),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
         public static ObjectRef Constant(RuntimeBase vm, byte value)
         {
             return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
