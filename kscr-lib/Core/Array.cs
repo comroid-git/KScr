@@ -20,8 +20,8 @@ namespace KScr.Lib.Core
         }
 
         public ObjectRef[] List { get; }
-        public long ObjectId { get; }
         public bool Primitive => true;
+        public long ObjectId { get; }
         public IClassInstance Type => Class.ArrayType.DefaultInstance;
 
         public string ToString(short variant)
@@ -44,6 +44,9 @@ namespace KScr.Lib.Core
             return null;
         }
 
-        public string GetKey() => $"{Type.Name}[{List.Length}]";
+        public string GetKey()
+        {
+            return $"{Type.Name}[{List.Length}]";
+        }
     }
 }

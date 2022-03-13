@@ -105,9 +105,9 @@ namespace KScr.Lib.Model
 
         public readonly CompilerContext? Parent;
         public readonly CompilerType Type;
+        private StatementComponent? _lastComponent;
         public int ComponentIndex;
         public int StatementIndex;
-        private StatementComponent? _lastComponent;
 
         public CompilerContext()
             : this(null, CompilerType.Package, null!, Package.RootPackage, null!, null!)
@@ -234,7 +234,7 @@ namespace KScr.Lib.Model
         {
             if (Class.Imports.Contains(name))
                 return vm.FindType(name);
-            var imported = Class.Imports.FirstOrDefault(x => x.EndsWith(name));
+            string? imported = Class.Imports.FirstOrDefault(x => x.EndsWith(name));
             if (imported != null)
                 return vm.FindType(imported);
             return vm.FindType(name, Package);
@@ -247,12 +247,11 @@ namespace KScr.Lib.Model
                 return type!;
             var baseCls = type?.BaseClass ?? Class;
             if (baseCls == null && Class.TypeParameters.Any(x => x.Name == Token.Arg))
-            { // find base type param
+                // find base type param
                 return Class.TypeParameters.Find(x => x.Name == Token.Arg)!;
-            }
             if (baseCls!.TypeParameters.Count > 0 && NextToken?.Type == TokenType.ParDiamondOpen)
             {
-                List<ITypeInfo> args = new List<ITypeInfo>();
+                var args = new List<ITypeInfo>();
                 do
                 {
                     TokenIndex += 2;
@@ -351,14 +350,15 @@ namespace KScr.Lib.Model
                 ctx.TokenIndex += 1;
 
             var mod = ctx.Token.Type.Modifier();
-            ClassType? type = ctx.Token.Type.ClassType();
+            var type = ctx.Token.Type.ClassType();
             string name;
-            
+
             ctx.TokenIndex += 1;
 
             if (ctx.Token.Type == TokenType.Word)
                 if (clsName != null && clsName != ctx.Token.Arg)
-                    throw new CompilerException(ctx.Token.SourcefilePosition, "Declared Class name mismatches File name");
+                    throw new CompilerException(ctx.Token.SourcefilePosition,
+                        "Declared Class name mismatches File name");
                 else name = ctx.Token.Arg!;
             else throw new CompilerException(ctx.Token.SourcefilePosition, "Missing Class name");
 

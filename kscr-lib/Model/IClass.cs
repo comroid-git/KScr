@@ -19,14 +19,14 @@ namespace KScr.Lib.Model
                 .TargetType.ResolveType(classInstance);
         }
     }
-    
+
     public interface ITypeInfo
     {
         string Name { get; }
         string FullName { get; }
         List<ITypeInfo> TypeParameters { get; }
     }
-    
+
     public struct TypeInfo : ITypeInfo
     {
         public string Name { get; set; }
@@ -38,9 +38,9 @@ namespace KScr.Lib.Model
     {
         MemberModifier Modifier { get; }
         ClassType ClassType { get; }
+        bool Primitive { get; }
 
         bool CanHold(IClass? type);
-        bool Primitive { get; }
     }
 
     public interface IClass : IClassInfo
@@ -48,7 +48,10 @@ namespace KScr.Lib.Model
         Class BaseClass { get; }
         ObjectRef SelfRef { get; }
         IEnumerable<IClassMember> ClassMembers => DeclaredMembers.Values.Concat(InheritedMembers);
-        IEnumerable<IClassMember> InheritedMembers => Inheritors.Where(it => it != null).SelectMany(it => it.ClassMembers);
+
+        IEnumerable<IClassMember> InheritedMembers =>
+            Inheritors.Where(it => it != null).SelectMany(it => it.ClassMembers);
+
         IDictionary<string, IClassMember> DeclaredMembers { get; }
         IEnumerable<IClassInstance> Inheritors => Superclasses.Concat(Interfaces);
         IList<IClassInstance> Superclasses { get; }

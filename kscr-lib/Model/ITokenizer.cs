@@ -83,15 +83,15 @@ namespace KScr.Lib.Model
         Implements = 0x0201_20,
 
         // accessibility keywords
-        Public     = 0b1000000010_00000001,
-        Internal   = 0b1000000010_00000010,
-        Protected  = 0b1000000010_00000100,
-        Private    = 0b1000000010_00001000,
+        Public = 0b1000000010_00000001,
+        Internal = 0b1000000010_00000010,
+        Protected = 0b1000000010_00000100,
+        Private = 0b1000000010_00001000,
 
         // class models
-        Class      = 0b1000000100_00010000,
-        Interface  = 0b1000000100_00100000,
-        Enum       = 0b1000000100_01000000,
+        Class = 0b1000000100_00010000,
+        Interface = 0b1000000100_00100000,
+        Enum = 0b1000000100_01000000,
         Annotation = 0b1000000100_10000000,
 
         // static
@@ -280,7 +280,8 @@ namespace KScr.Lib.Model
 
     public abstract class AbstractToken : IToken
     {
-        public AbstractToken(SourcefilePosition sourcefilePosition, TokenType type = TokenType.Whitespace, string arg = null!)
+        public AbstractToken(SourcefilePosition sourcefilePosition, TokenType type = TokenType.Whitespace,
+            string arg = null!)
         {
             SourcefilePosition = sourcefilePosition;
             Type = type;
@@ -299,7 +300,8 @@ namespace KScr.Lib.Model
 
     public sealed class Token : AbstractToken
     {
-        public Token(SourcefilePosition pos, TokenType type = TokenType.Whitespace, string arg = null!) : base(pos, type, arg)
+        public Token(SourcefilePosition pos, TokenType type = TokenType.Whitespace, string arg = null!) : base(pos,
+            type, arg)
         {
         }
     }

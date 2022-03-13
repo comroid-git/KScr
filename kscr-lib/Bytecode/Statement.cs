@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
@@ -18,10 +17,10 @@ namespace KScr.Lib.Bytecode
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main;
         public BytecodeType CodeType { get; set; } = BytecodeType.Undefined;
         public string? Arg { get; set; }
+        public ExecutableCode? Finally { get; set; }
         public StatementComponentType Type { get; set; }
         public IClassInstance TargetType { get; set; } = Class.VoidType.DefaultInstance;
         public List<StatementComponent> Main { get; } = new();
-        public ExecutableCode? Finally { get; set; }
 
         public State Evaluate(RuntimeBase vm, ref ObjectRef rev)
         {
@@ -31,14 +30,12 @@ namespace KScr.Lib.Bytecode
                 rev = vm.Stack.This!;
 
                 foreach (var component in Main)
-                {
                     switch (component.Type)
                     {
                         default:
                             state = component.Evaluate(vm, ref rev);
                             break;
                     }
-                }
             }
             finally
             {
@@ -71,7 +68,7 @@ namespace KScr.Lib.Bytecode
             index += 4;
             CodeType = (BytecodeType)BitConverter.ToUInt32(data, index);
             index += 4;
-            int len = BitConverter.ToInt32(data, index);
+            var len = BitConverter.ToInt32(data, index);
             index += 4;
             TargetType = vm.FindType(RuntimeBase.Encoding.GetString(data, index, len))!;
             index += len;
@@ -80,10 +77,11 @@ namespace KScr.Lib.Bytecode
             StatementComponent stmt;
             for (var i = 0; i < len; i++)
             {
-                stmt = new StatementComponent{Statement = this};
+                stmt = new StatementComponent { Statement = this };
                 stmt.Load(vm, data, ref index);
                 Main.Add(stmt);
             }
+
             if (BitConverter.ToBoolean(data, index++))
             {
                 Finally = new ExecutableCode();
@@ -114,7 +112,7 @@ namespace KScr.Lib.Bytecode
         public Statement Statement { get; set; } = null!;
         public VariableContext VariableContext { get; set; }
         public string Arg { get; set; } = string.Empty;
-        public ulong ByteArg { get; set; } = 0x0;
+        public ulong ByteArg { get; set; }
         public SourcefilePosition SourcefilePosition { get; set; }
         public Statement? SubStatement { get; set; }
         public Statement? AltStatement { get; set; }
@@ -132,7 +130,7 @@ namespace KScr.Lib.Bytecode
         public virtual State Evaluate(RuntimeBase vm, ref ObjectRef rev)
         {
             var state = State.Normal;
-            ObjectRef? buf = vm.Stack.This!;
+            var buf = vm.Stack.This!;
             switch (Type, CodeType)
             {
                 case (StatementComponentType.Expression, BytecodeType.LiteralNumeric):
@@ -173,7 +171,7 @@ namespace KScr.Lib.Bytecode
                     buf = new ObjectRef(Class.VoidType.DefaultInstance, ctor.Parameters.Count);
                     vm.Stack.StepInto(vm, SourcefilePosition, rev, ctor, ref rev, _rev =>
                     {
-                        State state = State.Normal;
+                        var state = State.Normal;
                         SubComponent.Evaluate(vm, ref buf);
                         for (var i = 0; i < ctor.Parameters.Count; i++)
                             vm.PutLocal(ctor.Parameters[i].Name, buf[vm, i]);
@@ -181,7 +179,7 @@ namespace KScr.Lib.Bytecode
                         while (site != null)
                             site = site.Evaluate(vm, ref state, ref _rev!);
                         return _rev;
-                    }); 
+                    });
                     rev = objRef;
                     break;
                 case (StatementComponentType.Declaration, _):
@@ -269,7 +267,7 @@ namespace KScr.Lib.Bytecode
                         state = SubStatement!.Evaluate(vm, ref buf!);
                         if (state != State.Normal)
                             return _rev;
-                        var iterable = (buf.Value as IObject)!;
+                        var iterable = buf.Value!;
                         var iter = iterable.Invoke(vm, "iterator", ref buf!);
                         var iterator = iter.Value;
                         var n = vm[VariableContext.Local, Arg] =
@@ -296,8 +294,11 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Code, BytecodeType.StmtDo):
                     vm.Stack.StepInside(vm, SourcefilePosition, "do-while", ref rev, _rev =>
                     {
-                        do state = InnerCode.Evaluate(vm, ref _rev);
-                        while ((state = SubStatement.Evaluate(vm, ref buf)) == State.Normal && buf.ToBool());
+                        do
+                        {
+                            state = InnerCode.Evaluate(vm, ref _rev);
+                        } while ((state = SubStatement.Evaluate(vm, ref buf)) == State.Normal && buf.ToBool());
+
                         return _rev;
                     });
                     break;
@@ -366,7 +367,7 @@ namespace KScr.Lib.Bytecode
                             state = SubComponent.Evaluate(vm, ref buf!);
                             // try to use overrides
                             if (op == Operator.Plus && rev?.Value?.Type.Name == "str"
-                                || ((rev?.Value?.Type.BaseClass as IClass).ClassMembers.Any(x => x.Name == "op" + op)))
+                                || (rev?.Value?.Type.BaseClass as IClass).ClassMembers.Any(x => x.Name == "op" + op))
                             {
                                 rev = rev.Value!.Invoke(vm, "op" + op, ref buf, buf.Value)!;
                             }
@@ -444,7 +445,7 @@ namespace KScr.Lib.Bytecode
                                     return _rev.Value!.Invoke(vm, Arg, ref _rev!, buf.Stack)!;
                                 });
                             }
-                            else if (rev.Value!.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg)is IMethod mtd3)
+                            else if (rev.Value!.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is IMethod mtd3)
                             {
                                 var param3 = mtd3.Parameters;
                                 buf = new ObjectRef(Class.VoidType.DefaultInstance, param3.Count);
@@ -461,7 +462,8 @@ namespace KScr.Lib.Bytecode
                                 });
                             }
                             else if (rev.Value is Class.Instance cli2
-                                     && (cli2 as IClass).ClassMembers.FirstOrDefault(x => x.Name == Arg) is Property fld1)
+                                     && (cli2 as IClass).ClassMembers.FirstOrDefault(x => x.Name == Arg) is Property
+                                     fld1)
                             {
                                 fld1.Evaluate(vm, ref state, ref rev!);
                             }
@@ -512,9 +514,9 @@ namespace KScr.Lib.Bytecode
                     rev.ReadAccessor!.Evaluate(vm, ref buf);
                     break;
                 default:
-                    throw new NotImplementedException("Not Implemented: " + CodeType.ToString());
+                    throw new NotImplementedException("Not Implemented: " + CodeType);
             }
-            
+
             if (state == State.Normal && PostComponent != null)
                 state = PostComponent.Evaluate(vm, ref rev!);
             return state;
@@ -524,13 +526,13 @@ namespace KScr.Lib.Bytecode
         {
             stream.Write(BitConverter.GetBytes((uint)Type));
             stream.Write(BitConverter.GetBytes((uint)CodeType));
-            stream.Write(new[]{(byte)VariableContext});
-            stream.Write(BitConverter.GetBytes((ulong)ByteArg));
+            stream.Write(new[] { (byte)VariableContext });
+            stream.Write(BitConverter.GetBytes(ByteArg));
             byte[] buf = RuntimeBase.Encoding.GetBytes(Arg);
             stream.Write(BitConverter.GetBytes(buf.Length));
             stream.Write(buf);
             SourcefilePosition.Write(stream);
-            ComponentMember memberState = ComponentMember.None;
+            var memberState = ComponentMember.None;
             if (SubStatement != null)
                 memberState |= ComponentMember.SubStatement;
             if (AltStatement != null)
@@ -543,7 +545,7 @@ namespace KScr.Lib.Bytecode
                 memberState |= ComponentMember.PostComponent;
             if (InnerCode != null)
                 memberState |= ComponentMember.InnerCode;
-            stream.Write(new[]{(byte)memberState});
+            stream.Write(new[] { (byte)memberState });
             if ((memberState & ComponentMember.SubStatement) != 0)
                 SubStatement!.Write(stream);
             if ((memberState & ComponentMember.AltStatement) != 0)
@@ -560,20 +562,20 @@ namespace KScr.Lib.Bytecode
 
         public override void Load(RuntimeBase vm, byte[] data, ref int index)
         {
-            _Load(vm, data, ref index, 
+            _Load(vm, data, ref index,
                 out var sct,
                 out var vct,
                 out var bty,
-                out var byteArg, 
+                out ulong byteArg,
                 out string arg,
-                out SourcefilePosition srcPos,
-                out Statement? subStmt,
-                out Statement? altStmt,
-                out StatementComponent? subComp,
-                out StatementComponent? altComp,
-                out StatementComponent? postComp,
-                out ExecutableCode? innerCode
-                );
+                out var srcPos,
+                out var subStmt,
+                out var altStmt,
+                out var subComp,
+                out var altComp,
+                out var postComp,
+                out var innerCode
+            );
             Type = sct;
             VariableContext = vct;
             CodeType = bty;
@@ -593,15 +595,16 @@ namespace KScr.Lib.Bytecode
             out VariableContext vct,
             out BytecodeType bty,
             out ulong bya,
-            out string arg, 
-            out SourcefilePosition srcPos, 
+            out string arg,
+            out SourcefilePosition srcPos,
             out Statement? subStmt,
             out Statement? altStmt,
             out StatementComponent? subComp,
             out StatementComponent? altComp,
             out StatementComponent? postComp,
             out ExecutableCode? innerCode
-            ) {
+        )
+        {
             sct = (StatementComponentType)BitConverter.ToUInt32(data, index);
             index += 4;
             bty = (BytecodeType)BitConverter.ToUInt32(data, index);
@@ -615,44 +618,67 @@ namespace KScr.Lib.Bytecode
             arg = RuntimeBase.Encoding.GetString(data, index, len);
             index += len;
             srcPos = SourcefilePosition.Read(vm, data, ref index);
-            ComponentMember memberState = (ComponentMember)data[index];
+            var memberState = (ComponentMember)data[index];
             index += 1;
             if ((memberState & ComponentMember.SubStatement) == ComponentMember.SubStatement)
             {
                 subStmt = new Statement();
                 subStmt.Load(vm, data, ref index);
             }
-            else subStmt = null;
+            else
+            {
+                subStmt = null;
+            }
+
             if ((memberState & ComponentMember.AltStatement) == ComponentMember.AltStatement)
             {
                 altStmt = new Statement();
                 altStmt.Load(vm, data, ref index);
             }
-            else altStmt = null;
+            else
+            {
+                altStmt = null;
+            }
+
             if ((memberState & ComponentMember.SubComponent) == ComponentMember.SubComponent)
             {
                 subComp = new StatementComponent();
                 subComp.Load(vm, data, ref index);
             }
-            else subComp = null;
+            else
+            {
+                subComp = null;
+            }
+
             if ((memberState & ComponentMember.AltComponent) == ComponentMember.AltComponent)
             {
                 altComp = new StatementComponent();
                 altComp.Load(vm, data, ref index);
             }
-            else altComp = null;
+            else
+            {
+                altComp = null;
+            }
+
             if ((memberState & ComponentMember.PostComponent) == ComponentMember.PostComponent)
             {
                 postComp = new StatementComponent();
                 postComp.Load(vm, data, ref index);
             }
-            else postComp = null;
+            else
+            {
+                postComp = null;
+            }
+
             if ((memberState & ComponentMember.InnerCode) == ComponentMember.InnerCode)
             {
                 innerCode = new ExecutableCode();
                 innerCode.Load(vm, data, ref index);
             }
-            else innerCode = null;
+            else
+            {
+                innerCode = null;
+            }
         }
 
         private static StatementComponent Read(RuntimeBase vm, byte[] data, int index)

@@ -8,7 +8,7 @@ namespace KScr.Compiler.Class
 {
     public class TypeParameterDefinitionCompiler : AbstractCompiler
     {
-        private readonly KScr.Lib.Bytecode.Class _class;
+        private readonly Lib.Bytecode.Class _class;
         private bool _active = true;
         private int pIndex = -1, pState;
 
@@ -28,7 +28,8 @@ namespace KScr.Compiler.Class
                     {
                         // parse name
                         if (pIndex >= _class.BaseClass.TypeParameters.Count)
-                            throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid TypeParameter index during compilation");
+                            throw new CompilerException(ctx.Token.SourcefilePosition,
+                                "Invalid TypeParameter index during compilation");
 
                         var context = ctx;
                         if (_class.TypeParameters.Any(x => x.Name == context.Token.Arg!))
@@ -51,7 +52,8 @@ namespace KScr.Compiler.Class
                     // default state
                     break;
                 case TokenType.Super:
-                    (_class.TypeParameters[pIndex] as TypeParameter)!.Specialization = TypeParameterSpecializationType.Super;
+                    (_class.TypeParameters[pIndex] as TypeParameter)!.Specialization =
+                        TypeParameterSpecializationType.Super;
                     break;
                 case TokenType.Dot:
                     ctx.TokenIndex += 1;
@@ -59,9 +61,11 @@ namespace KScr.Compiler.Class
                         || ctx.Token.Type != ctx.NextToken!.Type
                         || ctx.NextToken!.Type != TokenType.Dot)
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid Dot token");
-                    if ((_class.TypeParameters[pIndex] as TypeParameter)!.Specialization == TypeParameterSpecializationType.N)
+                    if ((_class.TypeParameters[pIndex] as TypeParameter)!.Specialization ==
+                        TypeParameterSpecializationType.N)
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Cannot list N");
-                    (_class.TypeParameters[pIndex] as TypeParameter)!.Specialization = TypeParameterSpecializationType.List;
+                    (_class.TypeParameters[pIndex] as TypeParameter)!.Specialization =
+                        TypeParameterSpecializationType.List;
                     ctx.TokenIndex += 1;
                     return this;
                 case TokenType.ParDiamondClose:

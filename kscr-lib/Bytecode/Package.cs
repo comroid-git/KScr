@@ -20,6 +20,8 @@ namespace KScr.Lib.Bytecode
         {
         }
 
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => throw new NotSupportedException();
+
         public Method FindEntrypoint()
         {
             return All().Where(it => it is Class).Cast<Class>()
@@ -32,7 +34,7 @@ namespace KScr.Lib.Bytecode
         {
             names ??= Array.Empty<ClassInfo>();
             foreach (var member in Members.Values)
-                if (!names.Any(name => name.FullName.StartsWith(member.FullName.Contains("<") 
+                if (!names.Any(name => name.FullName.StartsWith(member.FullName.Contains("<")
                         ? member.FullName.Substring(0, member.FullName.IndexOf('<'))
                         : member.FullName)))
                     // ReSharper disable once RedundantJumpStatement
@@ -41,12 +43,10 @@ namespace KScr.Lib.Bytecode
                     pkg.Write(dir.CreateSubdirectory(member.Name), names);
                 else if (member is Class cls)
                     cls.Write(new FileInfo(Path.Combine(dir.FullName, (member.Name.Contains("<")
-                        ? member.Name.Substring(0, member.Name.IndexOf("<", StringComparison.Ordinal)) 
-                        : member.Name)  + ".kbin")));
+                        ? member.Name.Substring(0, member.Name.IndexOf("<", StringComparison.Ordinal))
+                        : member.Name) + ".kbin")));
                 else throw new NotSupportedException("Member is of unsupported type: " + member.GetType());
         }
-
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers => throw new NotSupportedException();
 
         public override void Write(Stream stream)
         {
@@ -92,7 +92,8 @@ namespace KScr.Lib.Bytecode
             return pkg;
         }
 
-        public Class? GetOrCreateClass(RuntimeBase vm, string name, MemberModifier mod = MemberModifier.None, ClassType type = ClassType.Class)
+        public Class? GetOrCreateClass(RuntimeBase vm, string name, MemberModifier mod = MemberModifier.None,
+            ClassType type = ClassType.Class)
         {
             if (Members.TryGetValue(name, out var pm) && pm is Class cls)
                 return cls;

@@ -2,15 +2,12 @@
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
-using Range = KScr.Lib.Core.Range;
 using String = KScr.Lib.Core.String;
 
 namespace KScr.Lib
@@ -26,54 +23,20 @@ namespace KScr.Lib
     {
         public static Encoding Encoding = Encoding.ASCII;
 
-        public static readonly DummyMethod MainInvoc = new(Class.VoidType, "main", 
+        public static readonly DummyMethod MainInvoc = new(Class.VoidType, "main",
             MemberModifier.Public | MemberModifier.Final | MemberModifier.Static, Class.NumericIntType);
+
         public static readonly SourcefilePosition MainInvocPos = new()
             { SourcefilePath = "<native>org/comroid/kscr/core/System.kscr" };
 
-        public bool Initialized = false;
         private uint _lastObjId = 0xF;
+
+        public bool Initialized;
 
         static RuntimeBase()
         {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-        }
-
-        public void Initialize()
-        {
-            if (Initialized) return;
-            Class.TypeType.Initialize(this);
-            Class.VoidType.Initialize(this);
-            Class.EnumType.Initialize(this);
-            Class.ArrayType.Initialize(this);
-            Class.StringType.Initialize(this);
-            Class.RangeType.Initialize(this);
-            Class.IterableType.Initialize(this);
-            Class.IteratorType.Initialize(this);
-            Class.ThrowableType.Initialize(this);
-            Class.NumericType.Initialize(this);
-            Class.NumericByteType.Initialize(this);
-            Class.NumericShortType.Initialize(this);
-            Class.NumericIntType.Initialize(this);
-            Class.NumericLongType.Initialize(this);
-            Class.NumericFloatType.Initialize(this);
-            Class.NumericDoubleType.Initialize(this);
-
-            Class.InitializePrimitives(this);
-            
-            Class.TypeType.LateInitialization(this);
-            Class.VoidType.LateInitialization(this);
-            Class.EnumType.LateInitialization(this);
-            Class.ArrayType.LateInitialization(this);
-            Class.StringType.LateInitialization(this);
-            Class.RangeType.LateInitialization(this);
-            Class.IterableType.LateInitialization(this);
-            Class.IteratorType.LateInitialization(this);
-            Class.ThrowableType.LateInitialization(this);
-            Class.NumericType.LateInitialization(this);
-            
-            Initialized = true;
         }
 
         public abstract ObjectStore ObjectStore { get; }
@@ -107,6 +70,42 @@ namespace KScr.Lib
         public static bool ConfirmExit { get; set; }
         public static bool DebugMode { get; set; }
         public static int ExitCode { get; set; } = int.MinValue;
+
+        public void Initialize()
+        {
+            if (Initialized) return;
+            Class.TypeType.Initialize(this);
+            Class.VoidType.Initialize(this);
+            Class.EnumType.Initialize(this);
+            Class.ArrayType.Initialize(this);
+            Class.StringType.Initialize(this);
+            Class.RangeType.Initialize(this);
+            Class.IterableType.Initialize(this);
+            Class.IteratorType.Initialize(this);
+            Class.ThrowableType.Initialize(this);
+            Class.NumericType.Initialize(this);
+            Class.NumericByteType.Initialize(this);
+            Class.NumericShortType.Initialize(this);
+            Class.NumericIntType.Initialize(this);
+            Class.NumericLongType.Initialize(this);
+            Class.NumericFloatType.Initialize(this);
+            Class.NumericDoubleType.Initialize(this);
+
+            Class.InitializePrimitives(this);
+
+            Class.TypeType.LateInitialization(this);
+            Class.VoidType.LateInitialization(this);
+            Class.EnumType.LateInitialization(this);
+            Class.ArrayType.LateInitialization(this);
+            Class.StringType.LateInitialization(this);
+            Class.RangeType.LateInitialization(this);
+            Class.IterableType.LateInitialization(this);
+            Class.IteratorType.LateInitialization(this);
+            Class.ThrowableType.LateInitialization(this);
+            Class.NumericType.LateInitialization(this);
+
+            Initialized = true;
+        }
 
         public uint NextObjId()
         {
@@ -162,8 +161,10 @@ namespace KScr.Lib
             return this[varctx, key] ?? PutObject(varctx, func());
         }
 
-        public ObjectRef PutLocal(string name, IObject? value) =>
-            PutObject(VariableContext.Local, value ?? IObject.Null, name);
+        public ObjectRef PutLocal(string name, IObject? value)
+        {
+            return PutObject(VariableContext.Local, value ?? IObject.Null, name);
+        }
 
         public ObjectRef PutObject(VariableContext varctx, IObject value, string? key = null)
         {
@@ -181,13 +182,13 @@ namespace KScr.Lib
         public IObject? Execute()
         {
             var method = Package.RootPackage.FindEntrypoint();
-            ObjectRef rev = Class.VoidType.SelfRef;
+            var rev = Class.VoidType.SelfRef;
 
             try
             {
                 Stack.StepInto(this, MainInvocPos, method, ref rev, _rev =>
                 {
-                    State state = State.Normal;
+                    var state = State.Normal;
                     IRuntimeSite? site = method;
                     while (site != null)
                         site = site.Evaluate(this, ref state, ref _rev!);
@@ -255,9 +256,12 @@ namespace KScr.Lib
 
         public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)
         {
-            return (ITypeInfo?)inClass.TypeParameters.FirstOrDefault(tp => tp.FullName == identifier)
+            return inClass.TypeParameters.FirstOrDefault(tp => tp.FullName == identifier)
                    ?? FindType(identifier, inPackage)!;
         }
+
+        public abstract void CompilePackage(DirectoryInfo dir, ref CompilerContext context,
+            AbstractCompiler abstractCompiler);
 
         public sealed class StandardIORef : ObjectRef
         {
@@ -301,7 +305,5 @@ namespace KScr.Lib
                 }
             }
         }
-
-        public abstract void CompilePackage(DirectoryInfo dir, ref CompilerContext context, AbstractCompiler abstractCompiler);
     }
 }

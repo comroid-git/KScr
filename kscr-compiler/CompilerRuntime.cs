@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using KScr.Compiler.Class;
-using KScr.Compiler.Code;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
-using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 
@@ -18,22 +15,9 @@ namespace KScr.Compiler
 
         public void CompileFiles(IEnumerable<FileInfo> sources)
         {
-            try
-            {
-                var files = sources.GetEnumerator();
-                while (files.MoveNext())
-                    CompileClass(files.Current);
-            }/*
-            catch (CompilerException ex)
-            {
-                if (DebugMode)
-#pragma warning disable CA2200
-                    // ReSharper disable once PossibleIntendedRethrow
-                    throw ex;
-#pragma warning restore CA2200
-                Console.WriteLine("An CompilerException occurred: " + ex);
-            }*/
-            finally {}
+            var files = sources.GetEnumerator();
+            while (files.MoveNext())
+                CompileClass(files.Current);
         }
 
         public void CompileClass(FileInfo file)
@@ -41,7 +25,7 @@ namespace KScr.Compiler
             string clsName = file.Name.Substring(0, file.Name.Length - AbstractCompiler.FileAppendix.Length);
             CompileClass(clsName, File.ReadAllText(file.FullName), file.FullName);
         }
-        
+
         public void CompileClass(string clsName, string source, string filePath = "org/comroid/kscr/core/System.kscr")
         {
             var tokenlist = new Tokenizer().Tokenize(filePath,
@@ -50,14 +34,17 @@ namespace KScr.Compiler
             // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
             var pkg = Package.RootPackage;
             pkg = AbstractCompiler.ResolvePackage(pkg, AbstractCompiler.FindClassPackageName(tokens).Split("."));
-            var classInfo = AbstractCompiler.FindClassInfo(AbstractCompiler.FindClassPackageName(tokens), tokens, clsName);
+            var classInfo =
+                AbstractCompiler.FindClassInfo(AbstractCompiler.FindClassPackageName(tokens), tokens, clsName);
             var cls = pkg.GetOrCreateClass(this, clsName, classInfo.Modifier, classInfo.ClassType);
-            var context = new CompilerContext(new CompilerContext(new CompilerContext(), pkg), cls, tokens, CompilerType.Class);
+            var context = new CompilerContext(new CompilerContext(new CompilerContext(), pkg), cls, tokens,
+                CompilerType.Class);
             AbstractCompiler.CompilerLoop(this, new ClassCompiler(), ref context);
             cls.LateInitialization(this);
         }
 
-        public override void CompilePackage(DirectoryInfo dir, ref CompilerContext context, AbstractCompiler abstractCompiler)
+        public override void CompilePackage(DirectoryInfo dir, ref CompilerContext context,
+            AbstractCompiler abstractCompiler)
         {
             foreach (var subDir in dir.EnumerateDirectories())
             {

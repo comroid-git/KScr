@@ -25,7 +25,7 @@ namespace KScr.Lib.Bytecode
 
         public void Load(RuntimeBase vm, byte[] data, ref int index)
         {
-            int len = BitConverter.ToInt32(data, index);
+            var len = BitConverter.ToInt32(data, index);
             index += 4;
             Name = RuntimeBase.Encoding.GetString(data, index, len);
             index += len;
@@ -48,15 +48,16 @@ namespace KScr.Lib.Bytecode
         List<MethodParameter> Parameters { get; }
         ITypeInfo ReturnType { get; }
     }
-    
+
     public sealed class DummyMethod : IMethod
     {
-        public DummyMethod(Class parent, string name, MemberModifier modifier, ITypeInfo returnType) 
+        public DummyMethod(Class parent, string name, MemberModifier modifier, ITypeInfo returnType)
             : this(parent, name, modifier, returnType, new List<MethodParameter>())
         {
         }
 
-        public DummyMethod(Class parent, string name, MemberModifier modifier, ITypeInfo returnType, List<MethodParameter> parameters)
+        public DummyMethod(Class parent, string name, MemberModifier modifier, ITypeInfo returnType,
+            List<MethodParameter> parameters)
         {
             Parent = parent;
             Name = name;
@@ -65,10 +66,10 @@ namespace KScr.Lib.Bytecode
             ReturnType = returnType;
         }
 
-        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev) 
-            => throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
         public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
-            => throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
+        {
+            throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
+        }
 
         public Class Parent { get; set; }
         public string Name { get; set; }
@@ -77,6 +78,11 @@ namespace KScr.Lib.Bytecode
         public List<MethodParameter> Parameters { get; set; }
         public ITypeInfo ReturnType { get; set; }
         public ClassMemberType Type => ClassMemberType.Method;
+
+        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev)
+        {
+            throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
+        }
     }
 
     public sealed class Method : AbstractClassMember, IMethod
@@ -85,17 +91,20 @@ namespace KScr.Lib.Bytecode
         public const string StaticInitializerName = "cctor";
         public ExecutableCode Body = null!;
 
-        public Method(Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(parent, name, modifier)
+        public Method(Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(parent, name,
+            modifier)
         {
             ReturnType = returnType;
         }
 
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => new[] { Body };
+
         public List<MethodParameter> Parameters { get; } = new();
         public ITypeInfo ReturnType { get; private set; }
 
-        public override string FullName => base.FullName + '(' + string.Join(", ", Parameters.Select(it => it.Type)) + ')';
+        public override string FullName =>
+            base.FullName + '(' + string.Join(", ", Parameters.Select(it => it.Type)) + ')';
 
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers => new[] { Body };
         public override ClassMemberType Type => ClassMemberType.Method;
 
         public override IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
@@ -121,7 +130,7 @@ namespace KScr.Lib.Bytecode
 
         public override void Load(RuntimeBase vm, byte[] data, ref int i)
         {
-            int len = BitConverter.ToInt32(data, i);
+            var len = BitConverter.ToInt32(data, i);
             i += 4;
             ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len))!;
             i += len;

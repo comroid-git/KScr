@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using KScr.Compiler.Code;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
@@ -10,14 +9,14 @@ namespace KScr.Compiler.Class
 {
     public class ClassCompiler : AbstractCompiler
     {
+        private bool _active = true;
         private bool inBody;
         private string? memberName;
         private int memberType;
         private Method method = null!;
-        private Property property = null!;
         private MemberModifier? modifier;
+        private Property property = null!;
         private ITypeInfo targetType = null!;
-        private bool _active = true;
 
         public override bool Active => _active;
 
@@ -44,11 +43,11 @@ namespace KScr.Compiler.Class
                 case TokenType.Package:
                     ctx.SkipPackage();
                     break;
-               case TokenType.Import:
-                   ctx.TokenIndex += 1;
-                   var type = ctx.FindType(vm, ctx.FindCompoundWord())!.BaseClass;
-                   ctx.Class.Imports.Add(type.FullName);
-                   break;
+                case TokenType.Import:
+                    ctx.TokenIndex += 1;
+                    var type = ctx.FindType(vm, ctx.FindCompoundWord())!.BaseClass;
+                    ctx.Class.Imports.Add(type.FullName);
+                    break;
                 case TokenType.IdentVar:
                 case TokenType.IdentVoid:
                     if (!inBody)
@@ -108,10 +107,11 @@ namespace KScr.Compiler.Class
                                 "Invalid extends-Token; Type not found");
                         if (cls.ClassType != ctx.Class.ClassType)
                             throw new CompilerException(ctx.Token.SourcefilePosition,
-                                "Invalid extends-Token; Type is not "+ctx.Class.ClassType+": " + cls.FullName);
+                                "Invalid extends-Token; Type is not " + ctx.Class.ClassType + ": " + cls.FullName);
                         ctx.Class.Interfaces.Add(cls);
                         ctx.TokenIndex += 1;
                     }
+
                     ctx.TokenIndex -= 1;
                     break;
                 case TokenType.Implements:
@@ -131,21 +131,18 @@ namespace KScr.Compiler.Class
                         ctx.Class.Interfaces.Add(cls);
                         ctx.TokenIndex += 1;
                     }
+
                     ctx.TokenIndex -= 1;
                     break;
                 case TokenType.Word:
                     if (!inBody)
                         break;
                     if (targetType == null)
-                    {
                         // is return type
                         targetType = ctx.FindTypeInfo(vm);
-                    }
                     else if (memberName == null)
                         // is name
-                    {
                         memberName = ctx.Token.Arg!;
-                    }
 
                     memberType = 2; // property
                     if (ctx.NextToken?.Type == TokenType.ParAccOpen)
@@ -154,10 +151,11 @@ namespace KScr.Compiler.Class
                         bool gettable, settable;
                         gettable = ctx.PrevToken?.Type == TokenType.Word && ctx.PrevToken?.Arg == "get";
                         settable = ctx.NextToken?.Type == TokenType.Word && ctx.NextToken?.Arg == "set";
-                        
-                        ctx.Class.DeclaredMembers[memberName!] = property = new Property(ctx.Class, memberName!, targetType,
-                            modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation 
-                                ? MemberModifier.Public | MemberModifier.Abstract 
+
+                        ctx.Class.DeclaredMembers[memberName!] = property = new Property(ctx.Class, memberName!,
+                            targetType,
+                            modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation
+                                ? MemberModifier.Public | MemberModifier.Abstract
                                 : MemberModifier.Protected))
                         {
                             Gettable = gettable,
@@ -166,10 +164,13 @@ namespace KScr.Compiler.Class
                         ctx.TokenIndex += settable ? 3 : 1;
 
                         if (ctx.NextToken?.Type == TokenType.OperatorEquals)
-                        { //todo: parse initializer
+                        {
+                            //todo: parse initializer
                         }
+
                         ResetData();
                     }
+
                     break;
                 // into computed property
                 // todo: setter
@@ -179,10 +180,11 @@ namespace KScr.Compiler.Class
                     if (ctx.NextToken!.Type != TokenType.ParDiamondClose)
                         break;
                     if (memberType != 2) // computed property
-                        throw new CompilerException(ctx.Token.SourcefilePosition, "Could not create field; invalid memberType = " + memberType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition,
+                            "Could not create field; invalid memberType = " + memberType);
                     ctx.Class.DeclaredMembers[memberName!] = property = new Property(ctx.Class, memberName!, targetType,
-                        modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation 
-                            ? MemberModifier.Public 
+                        modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation
+                            ? MemberModifier.Public
                             : MemberModifier.Protected));
                     ctx = new CompilerContext(ctx, CompilerType.CodeExpression);
                     ctx.Statement = new Statement
@@ -196,25 +198,26 @@ namespace KScr.Compiler.Class
                     ctx.Class.DeclaredMembers[memberName!] = property;
                     ctx.Parent!.TokenIndex = ctx.TokenIndex;
                     ResetData();
-                    
+
                     break;
                 // into method
                 case TokenType.ParRoundOpen:
                     if (!inBody)
                         break;
                     if (memberType != 2)
-                        throw new CompilerException(ctx.Token.SourcefilePosition, "Could not create method; unexpected memberType");
-                    memberType = memberName == null 
-                        ? 3  // ctor 
+                        throw new CompilerException(ctx.Token.SourcefilePosition,
+                            "Could not create method; unexpected memberType");
+                    memberType = memberName == null
+                        ? 3 // ctor 
                         : 1; // method
                     if (memberType == 3 && (modifier & MemberModifier.Static) == 0)
                         modifier |= MemberModifier.Static; // constructor must be static
                     // compile parameter definition
                     ctx.Class.DeclaredMembers[memberName ?? Method.ConstructorName] = method
                         = new Method(ctx.Class, memberName ?? Method.ConstructorName, targetType,
-                        modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation
-                            ? MemberModifier.Public | MemberModifier.Abstract
-                            : MemberModifier.Protected));
+                            modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation
+                                ? MemberModifier.Public | MemberModifier.Abstract
+                                : MemberModifier.Protected));
                     ctx = new CompilerContext(ctx, CompilerType.ParameterDefintion);
                     ctx.TokenIndex += 1;
                     CompilerLoop(vm, new ParameterDefinitionCompiler(this, method), ref ctx);
@@ -249,8 +252,8 @@ namespace KScr.Compiler.Class
                         else break;
 
                     if (ctx.Class.ClassType is not (ClassType.Interface or ClassType.Annotation))
-                    // compile method body
-                    ctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                        // compile method body
+                        ctx = new CompilerContext(ctx, CompilerType.CodeStatement);
                     ctx.TokenIndex += 1;
                     CompilerLoop(vm, new StatementCompiler(this, false, TokenType.ParAccClose), ref ctx);
                     method.Body = ctx.ExecutableCode;
@@ -280,9 +283,9 @@ namespace KScr.Compiler.Class
                         _active = false;
                         // validate class
                         var context = ctx;
-                        var unimplemented = (ctx.Class as IClass).InheritedMembers
+                        string[] unimplemented = (ctx.Class as IClass).InheritedMembers
                             .Where(x => x.IsAbstract())
-                            .Where(x => !(context.Class as IClass).DeclaredMembers.ContainsKey(x.Name))
+                            .Where(x => !context.Class.DeclaredMembers.ContainsKey(x.Name))
                             .Select(x => x.FullName)
                             .ToArray();
                         if (unimplemented.Length > 0)

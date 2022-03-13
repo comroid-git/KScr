@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using KScr.Lib.Core;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 
@@ -10,20 +9,18 @@ namespace KScr.Lib.Bytecode
     public class ExecutableCode : AbstractBytecode, IStatement<Statement>, IRuntimeSite
     {
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main;
+
+        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
+        {
+            foreach (var statement in Main) state = statement.Evaluate(vm, ref rev);
+
+            return null;
+        }
+
         public StatementComponentType Type => StatementComponentType.Code;
         public IClassInstance TargetType { get; protected set; } = Class.VoidType.DefaultInstance;
 
         public List<Statement> Main { get; } = new();
-
-        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
-        {
-            foreach (var statement in Main)
-            {
-                state = statement.Evaluate(vm, ref rev);
-            }
-
-            return null;
-        }
 
         public State Evaluate(RuntimeBase vm, ref ObjectRef rev)
         {

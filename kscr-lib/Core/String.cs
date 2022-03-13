@@ -15,9 +15,9 @@ namespace KScr.Lib.Core
         }
 
         public string Str { get; }
-        public long ObjectId { get; }
 
         public bool Primitive => true;
+        public long ObjectId { get; }
         public IClassInstance Type => Class.StringType.DefaultInstance;
 
         public string ToString(short variant)
@@ -49,9 +49,15 @@ namespace KScr.Lib.Core
             }
         }
 
-        public string GetKey() => CreateKey(Str);
+        public string GetKey()
+        {
+            return CreateKey(Str);
+        }
 
-        private static string CreateKey(string str) => "static-str:" + str;
+        private static string CreateKey(string str)
+        {
+            return "static-str:" + str;
+        }
 
         private ObjectRef OpPlus(RuntimeBase vm, string other)
         {

@@ -1,6 +1,4 @@
-﻿using KScr.Compiler;
-using KScr.Compiler.Class;
-using KScr.Runtime;
+﻿using KScr.Runtime;
 
 namespace KScr.Test
 {

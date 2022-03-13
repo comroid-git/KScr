@@ -11,7 +11,7 @@ namespace KScr.Lib.Store
 
         public IClassInstance? FindType(RuntimeBase vm, Package package, string name)
         {
-            if (name.Contains(".") && package.GetClass(vm, name.Split("."))?.DefaultInstance is {} x)
+            if (name.Contains(".") && package.GetClass(vm, name.Split("."))?.DefaultInstance is { } x)
                 return x;
             var cls = package.GetOrCreateClass(vm, name);
             if (cls != null)

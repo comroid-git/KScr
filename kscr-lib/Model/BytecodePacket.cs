@@ -31,7 +31,7 @@ namespace KScr.Lib.Model
         OperatorMultiply = 0x0000_4000 | Operator,
         OperatorDivide = 0x0000_8000 | Operator,
         OperatorModulus = 0x0000_F000 | Operator,
-        
+
         StmtIf = 0x0011_0000 | Statement,
         StmtCond = 0x0012_0000 | Statement,
         StmtElse = 0x0014_0000 | Statement,
@@ -54,27 +54,27 @@ namespace KScr.Lib.Model
     public enum Operator : ushort
     {
         Unknown = 0,
-        
+
         // unary operators
-        IncrementRead,  // ++x
-        ReadIncrement,  // x++
-        DecrementRead,  // --x
-        ReadDecrement,  // x--
-        LogicalNot,     // !x
-        ArithmeticNot,  // -x
+        IncrementRead, // ++x
+        ReadIncrement, // x++
+        DecrementRead, // --x
+        ReadDecrement, // x--
+        LogicalNot, // !x
+        ArithmeticNot, // -x
 
         // binary operators
-        Plus,       // +
-        Minus,      // -
-        Multiply,   // *
-        Divide,     // /
-        Modulus,    // %
+        Plus, // +
+        Minus, // -
+        Multiply, // *
+        Divide, // /
+        Modulus, // %
         Circumflex, // ^
-        Equals,     // ==
-        NotEquals,  // !=
-        Greater,    // >
-        GreaterEq,  // >=
-        Lesser,     // <
-        LesserEq,   // <=
+        Equals, // ==
+        NotEquals, // !=
+        Greater, // >
+        GreaterEq, // >=
+        Lesser, // <
+        LesserEq // <=
     }
 }

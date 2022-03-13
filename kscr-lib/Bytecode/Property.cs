@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using KScr.Lib.Core;
-using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 
@@ -12,15 +10,17 @@ namespace KScr.Lib.Bytecode
     public sealed class Property : AbstractClassMember
     {
         public bool Gettable;
+        public ExecutableCode? Getter;
         public bool Settable;
-        public ExecutableCode? Getter = null!;
-        public ExecutableCode? Setter = null!;
-        public override string FullName => Parent.FullName + '.' + Name + ": " + ReturnType.FullName;
+        public ExecutableCode? Setter;
 
-        public Property(Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(parent, name, modifier)
+        public Property(Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(parent, name,
+            modifier)
         {
             ReturnType = returnType;
         }
+
+        public override string FullName => Parent.FullName + '.' + Name + ": " + ReturnType.FullName;
 
         public override ClassMemberType Type => ClassMemberType.Field;
         public ITypeInfo ReturnType { get; private set; }
@@ -43,7 +43,10 @@ namespace KScr.Lib.Bytecode
             return null;
         }
 
-        private string CreateSubKey(string ownerKey) => $"property-{ownerKey}.{Name}";
+        private string CreateSubKey(string ownerKey)
+        {
+            return $"property-{ownerKey}.{Name}";
+        }
 
         public override void Write(Stream stream)
         {
@@ -60,7 +63,7 @@ namespace KScr.Lib.Bytecode
         public override void Load(RuntimeBase vm, byte[] data, ref int i)
         {
             base.Load(vm, data, ref i);
-            int len = BitConverter.ToInt32(data, i);
+            var len = BitConverter.ToInt32(data, i);
             i += 4;
             ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len))!;
             i += len;
@@ -71,6 +74,7 @@ namespace KScr.Lib.Bytecode
                 Getter = new ExecutableCode();
                 Getter.Load(vm, data, ref i);
             }
+
             Settable = BitConverter.ToBoolean(data, i);
             i += 1;
             if (Settable)

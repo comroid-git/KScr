@@ -10,7 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\kscr-lib\kscr-lib.csproj" />
+        <ProjectReference Include="..\kscr-lib\kscr-lib.csproj"/>
     </ItemGroup>
 
 </Project>

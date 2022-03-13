@@ -70,11 +70,11 @@ namespace KScr.Lib.Core
         public float FloatValue => GetAs<float>();
         public double DoubleValue => GetAs<double>();
         public string StringValue => GetAs<string>();
+        public bool Primitive => true;
+        public bool ImplicitlyFalse => FloatValue <= 0;
 
         public long ObjectId => RuntimeBase.CombineHash(_objId, CreateKey(StringValue));
-        public bool Primitive => true;
         public IClassInstance Type => Class._NumericType(Mode);
-        public bool ImplicitlyFalse => FloatValue <= 0;
 
         public string ToString(short variant)
         {
@@ -110,7 +110,9 @@ namespace KScr.Lib.Core
                         NumericMode.Float => Math.Abs(FloatValue - other.FloatValue) < delta.FloatValue,
                         NumericMode.Double => Math.Abs(DoubleValue - other.DoubleValue) < delta.DoubleValue,
                         _ => throw new ArgumentOutOfRangeException()
-                    } ? vm.ConstantTrue : vm.ConstantFalse;
+                    }
+                        ? vm.ConstantTrue
+                        : vm.ConstantFalse;
                 case "getType":
                     return Type.SelfRef;
                 default:
@@ -118,15 +120,19 @@ namespace KScr.Lib.Core
             }
         }
 
-        public string GetKey() => Mode switch {
-            NumericMode.Byte => CreateKey(LongValue),
-            NumericMode.Short => CreateKey(LongValue),
-            NumericMode.Int => CreateKey(LongValue),
-            NumericMode.Long => CreateKey(LongValue),
-            NumericMode.Float => CreateKey(FloatValue),
-            NumericMode.Double => CreateKey(DoubleValue),
-            _ => throw new ArgumentOutOfRangeException()
-        };
+        public string GetKey()
+        {
+            return Mode switch
+            {
+                NumericMode.Byte => CreateKey(LongValue),
+                NumericMode.Short => CreateKey(LongValue),
+                NumericMode.Int => CreateKey(LongValue),
+                NumericMode.Long => CreateKey(LongValue),
+                NumericMode.Float => CreateKey(FloatValue),
+                NumericMode.Double => CreateKey(DoubleValue),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
 
         public static ObjectRef Constant(RuntimeBase vm, byte value)
         {
@@ -424,27 +430,33 @@ namespace KScr.Lib.Core
             }
         }
 
-        public ObjectRef Operator(RuntimeBase vm, Operator op, Numeric? right = null) => op switch
+        public ObjectRef Operator(RuntimeBase vm, Operator op, Numeric? right = null)
         {
-            Model.Operator.IncrementRead => OpIR(vm),
-            Model.Operator.ReadIncrement => OpRI(vm),
-            Model.Operator.DecrementRead => OpDR(vm),
-            Model.Operator.ReadDecrement => OpRD(vm),
-            Model.Operator.ArithmeticNot => OpNegate(vm),
-            Model.Operator.Plus => OpPlus(vm, right!),
-            Model.Operator.Minus => OpMinus(vm, right!),
-            Model.Operator.Multiply => OpMultiply(vm, right!),
-            Model.Operator.Divide => OpDivide(vm, right!),
-            Model.Operator.Modulus => OpModulus(vm, right!),
-            Model.Operator.Circumflex => OpCircumflex(vm, right!),
-            Model.Operator.Greater => OpGt(vm, right!),
-            Model.Operator.GreaterEq => OpGtEq(vm, right!),
-            Model.Operator.Lesser => OpLs(vm, right!),
-            Model.Operator.LesserEq => OpLsEq(vm, right!),
-            _ => throw new ArgumentOutOfRangeException(nameof(op), op, null)
-        };
+            return op switch
+            {
+                Model.Operator.IncrementRead => OpIR(vm),
+                Model.Operator.ReadIncrement => OpRI(vm),
+                Model.Operator.DecrementRead => OpDR(vm),
+                Model.Operator.ReadDecrement => OpRD(vm),
+                Model.Operator.ArithmeticNot => OpNegate(vm),
+                Model.Operator.Plus => OpPlus(vm, right!),
+                Model.Operator.Minus => OpMinus(vm, right!),
+                Model.Operator.Multiply => OpMultiply(vm, right!),
+                Model.Operator.Divide => OpDivide(vm, right!),
+                Model.Operator.Modulus => OpModulus(vm, right!),
+                Model.Operator.Circumflex => OpCircumflex(vm, right!),
+                Model.Operator.Greater => OpGt(vm, right!),
+                Model.Operator.GreaterEq => OpGtEq(vm, right!),
+                Model.Operator.Lesser => OpLs(vm, right!),
+                Model.Operator.LesserEq => OpLsEq(vm, right!),
+                _ => throw new ArgumentOutOfRangeException(nameof(op), op, null)
+            };
+        }
 
-        public ObjectRef OpIR(RuntimeBase vm) => OpPlus(vm, One);
+        public ObjectRef OpIR(RuntimeBase vm)
+        {
+            return OpPlus(vm, One);
+        }
 
         public ObjectRef OpRI(RuntimeBase vm)
         {
@@ -453,7 +465,10 @@ namespace KScr.Lib.Core
             return rev;
         }
 
-        public ObjectRef OpDR(RuntimeBase vm) => OpMinus(vm, One);
+        public ObjectRef OpDR(RuntimeBase vm)
+        {
+            return OpMinus(vm, One);
+        }
 
         public ObjectRef OpRD(RuntimeBase vm)
         {
@@ -461,62 +476,88 @@ namespace KScr.Lib.Core
             SetAs((OpMinus(vm, One).Value as Numeric)!.DoubleValue);
             return rev;
         }
-        public ObjectRef OpGt(RuntimeBase vm, Numeric right)=> Mode switch
-        {
-            NumericMode.Byte => ByteValue > right.ByteValue,
-            NumericMode.Short => ShortValue > right.ShortValue,
-            NumericMode.Int => IntValue > right.IntValue,
-            NumericMode.Long => LongValue > right.LongValue,
-            NumericMode.Float => FloatValue > right.FloatValue,
-            NumericMode.Double => DoubleValue > right.DoubleValue,
-            _ => throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode)
-        } ? vm.ConstantTrue : vm.ConstantFalse;
 
-        public ObjectRef OpGtEq(RuntimeBase vm, Numeric right)=> Mode switch
+        public ObjectRef OpGt(RuntimeBase vm, Numeric right)
         {
-            NumericMode.Byte => ByteValue >= right.ByteValue,
-            NumericMode.Short => ShortValue >= right.ShortValue,
-            NumericMode.Int => IntValue >= right.IntValue,
-            NumericMode.Long => LongValue >= right.LongValue,
-            NumericMode.Float => FloatValue >= right.FloatValue,
-            NumericMode.Double => DoubleValue >= right.DoubleValue,
-            _ => throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode)
-        } ? vm.ConstantTrue : vm.ConstantFalse;
+            return Mode switch
+            {
+                NumericMode.Byte => ByteValue > right.ByteValue,
+                NumericMode.Short => ShortValue > right.ShortValue,
+                NumericMode.Int => IntValue > right.IntValue,
+                NumericMode.Long => LongValue > right.LongValue,
+                NumericMode.Float => FloatValue > right.FloatValue,
+                NumericMode.Double => DoubleValue > right.DoubleValue,
+                _ => throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode)
+            }
+                ? vm.ConstantTrue
+                : vm.ConstantFalse;
+        }
 
-        public ObjectRef OpLs(RuntimeBase vm, Numeric right)=> Mode switch
+        public ObjectRef OpGtEq(RuntimeBase vm, Numeric right)
         {
-            NumericMode.Byte => ByteValue < right.ByteValue,
-            NumericMode.Short => ShortValue < right.ShortValue,
-            NumericMode.Int => IntValue < right.IntValue,
-            NumericMode.Long => LongValue < right.LongValue,
-            NumericMode.Float => FloatValue < right.FloatValue,
-            NumericMode.Double => DoubleValue < right.DoubleValue,
-            _ => throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode)
-        } ? vm.ConstantTrue : vm.ConstantFalse;
+            return Mode switch
+            {
+                NumericMode.Byte => ByteValue >= right.ByteValue,
+                NumericMode.Short => ShortValue >= right.ShortValue,
+                NumericMode.Int => IntValue >= right.IntValue,
+                NumericMode.Long => LongValue >= right.LongValue,
+                NumericMode.Float => FloatValue >= right.FloatValue,
+                NumericMode.Double => DoubleValue >= right.DoubleValue,
+                _ => throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode)
+            }
+                ? vm.ConstantTrue
+                : vm.ConstantFalse;
+        }
 
-        public ObjectRef OpLsEq(RuntimeBase vm, Numeric right)=> Mode switch
+        public ObjectRef OpLs(RuntimeBase vm, Numeric right)
         {
-            NumericMode.Byte => ByteValue <= right.ByteValue,
-            NumericMode.Short => ShortValue <= right.ShortValue,
-            NumericMode.Int => IntValue <= right.IntValue,
-            NumericMode.Long => LongValue <= right.LongValue,
-            NumericMode.Float => FloatValue <= right.FloatValue,
-            NumericMode.Double => DoubleValue <= right.DoubleValue,
-            _ => throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode)
-        } ? vm.ConstantTrue : vm.ConstantFalse;
+            return Mode switch
+            {
+                NumericMode.Byte => ByteValue < right.ByteValue,
+                NumericMode.Short => ShortValue < right.ShortValue,
+                NumericMode.Int => IntValue < right.IntValue,
+                NumericMode.Long => LongValue < right.LongValue,
+                NumericMode.Float => FloatValue < right.FloatValue,
+                NumericMode.Double => DoubleValue < right.DoubleValue,
+                _ => throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode)
+            }
+                ? vm.ConstantTrue
+                : vm.ConstantFalse;
+        }
 
-        public ObjectRef OpNegate(RuntimeBase vm) => Mode switch
+        public ObjectRef OpLsEq(RuntimeBase vm, Numeric right)
         {
-            NumericMode.Byte => Constant(vm, -ByteValue),
-            NumericMode.Short => Constant(vm, -ShortValue),
-            NumericMode.Int => Constant(vm, -IntValue),
-            NumericMode.Long => Constant(vm, -LongValue),
-            NumericMode.Float => Constant(vm, -FloatValue),
-            NumericMode.Double => Constant(vm, -DoubleValue),
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        
-        public ObjectRef OpPlus(RuntimeBase vm, Numeric right) => Mode switch
+            return Mode switch
+            {
+                NumericMode.Byte => ByteValue <= right.ByteValue,
+                NumericMode.Short => ShortValue <= right.ShortValue,
+                NumericMode.Int => IntValue <= right.IntValue,
+                NumericMode.Long => LongValue <= right.LongValue,
+                NumericMode.Float => FloatValue <= right.FloatValue,
+                NumericMode.Double => DoubleValue <= right.DoubleValue,
+                _ => throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode)
+            }
+                ? vm.ConstantTrue
+                : vm.ConstantFalse;
+        }
+
+        public ObjectRef OpNegate(RuntimeBase vm)
+        {
+            return Mode switch
+            {
+                NumericMode.Byte => Constant(vm, -ByteValue),
+                NumericMode.Short => Constant(vm, -ShortValue),
+                NumericMode.Int => Constant(vm, -IntValue),
+                NumericMode.Long => Constant(vm, -LongValue),
+                NumericMode.Float => Constant(vm, -FloatValue),
+                NumericMode.Double => Constant(vm, -DoubleValue),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+
+        public ObjectRef OpPlus(RuntimeBase vm, Numeric right)
+        {
+            return Mode switch
             {
                 NumericMode.Byte => Constant(vm, ByteValue + right.ByteValue),
                 NumericMode.Short => Constant(vm, ShortValue + right.ShortValue),
@@ -526,8 +567,11 @@ namespace KScr.Lib.Core
                 NumericMode.Double => Constant(vm, DoubleValue + right.DoubleValue),
                 _ => throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode)
             };
+        }
 
-        public ObjectRef OpMinus(RuntimeBase vm, Numeric right) => Mode switch
+        public ObjectRef OpMinus(RuntimeBase vm, Numeric right)
+        {
+            return Mode switch
             {
                 NumericMode.Byte => Constant(vm, ByteValue - right.ByteValue),
                 NumericMode.Short => Constant(vm, ShortValue - right.ShortValue),
@@ -537,8 +581,11 @@ namespace KScr.Lib.Core
                 NumericMode.Double => Constant(vm, DoubleValue - right.DoubleValue),
                 _ => throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode)
             };
+        }
 
-        public ObjectRef OpMultiply(RuntimeBase vm, Numeric right) => Mode switch
+        public ObjectRef OpMultiply(RuntimeBase vm, Numeric right)
+        {
+            return Mode switch
             {
                 NumericMode.Byte => Constant(vm, ByteValue * right.ByteValue),
                 NumericMode.Short => Constant(vm, ShortValue * right.ShortValue),
@@ -548,8 +595,11 @@ namespace KScr.Lib.Core
                 NumericMode.Double => Constant(vm, DoubleValue * right.DoubleValue),
                 _ => throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode)
             };
+        }
 
-        public ObjectRef OpDivide(RuntimeBase vm, Numeric right) => Mode switch
+        public ObjectRef OpDivide(RuntimeBase vm, Numeric right)
+        {
+            return Mode switch
             {
                 NumericMode.Byte => Constant(vm, ByteValue / right.ByteValue),
                 NumericMode.Short => Constant(vm, ShortValue / right.ShortValue),
@@ -559,8 +609,11 @@ namespace KScr.Lib.Core
                 NumericMode.Double => Constant(vm, DoubleValue / right.DoubleValue),
                 _ => throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode)
             };
+        }
 
-        public ObjectRef OpModulus(RuntimeBase vm, Numeric right) => Mode switch
+        public ObjectRef OpModulus(RuntimeBase vm, Numeric right)
+        {
+            return Mode switch
             {
                 NumericMode.Byte => Constant(vm, ByteValue % right.ByteValue),
                 NumericMode.Short => Constant(vm, ShortValue % right.ShortValue),
@@ -570,10 +623,11 @@ namespace KScr.Lib.Core
                 NumericMode.Double => Constant(vm, DoubleValue % right.DoubleValue),
                 _ => throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode)
             };
+        }
 
         public ObjectRef OpCircumflex(RuntimeBase vm, Numeric right)
         {
-            ObjectRef rev = OpMultiply(vm, One);
+            var rev = OpMultiply(vm, One);
             for (int n = right.IntValue; n > 0; n--)
                 rev = (rev.Value as Numeric)!.OpMultiply(vm, this);
             return rev;

@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CommandLine;
-using CommandLine.Text;
 using KScr.Compiler;
 using KScr.Compiler.Code;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
-using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
-using Array = System.Array;
 
 namespace KScr.Runtime
 {
@@ -23,12 +19,13 @@ namespace KScr.Runtime
 
         private static readonly string
             DefaultOutput = Path.Combine(Directory.GetCurrentDirectory(), "build", "compile");
+
         private static readonly string
             StdPackageLocation = Path.Combine(RuntimeBase.GetSdkHome().FullName, "std");
 
         static Program()
         {
-            VM = new();
+            VM = new KScrRuntime();
             VM.Initialize();
         }
 
@@ -51,11 +48,14 @@ namespace KScr.Runtime
                         Package.ReadAll(VM, classpath);
                     compileTime = RuntimeBase.UnixTime();
                     VM.CompileFiles(cmd.Sources.SelectMany(path => Directory.Exists(path)
-                        ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories) : new[]{ new FileInfo(path) }));
+                        ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories)
+                        : new[] { new FileInfo(path) }));
                     compileTime = RuntimeBase.UnixTime() - compileTime;
                     ioTime = RuntimeBase.UnixTime();
-                    WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput), cmd.Sources.SelectMany(path => Directory.Exists(path)
-                        ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories) : new[]{ new FileInfo(path) }));
+                    WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput), cmd.Sources.SelectMany(path =>
+                        Directory.Exists(path)
+                            ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories)
+                            : new[] { new FileInfo(path) }));
                     ioTime = RuntimeBase.UnixTime() - ioTime;
                 })
                 .WithParsed<CmdExecute>(cmd =>
@@ -79,6 +79,7 @@ namespace KScr.Runtime
                                 : new[] { new FileInfo(path) }));
                         ioTime = RuntimeBase.UnixTime() - ioTime;
                     }
+
                     yield = VM.Execute(out executeTime);
                 })
                 .WithParsed<CmdRun>(cmd =>
@@ -179,7 +180,8 @@ namespace KScr.Runtime
         {
             if (output.Exists)
                 output.Delete(true);
-            Package.RootPackage.Write(output, sources.Select(f => AbstractCompiler.FindClassInfo(f, new Tokenizer())).ToArray());
+            Package.RootPackage.Write(output,
+                sources.Select(f => AbstractCompiler.FindClassInfo(f, new Tokenizer())).ToArray());
         }
 
         private static void HandleResult(State state, IObject? result, long compileTime, long executeTime)
@@ -188,21 +190,22 @@ namespace KScr.Runtime
             //Console.WriteLine($"Type: {result?.Type} - Value: {result?.ToString(0)}");
         }
 
-        private static int HandleExit(State state, IObject? result, long compileTime = -1, long executeTime = -1, long ioTime = -1, bool pressToExit = false)
+        private static int HandleExit(State state, IObject? result, long compileTime = -1, long executeTime = -1,
+            long ioTime = -1, bool pressToExit = false)
         {
             if (compileTime != -1)
-                Console.Write($"Compile took {(double)compileTime/1000:#,##0.00}ms");
+                Console.Write($"Compile took {(double)compileTime / 1000:#,##0.00}ms");
             if (compileTime != -1 && (ioTime != -1 || executeTime != -1))
                 Console.Write("; ");
             if (ioTime != -1)
-                Console.Write($"Read/Write took {(double)ioTime/1000:#,##0.00}ms");
+                Console.Write($"Read/Write took {(double)ioTime / 1000:#,##0.00}ms");
             if (ioTime != -1 && executeTime != -1)
                 Console.Write("; ");
             if (executeTime != -1)
-                Console.Write($"Execute took {(double)executeTime/1000:#,##0.00}ms");
+                Console.Write($"Execute took {(double)executeTime / 1000:#,##0.00}ms");
             if (compileTime != -1 || executeTime != -1)
                 Console.WriteLine();
-            
+
             switch (state)
             {
                 case State.Normal:

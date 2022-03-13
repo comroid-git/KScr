@@ -24,11 +24,10 @@ namespace KScr.Lib.Store
             }
             set
             {
-                foreach(string key in ctx.CreateKeys(varctx, name)){
+                foreach (string key in ctx.CreateKeys(varctx, name))
                     if (value == null && _cache.TryRemove(key, out _))
                         return;
                     else _cache[key] = value;
-                }
             }
         }
 
@@ -39,7 +38,10 @@ namespace KScr.Lib.Store
                     throw new InternalException("Unable to remove local variable " + localKey);
         }
 
-        public bool Remove(string key) => _cache.TryRemove(key, out _);
+        public bool Remove(string key)
+        {
+            return _cache.TryRemove(key, out _);
+        }
 
         public void Clear()
         {
@@ -141,11 +143,16 @@ namespace KScr.Lib.Store
             Stack[i] = value;
         }
 
-        public bool ToBool() => !(Value == IObject.Null // todo inspect
-                                  || ((Value as Numeric)?.ImplicitlyFalse ?? false)
-                                  || Value == null);
+        public bool ToBool()
+        {
+            return !(Value == IObject.Null // todo inspect
+                     || ((Value as Numeric)?.ImplicitlyFalse ?? false)
+                     || Value == null);
+        }
 
-        public ObjectRef LogicalNot(RuntimeBase vm) =>
-            ToBool() ? vm.ConstantFalse : vm.ConstantTrue;
+        public ObjectRef LogicalNot(RuntimeBase vm)
+        {
+            return ToBool() ? vm.ConstantFalse : vm.ConstantTrue;
+        }
     }
 }

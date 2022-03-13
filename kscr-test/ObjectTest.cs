@@ -11,19 +11,19 @@ namespace KScr.Test
             Program.Main("compile",
                 "--system",
                 "--sources",
-                    "../../../../kscr-system/core/Throwable.kscr",
-                    "../../../../kscr-system/core/Iterator.kscr",
-                    "../../../../kscr-system/core/Iterable.kscr",
-                "--output", 
-                    "../../../../kscr-runtime/bin/Debug/net5.0/std/");
+                "../../../../kscr-system/core/Throwable.kscr",
+                "../../../../kscr-system/core/Iterator.kscr",
+                "../../../../kscr-system/core/Iterable.kscr",
+                "--output",
+                "../../../../kscr-runtime/bin/Debug/net5.0/std/");
         }
-        
+
         [Test]
         public void TestToString()
         {
             TestUtil.RunSourcecode("");
         }
-        
+
         [Test]
         public void TestStackTrace()
         {

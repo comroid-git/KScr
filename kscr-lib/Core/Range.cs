@@ -7,29 +7,30 @@ namespace KScr.Lib.Core
 {
     public sealed class Range : IObject
     {
-        public long ObjectId { get; }
-        public int Start { get; }
-        public int End { get; }
-        public bool Decremental => End < Start;
-
         private Range(RuntimeBase vm, int start, int end)
         {
             Start = start;
             End = end;
-            ObjectId = vm.NextObjId(CreateKey(start,end));
+            ObjectId = vm.NextObjId(CreateKey(start, end));
         }
 
+        public int Start { get; }
+        public int End { get; }
+        public bool Decremental => End < Start;
+
         public bool Primitive => true;
+        public long ObjectId { get; }
         public IClassInstance Type => Class.RangeType.DefaultInstance;
 
-        public string ToString(short variant) => variant switch
+        public string ToString(short variant)
         {
-            1 => Start.ToString(),
-            2 => End.ToString(),
-            _ => $"{Start}~{End}"
-        };
-
-        private static string CreateKey(int start, int end) => $"static-range:{start}~{end}";
+            return variant switch
+            {
+                1 => Start.ToString(),
+                2 => End.ToString(),
+                _ => $"{Start}~{End}"
+            };
+        }
 
         public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
         {
@@ -65,7 +66,40 @@ namespace KScr.Lib.Core
             throw new NotImplementedException();
         }
 
-        public string GetKey() => CreateKey(Start, End);
+        public string GetKey()
+        {
+            return CreateKey(Start, End);
+        }
+
+        private static string CreateKey(int start, int end)
+        {
+            return $"static-range:{start}~{end}";
+        }
+
+        public ObjectRef start(RuntimeBase vm)
+        {
+            return Numeric.Constant(vm, Start);
+        }
+
+        public ObjectRef end(RuntimeBase vm)
+        {
+            return Numeric.Constant(vm, End);
+        }
+
+        public ObjectRef test(RuntimeBase vm, Numeric n)
+        {
+            return (Decremental ? n.IntValue > End : n.IntValue < End) ? vm.ConstantTrue : vm.ConstantFalse;
+        }
+
+        public ObjectRef accumulate(RuntimeBase vm, Numeric n)
+        {
+            return Decremental ? n.OpMinus(vm, Numeric.One) : n.OpPlus(vm, Numeric.One);
+        }
+
+        public static ObjectRef Instance(RuntimeBase vm, int start, int end)
+        {
+            return vm.ComputeObject(VariableContext.Absolute, CreateKey(start, end), () => new Range(vm, start, end));
+        }
 
         private class RangeIterator : IObject
         {
@@ -82,7 +116,10 @@ namespace KScr.Lib.Core
             public long ObjectId { get; }
             public IClassInstance Type { get; }
 
-            public string ToString(short variant) => "range-iterator:" + _range;
+            public string ToString(short variant)
+            {
+                return "range-iterator:" + _range;
+            }
 
             public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
             {
@@ -93,24 +130,18 @@ namespace KScr.Lib.Core
                     case "next":
                         return _n = _n == null ? _range.start(vm) : _range.accumulate(vm, (_n.Value as Numeric)!);
                     case "hasNext":
-                        return _n == null ? vm.ConstantTrue
+                        return _n == null
+                            ? vm.ConstantTrue
                             : _range.test(vm, (_range.accumulate(vm, (_n.Value as Numeric)!).Value as Numeric)!);
                     default:
                         throw new InvalidOperationException();
                 }
             }
 
-            public string GetKey() => $"{_range.ToString(0)}-iterator#{ObjectId}";
-        }
-
-        public ObjectRef start(RuntimeBase vm) => Numeric.Constant(vm, Start);
-        public ObjectRef end(RuntimeBase vm) => Numeric.Constant(vm, End);
-        public ObjectRef test(RuntimeBase vm, Numeric n) => (Decremental ? n.IntValue > End : n.IntValue < End) ? vm.ConstantTrue : vm.ConstantFalse;
-        public ObjectRef accumulate(RuntimeBase vm, Numeric n) => Decremental ? n.OpMinus(vm, Numeric.One) : n.OpPlus(vm, Numeric.One);
-
-        public static ObjectRef Instance(RuntimeBase vm, int start, int end)
-        {
-            return vm.ComputeObject(VariableContext.Absolute, CreateKey(start, end), () => new Range(vm, start, end));
+            public string GetKey()
+            {
+                return $"{_range.ToString(0)}-iterator#{ObjectId}";
+            }
         }
     }
 }

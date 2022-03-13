@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using KScr.Lib;
 using KScr.Lib.Core;
 using KScr.Lib.Model;
 
@@ -8,17 +7,17 @@ namespace KScr.Compiler
     public sealed class Tokenizer : ITokenizer
     {
         private readonly List<IToken> Tokens = new();
+        private int charNumber = 1;
+
+        private bool doneAnything;
+        private string filePath;
 
         private bool isLineComment;
         private bool isStringLiteral;
-        private int lineNumber = 1;
-        private int charNumber = 1;
-        private string filePath;
-        private SourcefilePosition srcPos;
-
-        private bool doneAnything = false;
-        private Token token;
         private Token lastToken;
+        private int lineNumber = 1;
+        private SourcefilePosition srcPos;
+        private Token token;
 
         public bool PushToken()
         {
@@ -41,7 +40,7 @@ namespace KScr.Compiler
 
         public IList<IToken> Tokenize(string sourcefilePath, string source)
         {
-            filePath=sourcefilePath;
+            filePath = sourcefilePath;
             int len = source.Length;
             var str = "";
 
@@ -68,17 +67,18 @@ namespace KScr.Compiler
                 lineNumber += 1;
                 charNumber = 1;
             }
-            else charNumber += 1;
+            else
+            {
+                charNumber += 1;
+            }
 
             // string literals
             if (isStringLiteral)
             {
                 if (c != '"' && p != '\\')
-                {
                     lastToken.Arg += c;
-                }
                 else if (c == '"' && p != '\\')
-                
+
                     isStringLiteral = false;
             }
             else
@@ -110,7 +110,8 @@ namespace KScr.Compiler
                     //token = new Token{Complete = true};
                 }
 
-                srcPos = new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber, SourcefileCursor = charNumber};
+                srcPos = new SourcefilePosition
+                    { SourcefilePath = filePath, SourcefileLine = lineNumber, SourcefileCursor = charNumber };
                 switch (c)
                 {
                     // terminator
@@ -387,7 +388,7 @@ namespace KScr.Compiler
                     else if (str.Length >= 2 && str[0] == '"' && str[^1] == '"')
                     {
                         token = new Token(srcPos, TokenType.LiteralStr, str.Substring(1, str.Length - 2))
-                           ;
+                            ;
                     }
                     else if (!char.IsLetterOrDigit(n) && str != string.Empty && !char.IsDigit(str[^1]))
                     {
@@ -402,7 +403,11 @@ namespace KScr.Compiler
         {
             if (lastToken.Type.Modifier() != null)
                 lastToken.Type |= tokenType;
-            else token = new Token(new SourcefilePosition{SourcefilePath = filePath, SourcefileLine = lineNumber, SourcefileCursor = charNumber}, tokenType);
+            else
+                token = new Token(
+                    new SourcefilePosition
+                        { SourcefilePath = filePath, SourcefileLine = lineNumber, SourcefileCursor = charNumber },
+                    tokenType);
             doneAnything = true;
         }
     }

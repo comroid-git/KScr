@@ -10,11 +10,12 @@ namespace KScr.Compiler.Code
 {
     public abstract class AbstractCodeCompiler : AbstractCompiler
     {
-        protected bool _active = true;
         private readonly bool _endBeforeTerminator;
         private readonly TokenType[] _terminators;
+        protected bool _active = true;
 
-        protected AbstractCodeCompiler(ICompiler parent, bool endBeforeTerminator, TokenType[] terminators) : base(parent)
+        protected AbstractCodeCompiler(ICompiler parent, bool endBeforeTerminator, TokenType[] terminators) :
+            base(parent)
         {
             _endBeforeTerminator = endBeforeTerminator;
             _terminators = terminators;
@@ -62,11 +63,13 @@ namespace KScr.Compiler.Code
                     return this;
                 case TokenType.New:
                     if (ctx.NextToken!.Type != TokenType.Word)
-                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid new-Statement; missing type identifier");
+                        throw new CompilerException(ctx.Token.SourcefilePosition,
+                            "Invalid new-Statement; missing type identifier");
                     ctx.TokenIndex += 1;
                     var ctor = ctx.FindType(vm, ctx.FindCompoundWord(terminator: TokenType.ParRoundOpen))!;
                     if (!ctx.Statement.TargetType.CanHold(ctor))
-                        throw new CompilerException(ctx.Token.SourcefilePosition, $"Invalid new-Statement; Cannot assign {ctor} to {ctx.Statement.TargetType}");
+                        throw new CompilerException(ctx.Token.SourcefilePosition,
+                            $"Invalid new-Statement; Cannot assign {ctor} to {ctx.Statement.TargetType}");
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
@@ -77,7 +80,7 @@ namespace KScr.Compiler.Code
                     // method call, parse parameter expressions
                     ctx.TokenIndex += 1;
                     subctx = new CompilerContext(ctx, CompilerType.CodeParameterExpression);
-                    CompilerLoop(vm, new ParameterExpressionCompiler(this), ref subctx); 
+                    CompilerLoop(vm, new ParameterExpressionCompiler(this), ref subctx);
                     ctx.LastComponent!.SubComponent = subctx.Component;
                     ctx.TokenIndex = subctx.TokenIndex - 1;
                     break;
@@ -97,10 +100,11 @@ namespace KScr.Compiler.Code
                         // method call, parse parameter expressions
                         ctx.TokenIndex += 2;
                         subctx = new CompilerContext(ctx, CompilerType.CodeParameterExpression);
-                        CompilerLoop(vm, new ParameterExpressionCompiler(this), ref subctx); 
+                        CompilerLoop(vm, new ParameterExpressionCompiler(this), ref subctx);
                         ctx.LastComponent!.PostComponent!.SubComponent = subctx.Component;
                         ctx.TokenIndex = subctx.TokenIndex - 1;
                     }
+
                     break;
                 case TokenType.Word:
                     var type = ctx.FindType(vm, ctx.Token.Arg!);
@@ -109,11 +113,10 @@ namespace KScr.Compiler.Code
                     if (type != null)
                     {
                         if (ctx.NextToken?.Type == TokenType.Word)
-                        { // declaration
+                            // declaration
                             CompileDeclaration(ctx, type);
-                        }
                         else
-                        { // type expression
+                            // type expression
                             ctx.Component = new StatementComponent
                             {
                                 Type = StatementComponentType.Expression,
@@ -121,16 +124,16 @@ namespace KScr.Compiler.Code
                                 Arg = type.FullName,
                                 SourcefilePosition = ctx.Token.SourcefilePosition
                             };
-                        }
-                    } else
+                    }
+                    else
                     {
                         ctx.Component = new StatementComponent
                         {
-                            Type = ctx.PrevToken?.Type is TokenType.Word 
+                            Type = ctx.PrevToken?.Type is TokenType.Word
                                 or TokenType.IdentNum
-                                or TokenType.IdentNumByte 
-                                or TokenType.IdentNumShort 
-                                or TokenType.IdentNumInt 
+                                or TokenType.IdentNumByte
+                                or TokenType.IdentNumShort
+                                or TokenType.IdentNumInt
                                 or TokenType.IdentNumLong
                                 or TokenType.IdentNumFloat
                                 or TokenType.IdentNumDouble
@@ -144,6 +147,7 @@ namespace KScr.Compiler.Code
                             SourcefilePosition = ctx.Token.SourcefilePosition
                         };
                     }
+
                     break;
                 case TokenType.This:
                     ctx.Component = new StatementComponent
@@ -188,6 +192,7 @@ namespace KScr.Compiler.Code
                             ctx.TokenIndex += 1;
                             break;
                         }
+
                         ctx.TokenIndex += 1;
                         if (ctx.NextToken!.Type is TokenType.Word)
                         {
@@ -198,12 +203,16 @@ namespace KScr.Compiler.Code
                                 SourcefilePosition = ctx.Token.SourcefilePosition
                             };
                             ctx.NextIntoSub = true;
-                        } else ctx.TokenIndex -= 1;
+                        }
+                        else
+                        {
+                            ctx.TokenIndex -= 1;
+                        }
                     }
                     else
                     {
                         // simple operator component; special cases handled in ExpressionCompiler
-                        ctx.Component = new()
+                        ctx.Component = new StatementComponent
                         {
                             Type = StatementComponentType.Operator,
                             ByteArg = (ulong)Operator.Plus,
@@ -239,6 +248,7 @@ namespace KScr.Compiler.Code
                             ctx.TokenIndex += 1;
                             break;
                         }
+
                         ctx.TokenIndex += 1;
                         if (ctx.NextToken!.Type is TokenType.Word)
                         {
@@ -249,12 +259,16 @@ namespace KScr.Compiler.Code
                                 SourcefilePosition = ctx.Token.SourcefilePosition
                             };
                             ctx.NextIntoSub = true;
-                        } else ctx.TokenIndex -= 1;
+                        }
+                        else
+                        {
+                            ctx.TokenIndex -= 1;
+                        }
                     }
                     else
                     {
                         // simple operator component; special cases handled in ExpressionCompiler
-                        ctx.Component = new()
+                        ctx.Component = new StatementComponent
                         {
                             Type = StatementComponentType.Operator,
                             ByteArg = (ulong)Operator.Minus,
@@ -262,6 +276,7 @@ namespace KScr.Compiler.Code
                         };
                         ctx.NextIntoSub = true;
                     }
+
                     break;
                 case TokenType.Exclamation:
                     switch (ctx.NextToken!.Type)
@@ -286,13 +301,14 @@ namespace KScr.Compiler.Code
                             ctx.NextIntoSub = true;
                             break;
                     }
+
                     break;
                 case TokenType.OperatorMultiply:
                 case TokenType.OperatorDivide:
                 case TokenType.OperatorModulus:
                 case TokenType.Circumflex:
                     // simple operator component; special cases handled in ExpressionCompiler
-                    ctx.Component = new()
+                    ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Operator,
                         ByteArg = (ulong)(ctx.Token.Type switch
@@ -338,7 +354,9 @@ namespace KScr.Compiler.Code
                         ctx.Component = new StatementComponent
                         {
                             Type = StatementComponentType.Operator,
-                            ByteArg = (ulong)(ctx.NextToken!.Type == TokenType.OperatorEquals ? Operator.LesserEq : Operator.Lesser),
+                            ByteArg = (ulong)(ctx.NextToken!.Type == TokenType.OperatorEquals
+                                ? Operator.LesserEq
+                                : Operator.Lesser),
                             SourcefilePosition = ctx.Token.SourcefilePosition
                         };
                         ctx.NextIntoSub = true;
@@ -366,7 +384,9 @@ namespace KScr.Compiler.Code
                         ctx.Component = new StatementComponent
                         {
                             Type = StatementComponentType.Operator,
-                            ByteArg = (ulong)(ctx.NextToken!.Type == TokenType.OperatorEquals ? Operator.GreaterEq : Operator.Greater),
+                            ByteArg = (ulong)(ctx.NextToken!.Type == TokenType.OperatorEquals
+                                ? Operator.GreaterEq
+                                : Operator.Greater),
                             SourcefilePosition = ctx.Token.SourcefilePosition
                         };
                         ctx.NextIntoSub = true;
@@ -382,8 +402,9 @@ namespace KScr.Compiler.Code
                         ctx.Statement.Type = StatementComponentType.Code;
                         ctx.Statement.CodeType = BytecodeType.Statement;
                     }
-                    if (!_terminators.Contains(ctx.NextToken!.Type) 
-                        && (ctx.Statement.Type != StatementComponentType.Undefined 
+
+                    if (!_terminators.Contains(ctx.NextToken!.Type)
+                        && (ctx.Statement.Type != StatementComponentType.Undefined
                             || ctx.Statement.CodeType != BytecodeType.Undefined))
                         ctx.Statement = new Statement();
                     /*
@@ -396,7 +417,7 @@ namespace KScr.Compiler.Code
                     */
                     break;
             }
-            
+
             if (_terminators.Contains(ctx.NextToken!.Type))
             {
                 if (_endBeforeTerminator)

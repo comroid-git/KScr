@@ -15,14 +15,14 @@ namespace KScr.Lib.Bytecode
         protected abstract IEnumerable<AbstractBytecode> BytecodeMembers { get; }
         public abstract void Write(Stream stream);
 
+        public virtual void Load(RuntimeBase vm, byte[] data, ref int index)
+        {
+        }
+
         public virtual void Load(RuntimeBase vm, byte[] data)
         {
             for (var i = 0; i < data.Length; i++)
                 Load(vm, data, ref i);
-        }
-
-        public virtual void Load(RuntimeBase vm, byte[] data, ref int index)
-        {
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using KScr.Lib;
 using KScr.Lib.Bytecode;
-using KScr.Lib.Exception;
 using KScr.Lib.Model;
 
 namespace KScr.Compiler.Code
@@ -12,6 +11,8 @@ namespace KScr.Compiler.Code
         public ParameterExpressionCompiler(ICompiler parent) : base(parent)
         {
         }
+
+        public override bool Active => _active;
 
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
@@ -32,7 +33,8 @@ namespace KScr.Compiler.Code
                     Type = StatementComponentType.Code,
                     CodeType = BytecodeType.ParameterExpression
                 };
-                CompilerLoop(vm, new ExpressionCompiler(this, false, TokenType.Comma, TokenType.ParRoundClose), ref subctx);
+                CompilerLoop(vm, new ExpressionCompiler(this, false, TokenType.Comma, TokenType.ParRoundClose),
+                    ref subctx);
                 ctx.LastComponent!.InnerCode!.Main.Add(subctx.Statement);
                 ctx.TokenIndex = subctx.TokenIndex;
             }
@@ -40,7 +42,5 @@ namespace KScr.Compiler.Code
             _active = false;
             return this;
         }
-
-        public override bool Active => _active;
     }
 }
