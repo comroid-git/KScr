@@ -92,7 +92,8 @@ namespace KScr.Lib.Store
             }, _local)
             {
                 Parent = _dequeue.Last(),
-                IsSub = true
+                IsSub = true,
+                It = This
             });
             WrapExecution(vm, ref t, exec);
         }
@@ -159,10 +160,9 @@ namespace KScr.Lib.Store
             }
             catch (System.Exception ex)
             {
-                /*
-                if (RuntimeBase.DebugMode)
+                //if (RuntimeBase.DebugMode)
                     // ReSharper disable once PossibleIntendedRethrow
-                    throw ex;*/
+                //    throw ex;
 #pragma warning restore CA2200
                 throw new StackTraceException(_dequeue[^1].CallLocation, _local, ex);
             }

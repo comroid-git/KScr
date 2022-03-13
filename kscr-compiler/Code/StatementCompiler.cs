@@ -26,6 +26,7 @@ namespace KScr.Compiler.Code
         public override ICompiler? AcceptToken(RuntimeBase vm, ref CompilerContext ctx)
         {
             CompilerContext? subctx;
+            bool hasParensBody;
             switch (ctx.Token.Type)
             {
                 case Return:
@@ -117,10 +118,11 @@ namespace KScr.Compiler.Code
                     ctx.TokenIndex += 1;
                     // parse body
                     subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    hasParensBody = ctx.Token.Type == ParAccOpen;
                     CompilerLoop(vm, new StatementCompiler(this, false,
-                        ctx.Token.Type == ParAccOpen ? ParAccClose : Terminator), ref subctx);
+                        hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
-                    ctx.TokenIndex = subctx.TokenIndex;
+                    ctx.TokenIndex = subctx.TokenIndex - (hasParensBody ? 0 : 1);
                     return this;
                 case Else:
                     if (ctx.LastComponent?.CodeType != BytecodeType.StmtIf)
@@ -128,8 +130,9 @@ namespace KScr.Compiler.Code
                     ctx.TokenIndex += 1;
                     // parse body
                     subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    hasParensBody = ctx.Token.Type == ParAccOpen;
                     CompilerLoop(vm, new StatementCompiler(this, false,
-                        ctx.Token.Type == ParAccOpen ? ParAccClose : Terminator), ref subctx);
+                        hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.LastComponent!.SubComponent = new StatementComponent
                     {
                         Type = StatementComponentType.Code,
@@ -182,8 +185,9 @@ namespace KScr.Compiler.Code
 
                     // parse body
                     subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    hasParensBody = ctx.Token.Type == ParAccOpen;
                     CompilerLoop(vm, new StatementCompiler(this, false,
-                        ctx.Token.Type == ParAccOpen ? ParAccClose : Terminator), ref subctx);
+                        hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
                     return this;
@@ -226,8 +230,9 @@ namespace KScr.Compiler.Code
                     // parse body
                     ctx.TokenIndex += 1;
                     subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    hasParensBody = ctx.Token.Type == ParAccOpen;
                     CompilerLoop(vm, new StatementCompiler(this, false,
-                        ctx.Token.Type == ParAccOpen ? ParAccClose : Terminator), ref subctx);
+                        hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
                     return this;
@@ -260,8 +265,9 @@ namespace KScr.Compiler.Code
                     
                     // parse body
                     subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    hasParensBody = ctx.Token.Type == ParAccOpen;
                     CompilerLoop(vm, new StatementCompiler(this, false,
-                        ctx.Token.Type == ParAccOpen ? ParAccClose : Terminator), ref subctx);
+                        hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
                     break;
@@ -279,7 +285,7 @@ namespace KScr.Compiler.Code
                     };
                     ctx.TokenIndex += 1;
 
-                    bool hasParensBody = ctx.Token!.Type == ParAccOpen;
+                    hasParensBody = ctx.Token!.Type == ParAccOpen;
                     // parse body
                     subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
                     CompilerLoop(vm, new ExpressionCompiler(this, false,
@@ -307,8 +313,9 @@ namespace KScr.Compiler.Code
                     // parse body
                     ctx.TokenIndex += 1;
                     subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    hasParensBody = ctx.Token.Type == ParAccOpen;
                     CompilerLoop(vm, new ExpressionCompiler(this, false,
-                        ctx.Token.Type == ParAccOpen ? ParAccClose : Terminator), ref subctx);
+                        hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.Statement.Finally = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
                     break;

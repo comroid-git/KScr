@@ -199,9 +199,9 @@ namespace KScr.Lib
             }
             catch (System.Exception exc)
             {
-                if (DebugMode)
+                //if (DebugMode)
                     // ReSharper disable once PossibleIntendedRethrow
-                    throw exc;
+                //    throw exc;
                 Console.WriteLine($"An internal exception occurred:\t{exc.Message}");
                 while (exc.InnerException is InternalException inner && (exc = inner) != null)
                     Console.WriteLine($"\t\t- Caused by:\t{inner.Message}");
