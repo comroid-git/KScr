@@ -293,6 +293,14 @@ namespace KScr.Lib.Bytecode
                         return _rev;
                     });
                     break;
+                case (StatementComponentType.Code, BytecodeType.StmtDo):
+                    vm.Stack.StepInside(vm, SourcefilePosition, "do-while", ref rev, _rev =>
+                    {
+                        do state = InnerCode.Evaluate(vm, ref _rev);
+                        while ((state = SubStatement.Evaluate(vm, ref buf)) == State.Normal && buf.ToBool());
+                        return _rev;
+                    });
+                    break;
                 case (StatementComponentType.Operator, _):
                     if (state != State.Normal)
                         break;

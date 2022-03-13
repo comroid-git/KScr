@@ -265,7 +265,41 @@ namespace KScr.Compiler.Code
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
                     break;
-                case TokenType.Finally:
+                case Do:
+                    ctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.StmtDo
+                    };
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.StmtDo,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
+                    };
+                    ctx.TokenIndex += 1;
+
+                    bool hasParensBody = ctx.Token!.Type == ParAccOpen;
+                    // parse body
+                    subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
+                    CompilerLoop(vm, new ExpressionCompiler(this, false,
+                        hasParensBody ? ParAccClose : Terminator), ref subctx);
+                    ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
+                    ctx.TokenIndex = subctx.TokenIndex + 1;
+                    
+                    // parse condition
+                    ctx.TokenIndex += hasParensBody ? 2 : 1;
+                    subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
+                    subctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Expression,
+                        CodeType = BytecodeType.StmtCond
+                    };
+                    CompilerLoop(vm, new ExpressionCompiler(this, false, ParRoundClose), ref subctx);
+                    ctx.LastComponent!.SubStatement = subctx.Statement;
+                    ctx.TokenIndex = subctx.TokenIndex + 1;
+                    break;
+                case Finally:
                     if (ctx.Statement == null)
                         throw new CompilerException(ctx.Token.SourcefilePosition,
                             "Invalid finally-Statement; cannot be first statement");

@@ -31,9 +31,9 @@ public class PrintNumbers implements Throwable {
         
         stdio << "and once more:";
         int i = range.end();
-        while (i--) {
+        do {
             stdio << "number: " + i;
-        }
+        } while (i--);
         stdio << "i is now " + i; // should be 0
             
         PrintNumbers obj = new PrintNumbers();
