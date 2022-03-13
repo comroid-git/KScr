@@ -469,6 +469,9 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Provider, BytecodeType.StdioExpression):
                     rev = vm.StdioRef;
                     break;
+                case (StatementComponentType.Provider, BytecodeType.Undefined):
+                    rev = buf = vm.Stack.This!;
+                    break;
                 case (StatementComponentType.Setter, _):
                     // assignment
                     if (rev == null)
@@ -500,7 +503,7 @@ namespace KScr.Lib.Bytecode
                     rev.ReadAccessor!.Evaluate(vm, ref buf);
                     break;
                 default:
-                    throw new NotImplementedException($"Not Implemented: {CodeType}");
+                    throw new NotImplementedException($"Not Implemented: {Type} {CodeType}");
             }
 
             if (state == State.Normal && PostComponent != null)
