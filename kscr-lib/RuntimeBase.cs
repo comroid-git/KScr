@@ -242,7 +242,7 @@ namespace KScr.Lib
                 return Class.NumericDoubleType;
             if (name.EndsWith("str"))
                 return Class.StringType.DefaultInstance;
-            if (name.EndsWith("void"))
+            if (name.EndsWith("void") || name.EndsWith("Object"))
                 return Class.VoidType.DefaultInstance;
 
             return ClassStore.FindType(this, package ?? Package.RootPackage, name);

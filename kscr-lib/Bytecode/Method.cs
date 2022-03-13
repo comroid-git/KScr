@@ -101,8 +101,8 @@ namespace KScr.Lib.Bytecode
         public override IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
         {
             state = Body.Evaluate(vm, ref rev);
-            //if (state != State.Return)
-//                throw new InternalException("Invalid state after method: " + state);
+            if (state != State.Return && Name != ConstructorName && ReturnType.Name != "void")
+                throw new InternalException("Invalid state after method: " + state);
             return null;
         }
 

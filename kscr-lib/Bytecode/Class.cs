@@ -16,8 +16,9 @@ namespace KScr.Lib.Bytecode
         public static readonly Package LibClassPackage = Package.RootPackage.GetOrCreatePackage("org")
             .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr").GetOrCreatePackage("core");
 
-        public static readonly Class VoidType = new(LibClassPackage, "Object", true, MemberModifier.Public);
+        public static readonly Class VoidType = new(LibClassPackage, "void", true, MemberModifier.Public);
         public static readonly Class TypeType = new(LibClassPackage, "type", true, MemberModifier.Public | MemberModifier.Final);
+        public static readonly Class ObjectType = new(LibClassPackage, "Object", true, MemberModifier.Public);
         public static readonly Class EnumType = new(LibClassPackage, "Enum", true, MemberModifier.Public | MemberModifier.Final) { TypeParameters = { new TypeParameter("T") } };
         public static readonly Class ArrayType = new(LibClassPackage, "array", true, MemberModifier.Public | MemberModifier.Final) { TypeParameters = { new TypeParameter("T") } };
         public static readonly Class StringType = new(LibClassPackage, "str", true, MemberModifier.Public | MemberModifier.Final);
