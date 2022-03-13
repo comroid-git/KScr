@@ -22,9 +22,9 @@ namespace KScr.Compiler.Code
             CompilerContext subctx;
             switch (ctx.Token.Type)
             {
-                case TokenType.IdentVoid:
+                /*case TokenType.IdentVoid:
                     CompileDeclaration(ctx, Lib.Bytecode.Class.VoidType.DefaultInstance);
-                    return this;
+                    return this;*/
                 case TokenType.IdentNum:
                     CompileDeclaration(ctx, Lib.Bytecode.Class.NumericType.DefaultInstance);
                     return this;
