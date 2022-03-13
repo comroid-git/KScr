@@ -38,9 +38,6 @@ namespace KScr.Lib.Bytecode
                             state = component.Evaluate(vm, ref rev);
                             break;
                     }
-
-                    if (state != State.Normal)
-                        break;
                 }
             }
             finally

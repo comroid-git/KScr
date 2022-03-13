@@ -20,8 +20,6 @@ namespace KScr.Lib.Bytecode
             foreach (var statement in Main)
             {
                 state = statement.Evaluate(vm, ref rev);
-                if (rev?.Value is ReturnValue)
-                    state = State.Return;
             }
 
             return null;
