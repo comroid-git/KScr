@@ -59,7 +59,7 @@ namespace KScr.Compiler.Code
                         SubStatement = subctx.Statement,
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
-                    ctx.TokenIndex = subctx.TokenIndex - 1;
+                    ctx.TokenIndex = subctx.TokenIndex;
                     break;
                 case OperatorEquals:
                     if (ctx.Statement.Type == StatementComponentType.Declaration ||
