@@ -5,10 +5,11 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 
 ### Statements:
 - - [x] `if` and `else`
+- - [ ] `mark` and `jump`
 - - [ ] `try` and `catch`
 - - - [x] `throw`
 - - - [x] `finally`
-- - [ ] `do` and `while`
+- - [x] `do` and `while`
 - - [x] `for`
 - - [ ] ~~`forn`~~ Replaced by foreach because Range implements Iterable
 - - [x] `foreach`
