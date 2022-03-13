@@ -82,7 +82,7 @@ namespace KScr.Lib.Store
             return arr;
         }
 
-        public void StepInside<T>(RuntimeBase vm, SourcefilePosition srcPos, string sub, ref T t, Func<T,T> exec)
+        public void StepInside(RuntimeBase vm, SourcefilePosition srcPos, string sub, ref ObjectRef t, Func<ObjectRef,ObjectRef> exec)
         {
             _dequeue.Add(new CtxBlob(new CallLocation
             {
@@ -98,7 +98,7 @@ namespace KScr.Lib.Store
         }
         
         // put focus into static class
-        public void StepInto<T>(RuntimeBase vm, SourcefilePosition srcPos, IClassMember local, ref T t, Func<T,T> exec)
+        public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IClassMember local, ref ObjectRef t, Func<ObjectRef,ObjectRef> exec)
         {
             IClass cls = local.Parent;
             string localStr = cls.FullName + '.' + local.Name + (local is IMethod mtd
@@ -119,7 +119,7 @@ namespace KScr.Lib.Store
         }
 
         // put focus into object instance
-        public void StepInto<T>(RuntimeBase vm, SourcefilePosition srcPos, ObjectRef? into, IClassMember local, ref T t, Func<T,T> exec)
+        public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, ObjectRef? into, IClassMember local, ref ObjectRef t, Func<ObjectRef,ObjectRef> exec)
         {
             into ??= vm.ConstantVoid;
             var cls = local.Parent;
@@ -143,11 +143,11 @@ namespace KScr.Lib.Store
         
         public readonly List<StackTraceException> StackTrace = new();
 
-        private void WrapExecution<T>(RuntimeBase vm, ref T t, Func<T,T> exec)
+        private void WrapExecution(RuntimeBase vm, ref ObjectRef rev, Func<ObjectRef,ObjectRef> exec)
         {
             try
             {
-                t = exec(t);
+                rev = exec(rev);
             }
             catch (StackTraceException ex)
             {
