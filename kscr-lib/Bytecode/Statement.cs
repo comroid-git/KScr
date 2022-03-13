@@ -145,12 +145,6 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Expression, BytecodeType.LiteralFalse):
                     rev = vm.ConstantFalse;
                     break;
-                case (StatementComponentType.Expression, BytecodeType.LiteralRange):
-                    byte[] bs = BitConverter.GetBytes(ByteArg);
-                    int start = BitConverter.ToInt32(new[] { bs[0], bs[1], bs[2], bs[3] }),
-                        end = BitConverter.ToInt32(new[] { bs[4], bs[5], bs[6], bs[7] });
-                    rev = Range.Instance(vm, start, end);
-                    break;
                 case (StatementComponentType.Expression, BytecodeType.Null):
                     rev = vm.ConstantVoid;
                     break;
@@ -350,26 +344,21 @@ namespace KScr.Lib.Bytecode
                                     "Invalid unary operator; missing left numeric operand");
                             rev = left2.Operator(vm, op);
                             break;
-                        case Operator.Plus:
-                        case Operator.Minus:
-                        case Operator.Multiply:
-                        case Operator.Divide:
-                        case Operator.Modulus:
-                        case Operator.Circumflex:
-                        case Operator.Greater:
-                        case Operator.GreaterEq:
-                        case Operator.Lesser:
-                        case Operator.LesserEq:
+                        default:
                             if (SubComponent == null ||
                                 (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new InternalException(
                                     "Invalid binary operator; missing right numeric operand");
+                            var bak = rev;
                             state = SubComponent.Evaluate(vm, ref buf!);
                             // try to use overrides
-                            if (op == Operator.Plus && rev?.Value?.Type.Name == "str"
+                            if ((op & Operator.Plus) == Operator.Plus && rev?.Value?.Type.Name == "str"
                                 || (rev?.Value?.Type.BaseClass as IClass).ClassMembers.Any(x => x.Name == "op" + op))
                             {
-                                rev = rev.Value!.Invoke(vm, "op" + op, ref buf, buf.Value)!;
+                                rev = rev.Value!.Invoke(vm,
+                                    "op" + ((op & Operator.Compound) == Operator.Compound
+                                        ? op ^ Operator.Compound
+                                        : op), ref buf, buf.Value)!;
                             }
                             else
                             {
@@ -380,108 +369,105 @@ namespace KScr.Lib.Bytecode
                                 rev = left3.Operator(vm, op, (buf.Value as Numeric)!);
                             }
 
+                            if ((op & Operator.Compound) == Operator.Compound)
+                                bak.Value = rev.Value;
+
                             break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
                     }
 
                     break;
-                case (StatementComponentType.Provider, _):
-                    // non-constant expressions
-
-                    switch (CodeType)
+                case (StatementComponentType.Provider, BytecodeType.LiteralRange):
+                    state = SubComponent.Evaluate(vm, ref buf);
+                    rev = Range.Instance(vm, (rev.Value as Numeric)!.IntValue, (buf.Value as Numeric)!.IntValue);
+                    break;
+                case (StatementComponentType.Provider, BytecodeType.ExpressionVariable):
+                    if (rev?.Value is { } obj1
+                        && obj1.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm1)
                     {
-                        case BytecodeType.ExpressionVariable:
-                            if (rev?.Value is { } obj1
-                                && obj1.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm1)
-                            {
-                                // call member
-                                IRuntimeSite? site = icm1;
-                                while (site != null && state == State.Normal)
-                                    site = site.Evaluate(vm, ref state, ref rev!);
-                            }
-                            else
-                            {
-                                // read variable
-                                rev = vm[VariableContext, Arg]!;
-                            }
-
-                            break;
-                        case BytecodeType.Call:
-                            // invoke member
-                            if (rev == null)
-                                throw new InternalException("Invalid call; no target found");
-                            if (rev.Value == null)
-                                break;
-                            if (rev.Value is Class.Instance cli1
-                                && (cli1 as IClass).ClassMembers.FirstOrDefault(x => x.Name == Arg) is IMethod mtd1)
-                            {
-                                var param1 = mtd1.Parameters;
-                                buf = new ObjectRef(Class.VoidType.DefaultInstance, param1.Count);
-                                state = SubComponent!.Evaluate(vm, ref buf);
-                                if (state != State.Normal)
-                                    throw new InternalException(
-                                        "Invalid state after evaluating method parameters");
-                                vm.Stack.StepInto(vm, SourcefilePosition, cli1.SelfRef, mtd1, ref rev, _rev =>
-                                {
-                                    for (var i = 0; i < param1.Count; i++)
-                                        vm.PutLocal(param1[i].Name, buf[vm, i]);
-                                    return _rev.Value!.Invoke(vm, Arg, ref _rev!, buf.Stack)!;
-                                });
-                            }
-                            else if (rev.Value!.Type.Primitive
-                                     && rev.Value.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is IMethod mtd2)
-                            {
-                                var param2 = mtd2.Parameters;
-                                buf = new ObjectRef(Class.VoidType.DefaultInstance, param2.Count);
-                                state = SubComponent!.Evaluate(vm, ref buf);
-                                if (state != State.Normal)
-                                    throw new InternalException(
-                                        "Invalid state after evaluating method parameters");
-                                vm.Stack.StepInto(vm, SourcefilePosition, rev, mtd2, ref rev, _rev =>
-                                {
-                                    for (var i = 0; i < param2.Count; i++)
-                                        vm.PutLocal(param2[i].Name, buf[vm, i]);
-                                    return _rev.Value!.Invoke(vm, Arg, ref _rev!, buf.Stack)!;
-                                });
-                            }
-                            else if (rev.Value!.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is IMethod mtd3)
-                            {
-                                var param3 = mtd3.Parameters;
-                                buf = new ObjectRef(Class.VoidType.DefaultInstance, param3.Count);
-                                state = SubComponent!.Evaluate(vm, ref buf);
-                                if (state != State.Normal)
-                                    throw new InternalException(
-                                        "Invalid state after evaluating method parameters");
-                                vm.Stack.StepInto(vm, SourcefilePosition, rev, mtd3, ref rev, _rev =>
-                                {
-                                    for (var i = 0; i < param3.Count; i++)
-                                        vm.PutLocal(param3[i].Name, buf[vm, i]);
-                                    mtd3.Evaluate(vm, ref state, ref _rev!);
-                                    return _rev;
-                                });
-                            }
-                            else if (rev.Value is Class.Instance cli2
-                                     && (cli2 as IClass).ClassMembers.FirstOrDefault(x => x.Name == Arg) is Property
-                                     fld1)
-                            {
-                                fld1.Evaluate(vm, ref state, ref rev!);
-                            }
-                            else if (rev.Value!.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is Property fld2)
-                            {
-                                fld2.Evaluate(vm, ref state, ref rev!);
-                            }
-                            else
-                            {
-                                throw new System.Exception("Invalid state; not a method or property");
-                            }
-
-                            break;
-                        case BytecodeType.StdioExpression:
-                            rev = vm.StdioRef;
-                            break;
+                        // call member
+                        IRuntimeSite? site = icm1;
+                        while (site != null && state == State.Normal)
+                            site = site.Evaluate(vm, ref state, ref rev!);
+                    }
+                    else
+                    {
+                        // read variable
+                        rev = vm[VariableContext, Arg]!;
                     }
 
+                    break;
+                case (StatementComponentType.Provider, BytecodeType.Call):
+                    // invoke member
+                    if (rev == null)
+                        throw new InternalException("Invalid call; no target found");
+                    if (rev.Value == null)
+                        break;
+                    if (rev.Value is Class.Instance cli1
+                        && (cli1 as IClass).ClassMembers.FirstOrDefault(x => x.Name == Arg) is IMethod mtd1)
+                    {
+                        var param1 = mtd1.Parameters;
+                        buf = new ObjectRef(Class.VoidType.DefaultInstance, param1.Count);
+                        state = SubComponent!.Evaluate(vm, ref buf);
+                        if (state != State.Normal)
+                            throw new InternalException(
+                                "Invalid state after evaluating method parameters");
+                        vm.Stack.StepInto(vm, SourcefilePosition, cli1.SelfRef, mtd1, ref rev, _rev =>
+                        {
+                            for (var i = 0; i < param1.Count; i++)
+                                vm.PutLocal(param1[i].Name, buf[vm, i]);
+                            return _rev.Value!.Invoke(vm, Arg, ref _rev!, buf.Stack)!;
+                        });
+                    }
+                    else if (rev.Value!.Type.Primitive
+                             && rev.Value.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is IMethod mtd2)
+                    {
+                        var param2 = mtd2.Parameters;
+                        buf = new ObjectRef(Class.VoidType.DefaultInstance, param2.Count);
+                        state = SubComponent!.Evaluate(vm, ref buf);
+                        if (state != State.Normal)
+                            throw new InternalException(
+                                "Invalid state after evaluating method parameters");
+                        vm.Stack.StepInto(vm, SourcefilePosition, rev, mtd2, ref rev, _rev =>
+                        {
+                            for (var i = 0; i < param2.Count; i++)
+                                vm.PutLocal(param2[i].Name, buf[vm, i]);
+                            return _rev.Value!.Invoke(vm, Arg, ref _rev!, buf.Stack)!;
+                        });
+                    }
+                    else if (rev.Value!.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is IMethod mtd3)
+                    {
+                        var param3 = mtd3.Parameters;
+                        buf = new ObjectRef(Class.VoidType.DefaultInstance, param3.Count);
+                        state = SubComponent!.Evaluate(vm, ref buf);
+                        if (state != State.Normal)
+                            throw new InternalException(
+                                "Invalid state after evaluating method parameters");
+                        vm.Stack.StepInto(vm, SourcefilePosition, rev, mtd3, ref rev, _rev =>
+                        {
+                            for (var i = 0; i < param3.Count; i++)
+                                vm.PutLocal(param3[i].Name, buf[vm, i]);
+                            mtd3.Evaluate(vm, ref state, ref _rev!);
+                            return _rev;
+                        });
+                    }
+                    else if (rev.Value is Class.Instance cli2
+                             && (cli2 as IClass).ClassMembers.FirstOrDefault(x => x.Name == Arg) is Property
+                             fld1)
+                    {
+                        fld1.Evaluate(vm, ref state, ref rev!);
+                    }
+                    else if (rev.Value!.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is Property fld2)
+                    {
+                        fld2.Evaluate(vm, ref state, ref rev!);
+                    }
+                    else
+                    {
+                        throw new System.Exception("Invalid state; not a method or property");
+                    }
+
+                    break;
+                case (StatementComponentType.Provider, BytecodeType.StdioExpression):
+                    rev = vm.StdioRef;
                     break;
                 case (StatementComponentType.Setter, _):
                     // assignment
@@ -514,7 +500,7 @@ namespace KScr.Lib.Bytecode
                     rev.ReadAccessor!.Evaluate(vm, ref buf);
                     break;
                 default:
-                    throw new NotImplementedException("Not Implemented: " + CodeType);
+                    throw new NotImplementedException($"Not Implemented: {CodeType}");
             }
 
             if (state == State.Normal && PostComponent != null)

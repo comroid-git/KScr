@@ -51,30 +51,33 @@ namespace KScr.Lib.Model
         Null = 0xF000_0000 | Expression
     }
 
-    public enum Operator : ushort
+    [Flags]
+    public enum Operator : uint
     {
         Unknown = 0,
 
         // unary operators
-        IncrementRead, // ++x
-        ReadIncrement, // x++
-        DecrementRead, // --x
-        ReadDecrement, // x--
-        LogicalNot, // !x
-        ArithmeticNot, // -x
+        IncrementRead = 0x0000_0001, // ++x
+        ReadIncrement = 0x0000_0002, // x++
+        DecrementRead = 0x0000_0004, // --x
+        ReadDecrement = 0x0000_0008, // x--
+        LogicalNot = 0x0000_000F, // !x
+        ArithmeticNot = 0x0000_0010, // -x
 
         // binary operators
-        Plus, // +
-        Minus, // -
-        Multiply, // *
-        Divide, // /
-        Modulus, // %
-        Circumflex, // ^
-        Equals, // ==
-        NotEquals, // !=
-        Greater, // >
-        GreaterEq, // >=
-        Lesser, // <
-        LesserEq // <=
+        Plus = 0x0000_0020, // +
+        Minus = 0x0000_0040, // -
+        Multiply = 0x0000_0080, // *
+        Divide = 0x0000_00F0, // /
+        Modulus = 0x0000_0100, // %
+        Circumflex = 0x0000_0200, // ^
+        Equals = 0x0000_0400, // ==
+        NotEquals = 0x0000_0800, // !=
+        Greater = 0x0000_0F00, // >
+        GreaterEq = 0x0000_1000, // >=
+        Lesser = 0x0000_2000, // <
+        LesserEq = 0x0000_4000, // <=
+        
+        Compound = 0xFFFF_0000
     }
 }

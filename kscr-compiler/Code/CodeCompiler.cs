@@ -2,6 +2,7 @@
 using System.Linq;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
+using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
@@ -149,6 +150,95 @@ namespace KScr.Compiler.Code
                     }
 
                     break;
+                case TokenType.ParRoundOpen:
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Expression,
+                        CodeType = BytecodeType.Parentheses,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
+                    };
+
+                    // compile inner expression
+                    subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
+                    subctx.TokenIndex += 1;
+                    subctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Expression,
+                        TargetType = ctx.Statement.TargetType
+                    };
+                    CompilerLoop(vm, new ExpressionCompiler(this, false, TokenType.ParRoundClose), ref subctx);
+                    ctx.LastComponent!.SubStatement = subctx.Statement;
+                    ctx.TokenIndex = subctx.TokenIndex;
+                    // finished
+                    //_active = false;
+                    return this;
+                case TokenType.LiteralNull:
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Expression,
+                        CodeType = BytecodeType.Null,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
+                    };
+                    break;
+                case TokenType.LiteralNum:
+                    //if (ctx.NextToken?.Type == TokenType.Tilde)
+                    //    return this; // parse ranges completely
+                    if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
+                        throw new CompilerException(ctx.Token.SourcefilePosition,
+                            "Invalid Numeric literal; expected " + ctx.Statement.TargetType);
+                    var numstr = Numeric.Compile(vm, ctx.Token.Arg!).Value!.ToString(IObject.ToString_LongName);
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Expression,
+                        CodeType = BytecodeType.LiteralNumeric,
+                        Arg = numstr,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
+                    };
+                    break;
+                case TokenType.LiteralStr:
+                    if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.StringType))
+                        throw new CompilerException(ctx.Token.SourcefilePosition,
+                            "Invalid String literal; expected " + ctx.Statement.TargetType);
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Expression,
+                        CodeType = BytecodeType.LiteralString,
+                        Arg = ctx.Token.Arg!,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
+                    };
+                    break;
+                case TokenType.LiteralTrue:
+                    if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
+                        throw new CompilerException(ctx.Token.SourcefilePosition,
+                            "Invalid Boolean literal; expected " + ctx.Statement.TargetType);
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Expression,
+                        CodeType = BytecodeType.LiteralTrue,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
+                    };
+                    break;
+                case TokenType.LiteralFalse:
+                    if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
+                        throw new CompilerException(ctx.Token.SourcefilePosition,
+                            "Invalid Boolean literal; expected " + ctx.Statement.TargetType);
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Expression,
+                        CodeType = BytecodeType.LiteralFalse,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
+                    };
+                    break;
+                // range literal
+                case TokenType.Tilde:
+                    ctx.Component = new StatementComponent
+                    {
+                        Type = StatementComponentType.Provider,
+                        CodeType = BytecodeType.LiteralRange,
+                        SourcefilePosition = ctx.Token.SourcefilePosition
+                    };
+                    ctx.NextIntoSub = true;
+                    break;
                 case TokenType.This:
                     ctx.Component = new StatementComponent
                     {
@@ -209,9 +299,21 @@ namespace KScr.Compiler.Code
                             ctx.TokenIndex -= 1;
                         }
                     }
+                    else if (ctx.NextToken!.Type == TokenType.OperatorEquals)
+                    {
+                        // simple operator component
+                        ctx.Component = new StatementComponent
+                        {
+                            Type = StatementComponentType.Operator,
+                            ByteArg = (ulong)(Operator.Plus | Operator.Compound),
+                            SourcefilePosition = ctx.Token.SourcefilePosition
+                        };
+                        ctx.TokenIndex += 1;
+                        ctx.NextIntoSub = true;
+                    }
                     else
                     {
-                        // simple operator component; special cases handled in ExpressionCompiler
+                        // simple operator component
                         ctx.Component = new StatementComponent
                         {
                             Type = StatementComponentType.Operator,
@@ -264,6 +366,18 @@ namespace KScr.Compiler.Code
                         {
                             ctx.TokenIndex -= 1;
                         }
+                    }
+                    else if (ctx.NextToken!.Type == TokenType.OperatorEquals)
+                    {
+                        // simple operator component
+                        ctx.Component = new StatementComponent
+                        {
+                            Type = StatementComponentType.Operator,
+                            ByteArg = (ulong)(Operator.Minus | Operator.Compound),
+                            SourcefilePosition = ctx.Token.SourcefilePosition
+                        };
+                        ctx.TokenIndex += 1;
+                        ctx.NextIntoSub = true;
                     }
                     else
                     {
@@ -320,9 +434,11 @@ namespace KScr.Compiler.Code
                             TokenType.OperatorModulus => Operator.Modulus,
                             TokenType.Circumflex => Operator.Circumflex,
                             _ => throw new ArgumentOutOfRangeException()
-                        }),
+                        } | (ctx.NextToken!.Type == TokenType.OperatorEquals ? Operator.Compound : Operator.Unknown)),
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
+                    if (ctx.NextToken!.Type == TokenType.OperatorEquals)
+                        ctx.TokenIndex += 1;
                     ctx.NextIntoSub = true;
                     break;
                 // pipe operators
