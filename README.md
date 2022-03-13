@@ -22,7 +22,7 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 - - [ ] Tuple Literals
 - - [x] Computed Properties
 - - [ ] Properties with Getters and Setters
-- - [ ] Properties with Value storage
+- - [x] Auto-Properties
 - - [x] `extends` and `implements`
 - - [ ] Variable Caching
 - - [ ] Annotations
