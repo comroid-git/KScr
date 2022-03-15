@@ -1,30 +1,34 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
+using IEvaluable = KScr.Lib.Model.IEvaluable;
 
 namespace KScr.Lib.Store
 {
+    public delegate IEnumerable<string> ObjectStoreKeyGenerator(VariableContext varctx, string name);
+    
     public sealed class ObjectStore
     {
         private readonly ConcurrentDictionary<string, ObjectRef?> _cache = new();
 
-        public ObjectRef? this[Stack ctx, VariableContext varctx, string name]
+        public ObjectRef? this[ObjectStoreKeyGenerator keygen, VariableContext varctx, string name]
         {
             get
             {
-                foreach (string key in ctx.CreateKeys(varctx, name))
+                foreach (string key in keygen(varctx, name))
                     if (_cache.ContainsKey(key))
                         return _cache[key];
                 return null;
             }
             set
             {
-                foreach (string key in ctx.CreateKeys(varctx, name))
+                foreach (string key in keygen(varctx, name))
                     if (value == null && _cache.TryRemove(key, out _))
                         return;
                     else _cache[key] = value;
@@ -35,7 +39,7 @@ namespace KScr.Lib.Store
         {
             foreach (string localKey in _cache.Keys.Where(it => it.StartsWith(ctx.PrefixLocal)))
                 if (!_cache.TryRemove(localKey, out _))
-                    throw new InternalException("Unable to remove local variable " + localKey);
+                    throw new FatalException("Unable to remove local variable " + localKey);
         }
 
         public bool Remove(string key)
@@ -56,14 +60,31 @@ namespace KScr.Lib.Store
         IEvaluable? ReadAccessor { get; set; }
         IEvaluable? WriteAccessor { get; set; }
         IObject Value { get; set; }
-        IObject this[RuntimeBase vm, int i] { get; set; }
+        IClassInstance Type { get; }
+        IObject this[RuntimeBase vm, Stack stack, int i] { get; set; }
+    }
+
+    public static class IObjectRefExt
+    {
+
+        public static bool ToBool(this IObjectRef it)
+        {
+            return !(it.Value == IObject.Null // todo inspect
+                     || ((it.Value as Numeric)?.ImplicitlyFalse ?? false)
+                     || it.Value == null);
+        }
+
+        public static IObjectRef LogicalNot(this IObjectRef it, RuntimeBase vm)
+        {
+            return ToBool(it) ? vm.ConstantFalse : vm.ConstantTrue;
+        }
     }
 
     public class ObjectRef : IObjectRef
     {
-        public readonly IObject?[] Stack;
+        public readonly IObject?[] Refs;
 
-        public readonly IClassInstance Type;
+        public IClassInstance Type { get; }
 
         public ObjectRef(IClassInstance type, IObject value) : this(type)
         {
@@ -75,27 +96,27 @@ namespace KScr.Lib.Store
             if (len < 1)
                 len = 1;
             Type = type;
-            Stack = new IObject?[len];
+            Refs = new IObject?[len];
         }
 
-        public int Length => Stack.Length;
+        public int Length => Refs.Length;
         public bool IsPipe => ReadAccessor != null || WriteAccessor != null;
         public virtual IEvaluable? ReadAccessor { get; set; }
         public virtual IEvaluable? WriteAccessor { get; set; }
 
-        public IObject this[RuntimeBase vm, int i]
+        public IObject this[RuntimeBase vm, Stack stack, int i]
         {
             get
             {
                 if (ReadAccessor != null)
                 {
                     var output = Numeric.Constant(vm, i);
-                    ReadAccessor!.Evaluate(vm, ref output);
+                    ReadAccessor!.Evaluate(vm, stack);
                     return output.Value;
                 }
                 else
                 {
-                    return Stack[i] ?? IObject.Null;
+                    return Refs[i] ?? IObject.Null;
                 }
             }
             set
@@ -104,7 +125,7 @@ namespace KScr.Lib.Store
                 if (WriteAccessor != null)
                 {
                     var output = new ObjectRef(Class.VoidType.DefaultInstance) { Value = value };
-                    WriteAccessor!.Evaluate(vm, ref output);
+                    WriteAccessor!.Evaluate(vm, stack);
                 }
                 else
                 {
@@ -115,7 +136,7 @@ namespace KScr.Lib.Store
 
         public IObject Value
         {
-            get => Stack[0] ?? IObject.Null;
+            get => Refs[0] ?? IObject.Null;
             set
             {
                 CheckTypeCompat(value.Type);
@@ -126,33 +147,21 @@ namespace KScr.Lib.Store
         public override string ToString()
         {
             return Length > 1
-                ? Type + "" + string.Join(",", Stack.Select(it => it?.ToString()))
+                ? Type + "" + string.Join(",", Refs.Select(it => it?.ToString()))
                 : Type + ": " + Value;
         }
 
         private void CheckTypeCompat(IClassInstance other)
         {
             if (!Type.CanHold(other))
-                throw new InternalException("Invalid Type (" + other + ") assigned to reference of type " + Type);
+                throw new FatalException("Invalid Type (" + other + ") assigned to reference of type " + Type);
         }
 
         private void InsertToStack(int i, IObject? value)
         {
             if (IsPipe)
                 throw new InvalidOperationException("Cannot insert value inte pipe");
-            Stack[i] = value;
-        }
-
-        public bool ToBool()
-        {
-            return !(Value == IObject.Null // todo inspect
-                     || ((Value as Numeric)?.ImplicitlyFalse ?? false)
-                     || Value == null);
-        }
-
-        public ObjectRef LogicalNot(RuntimeBase vm)
-        {
-            return ToBool() ? vm.ConstantFalse : vm.ConstantTrue;
+            Refs[i] = value;
         }
     }
 }

@@ -70,7 +70,7 @@ namespace KScr.Lib.Bytecode
                 return this;
             if (i < names.Length)
                 return (GetMember(names[i]) as AbstractPackageMember)!.GetAbsoluteMember(names, i + 1);
-            throw new InternalException("Member not found: " + string.Join('.', names));
+            throw new FatalException("Member not found: " + string.Join('.', names));
         }
 
         protected IEnumerable<IPackageMember> All()

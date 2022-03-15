@@ -66,7 +66,7 @@ namespace KScr.Lib.Bytecode
             ReturnType = returnType;
         }
 
-        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
+        public void Evaluate(RuntimeBase vm, Stack stack)
         {
             throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
         }
@@ -77,9 +77,9 @@ namespace KScr.Lib.Bytecode
         public MemberModifier Modifier { get; set; }
         public List<MethodParameter> Parameters { get; set; }
         public ITypeInfo ReturnType { get; set; }
-        public ClassMemberType Type => ClassMemberType.Method;
+        public ClassMemberType MemberType => ClassMemberType.Method;
 
-        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev)
+        public IEvaluable? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev)
         {
             throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
         }
@@ -105,14 +105,13 @@ namespace KScr.Lib.Bytecode
         public override string FullName =>
             base.FullName + '(' + string.Join(", ", Parameters.Select(it => it.Type)) + ')';
 
-        public override ClassMemberType Type => ClassMemberType.Method;
+        public override ClassMemberType MemberType => ClassMemberType.Method;
 
-        public override IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
+        public override void Evaluate(RuntimeBase vm, Stack stack)
         {
-            state = Body.Evaluate(vm, ref rev);
-            if (state != State.Return && Name != ConstructorName && ReturnType.Name != "void")
-                throw new InternalException("Invalid state after method: " + state);
-            return null;
+            Body.Evaluate(vm, stack);
+            if (stack.State != State.Return && Name != ConstructorName && ReturnType.Name != "void")
+                throw new FatalException("Invalid state after method: " + stack.State);
         }
 
         public override void Write(Stream stream)

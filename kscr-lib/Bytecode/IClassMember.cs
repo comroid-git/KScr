@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using KScr.Lib.Model;
 using KScr.Lib.Store;
 
 namespace KScr.Lib.Bytecode
@@ -7,15 +8,15 @@ namespace KScr.Lib.Bytecode
     public enum ClassMemberType : byte
     {
         Method = 0x1,
-        Field = 0x2
+        Property = 0x2
     }
 
-    public interface IClassMember : IRuntimeSite, IModifierContainer
+    public interface IClassMember : IEvaluable, IModifierContainer
     {
         public Class Parent { get; }
         public string Name { get; }
         public string FullName { get; }
-        public ClassMemberType Type { get; }
+        public ClassMemberType MemberType { get; }
     }
 
     public abstract class AbstractClassMember : AbstractBytecode, IClassMember
@@ -35,13 +36,13 @@ namespace KScr.Lib.Bytecode
 
         public virtual string FullName => Parent.FullName + '.' + Name;
         public MemberModifier Modifier { get; protected set; }
-        public abstract ClassMemberType Type { get; }
+        public abstract ClassMemberType MemberType { get; }
 
-        public abstract IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0);
+        public abstract void Evaluate(RuntimeBase vm, Stack stack);
 
         public override void Write(Stream stream)
         {
-            stream.Write(new[] { (byte)Type });
+            stream.Write(new[] { (byte)MemberType });
             stream.Write(BitConverter.GetBytes((int)Modifier));
             byte[] buf = RuntimeBase.Encoding.GetBytes(Name);
             stream.Write(BitConverter.GetBytes(buf.Length));
@@ -62,7 +63,7 @@ namespace KScr.Lib.Bytecode
             AbstractClassMember member = type switch
             {
                 ClassMemberType.Method => new Method(parent, name, null, modifier), // todo fixme
-                ClassMemberType.Field => new Property(parent, name, null, modifier),
+                ClassMemberType.Property => new Property(parent, name, null, modifier),
                 _ => throw new ArgumentOutOfRangeException()
             };
             member.Load(vm, data, ref index);

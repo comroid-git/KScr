@@ -86,12 +86,12 @@ namespace KScr.Lib.Core
             };
         }
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
+        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {
                 case "toString":
-                    return String.Instance(vm, StringValue);
+                    return String.Instance(vm, stack, StringValue);
                 case "ExitCode":
                     return Constant(vm, IntValue);
                 case "equals":
@@ -99,7 +99,7 @@ namespace KScr.Lib.Core
                         return vm.ConstantFalse;
                     if (Mode is NumericMode.Float or NumericMode.Double && args.Length == 2 &&
                         args[1] is not Numeric delta)
-                        throw new InternalException("Invalid second argument; expected: num delta");
+                        throw new FatalException("Invalid second argument; expected: num delta");
                     else delta = (Constant(vm, 0.001).Value as Numeric)!;
                     return Mode switch
                     {
@@ -134,7 +134,7 @@ namespace KScr.Lib.Core
             };
         }
 
-        public static ObjectRef Constant(RuntimeBase vm, byte value)
+        public static IObjectRef Constant(RuntimeBase vm, byte value)
         {
             return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
             {
@@ -145,7 +145,7 @@ namespace KScr.Lib.Core
             });
         }
 
-        public static ObjectRef Constant(RuntimeBase vm, short value)
+        public static IObjectRef Constant(RuntimeBase vm, short value)
         {
             return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
             {
@@ -156,7 +156,7 @@ namespace KScr.Lib.Core
             });
         }
 
-        public static ObjectRef Constant(RuntimeBase vm, int value)
+        public static IObjectRef Constant(RuntimeBase vm, int value)
         {
             return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
             {
@@ -167,7 +167,7 @@ namespace KScr.Lib.Core
             });
         }
 
-        public static ObjectRef Constant(RuntimeBase vm, long value)
+        public static IObjectRef Constant(RuntimeBase vm, long value)
         {
             return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
             {
@@ -178,7 +178,7 @@ namespace KScr.Lib.Core
             });
         }
 
-        public static ObjectRef Constant(RuntimeBase vm, float value)
+        public static IObjectRef Constant(RuntimeBase vm, float value)
         {
             return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
             {
@@ -189,7 +189,7 @@ namespace KScr.Lib.Core
             });
         }
 
-        public static ObjectRef Constant(RuntimeBase vm, double value)
+        public static IObjectRef Constant(RuntimeBase vm, double value)
         {
             return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
             {
@@ -203,7 +203,7 @@ namespace KScr.Lib.Core
         private void SetAs<T>(T value)
         {
             if (!Mutable && !_constant)
-                throw new InternalException("Numeric is immutable");
+                throw new FatalException("Numeric is immutable");
 
             var type = typeof(T);
 
@@ -239,7 +239,7 @@ namespace KScr.Lib.Core
             }
             else
             {
-                throw new InternalException("Invalid target Type: " + type);
+                throw new FatalException("Invalid target Type: " + type);
             }
         }
 
@@ -392,15 +392,15 @@ namespace KScr.Lib.Core
                         throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode);
                 }
 
-            throw new InternalException("Invalid target Type: " + type);
+            throw new FatalException("Invalid target Type: " + type);
         }
 
-        public static ObjectRef Compile(RuntimeBase vm, string str)
+        public static IObjectRef Compile(RuntimeBase vm, string str)
         {
             var result = NumberRegex.Match(str);
 
             if (!result.Success)
-                throw new InternalException("Invalid numeric literal: " + str);
+                throw new FatalException("Invalid numeric literal: " + str);
             var groups = result.Groups;
             string? type = groups[5].Value;
             if (type == string.Empty)
@@ -417,7 +417,7 @@ namespace KScr.Lib.Core
             if (type == "d")
                 return Constant(vm, double.Parse(str.Substring(0, str.Length - 1)));
             if (type != string.Empty)
-                throw new InternalException("Invalid target Type: " + type);
+                throw new FatalException("Invalid target Type: " + type);
             if (groups[3].Length > groups[4].Length)
                 return Constant(vm, float.Parse(str));
             try
@@ -430,7 +430,7 @@ namespace KScr.Lib.Core
             }
         }
 
-        public ObjectRef Operator(RuntimeBase vm, Operator op, Numeric? right = null)
+        public IObjectRef Operator(RuntimeBase vm, Operator op, Numeric? right = null)
         {
             return op switch
             {
@@ -453,31 +453,31 @@ namespace KScr.Lib.Core
             };
         }
 
-        public ObjectRef OpIR(RuntimeBase vm)
+        public IObjectRef OpIR(RuntimeBase vm)
         {
             return OpPlus(vm, One);
         }
 
-        public ObjectRef OpRI(RuntimeBase vm)
+        public IObjectRef OpRI(RuntimeBase vm)
         {
             var rev = OpMultiply(vm, One);
             SetAs((OpPlus(vm, One).Value as Numeric)!.DoubleValue);
             return rev;
         }
 
-        public ObjectRef OpDR(RuntimeBase vm)
+        public IObjectRef OpDR(RuntimeBase vm)
         {
             return OpMinus(vm, One);
         }
 
-        public ObjectRef OpRD(RuntimeBase vm)
+        public IObjectRef OpRD(RuntimeBase vm)
         {
             var rev = OpMultiply(vm, One);
             SetAs((OpMinus(vm, One).Value as Numeric)!.DoubleValue);
             return rev;
         }
 
-        public ObjectRef OpGt(RuntimeBase vm, Numeric right)
+        public IObjectRef OpGt(RuntimeBase vm, Numeric right)
         {
             return Mode switch
             {
@@ -493,7 +493,7 @@ namespace KScr.Lib.Core
                 : vm.ConstantFalse;
         }
 
-        public ObjectRef OpGtEq(RuntimeBase vm, Numeric right)
+        public IObjectRef OpGtEq(RuntimeBase vm, Numeric right)
         {
             return Mode switch
             {
@@ -509,7 +509,7 @@ namespace KScr.Lib.Core
                 : vm.ConstantFalse;
         }
 
-        public ObjectRef OpLs(RuntimeBase vm, Numeric right)
+        public IObjectRef OpLs(RuntimeBase vm, Numeric right)
         {
             return Mode switch
             {
@@ -525,7 +525,7 @@ namespace KScr.Lib.Core
                 : vm.ConstantFalse;
         }
 
-        public ObjectRef OpLsEq(RuntimeBase vm, Numeric right)
+        public IObjectRef OpLsEq(RuntimeBase vm, Numeric right)
         {
             return Mode switch
             {
@@ -541,7 +541,7 @@ namespace KScr.Lib.Core
                 : vm.ConstantFalse;
         }
 
-        public ObjectRef OpNegate(RuntimeBase vm)
+        public IObjectRef OpNegate(RuntimeBase vm)
         {
             return Mode switch
             {
@@ -555,7 +555,7 @@ namespace KScr.Lib.Core
             };
         }
 
-        public ObjectRef OpPlus(RuntimeBase vm, Numeric right)
+        public IObjectRef OpPlus(RuntimeBase vm, Numeric right)
         {
             return Mode switch
             {
@@ -569,7 +569,7 @@ namespace KScr.Lib.Core
             };
         }
 
-        public ObjectRef OpMinus(RuntimeBase vm, Numeric right)
+        public IObjectRef OpMinus(RuntimeBase vm, Numeric right)
         {
             return Mode switch
             {
@@ -583,7 +583,7 @@ namespace KScr.Lib.Core
             };
         }
 
-        public ObjectRef OpMultiply(RuntimeBase vm, Numeric right)
+        public IObjectRef OpMultiply(RuntimeBase vm, Numeric right)
         {
             return Mode switch
             {
@@ -597,7 +597,7 @@ namespace KScr.Lib.Core
             };
         }
 
-        public ObjectRef OpDivide(RuntimeBase vm, Numeric right)
+        public IObjectRef OpDivide(RuntimeBase vm, Numeric right)
         {
             return Mode switch
             {
@@ -611,7 +611,7 @@ namespace KScr.Lib.Core
             };
         }
 
-        public ObjectRef OpModulus(RuntimeBase vm, Numeric right)
+        public IObjectRef OpModulus(RuntimeBase vm, Numeric right)
         {
             return Mode switch
             {
@@ -625,7 +625,7 @@ namespace KScr.Lib.Core
             };
         }
 
-        public ObjectRef OpCircumflex(RuntimeBase vm, Numeric right)
+        public IObjectRef OpCircumflex(RuntimeBase vm, Numeric right)
         {
             var rev = OpMultiply(vm, One);
             for (int n = right.IntValue; n > 0; n--)

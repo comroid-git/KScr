@@ -46,7 +46,7 @@ namespace KScr.Lib.Model
     public interface IClass : IClassInfo
     {
         Class BaseClass { get; }
-        ObjectRef SelfRef { get; }
+        IObjectRef SelfRef { get; }
         IEnumerable<IClassMember> ClassMembers => DeclaredMembers.Values.Concat(InheritedMembers);
 
         IEnumerable<IClassMember> InheritedMembers =>

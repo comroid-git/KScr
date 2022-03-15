@@ -29,7 +29,7 @@ namespace KScr.Lib.Core
             return string.Join(", ", List.Select(it => it.Value?.ToString(variant)));
         }
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
+        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {

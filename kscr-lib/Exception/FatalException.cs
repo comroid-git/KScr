@@ -12,6 +12,17 @@ namespace KScr.Lib.Exception
         {
         }
     }
+    
+    public class FatalException : System.Exception
+    {
+        public FatalException(string? message) : base(message)
+        {
+        }
+
+        public FatalException(string? message, System.Exception? innerException) : base(message, innerException)
+        {
+        }
+    }
 
     public interface IStackTrace
     {
@@ -21,8 +32,9 @@ namespace KScr.Lib.Exception
 
     public class StackTraceException : System.Exception, IStackTrace
     {
-        public StackTraceException(CallLocation srcPos, string local, System.Exception innerTrace)
-            : base(innerTrace.Message, innerTrace)
+        public StackTraceException(CallLocation srcPos, string local, System.Exception innerTrace,
+            string? message = null)
+            : base(message ?? innerTrace.Message, innerTrace)
         {
             CallLoc = srcPos;
             Local = local;

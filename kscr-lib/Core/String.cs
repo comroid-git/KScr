@@ -30,18 +30,18 @@ namespace KScr.Lib.Core
             };
         }
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
+        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {
                 case "toString":
-                    return Instance(vm, Str);
+                    return Instance(vm, stack, Str);
                 case "equals":
                     return args[0] is String other && Str == other.Str ? vm.ConstantTrue : vm.ConstantFalse;
                 case "getType":
                     return Type.SelfRef;
                 case "opPlus":
-                    return OpPlus(vm, (args[0]?.Invoke(vm, "toString", ref rev)?.Value as String)?.Str ?? "null");
+                    return OpPlus(vm, stack, (args[0]?.Invoke(vm, stack, "toString")?.Value as String)?.Str ?? "null");
                 case "length":
                     return Numeric.Constant(vm, Str.Length);
                 default:
@@ -59,20 +59,20 @@ namespace KScr.Lib.Core
             return "static-str:" + str;
         }
 
-        private ObjectRef OpPlus(RuntimeBase vm, string other)
+        private IObjectRef OpPlus(RuntimeBase vm, Stack stack, string other)
         {
-            return Instance(vm, Str + other);
+            return Instance(vm, stack, Str + other);
         }
 
-        public static ObjectRef Instance(RuntimeBase vm, string str)
+        public static IObjectRef Instance(RuntimeBase vm, Stack stack, string str)
         {
             string key = CreateKey(str);
-            var rev = vm[VariableContext.Absolute, key];
+            var rev = vm[stack.KeyGen, VariableContext.Absolute, key];
             var obj = rev?.Value;
             if (obj is String strObj && strObj.Str == str)
                 return rev!;
             if (obj != null)
-                throw new InternalException("Unexpected object at key " + key);
+                throw new FatalException("Unexpected object at key " + key);
             if (rev == null)
                 rev = vm.ComputeObject(VariableContext.Absolute, key, () => new String(vm, str));
             return rev;

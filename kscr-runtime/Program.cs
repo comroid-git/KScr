@@ -21,7 +21,7 @@ namespace KScr.Runtime
             DefaultOutput = Path.Combine(Directory.GetCurrentDirectory(), "build", "compile");
 
         private static readonly string
-            StdPackageLocation = Path.Combine(RuntimeBase.GetSdkHome().FullName, "std");
+            StdPackageLocation = Path.Combine(RuntimeBase.SdkHome.FullName, "std");
 
         static Program()
         {
@@ -97,13 +97,8 @@ namespace KScr.Runtime
                 })
                 .WithNotParsed(errors =>
                 {
-                    ObjectRef? rev = null!;
                     if (!errors.Any())
-                        VM.Stack.StepInto(VM, RuntimeBase.MainInvocPos, RuntimeBase.MainInvoc, ref rev, _ =>
-                        {
-                            StdIoMode(ref state, ref yield);
-                            return null;
-                        });
+                        VM.Stack.StepInto(VM, RuntimeBase.MainInvocPos, RuntimeBase.MainInvoc, _ => StdIoMode(ref state, ref yield));
                 });
 
             return HandleExit(state, yield, compileTime, executeTime, ioTime, RuntimeBase.ConfirmExit);
@@ -168,7 +163,7 @@ namespace KScr.Runtime
                 compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - compileTime;
 
                 long executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                state = context.ExecutableCode.Evaluate(VM, ref output);
+                context.ExecutableCode.Evaluate(VM, VM.Stack);
                 executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - executeTime;
                 context.Clear();
 

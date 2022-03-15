@@ -11,7 +11,7 @@ using Array = System.Array;
 
 namespace KScr.Lib.Bytecode
 {
-    public sealed class Class : AbstractPackageMember, IClass, IRuntimeSite
+    public sealed class Class : AbstractPackageMember, IClass, IEvaluable
     {
         public static readonly Package LibClassPackage = Package.RootPackage.GetOrCreatePackage("org")
             .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr").GetOrCreatePackage("core");
@@ -90,7 +90,7 @@ namespace KScr.Lib.Bytecode
 
         public TypeParameter.Instance[] TypeParameterInstances { get; } = Array.Empty<TypeParameter.Instance>();
 
-        public ObjectRef SelfRef => DefaultInstance.SelfRef;
+        public IObjectRef SelfRef => DefaultInstance.SelfRef;
 
         public IDictionary<string, IClassMember> DeclaredMembers { get; } =
             new ConcurrentDictionary<string, IClassMember>();
@@ -124,18 +124,12 @@ namespace KScr.Lib.Bytecode
 
         public bool Primitive { get; }
 
-        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
+        public void Evaluate(RuntimeBase vm, Stack stack)
         {
             var icm = DeclaredMembers.Values.FirstOrDefault(x => x.Name == Method.StaticInitializerName);
             if (icm == null)
-                return null;
-            vm.Stack.StepInto(vm, new SourcefilePosition(), icm, ref rev, _rev =>
-            {
-                var _state = State.Normal;
-                icm.Evaluate(vm, ref _state, ref _rev);
-                return _rev;
-            });
-            return icm;
+                return;
+            stack.StepInto(vm, new SourcefilePosition(), stack.Alp, icm, stack => icm.Evaluate(vm, stack));
         }
 
         public void Initialize(RuntimeBase vm)
@@ -161,12 +155,12 @@ namespace KScr.Lib.Bytecode
             _initialized = true;
         }
 
-        public void LateInitialization(RuntimeBase vm)
+        public void LateInitialization(RuntimeBase vm, Stack stack)
         {
             if (_lateInitialized) return;
             var state = State.Normal;
             ObjectRef? rev = null;
-            Evaluate(vm, ref state, ref rev);
+            Evaluate(vm, stack);
             _lateInitialized = true;
         }
 
@@ -315,7 +309,7 @@ namespace KScr.Lib.Bytecode
                 index += NewLineBytes.Length;
             }
 
-            LateInitialization(vm);
+            LateInitialization(vm, vm.Stack);
         }
 
         public override string ToString()
@@ -528,7 +522,7 @@ namespace KScr.Lib.Bytecode
             }
 
             public Class BaseClass { get; }
-            public ObjectRef SelfRef { get; internal set; } = null!;
+            public IObjectRef SelfRef { get; internal set; } = null!;
             public TypeParameter.Instance[] TypeParameterInstances { get; }
             public IDictionary<string, IClassMember> DeclaredMembers => BaseClass.DeclaredMembers;
             public IList<IClassInstance> Superclasses => BaseClass.Superclasses;
@@ -579,25 +573,18 @@ namespace KScr.Lib.Bytecode
                 };
             }
 
-            public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
+            public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
             {
                 // try invoke static method
                 if (DeclaredMembers.TryGetValue(member, out var icm))
                 {
                     if (!icm.IsStatic())
-                        throw new InternalException("Cannot invoke non-static method from static context");
-                    IRuntimeSite? site = icm;
-                    var state = State.Normal;
-                    var output = vm.Stack.This;
-                    do
-                    {
-                        site = site.Evaluate(vm, ref state, ref output);
-                    } while (state == State.Normal && site != null);
-
-                    return output;
+                        throw new FatalException("Cannot invoke non-static method from static context");
+                    icm.Evaluate(vm, stack);
+                    return stack.Alp;
                 }
 
-                throw new InternalException("Method not implemented: " + member);
+                throw new FatalException("Method not implemented: " + member);
             }
 
             public string GetKey()

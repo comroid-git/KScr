@@ -31,7 +31,6 @@ namespace KScr.Lib.Store
 
     public sealed class CtxBlob
     {
-        protected internal List<string> _keys = new();
 #pragma warning disable CS0628
         protected internal CtxBlob(CallLocation callLocation, string local)
         {
@@ -39,31 +38,119 @@ namespace KScr.Lib.Store
             Local = local;
         }
 
-        public CallLocation CallLocation { get; }
+        public CallLocation? CallLocation { get; }
         public CtxBlob? Parent { get; protected internal set; }
         public string Local { get; protected internal set; }
-        public ObjectRef? It { get; protected internal set; }
+        public IObjectRef? This { get; protected internal set; }
         public IClass? Class { get; protected internal set; }
         public bool IsSub { get; protected internal set; }
 #pragma warning restore CS0628
     }
 
+    [Flags]
+    public enum StackOutput : byte
+    {
+        Default = 0,
+        None = 0b1000_0000,
+        All = 0b0111_1111,
+        Threadsafe = 0b0010_1111,
+
+        Alp = 0b0000_0001, // accumulate
+        Bet = 0b0000_0010, // buffer
+        Del = 0b0000_0100,  // delta
+        Eps = 0b0000_1000,  // epsilon
+        Tau = 0b0001_0000,  // tau
+        Phi = 0b0010_0000,  // phi
+        Omg = 0b0100_0000   // omega
+    }
+
     public sealed class Stack
     {
-        public const string Delimiter = ".";
-        private readonly List<CtxBlob> _dequeue = new();
-
+        public const string Separator = ".";
+        private readonly StackOutput _output;
+        private readonly List<string> _keys = new();
+        private readonly Stack _parent = null!;
+        private readonly CtxBlob _blob = null!;
         public readonly List<StackTraceException> StackTrace = new();
+        public readonly ObjectStoreKeyGenerator KeyGen; 
 
-        private string _local => _dequeue.Count == 0 ? "org.comroid.kscr.core.Object.main()" : _dequeue[^1].Local;
+        public Stack()
+        {
+            _output = StackOutput.Alp;
+            KeyGen = CreateKeys;
+        }
+        
+        private Stack(Stack parent, StackOutput output, bool copyRefsPtr = true)
+        {
+            _output = output;
+            if (copyRefsPtr)
+                _refs = parent._refs;
+            _parent = parent._parent;
+            _blob = parent._blob;
+            KeyGen = CreateKeys;
+        }
 
-        // todo fixme: these two need to go up until they find something
-        public ObjectRef? This => _dequeue[^1].It ?? _dequeue[^2].It;
-        public IClass? Class => _dequeue[^1].Class ?? _dequeue[^2].Class;
-        public string PrefixLocal => _local + Delimiter;
-        public List<MethodParameter>? MethodParams { get; set; }
+        private Stack(Stack parent, CtxBlob blob)
+        {
+            _output = StackOutput.Alp;
+            _parent = parent;
+            _blob = blob;
+            KeyGen = CreateKeys;
+        }
 
-        public IEnumerable<string> CreateKeys(VariableContext varctx, string name)
+        private string _local => _blob.Local;
+        public IObjectRef This => _blob.This ?? _parent.This;
+        public IClass Class => _blob.Class ?? _parent.Class;
+        public CallLocation CallLocation => _blob.CallLocation ?? _parent.CallLocation;
+        public string PrefixLocal => _local + Separator;
+
+        private readonly IObjectRef?[] _refs = new IObjectRef[7];
+        public IObjectRef? this[StackOutput adr]
+        {
+            get => (adr == StackOutput.Default ? _output : adr) switch {
+                StackOutput.Default => throw new System.Exception("Invalid State"),
+                StackOutput.None => This,
+                StackOutput.Alp => _refs[0],
+                StackOutput.Bet => _refs[1],
+                StackOutput.Del => _refs[2],
+                StackOutput.Eps => _refs[3],
+                StackOutput.Tau => _refs[4],
+                StackOutput.Phi => _refs[5],
+                StackOutput.Omg => _refs[6],
+                _ => throw new ArgumentOutOfRangeException(nameof(adr), adr, "Single argument required for getter")
+            };
+            set
+            {
+                var x = adr == StackOutput.Default ? _output : adr;
+                if ((x & StackOutput.Alp) == StackOutput.Alp)
+                    _refs[0] = value;
+                if ((x & StackOutput.Bet) == StackOutput.Bet)
+                    _refs[1] = value;
+                if ((x & StackOutput.Del) == StackOutput.Del)
+                    _refs[2] = value;
+                if ((x & StackOutput.Eps) == StackOutput.Eps)
+                    _refs[3] = value;
+                if ((x & StackOutput.Tau) == StackOutput.Tau)
+                    _refs[4] = value;
+                if ((x & StackOutput.Phi) == StackOutput.Phi)
+                    _refs[5] = value;
+                if ((x & StackOutput.Omg) == StackOutput.Omg)
+                    _refs[6] = value;
+            }
+        }
+
+        public IObjectRef? Alp => this[StackOutput.Alp];
+        public IObjectRef? Bet => this[StackOutput.Bet];
+        public IObjectRef? Del => this[StackOutput.Del];
+        public IObjectRef? Eps => this[StackOutput.Eps];
+        public IObjectRef? Tau => this[StackOutput.Tau];
+        public IObjectRef? Phi => this[StackOutput.Phi];
+        public IObjectRef? Omg => this[StackOutput.Omg];
+        public State State;
+
+        private bool ContainsKey(string key) => _keys.Contains(key) || _parent.ContainsKey(key);
+
+        private IEnumerable<string> CreateKeys(VariableContext varctx, string name)
         {
             string me = varctx switch
             {
@@ -71,47 +158,51 @@ namespace KScr.Lib.Store
                 VariableContext.Absolute => name,
                 _ => throw new ArgumentOutOfRangeException(nameof(varctx), varctx, null)
             };
-            if (varctx == VariableContext.Local && _dequeue.Count > 0 && !_dequeue[^1].IsSub &&
-                !_dequeue[^1]._keys.Contains(me))
-                _dequeue[^1]._keys.Add(me); // cache in stack for cleanup
+            if (varctx == VariableContext.Local && !ContainsKey(me))
+                _keys.Add(me); // cache in stack for cleanup
             CtxBlob? parent;
             string[] arr = new[] { me };
-            if (_dequeue.Count > 0 && (parent = _dequeue[^1].Parent) != null)
+            if ((parent = _blob.Parent) != null)
                 return arr.Append(varctx switch
                 {
-                    VariableContext.Local => parent.Local + Delimiter + name,
+                    VariableContext.Local => parent.Local + Separator + name,
                     VariableContext.Absolute => name,
                     _ => throw new ArgumentOutOfRangeException(nameof(varctx), varctx, null)
                 }).Distinct();
             return arr;
         }
 
-        public void StepInside(RuntimeBase vm, SourcefilePosition srcPos, string sub, ref ObjectRef t,
-            Func<ObjectRef, ObjectRef> exec)
+        public Stack Output(StackOutput outputMode) => new(this, outputMode);
+        public Stack Channel(StackOutput from, StackOutput outputMode)
         {
-            _dequeue.Add(new CtxBlob(new CallLocation
+            var stack = new Stack(this, outputMode, false);
+            stack[outputMode] = this[from];
+            return stack;
+        }
+
+        public void StepInside(RuntimeBase vm, SourcefilePosition srcPos, string sub, Action<Stack> exec, StackOutput maintain = StackOutput.None)
+        {
+            new Stack(this, new CtxBlob(new CallLocation
             {
                 SourceName = _local + ".." + sub,
                 SourceLine = srcPos.SourcefileLine,
                 SourceCursor = srcPos.SourcefileCursor
             }, _local)
             {
-                Parent = _dequeue.Last(),
+                Parent = _blob,
                 IsSub = true,
-                It = This
-            });
-            WrapExecution(vm, ref t, exec);
+                This = This
+            }).WrapExecution(vm, exec, maintain);
         }
 
         // put focus into static class
-        public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IClassMember local, ref ObjectRef t,
-            Func<ObjectRef, ObjectRef> exec)
+        public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IClassMember local, Action<Stack> exec, StackOutput maintain = StackOutput.None)
         {
             IClass cls = local.Parent;
             string localStr = cls.FullName + '.' + local.Name + (local is IMethod mtd
                 ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) + ')'
                 : string.Empty);
-            _dequeue.Add(new CtxBlob(new CallLocation
+            new Stack(this, new CtxBlob(new CallLocation
             {
                 SourceName = _local,
                 SourceLine = srcPos.SourcefileLine,
@@ -120,14 +211,12 @@ namespace KScr.Lib.Store
             {
                 Local = localStr,
                 Class = cls,
-                It = cls.SelfRef
-            });
-            WrapExecution(vm, ref t, exec);
+                This = cls.SelfRef
+            }).WrapExecution(vm, exec, maintain);
         }
 
         // put focus into object instance
-        public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, ObjectRef? into, IClassMember local,
-            ref ObjectRef t, Func<ObjectRef, ObjectRef> exec)
+        public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IObjectRef? into, IClassMember local, Action<Stack> exec, StackOutput maintain = StackOutput.None)
         {
             into ??= vm.ConstantVoid;
             var cls = local.Parent;
@@ -136,7 +225,7 @@ namespace KScr.Lib.Store
                                   ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) +
                                     ')'
                                   : string.Empty);
-            _dequeue.Add(new CtxBlob(new CallLocation
+            new Stack(this, new CtxBlob(new CallLocation
             {
                 SourceName = _local,
                 SourceLine = srcPos.SourcefileLine,
@@ -145,47 +234,90 @@ namespace KScr.Lib.Store
             {
                 Local = localStr,
                 Class = into.Value!.Type,
-                It = into
-            });
-            WrapExecution(vm, ref t, exec);
+                This = into
+            }).WrapExecution(vm, exec, maintain);
         }
 
-        private void WrapExecution(RuntimeBase vm, ref ObjectRef rev, Func<ObjectRef, ObjectRef> exec)
+        private void WrapExecution(RuntimeBase vm, Action<Stack> exec, StackOutput maintain)
         {
             try
             {
-                rev = exec(rev);
+                exec(this);
             }
             catch (StackTraceException ex)
             {
-                var next = new StackTraceException(_dequeue[^1].CallLocation, _local, ex);
+                var next = new StackTraceException(CallLocation, _local, ex);
                 StackTrace.Add(next);
 #pragma warning disable CA2200
                 // ReSharper disable once PossibleIntendedRethrow
                 throw ex;
             }
+            catch (InternalException ex)
+            {
+                //if (RuntimeBase.DebugMode)
+                    // ReSharper disable once PossibleIntendedRethrow
+                //    throw ex;
+                throw new StackTraceException(CallLocation, _local, ex);
+            }
 #if !DEBUG
-            catch (System.Exception ex)
+            catch (FatalException ex)
             {
                 //if (RuntimeBase.DebugMode)
                     // ReSharper disable once PossibleIntendedRethrow
                 //    throw ex;
 #pragma warning restore CA2200
-                throw new StackTraceException(_dequeue[^1].CallLocation, _local, ex);
+                throw new StackTraceException(CallLocation, _local, ex, $"Fatal internal {ex.GetType().Name}: {ex.Message}");
             }
 #endif
             finally
             {
                 StepUp(vm);
+
+                if (State == State.Return)
+                {
+                    this[StackOutput.Default] = Omg ?? vm.ConstantVoid;
+                }
+                else if (State == State.Throw)
+                {
+                    if (Omg == null || /* null check */ Omg.Value.ObjectId == 0)
+                    {
+                        RuntimeBase.ExitCode = -1;
+                        throw new InternalException("No Message Provided");
+                    }
+                    else
+                    {
+                        if (!Bytecode.Class.ThrowableType.CanHold(Omg.Value.Type)
+                            || Omg.Value is not { } throwable)
+                            throw new FatalException(
+                                "Value is not instanceof Throwable: " + Omg.Value.ToString(0));
+                        RuntimeBase.ExitCode = (throwable.Invoke(vm, Output(StackOutput.Alp), "ExitCode")!.Value as Numeric)!.IntValue;
+                        var msg = throwable.Invoke(vm, Output(StackOutput.Bet), "Message")!.Value.ToString(0);
+                        throw new InternalException(throwable.Type.Name + ": " + msg);
+                    }
+                }
+                
+                maintain = (maintain == StackOutput.Default ? _output : maintain) | StackOutput.Omg;
+                if ((maintain & StackOutput.Alp) == StackOutput.Alp)
+                    _parent[StackOutput.Alp] = Alp;
+                if ((maintain & StackOutput.Bet) == StackOutput.Bet)
+                    _parent[StackOutput.Bet] = Bet;
+                if ((maintain & StackOutput.Del) == StackOutput.Del)
+                    _parent[StackOutput.Del] = Del;
+                if ((maintain & StackOutput.Eps) == StackOutput.Eps)
+                    _parent[StackOutput.Eps] = Eps;
+                if ((maintain & StackOutput.Tau) == StackOutput.Tau)
+                    _parent[StackOutput.Tau] = Tau;
+                if ((maintain & StackOutput.Phi) == StackOutput.Phi)
+                    _parent[StackOutput.Phi] = Phi;
+                if ((maintain & StackOutput.Omg) == StackOutput.Omg)
+                    _parent[StackOutput.Omg] = Omg;
             }
         }
 
         private void StepUp(RuntimeBase vm)
         {
-            var it = _dequeue[^1];
-            foreach (string old in it._keys)
+            foreach (string old in _keys)
                 vm.ObjectStore.Remove(old);
-            _dequeue.RemoveAt(_dequeue.Count - 1);
         }
     }
 }

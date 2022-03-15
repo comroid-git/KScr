@@ -25,13 +25,31 @@ namespace KScr.Lib
 
         public static readonly DummyMethod MainInvoc = new(Class.VoidType, "main",
             MemberModifier.Public | MemberModifier.Final | MemberModifier.Static, Class.NumericIntType);
-
         public static readonly SourcefilePosition MainInvocPos = new()
             { SourcefilePath = "<native>org/comroid/kscr/core/System.kscr" };
+        public static readonly DirectoryInfo SdkHome = GetSdkHome();
 
         private uint _lastObjId = 0xF;
 
         public bool Initialized;
+        public readonly Stack Stack = new();
+        
+        /*
+         * System.TypeInitializationException: The type initializer for 'KScr.Runtime.Program' threw an exception.
+ ---> System.NullReferenceException: Object reference not set to an instance of an object.
+   at KScr.Lib.Store.Stack.CreateKeys(VariableContext varctx, String name) in D:\dev\kscr\KScr\kscr-lib\Store\Stack.cs:line 165
+   at KScr.Lib.Store.ObjectStore.get_Item(ObjectStoreKeyGenerator keygen, VariableContext varctx, String name) in D:\dev\kscr\KScr\kscr-lib\Store\ObjectStore.cs:line 24
+   at KScr.Lib.RuntimeBase.get_Item(ObjectStoreKeyGenerator keygen, VariableContext varctx, String name) in D:\dev\kscr\KScr\kscr-lib\RuntimeBase.cs:line 48
+   at KScr.Lib.RuntimeBase.ComputeObject(VariableContext varctx, String key, Func`1 func) in D:\dev\kscr\KScr\kscr-lib\RuntimeBase.cs:line 155
+   at KScr.Lib.Bytecode.Class.Instance.Initialize(RuntimeBase vm) in D:\dev\kscr\KScr\kscr-lib\Bytecode\Class.cs:line 600
+   at KScr.Lib.Bytecode.Class.CreateInstance(RuntimeBase vm, Class owner, ITypeInfo[] typeParameters) in D:\dev\kscr\KScr\kscr-lib\Bytecode\Class.cs:line 172
+   at KScr.Lib.Bytecode.Class.CreateInstance(RuntimeBase vm, ITypeInfo[] typeParameters) in D:\dev\kscr\KScr\kscr-lib\Bytecode\Class.cs:line 105
+   at KScr.Lib.Bytecode.Class.Initialize(RuntimeBase vm) in D:\dev\kscr\KScr\kscr-lib\Bytecode\Class.cs:line 148
+   at KScr.Lib.RuntimeBase.Initialize() in D:\dev\kscr\KScr\kscr-lib\RuntimeBase.cs:line 71
+   at KScr.Runtime.Program..cctor() in D:\dev\kscr\KScr\kscr-runtime\Program.cs:line 29
+   --- End of inner exception stack trace ---
+   at KScr.Runtime.Program.Main(String[] args)
+         */
 
         static RuntimeBase()
         {
@@ -41,27 +59,20 @@ namespace KScr.Lib
 
         public abstract ObjectStore ObjectStore { get; }
         public abstract ClassStore ClassStore { get; }
-        public Stack Stack { get; } = new();
 
-        public ObjectRef? this[string name]
+        public IObjectRef? this[ObjectStoreKeyGenerator keygen, VariableContext varctx, string name]
         {
-            get => ObjectStore[Stack, VariableContext.Local, name];
-            set => ObjectStore[Stack, VariableContext.Local, name] = value;
+            get => ObjectStore[keygen, varctx, name];
+            set => ObjectStore[keygen, varctx, name] = value as ObjectRef;
         }
 
-        public ObjectRef? this[VariableContext varctx, string name]
-        {
-            get => ObjectStore[Stack, varctx, name];
-            set => ObjectStore[Stack, varctx, name] = value;
-        }
-
-        public ObjectRef ConstantVoid =>
+        public IObjectRef ConstantVoid =>
             ComputeObject(VariableContext.Absolute, IObject.Null.GetKey(), () => IObject.Null);
 
-        public ObjectRef ConstantFalse =>
+        public IObjectRef ConstantFalse =>
             ComputeObject(VariableContext.Absolute, Numeric.Zero.GetKey(), () => Numeric.Zero);
 
-        public ObjectRef ConstantTrue =>
+        public IObjectRef ConstantTrue =>
             ComputeObject(VariableContext.Absolute, Numeric.One.GetKey(), () => Numeric.One);
 
         public ObjectRef StdioRef { get; } = new StandardIORef();
@@ -93,16 +104,16 @@ namespace KScr.Lib
 
             Class.InitializePrimitives(this);
 
-            Class.TypeType.LateInitialization(this);
-            Class.VoidType.LateInitialization(this);
-            Class.EnumType.LateInitialization(this);
-            Class.ArrayType.LateInitialization(this);
-            Class.StringType.LateInitialization(this);
-            Class.RangeType.LateInitialization(this);
-            Class.IterableType.LateInitialization(this);
-            Class.IteratorType.LateInitialization(this);
-            Class.ThrowableType.LateInitialization(this);
-            Class.NumericType.LateInitialization(this);
+            Class.TypeType.LateInitialization(this, Stack);
+            Class.VoidType.LateInitialization(this, Stack);
+            Class.EnumType.LateInitialization(this, Stack);
+            Class.ArrayType.LateInitialization(this, Stack);
+            Class.StringType.LateInitialization(this, Stack);
+            Class.RangeType.LateInitialization(this, Stack);
+            Class.IterableType.LateInitialization(this, Stack);
+            Class.IteratorType.LateInitialization(this, Stack);
+            Class.ThrowableType.LateInitialization(this, Stack);
+            Class.NumericType.LateInitialization(this, Stack);
 
             Initialized = true;
         }
@@ -140,7 +151,7 @@ namespace KScr.Lib
             return (DateTime.UtcNow - epochStart).Ticks / 10;
         }
 
-        public static DirectoryInfo GetSdkHome()
+        private static DirectoryInfo GetSdkHome()
         {
             return Environment.GetEnvironmentVariable("PATH")!
                 .Split(Path.PathSeparator)
@@ -156,19 +167,19 @@ namespace KScr.Lib
             ClassStore.Clear();
         }
 
-        public ObjectRef ComputeObject(VariableContext varctx, string key, Func<IObject> func)
+        public IObjectRef ComputeObject(VariableContext varctx, string key, Func<IObject> func)
         {
-            return this[varctx, key] ?? PutObject(varctx, func());
+            return this[Stack.KeyGen, varctx, key] ?? PutObject(varctx, func());
         }
 
-        public ObjectRef PutLocal(string name, IObject? value)
+        public IObjectRef PutLocal(string name, IObject? value)
         {
             return PutObject(VariableContext.Local, value ?? IObject.Null, name);
         }
 
-        public ObjectRef PutObject(VariableContext varctx, IObject value, string? key = null)
+        public IObjectRef PutObject(VariableContext varctx, IObject value, string? key = null)
         {
-            return this[varctx, key ?? value.GetKey()] = new ObjectRef(value.Type, value);
+            return this[Stack.KeyGen, varctx, key ?? value.GetKey()] = new ObjectRef(value.Type, value);
         }
 
         public IObject? Execute(out long timeµs)
@@ -182,23 +193,16 @@ namespace KScr.Lib
         public IObject? Execute()
         {
             var method = Package.RootPackage.FindEntrypoint();
-            var rev = Class.VoidType.SelfRef;
+            var stack = new Stack();
 
             try
             {
-                Stack.StepInto(this, MainInvocPos, method, ref rev, _rev =>
-                {
-                    var state = State.Normal;
-                    IRuntimeSite? site = method;
-                    while (site != null)
-                        site = site.Evaluate(this, ref state, ref _rev!);
-                    return _rev;
-                });
+                stack.StepInto(this, MainInvocPos, method, stack => method.Evaluate(this, stack));
             }
             catch (StackTraceException stc)
             {
                 Console.WriteLine($"An exception occurred:\t{stc.Message}");
-                foreach (var stackTraceElement in Stack.StackTrace)
+                foreach (var stackTraceElement in stack.StackTrace)
                     Console.WriteLine($"\t\tat\t{stackTraceElement.Message}");
             }
 #if !DEBUG
@@ -212,8 +216,8 @@ namespace KScr.Lib
                     Console.WriteLine($"\t\t- Caused by:\t{inner.Message}");
             }
 #endif
-            ExitCode = rev.Value is Numeric num ? num.IntValue : rev.ToBool() ? 0 : ExitCode;
-            return rev.Value;
+            ExitCode = stack.Omg?.Value is Numeric num ? num.IntValue : stack.Omg!.ToBool() ? 0 : ExitCode;
+            return stack.Omg?.Value ?? IObject.Null;
         }
 
         public IClassInstance? FindType(string name, Package? package = null)
@@ -269,39 +273,37 @@ namespace KScr.Lib
             {
             }
 
-            public override IEvaluable? ReadAccessor
+            public override Model.IEvaluable? ReadAccessor
             {
                 get => new StdioReader();
-                set => throw new InternalException("Cannot reassign stdio ReadAccessor");
+                set => throw new FatalException("Cannot reassign stdio ReadAccessor");
             }
 
-            public override IEvaluable? WriteAccessor
+            public override Model.IEvaluable? WriteAccessor
             {
                 get => new StdioWriter();
-                set => throw new InternalException("Cannot reassign stdio WriteAccessor");
+                set => throw new FatalException("Cannot reassign stdio WriteAccessor");
             }
 
-            private sealed class StdioWriter : IEvaluable
+            private sealed class StdioWriter : Model.IEvaluable
             {
-                public State Evaluate(RuntimeBase vm, ref ObjectRef rev)
+                public void Evaluate(RuntimeBase vm, Stack stack)
                 {
-                    var txt = rev.Value!.ToString(IObject.ToString_ShortName);
+                    var txt = stack.Alp!.Value.ToString(IObject.ToString_ShortName);
                     Console.WriteLine(txt);
-                    return State.Normal;
                 }
             }
 
-            private sealed class StdioReader : IEvaluable
+            private sealed class StdioReader : Model.IEvaluable
             {
-                public State Evaluate(RuntimeBase vm, ref ObjectRef rev)
+                public void Evaluate(RuntimeBase vm, Stack stack)
                 {
-                    if (rev.Length != 1 || !rev.Type.CanHold(Class.StringType) && !rev.Type.CanHold(Class.NumericType))
-                        throw new InternalException("Invalid reference to write string into: " + rev);
+                    if (stack.Alp!.Length != 1 || !stack.Alp.Type.CanHold(Class.StringType) && !stack.Alp.Type.CanHold(Class.NumericType))
+                        throw new FatalException("Invalid reference to write string into: " + stack.Alp);
                     string txt = Console.ReadLine()!;
-                    if (rev.Type.CanHold(Class.NumericType))
-                        rev.Value = Numeric.Compile(vm, txt).Value;
-                    else rev.Value = String.Instance(vm, txt).Value;
-                    return State.Normal;
+                    if (stack.Alp.Type.CanHold(Class.NumericType))
+                        stack.Alp.Value = Numeric.Compile(vm, txt).Value;
+                    else stack.Alp.Value = String.Instance(vm, stack, txt).Value;
                 }
             }
         }

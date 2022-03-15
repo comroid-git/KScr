@@ -18,7 +18,7 @@ namespace KScr.Lib.Core
 
         string ToString(short variant);
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args);
+        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args);
 
         public string GetKey();
     }
@@ -33,12 +33,12 @@ namespace KScr.Lib.Core
             return "null";
         }
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
+        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {
                 case "toString":
-                    return String.Instance(vm, "null");
+                    return String.Instance(vm, stack, "null");
                 case "equals":
                     return args[0] is VoidValue || args[0] is Numeric num && num.ByteValue != 0
                         ? vm.ConstantTrue
@@ -46,7 +46,7 @@ namespace KScr.Lib.Core
                 case "getType":
                     return Type.SelfRef;
                 default:
-                    throw new InternalException("NullPointerException");
+                    throw new FatalException("NullPointerException");
             }
         }
 
