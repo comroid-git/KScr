@@ -1,16 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>KScr.Compiler</RootNamespace>
         <Nullable>enable</Nullable>
         <Company>comroid</Company>
         <AssemblyVersion>0.2.1</AssemblyVersion>
         <PackageVersion>0.2.1</PackageVersion>
+        <LangVersion>latest</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\kscr-lib\kscr-lib.csproj"/>
+        <ProjectReference Include="..\kscr-lib\kscr-lib.csproj" />
     </ItemGroup>
 
 </Project>
