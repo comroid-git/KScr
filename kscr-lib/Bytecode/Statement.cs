@@ -27,8 +27,6 @@ namespace KScr.Lib.Bytecode
         {
             try
             {
-                stack[Threadsafe] = stack.This;
-                
                 foreach (var component in Main)
                     switch (component.Type)
                     {

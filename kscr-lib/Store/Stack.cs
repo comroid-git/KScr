@@ -98,7 +98,7 @@ namespace KScr.Lib.Store
             KeyGen = CreateKeys;
         }
 
-        private string _local => _blob.Local;
+        private string _local => _blob?.Local ?? RuntimeBase.MainInvocPos.SourcefilePath;
         public IObjectRef This => _blob.This ?? _parent.This;
         public IClass Class => _blob.Class ?? _parent.Class;
         public CallLocation CallLocation => _blob.CallLocation ?? _parent.CallLocation;
