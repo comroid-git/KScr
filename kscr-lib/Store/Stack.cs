@@ -162,7 +162,7 @@ namespace KScr.Lib.Store
                 _keys.Add(me); // cache in stack for cleanup
             CtxBlob? parent;
             string[] arr = new[] { me };
-            if ((parent = _blob.Parent) != null)
+            if ((parent = _blob?.Parent) != null)
                 return arr.Append(varctx switch
                 {
                     VariableContext.Local => parent.Local + Separator + name,
