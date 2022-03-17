@@ -228,7 +228,9 @@ namespace KScr.Lib.Bytecode
                         while (stack.Phi.ToBool())
                         {
                             InnerCode!.Evaluate(vm, stack.Output());
-                            AltStatement!.Evaluate(vm, stack.Output());
+                            var delStack = stack.Output();
+                            AltStatement!.Evaluate(vm, delStack);
+                            stack[Del].Value = delStack[Alp].Value;
                             SubComponent!.Evaluate(vm, stack.Output(Phi, true));
                         }
                     });
@@ -238,18 +240,14 @@ namespace KScr.Lib.Bytecode
                     {
                         SubStatement!.Evaluate(vm, stack.Output()).Copy(Alp, Alp);
                         var iterable = stack.Alp.Value!;
-                        var iterStack = stack.Output();
-                        iterable.Invoke(vm, iterStack, "iterator");
-                        iterStack.Copy(Alp, Eps);
+                        stack[Eps] = iterable.Invoke(vm, stack.Output(), "iterator");
                         var iterator = stack.Eps.Value;
                         vm[stack.KeyGen, VariableContext.Local, Arg] = stack[Del] 
                             = new ObjectRef(iterator.Type.TypeParameterInstances[0].ResolveType(vm, iterator.Type));
-                        while (iterator.Invoke(vm, stack.Output(Phi), "hasNext").ToBool())
+                        while ((stack[Phi] = iterator.Invoke(vm, stack.Output(), "hasNext")).ToBool())
                         {
-                            iterStack = stack.Output();
-                            iterator.Invoke(vm, iterStack, "next");
-                            stack[Del].Value = iterStack[Alp].Value;
-                            InnerCode!.Evaluate(vm, stack.Output(Bet));
+                            stack[Del].Value = iterator.Invoke(vm, stack.Output(), "next").Value;
+                            InnerCode!.Evaluate(vm, stack.Output());
                         }
                     });
                     break;
@@ -267,10 +265,16 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Code, BytecodeType.StmtDo):
                     stack.StepInside(vm, SourcefilePosition, "do-while", stack =>
                     {
+                        bool first = true;
                         do
                         {
                             InnerCode.Evaluate(vm, stack.Output());
-                            SubStatement.Evaluate(vm, stack.Output(Phi, true));
+                            if (first)
+                            {
+                                SubStatement.Evaluate(vm, stack.Output(Phi, true));
+                                first = false;
+                            }
+                            else SubStatement.Evaluate(vm, stack.Channel(Phi, Phi)).Copy(Phi);
                         } while (stack.Phi.ToBool());
                     });
                     break;
@@ -377,8 +381,7 @@ namespace KScr.Lib.Bytecode
                             for (var i = 0; i < param.Count; i++)
                                 vm.PutLocal(param[i].Name, stack.Eps[vm, stack, i]);
                             var outputStack = stack.Output();
-                            stack.Alp.Value!.Invoke(vm, outputStack, Arg, (stack.Eps as ObjectRef)!.Refs);
-                            outputStack.Copy();
+                            stack[Alp] = stack.Alp.Value!.Invoke(vm, outputStack, Arg, (stack.Eps as ObjectRef)!.Refs);
                         }, Alp);
                     }
                     else if (cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Property && x.Name == Arg) is Property prop)

@@ -680,16 +680,19 @@ namespace KScr.Lib.Bytecode
 
             public ITypeInfo TargetType { get; }
             public string Name => TypeParameter.Name;
-            public string FullName => TypeParameter.FullName;
+            public string FullName => (TargetType as Class.Instance)?.FullDetailedName ?? TypeParameter.FullName;
             public List<ITypeInfo> TypeParameters { get; } = new();
 
             public IClassInstance ResolveType(RuntimeBase vm, IClassInstance usingClass)
             {
                 if (usingClass.TypeParameterInstances.Length == 0
-                    || usingClass.TypeParameterInstances.All(x => x.TypeParameter.Name != TypeParameter.Name))
+                    || usingClass.TypeParameterInstances.All(x => x.Name != Name))
                     throw new ArgumentException("Invalid resolver class");
+                if (usingClass.TypeParameterInstances.FirstOrDefault(x => x.Name == Name) is var tpi
+                    && tpi?.TargetType is IClassInstance ici)
+                    return ici;
                 return vm.FindType(usingClass.TypeParameterInstances
-                    .First(x => x.TypeParameter.Name == TypeParameter.Name).TargetType.FullName, owner: usingClass.BaseClass)!;
+                    .First(x => x.TypeParameter.Name == TypeParameter.Name).TargetType.FullName, owner: usingClass)!;
             }
         }
     }

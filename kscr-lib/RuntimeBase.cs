@@ -224,7 +224,7 @@ namespace KScr.Lib
             return stack.Omg?.Value ?? IObject.Null;
         }
 
-        public IClassInstance? FindType(string name, Package? package = null, Class? owner = null)
+        public IClassInstance? FindType(string name, Package? package = null, IClass? owner = null)
         {
             if (name == "num")
                 return Class.NumericType.DefaultInstance;
@@ -269,7 +269,7 @@ namespace KScr.Lib
                 var split = name.Substring(name.IndexOf('<') + 1, name.IndexOf('>') - name.IndexOf('<') - 1).Split(", ");
                 for (var i = 0; i < split.Length; i++) 
                     tParams.Add(new TypeParameter(split[i]));
-                return kls!.CreateInstance(this, owner, tParams.Cast<ITypeInfo>().ToArray());
+                return kls!.CreateInstance(this, owner as Class, tParams.Cast<ITypeInfo>().ToArray());
             }
 
             return ClassStore.FindType(this, package ?? Package.RootPackage, name)?.DefaultInstance;
