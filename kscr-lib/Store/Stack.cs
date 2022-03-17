@@ -326,14 +326,12 @@ namespace KScr.Lib.Store
                 vm.ObjectStore.Remove(old);
         }
 
-        public void Copy(StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
-        {
-            Copy(_parent, channel, output);
-        }
+        public void Copy(StackOutput passthrough) => Copy(passthrough, passthrough);
 
-        public void Copy(Stack target, StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
-        {
-            target[output == StackOutput.Default ? _output : output] = this[channel];
-        }
+        public void Copy(StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
+            => Copy(_parent, channel, output);
+
+        public void Copy(Stack target, StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default) 
+            => target[output == StackOutput.Default ? _output : output] = this[channel];
     }
 }
