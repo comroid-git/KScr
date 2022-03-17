@@ -5,6 +5,7 @@ using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
+// ReSharper disable ConditionIsAlwaysTrueOrFalse
 
 namespace KScr.Lib.Store
 {
@@ -143,13 +144,13 @@ namespace KScr.Lib.Store
             }
         }
 
-        public IObjectRef? Alp => this[StackOutput.Alp];
-        public IObjectRef? Bet => this[StackOutput.Bet];
-        public IObjectRef? Del => this[StackOutput.Del];
-        public IObjectRef? Eps => this[StackOutput.Eps];
-        public IObjectRef? Tau => this[StackOutput.Tau];
-        public IObjectRef? Phi => this[StackOutput.Phi];
-        public IObjectRef? Omg => this[StackOutput.Omg];
+        public IObjectRef? Alp => this[StackOutput.Alp] ?? _parent?[StackOutput.Alp];
+        public IObjectRef? Bet => this[StackOutput.Bet] ?? _parent?[StackOutput.Bet];
+        public IObjectRef? Del => this[StackOutput.Del] ?? _parent?[StackOutput.Del];
+        public IObjectRef? Eps => this[StackOutput.Eps] ?? _parent?[StackOutput.Eps];
+        public IObjectRef? Tau => this[StackOutput.Tau] ?? _parent?[StackOutput.Tau];
+        public IObjectRef? Phi => this[StackOutput.Phi] ?? _parent?[StackOutput.Phi];
+        public IObjectRef? Omg => this[StackOutput.Omg] ?? _parent?[StackOutput.Omg];
         public State State;
 
         private bool ContainsKey(string key) => _keys.Contains(key) || (_parent?.ContainsKey(key) ?? false);
