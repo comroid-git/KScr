@@ -66,6 +66,9 @@ namespace KScr.Lib.Store
         {
             if (name.Contains('<'))
                 throw new FatalException("Cannot instantiate class instance here (invalid state)");
+            // todo actually we SHOULD handle instances here
+            if (Classes.ContainsKey(name))
+                return Classes[name];
             if (package.GetClass(vm, name.Split('.')) is { } x)
                 return x;
             else

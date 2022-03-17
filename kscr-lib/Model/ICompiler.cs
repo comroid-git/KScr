@@ -240,7 +240,7 @@ namespace KScr.Lib.Model
         public ITypeInfo? FindTypeInfo(RuntimeBase vm, bool _rec = false)
         {
             var type = FindType(vm, Token.Arg!);
-            if (type?.Name == Token.Arg && NextToken?.Type != TokenType.ParDiamondOpen)
+            if ((type?.CanonicalName.EndsWith(Token.Arg) ?? false) && NextToken?.Type != TokenType.ParDiamondOpen)
                 return type!;
             var baseCls = type?.BaseClass ?? Class;
             if (baseCls == null && Class.TypeParameters.Any(x => x.Name == Token.Arg))

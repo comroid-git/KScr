@@ -67,9 +67,9 @@ namespace KScr.Lib.Store
     public sealed class Stack
     {
         public const string Separator = ".";
-        private readonly StackOutput _output;
+        internal readonly StackOutput _output;
+        internal readonly Stack _parent = null!;
         private readonly List<string> _keys = new();
-        private readonly Stack _parent = null!;
         private readonly CtxBlob _blob = null!;
         public readonly List<StackTraceException> StackTrace = new();
         public readonly ObjectStoreKeyGenerator KeyGen; 
@@ -83,9 +83,9 @@ namespace KScr.Lib.Store
         private Stack(Stack parent, StackOutput output, bool copyRefsPtr = true)
         {
             _output = output;
+            _parent = parent;
             if (copyRefsPtr)
                 _refs = parent._refs;
-            _parent = parent._parent;
             _blob = parent._blob;
             KeyGen = CreateKeys;
         }
@@ -172,7 +172,7 @@ namespace KScr.Lib.Store
             return arr;
         }
 
-        public Stack Output(StackOutput outputMode) => new(this, outputMode);
+        public Stack Output(StackOutput outputMode, bool copyRefs = true) => new(this, outputMode, copyRefs);
         public Stack Channel(StackOutput from, StackOutput outputMode)
         {
             var stack = new Stack(this, outputMode, false);
@@ -318,6 +318,12 @@ namespace KScr.Lib.Store
         {
             foreach (string old in _keys)
                 vm.ObjectStore.Remove(old);
+        }
+
+        public void CopyFromStack(StackOutput copyFromStack)
+        {
+            if (copyFromStack != StackOutput.None)
+                _parent[_output] = this[copyFromStack];
         }
     }
 }

@@ -183,7 +183,9 @@ namespace KScr.Compiler.Code
                 case TokenType.LiteralNum:
                     //if (ctx.NextToken?.Type == TokenType.Tilde)
                     //    return this; // parse ranges completely
-                    if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
+                    if (ctx.PrevToken?.Type != TokenType.Tilde // fixme todo this may break with non-compile time constant range
+                        && ctx.NextToken?.Type != TokenType.Tilde 
+                        && !ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
                         throw new CompilerException(ctx.Token.SourcefilePosition,
                             "Invalid Numeric literal; expected " + ctx.Statement.TargetType);
                     var numstr = Numeric.Compile(vm, ctx.Token.Arg!).Value!.ToString(IObject.ToString_LongName);

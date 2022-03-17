@@ -126,7 +126,7 @@ namespace KScr.Lib.Bytecode
 
         public bool Primitive { get; }
 
-        public void Evaluate(RuntimeBase vm, Stack stack)
+        public void Evaluate(RuntimeBase vm, Stack stack, StackOutput copyFromStack = StackOutput.None)
         {
             var icm = DeclaredMembers.Values.FirstOrDefault(x => x.Name == Method.StaticInitializerName);
             if (icm == null)

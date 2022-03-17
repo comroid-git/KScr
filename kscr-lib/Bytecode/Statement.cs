@@ -23,7 +23,7 @@ namespace KScr.Lib.Bytecode
         public IClassInstance TargetType { get; set; } = Class.VoidType.DefaultInstance;
         public List<StatementComponent> Main { get; } = new();
 
-        public void Evaluate(RuntimeBase vm, Stack stack)
+        public void Evaluate(RuntimeBase vm, Stack stack, StackOutput copyFromStack = None)
         {
             try
             {
@@ -34,6 +34,8 @@ namespace KScr.Lib.Bytecode
                             component.Evaluate(vm, stack);
                             break;
                     }
+
+                stack.CopyFromStack(copyFromStack);
             }
             finally
             {
@@ -123,7 +125,7 @@ namespace KScr.Lib.Bytecode
         public StatementComponentType Type { get; set; }
         public BytecodeType CodeType { get; set; } = BytecodeType.Undefined;
 
-        public virtual void Evaluate(RuntimeBase vm, Stack stack)
+        public virtual void Evaluate(RuntimeBase vm, Stack stack, StackOutput copyFromStack = StackOutput.None)
         {
             switch (Type, CodeType)
             {
@@ -348,7 +350,7 @@ namespace KScr.Lib.Bytecode
 
                     break;
                 case (StatementComponentType.Provider, BytecodeType.LiteralRange):
-                    SubComponent.Evaluate(vm, stack.Output(Bet));
+                    SubComponent.Evaluate(vm, stack.Output(Bet, false), Alp);
                     stack[Default] = Range.Instance(vm, (stack.Alp.Value as Numeric)!.IntValue, (stack.Bet.Value as Numeric)!.IntValue);
                     break;
                 case (StatementComponentType.Provider, BytecodeType.ExpressionVariable):
@@ -403,7 +405,7 @@ namespace KScr.Lib.Bytecode
                         throw new FatalException("Invalid assignment; missing target");
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException("Invalid assignment; no Expression found");
-                    SubStatement!.Evaluate(vm, stack.Output(Bet));
+                    SubStatement!.Evaluate(vm, stack.Output(Alp, false), Bet);
                     stack[Default].Value = stack.Bet.Value;
                     break;
                 case (StatementComponentType.Emitter, _):
@@ -428,6 +430,8 @@ namespace KScr.Lib.Bytecode
 
             if (PostComponent != null)
                 PostComponent.Evaluate(vm, stack.Output(Default));
+            
+            stack.CopyFromStack(copyFromStack);
         }
 
         public override void Write(Stream stream)
