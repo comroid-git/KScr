@@ -92,6 +92,7 @@ namespace KScr.Lib.Bytecode
 
         public IObjectRef SelfRef => DefaultInstance.SelfRef;
 
+
         public IDictionary<string, IClassMember> DeclaredMembers { get; } =
             new ConcurrentDictionary<string, IClassMember>();
 
@@ -100,7 +101,7 @@ namespace KScr.Lib.Bytecode
 
         public ClassType ClassType { get; private set; }
 
-        public Instance CreateInstance(RuntimeBase vm, params ITypeInfo[] typeParameters)
+        public Instance GetInstance(RuntimeBase vm, params ITypeInfo[] typeParameters)
         {
             return CreateInstance(vm, null, typeParameters);
         }
@@ -108,18 +109,19 @@ namespace KScr.Lib.Bytecode
         public Class BaseClass => this;
         public List<ITypeInfo> TypeParameters { get; } = new();
 
-        public override string Name => base.Name +
-                                       (TypeParameters.Count == 0
-                                           ? string.Empty
-                                           : '<' + string.Join(", ", TypeParameters) + '>');
+        public string CanonicalName => FullName;
+        public string DetailedName => Name + (TypeParameters.Count == 0 
+            ? string.Empty : '<' + string.Join(", ", TypeParameters) + '>');
 
         public bool CanHold(IClass? type)
         {
             return Name == "void"
                    || type?.BaseClass.Name == "void"
                    || type?.BaseClass == BaseClass
-                   || (type?.BaseClass as IClass)!.Inheritors.Select(x => x.BaseClass)
-                   .Any(super => super.FullName == FullName);
+                   || ((type?.BaseClass as IClass)?.Inheritors
+                       .Where(x => x != null)
+                       .Select(x => x.BaseClass)
+                       .Any(super => super.FullName == FullName) ?? true);
         }
 
         public bool Primitive { get; }
@@ -145,7 +147,8 @@ namespace KScr.Lib.Bytecode
                     break;
             }
 
-            DefaultInstance = CreateInstance(vm, TypeParameters
+            vm.ClassStore.Add(this);
+            DefaultInstance = GetInstance(vm, TypeParameters
                 .Cast<ITypeParameter?>()
                 .Select(tp => tp?.SpecializationTarget)
                 .Where(it => it != null)
@@ -158,8 +161,6 @@ namespace KScr.Lib.Bytecode
         public void LateInitialization(RuntimeBase vm, Stack stack)
         {
             if (_lateInitialized) return;
-            var state = State.Normal;
-            ObjectRef? rev = null;
             Evaluate(vm, stack);
             _lateInitialized = true;
         }
@@ -272,6 +273,8 @@ namespace KScr.Lib.Bytecode
                 Imports.Add(RuntimeBase.Encoding.GetString(data, index, len2));
                 index += len2;
             }
+            
+            // todo: load imported classes first
 
             // superclasses
             index += NewLineBytes.Length;
@@ -281,7 +284,7 @@ namespace KScr.Lib.Bytecode
             {
                 var len2 = BitConverter.ToInt32(data, index);
                 index += 4;
-                Superclasses.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2))!);
+                Superclasses.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2), owner: this)!);
                 index += len2;
             }
 
@@ -293,7 +296,7 @@ namespace KScr.Lib.Bytecode
             {
                 var len2 = BitConverter.ToInt32(data, index);
                 index += 4;
-                Interfaces.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2))!);
+                Interfaces.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2), owner: this)!);
                 index += len2;
             }
 
@@ -524,25 +527,10 @@ namespace KScr.Lib.Bytecode
             public Class BaseClass { get; }
             public IObjectRef SelfRef { get; internal set; } = null!;
             public TypeParameter.Instance[] TypeParameterInstances { get; }
-            public IDictionary<string, IClassMember> DeclaredMembers => BaseClass.DeclaredMembers;
-            public IList<IClassInstance> Superclasses => BaseClass.Superclasses;
-            public IList<IClassInstance> Interfaces => BaseClass.Interfaces;
-
-            public List<ITypeInfo> TypeParameters => BaseClass.TypeParameters;
-            public MemberModifier Modifier => BaseClass.Modifier;
-            public ClassType ClassType => BaseClass.ClassType;
-
-            public string FullName => BaseClass.Parent?.FullName +
-                                      (BaseClass.IsRoot
-                                          ? string.Empty
-                                          : (BaseClass.Parent?.IsRoot ?? true ? string.Empty : '.') + Name);
-
-            public Instance CreateInstance(RuntimeBase vm, params ITypeInfo[] typeParameters)
-            {
-                return BaseClass.CreateInstance(vm, typeParameters);
-            }
-
-            public string Name
+            public string Name => CanonicalName;
+            public string FullName => BaseClass.FullName;
+            public string CanonicalName => BaseClass.CanonicalName;
+            public string DetailedName
             {
                 get
                 {
@@ -553,6 +541,20 @@ namespace KScr.Lib.Bytecode
                                : '<' + string.Join(", ", TypeParameterInstances.Select(t => t.TargetType.Name)) + '>');
                 }
             }
+            public IDictionary<string, IClassMember> DeclaredMembers => BaseClass.DeclaredMembers;
+            public IList<IClassInstance> Superclasses => BaseClass.Superclasses;
+            public IList<IClassInstance> Interfaces => BaseClass.Interfaces;
+            public Instance DefaultInstance => BaseClass.DefaultInstance;
+
+            public List<ITypeInfo> TypeParameters => BaseClass.TypeParameters;
+            public MemberModifier Modifier => BaseClass.Modifier;
+            public ClassType ClassType => BaseClass.ClassType;
+
+            public Instance GetInstance(RuntimeBase vm, params ITypeInfo[] typeParameters) 
+                => BaseClass.GetInstance(vm, typeParameters);
+
+            public Instance CreateInstance(RuntimeBase vm, Class? owner = null, params ITypeInfo[] typeParameters) 
+                => BaseClass.CreateInstance(vm, owner, typeParameters);
 
             public bool CanHold(IClass? type)
             {
@@ -597,7 +599,7 @@ namespace KScr.Lib.Bytecode
             public void Initialize(RuntimeBase vm)
             {
                 if (_initialized) return;
-                SelfRef = vm.ComputeObject(VariableContext.Absolute, GetKey(), () => this);
+                SelfRef = vm.ClassStore.Add(this)!;
                 _initialized = true;
             }
 
@@ -685,7 +687,7 @@ namespace KScr.Lib.Bytecode
                     || usingClass.TypeParameterInstances.All(x => x.TypeParameter.Name != TypeParameter.Name))
                     throw new ArgumentException("Invalid resolver class");
                 return vm.FindType(usingClass.TypeParameterInstances
-                    .First(x => x.TypeParameter.Name == TypeParameter.Name).TargetType.FullName)!;
+                    .First(x => x.TypeParameter.Name == TypeParameter.Name).TargetType.FullName, owner: usingClass.BaseClass)!;
             }
         }
     }

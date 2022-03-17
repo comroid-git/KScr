@@ -131,7 +131,7 @@ namespace KScr.Lib.Bytecode
         {
             var len = BitConverter.ToInt32(data, i);
             i += 4;
-            ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len))!;
+            ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len), Parent.Parent)!;
             i += len;
             len = BitConverter.ToInt32(data, i);
             i += 4;

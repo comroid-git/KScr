@@ -56,7 +56,7 @@ namespace KScr.Lib.Bytecode
             base.Load(vm, data, ref i);
             var len = BitConverter.ToInt32(data, i);
             i += 4;
-            ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len))!;
+            ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len), owner: Parent)!;
             i += len;
             Gettable = BitConverter.ToBoolean(data, i);
             i += 1;

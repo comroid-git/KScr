@@ -232,11 +232,8 @@ namespace KScr.Lib.Model
 
         public IClassInstance? FindType(RuntimeBase vm, string name)
         {
-            if (Class.Imports.Contains(name))
-                return vm.FindType(name);
-            string? imported = Class.Imports.FirstOrDefault(x => x.EndsWith(name));
-            if (imported != null)
-                return vm.FindType(imported);
+            if (Class.Imports.FirstOrDefault(cls => cls.Contains(name)) is { } importedName)
+                return vm.FindType(importedName, owner: Class);
             return vm.FindType(name, Package);
         }
 

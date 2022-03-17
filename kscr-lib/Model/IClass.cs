@@ -51,12 +51,16 @@ namespace KScr.Lib.Model
 
         IEnumerable<IClassMember> InheritedMembers =>
             Inheritors.Where(it => it != null).SelectMany(it => it.ClassMembers);
+        string CanonicalName { get; }
+        string DetailedName { get; }
 
         IDictionary<string, IClassMember> DeclaredMembers { get; }
         IEnumerable<IClassInstance> Inheritors => Superclasses.Concat(Interfaces);
         IList<IClassInstance> Superclasses { get; }
         IList<IClassInstance> Interfaces { get; }
-        Class.Instance CreateInstance(RuntimeBase vm, params ITypeInfo[] typeParameters);
+        Class.Instance DefaultInstance { get; }
+        Class.Instance GetInstance(RuntimeBase vm, params ITypeInfo[] typeParameters);
+        Class.Instance CreateInstance(RuntimeBase vm, Class? owner = null, params ITypeInfo[] typeParameters);
     }
 
     public interface IClassInstance : IClass, IObject

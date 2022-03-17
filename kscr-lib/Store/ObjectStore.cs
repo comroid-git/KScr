@@ -96,6 +96,11 @@ namespace KScr.Lib.Store
             if (len < 1)
                 len = 1;
             Type = type;
+            if (Type == null)
+            {
+                throw new NullReferenceException("type cannot be null");
+            }
+
             Refs = new IObject?[len];
         }
 

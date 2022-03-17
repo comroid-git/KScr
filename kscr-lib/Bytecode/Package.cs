@@ -104,17 +104,9 @@ namespace KScr.Lib.Bytecode
             return cls;
         }
 
-        public Package GetPackage(string[] names)
-        {
-            var pkg = RootPackage;
-            foreach (string name in names)
-                pkg = GetOrCreatePackage(name);
-            return pkg;
-        }
-
         public Class? GetClass(RuntimeBase vm, string[] names)
         {
-            var pkg = RootPackage;
+            var pkg = names.Length > 1 ? RootPackage : this;
             for (var i = 0; i < names.Length - 1; i++)
                 pkg = pkg.GetOrCreatePackage(names[i]);
             return pkg.GetOrCreateClass(vm, names[^1]);

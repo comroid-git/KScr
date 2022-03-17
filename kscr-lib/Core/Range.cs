@@ -110,7 +110,7 @@ namespace KScr.Lib.Core
             {
                 _range = range;
                 ObjectId = vm.NextObjId(ToString(0));
-                Type = Class.IteratorType.CreateInstance(vm, Class.NumericIntType);
+                Type = Class.IteratorType.GetInstance(vm, Class.NumericIntType);
             }
 
             public long ObjectId { get; }

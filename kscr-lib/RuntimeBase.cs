@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -31,7 +33,7 @@ namespace KScr.Lib
 
         private uint _lastObjId = 0xF;
 
-        public bool Initialized;
+        public static bool Initialized;
         public readonly Stack Stack = new();
         
         /*
@@ -75,7 +77,7 @@ namespace KScr.Lib
         public IObjectRef ConstantTrue =>
             ComputeObject(VariableContext.Absolute, Numeric.One.GetKey(), () => Numeric.One);
 
-        public ObjectRef StdioRef { get; } = new StandardIORef();
+        public ObjectRef StdioRef { get; private set; }
 
         public bool StdIoMode { get; set; } = false;
         public static bool ConfirmExit { get; set; }
@@ -115,6 +117,8 @@ namespace KScr.Lib
             Class.ThrowableType.LateInitialization(this, Stack);
             Class.NumericType.LateInitialization(this, Stack);
 
+            StdioRef = new StandardIORef();
+            
             Initialized = true;
         }
 
@@ -179,7 +183,7 @@ namespace KScr.Lib
 
         public IObjectRef PutObject(VariableContext varctx, IObject value, string? key = null)
         {
-            return this[Stack.KeyGen, varctx, key ?? value.GetKey()] = new ObjectRef(value.Type, value);
+            return this[Stack.KeyGen, varctx, key ?? value.GetKey()] = new ObjectRef(value.Type == null && !Initialized ? value as IClassInstance : value.Type, value);
         }
 
         public IObject? Execute(out long timeµs)
@@ -220,7 +224,7 @@ namespace KScr.Lib
             return stack.Omg?.Value ?? IObject.Null;
         }
 
-        public IClassInstance? FindType(string name, Package? package = null)
+        public IClassInstance? FindType(string name, Package? package = null, Class? owner = null)
         {
             if (name == "num")
                 return Class.NumericType.DefaultInstance;
@@ -255,7 +259,20 @@ namespace KScr.Lib
             if (name.EndsWith("void") || name.EndsWith("Object"))
                 return Class.VoidType.DefaultInstance;
 
-            return ClassStore.FindType(this, package ?? Package.RootPackage, name);
+            if (name.Contains('<'))
+            { // create instance
+                var canonicalName = name.Substring(0, name.IndexOf('<'));
+                var kls = ClassStore.FindType(this, canonicalName.Contains('.') ? package ?? Package.RootPackage : Package.RootPackage, canonicalName);
+                var tParams = new List<TypeParameter>();
+                kls = ClassStore.FindType(this, 
+                    canonicalName.Contains('.') ? package ?? Package.RootPackage : Package.RootPackage, canonicalName);
+                var split = name.Substring(name.IndexOf('<') + 1, name.IndexOf('>') - name.IndexOf('<') - 1).Split(", ");
+                for (var i = 0; i < split.Length; i++) 
+                    tParams.Add(new TypeParameter(split[i]));
+                return kls!.CreateInstance(this, owner, tParams.Cast<ITypeInfo>().ToArray());
+            }
+
+            return ClassStore.FindType(this, package ?? Package.RootPackage, name)?.DefaultInstance;
         }
 
         public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)

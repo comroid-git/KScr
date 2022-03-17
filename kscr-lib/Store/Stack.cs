@@ -148,7 +148,7 @@ namespace KScr.Lib.Store
         public IObjectRef? Omg => this[StackOutput.Omg];
         public State State;
 
-        private bool ContainsKey(string key) => _keys.Contains(key) || _parent.ContainsKey(key);
+        private bool ContainsKey(string key) => _keys.Contains(key) || (_parent?.ContainsKey(key) ?? false);
 
         private IEnumerable<string> CreateKeys(VariableContext varctx, string name)
         {
