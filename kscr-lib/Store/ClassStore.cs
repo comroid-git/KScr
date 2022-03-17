@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
@@ -58,14 +59,18 @@ namespace KScr.Lib.Store
             if (cls is Class.Instance inst)
                 if (Instances.ContainsKey(inst.DetailedName))
                     throw new FatalException($"Attempted to add already added class instance {inst} to cache");
-                else return Instances[cls.CanonicalName] = new ClassRef(inst);
+                else return Instances[inst.FullDetailedName] = new ClassRef(inst);
             return null;
         }
 
         public IClass? FindType(RuntimeBase vm, Package package, string name)
         {
             if (name.Contains('<'))
+            {
+                if (Instances.FirstOrDefault(x => x.Key.EndsWith(name)) is var entry)
+                    return entry.Value.Value as IClassInstance;
                 throw new FatalException("Cannot instantiate class instance here (invalid state)");
+            }
             // todo actually we SHOULD handle instances here
             if (Classes.ContainsKey(name))
                 return Classes[name];

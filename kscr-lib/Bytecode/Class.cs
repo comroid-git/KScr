@@ -528,9 +528,10 @@ namespace KScr.Lib.Bytecode
             public Class BaseClass { get; }
             public IObjectRef SelfRef { get; internal set; } = null!;
             public TypeParameter.Instance[] TypeParameterInstances { get; }
-            public string Name => CanonicalName;
+            public string Name => BaseClass.Name;
             public string FullName => BaseClass.FullName;
             public string CanonicalName => BaseClass.CanonicalName;
+            public string FullDetailedName => BaseClass.Parent?.FullName + '.' + DetailedName;
             public string DetailedName
             {
                 get
@@ -539,7 +540,7 @@ namespace KScr.Lib.Bytecode
                     return BaseClass.Name.Substring(0, indexOf == -1 ? BaseClass.Name.Length : indexOf)
                            + (TypeParameters.Count == 0
                                ? string.Empty
-                               : '<' + string.Join(", ", TypeParameterInstances.Select(t => t.TargetType.Name)) + '>');
+                               : '<' + string.Join(", ", TypeParameterInstances.Select(t => t.TargetType.FullName)) + '>');
                 }
             }
             public IDictionary<string, IClassMember> DeclaredMembers => BaseClass.DeclaredMembers;
