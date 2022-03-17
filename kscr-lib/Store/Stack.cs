@@ -64,6 +64,10 @@ namespace KScr.Lib.Store
         Omg = 0b0100_0000   // omega
     }
 
+    public sealed class StackOutputMapping : Dictionary<StackOutput, StackOutput>
+    {
+    }
+
     public sealed class Stack
     {
         public const string Separator = ".";
@@ -80,12 +84,12 @@ namespace KScr.Lib.Store
             KeyGen = CreateKeys;
         }
         
-        private Stack(Stack parent, StackOutput output, bool copyRefsPtr = true)
+        private Stack(Stack parent, StackOutput output, bool copyRefs)
         {
             _output = output;
             _parent = parent;
-            if (copyRefsPtr)
-                _refs = parent._refs;
+            if (copyRefs)
+                _refs = _parent._refs;
             _blob = parent._blob;
             KeyGen = CreateKeys;
         }
@@ -172,11 +176,13 @@ namespace KScr.Lib.Store
             return arr;
         }
 
-        public Stack Output(StackOutput outputMode, bool copyRefs = true) => new(this, outputMode, copyRefs);
-        public Stack Channel(StackOutput from, StackOutput outputMode)
+        public Stack Output(StackOutput outputMode = StackOutput.Alp, bool copyRefs = false) 
+            => new(this, outputMode, copyRefs);
+
+        public Stack Channel(StackOutput channel, StackOutput outputMode = StackOutput.Alp, bool copyRefs = false)
         {
             var stack = new Stack(this, outputMode, false);
-            stack[outputMode] = this[from];
+            stack[outputMode] = this[channel];
             return stack;
         }
 
@@ -320,10 +326,14 @@ namespace KScr.Lib.Store
                 vm.ObjectStore.Remove(old);
         }
 
-        public void CopyFromStack(StackOutput copyFromStack)
+        public void Copy(StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
         {
-            if (copyFromStack != StackOutput.None)
-                _parent[_output] = this[copyFromStack];
+            Copy(_parent, channel, output);
+        }
+
+        public void Copy(Stack target, StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
+        {
+            target[output == StackOutput.Default ? _output : output] = this[channel];
         }
     }
 }

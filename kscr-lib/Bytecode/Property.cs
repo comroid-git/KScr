@@ -32,10 +32,10 @@ namespace KScr.Lib.Bytecode
             .Where(x => x != null).Cast<ExecutableCode>();
 
         [Obsolete] // do not use
-        public override void Evaluate(RuntimeBase vm, Stack stack, StackOutput copyFromStack = StackOutput.None)
+        public override Stack Evaluate(RuntimeBase vm, Stack stack)
         {
             ReadAccessor!.Evaluate(vm, stack);
-            stack.CopyFromStack(copyFromStack);
+            return stack;
         }
 
         private string CreateSubKey(string ownerKey)

@@ -66,7 +66,7 @@ namespace KScr.Lib.Bytecode
             ReturnType = returnType;
         }
 
-        public void Evaluate(RuntimeBase vm, Stack stack, StackOutput copyFromStack = StackOutput.None)
+        public Stack Evaluate(RuntimeBase vm, Stack stack)
         {
             throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
         }
@@ -107,12 +107,12 @@ namespace KScr.Lib.Bytecode
 
         public override ClassMemberType MemberType => ClassMemberType.Method;
 
-        public override void Evaluate(RuntimeBase vm, Stack stack, StackOutput copyFromStack = StackOutput.None)
+        public override Stack Evaluate(RuntimeBase vm, Stack stack)
         {
             Body.Evaluate(vm, stack);
             if (stack.State != State.Return && Name != ConstructorName && ReturnType.Name != "void")
                 throw new FatalException("Invalid state after method: " + stack.State);
-            stack.CopyFromStack(copyFromStack);
+            return stack;
         }
 
         public override void Write(Stream stream)

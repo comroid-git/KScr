@@ -23,7 +23,7 @@ namespace KScr.Lib.Bytecode
         public IClassInstance TargetType { get; set; } = Class.VoidType.DefaultInstance;
         public List<StatementComponent> Main { get; } = new();
 
-        public void Evaluate(RuntimeBase vm, Stack stack, StackOutput copyFromStack = None)
+        public Stack Evaluate(RuntimeBase vm, Stack stack)
         {
             try
             {
@@ -34,14 +34,14 @@ namespace KScr.Lib.Bytecode
                             component.Evaluate(vm, stack);
                             break;
                     }
-
-                stack.CopyFromStack(copyFromStack);
             }
             finally
             {
                 if (Finally != null)
                     Finally.Evaluate(vm, stack);
             }
+
+            return stack;
         }
 
         public override void Write(Stream stream)
@@ -125,7 +125,7 @@ namespace KScr.Lib.Bytecode
         public StatementComponentType Type { get; set; }
         public BytecodeType CodeType { get; set; } = BytecodeType.Undefined;
 
-        public virtual void Evaluate(RuntimeBase vm, Stack stack, StackOutput copyFromStack = StackOutput.None)
+        public virtual Stack Evaluate(RuntimeBase vm, Stack stack)
         {
             switch (Type, CodeType)
             {
@@ -244,7 +244,7 @@ namespace KScr.Lib.Bytecode
                             = new ObjectRef(iterator.Type.TypeParameterInstances[0].ResolveType(vm, iterator.Type));
                         while (iterator.Invoke(vm, stack.Output(Phi), "hasNext").ToBool())
                         {
-                            iterator.Invoke(vm, stack.Channel(Eps, Del), "next");
+                            iterator.Invoke(vm, stack.Output(Del), "next");
                             InnerCode!.Evaluate(vm, stack.Output(Bet));
                         }
                     });
@@ -255,7 +255,7 @@ namespace KScr.Lib.Bytecode
                         SubStatement.Evaluate(vm, stack.Output(Phi));
                         while (stack.Phi.ToBool())
                         {
-                            InnerCode.Evaluate(vm, stack.Channel(Bet, Bet));
+                            InnerCode.Evaluate(vm, stack.Output(Bet));
                             SubStatement.Evaluate(vm, stack.Output(Phi));
                         }
                     });
@@ -350,7 +350,7 @@ namespace KScr.Lib.Bytecode
 
                     break;
                 case (StatementComponentType.Provider, BytecodeType.LiteralRange):
-                    SubComponent.Evaluate(vm, stack.Output(Bet, false), Alp);
+                    SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
                     stack[Default] = Range.Instance(vm, (stack.Alp.Value as Numeric)!.IntValue, (stack.Bet.Value as Numeric)!.IntValue);
                     break;
                 case (StatementComponentType.Provider, BytecodeType.ExpressionVariable):
@@ -405,7 +405,7 @@ namespace KScr.Lib.Bytecode
                         throw new FatalException("Invalid assignment; missing target");
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException("Invalid assignment; no Expression found");
-                    SubStatement!.Evaluate(vm, stack.Output(Alp, false), Bet);
+                    SubStatement!.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
                     stack[Default].Value = stack.Bet.Value;
                     break;
                 case (StatementComponentType.Emitter, _):
@@ -413,16 +413,16 @@ namespace KScr.Lib.Bytecode
                         throw new FatalException("Invalid emitter; no Expression found");
                     if (!stack.Alp.IsPipe)
                         throw new FatalException("Cannot emit value into non-pipe accessor");
-                    SubStatement.Evaluate(vm, stack.Output(Bet));
-                    stack.Alp.WriteAccessor!.Evaluate(vm, stack.Channel(Bet, Alp));
+                    SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
+                    stack.Alp.WriteAccessor!.Evaluate(vm, stack.Channel(Bet));
                     break;
                 case (StatementComponentType.Consumer, _):
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Declaration) == 0)
                         throw new FatalException("Invalid consumer; no declaration found");
                     if (!stack.Alp.IsPipe)
                         throw new FatalException("Cannot consume value from non-pipe accessor");
-                    SubStatement.Evaluate(vm, stack.Output(Bet));
-                    stack.Alp.ReadAccessor!.Evaluate(vm, stack.Channel(Bet, Alp));
+                    SubStatement.Evaluate(vm, stack.Output(copyRefs: false)).Copy(Alp, Bet);
+                    stack.Alp.ReadAccessor!.Evaluate(vm, stack.Channel(Bet));
                     break;
                 default:
                     throw new NotImplementedException($"Not Implemented: {Type} {CodeType}");
@@ -430,8 +430,8 @@ namespace KScr.Lib.Bytecode
 
             if (PostComponent != null)
                 PostComponent.Evaluate(vm, stack.Output(Default));
-            
-            stack.CopyFromStack(copyFromStack);
+
+            return stack;
         }
 
         public override void Write(Stream stream)

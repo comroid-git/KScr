@@ -38,7 +38,7 @@ namespace KScr.Lib.Bytecode
         public MemberModifier Modifier { get; protected set; }
         public abstract ClassMemberType MemberType { get; }
 
-        public abstract void Evaluate(RuntimeBase vm, Stack stack, StackOutput copyFromStack = StackOutput.None);
+        public abstract Stack Evaluate(RuntimeBase vm, Stack stack);
 
         public override void Write(Stream stream)
         {

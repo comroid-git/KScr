@@ -10,11 +10,11 @@ namespace KScr.Lib.Bytecode
     {
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main;
 
-        public void Evaluate(RuntimeBase vm, Stack stack, StackOutput copyFromStack = StackOutput.None)
+        public Stack Evaluate(RuntimeBase vm, Stack stack)
         {
             foreach (var statement in Main)
                 statement.Evaluate(vm, stack);
-            stack.CopyFromStack(copyFromStack);
+            return stack;
         }
 
         public StatementComponentType Type => StatementComponentType.Code;

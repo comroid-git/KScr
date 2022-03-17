@@ -4,6 +4,6 @@ namespace KScr.Lib.Model
 {
     public interface IEvaluable
     {
-        public void Evaluate(RuntimeBase vm, Stack stack, StackOutput copyFromStack = StackOutput.None);
+        public Stack Evaluate(RuntimeBase vm, Stack stack);
     }
 }

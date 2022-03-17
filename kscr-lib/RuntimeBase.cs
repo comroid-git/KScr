@@ -304,16 +304,17 @@ namespace KScr.Lib
 
             private sealed class StdioWriter : Model.IEvaluable
             {
-                public void Evaluate(RuntimeBase vm, Stack stack, StackOutput copyFromStack = StackOutput.None)
+                public Stack Evaluate(RuntimeBase vm, Stack stack)
                 {
                     var txt = stack.Alp!.Value.ToString(IObject.ToString_ShortName);
                     Console.WriteLine(txt);
+                    return stack;
                 }
             }
 
             private sealed class StdioReader : Model.IEvaluable
             {
-                public void Evaluate(RuntimeBase vm, Stack stack, StackOutput copyFromStack = StackOutput.None)
+                public Stack Evaluate(RuntimeBase vm, Stack stack)
                 {
                     if (stack.Alp!.Length != 1 || !stack.Alp.Type.CanHold(Class.StringType) && !stack.Alp.Type.CanHold(Class.NumericType))
                         throw new FatalException("Invalid reference to write string into: " + stack.Alp);
@@ -321,6 +322,7 @@ namespace KScr.Lib
                     if (stack.Alp.Type.CanHold(Class.NumericType))
                         stack.Alp.Value = Numeric.Compile(vm, txt).Value;
                     else stack.Alp.Value = String.Instance(vm, stack, txt).Value;
+                    return stack;
                 }
             }
         }
