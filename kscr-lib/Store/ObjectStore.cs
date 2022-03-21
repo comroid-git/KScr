@@ -57,6 +57,8 @@ namespace KScr.Lib.Store
     {
         int Length { get; }
         bool IsPipe { get; }
+        Stack ReadValue(RuntimeBase vm, Stack stack, IObject @from);
+        Stack WriteValue(RuntimeBase vm, Stack stack, IObject to);
         IEvaluable? ReadAccessor { get; set; }
         IEvaluable? WriteAccessor { get; set; }
         IObject Value { get; set; }
@@ -106,6 +108,9 @@ namespace KScr.Lib.Store
 
         public int Length => Refs.Length;
         public bool IsPipe => ReadAccessor != null || WriteAccessor != null;
+        public Stack ReadValue(RuntimeBase vm, Stack stack, IObject @from) => ReadAccessor!.Evaluate(vm, stack);
+        public Stack WriteValue(RuntimeBase vm, Stack stack, IObject to) => WriteAccessor!.Evaluate(vm, stack);
+
         public virtual IEvaluable? ReadAccessor { get; set; }
         public virtual IEvaluable? WriteAccessor { get; set; }
 

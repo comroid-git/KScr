@@ -20,9 +20,18 @@ namespace KScr.Lib.Store
 
         public int Length => 1;
         public bool IsPipe => false;
+        public Stack ReadValue(RuntimeBase vm, Stack stack, IObject from)
+        {
+            stack[StackOutput.Default]!.Value = Value;
+            return stack;
+        }
+
+        public Stack WriteValue(RuntimeBase vm, Stack stack, IObject to) 
+            => throw new NotSupportedException("Cannot change ClassRef");
+
         public IEvaluable? ReadAccessor
         {
-            get => null;
+            get => throw new NotSupportedException("Must use ClassRef#Value");
             set => throw new NotSupportedException("Cannot change ClassRef");
         }
 

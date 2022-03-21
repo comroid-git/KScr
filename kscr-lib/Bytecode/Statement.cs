@@ -386,7 +386,7 @@ namespace KScr.Lib.Bytecode
                     }
                     else if (cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Property && x.Name == Arg) is Property prop)
                     {
-                        prop.ReadAccessor.Evaluate(vm, stack);
+                        prop.ReadValue(vm, stack.Output(), cls as IClassInstance ?? cls.DefaultInstance).Copy();
                     }
                     else
                     {

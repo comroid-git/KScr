@@ -86,6 +86,34 @@ namespace KScr.Lib.Bytecode
 
         public int Length => 1;
         public bool IsPipe => false;
+        public Stack ReadValue(RuntimeBase vm, Stack stack, IObject from)
+        { // evaluate property with object
+            if (Gettable && ReadAccessor == null)
+            { // is auto-property
+                stack[StackOutput.Default] = vm[stack.KeyGen, VariableContext.Absolute, CreateKey(from)];
+                return stack;
+            }
+            if (ReadAccessor != null)
+                return ReadAccessor.Evaluate(vm, stack);
+            throw new FatalException("Property " + FullName + " is not gettable"); // invalid state?
+        }
+
+        public Stack WriteValue(RuntimeBase vm, Stack stack, IObject to)
+        { // evaluate property with object
+            if (Settable && WriteAccessor == null)
+            { // is auto-property
+                vm[stack.KeyGen, VariableContext.Absolute, CreateKey(to)] = stack[StackOutput.Default];
+                return stack;
+            }
+            if (WriteAccessor != null)
+                return WriteAccessor.Evaluate(vm, stack);
+            throw new InternalException("Property " + FullName + " is not settable");
+        }
+
+        private string CreateKey(IObject parent)
+        {
+            return $"property-{parent.GetKey()}.{Name}";
+        }
 
         public IEvaluable? ReadAccessor
         {
