@@ -157,11 +157,11 @@ namespace KScr.Lib.Bytecode
                     var type = vm.FindType(Arg)!;
                     var ctor = (type.ClassMembers.First(x => x.Name == Method.ConstructorName) as IMethod)!;
                     var obj = new CodeObject(vm, type);
-                    stack[Bet] = vm.PutObject(VariableContext.Absolute, obj);
+                    stack[Alp] = vm.PutObject(VariableContext.Absolute, obj);
                     stack[Del] = new ObjectRef(Class.VoidType.DefaultInstance, ctor.Parameters.Count);
                     stack.StepInto(vm, SourcefilePosition, stack.Alp, ctor, stack =>
                     {
-                        SubComponent.Evaluate(vm, stack.Output(Eps, true));
+                        SubComponent.Evaluate(vm, stack.Output());
                         for (var i = 0; i < ctor.Parameters.Count; i++)
                             vm.PutLocal(ctor.Parameters[i].Name, stack.Bet[vm, stack, i]);
                         ctor.Evaluate(vm, stack.Output()).Copy();
@@ -254,11 +254,11 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Code, BytecodeType.StmtWhile):
                     stack.StepInside(vm, SourcefilePosition, "while", stack =>
                     {
-                        SubStatement.Evaluate(vm, stack.Output(Phi, true));
+                        SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Phi);
                         while (stack.Phi.ToBool())
                         {
                             InnerCode.Evaluate(vm, stack.Output());
-                            SubStatement.Evaluate(vm, stack.Output(Phi, true));
+                            SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Phi);
                         }
                     });
                     break;
@@ -271,10 +271,10 @@ namespace KScr.Lib.Bytecode
                             InnerCode.Evaluate(vm, stack.Output());
                             if (first)
                             {
-                                SubStatement.Evaluate(vm, stack.Output(Phi, true));
+                                SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Phi);
                                 first = false;
                             }
-                            else SubStatement.Evaluate(vm, stack.Channel(Phi, Phi)).Copy(Phi);
+                            else SubStatement.Evaluate(vm, stack.Channel(Phi)).Copy(Alp, Phi);
                         } while (stack.Phi.ToBool());
                     });
                     break;
