@@ -38,13 +38,13 @@ namespace KScr.Lib.Core
             {
                 if (icm.IsStatic())
                     throw new FatalException("Static method invoked on object instance");
-                var param = (icm as IMethod)?.Parameters!;
+                var param = (icm as IMethod)?.Parameters;
                 var state = State.Normal;
                 // todo: use correct callLocation
-                stack.StepInto(vm, ToStringInvocPos, stack.Alp!, ToStringInvoc, stack =>
+                stack.StepInto(vm, ToStringInvocPos, stack.Alp!, icm, stack =>
                 {
                     for (var i = 0; i < param.Count; i++)
-                        vm.PutLocal(param[i].Name, args.Length - 1 < i ? IObject.Null : args[i]);
+                        vm.PutLocal(stack, param[i].Name, args.Length - 1 < i ? IObject.Null : args[i]);
                     icm.Evaluate(vm, stack.Output());
                 }, StackOutput.Alp);
 
@@ -69,7 +69,7 @@ namespace KScr.Lib.Core
                         if (args.Length > 0 && args[0] is Numeric num)
                             variant = num.ShortValue;
                         else throw new FatalException("Invalid argument: " + args[0]);
-                        return String.Instance(vm, stack, ToString(variant));
+                        return String.Instance(vm, ToString(variant));
                     case "equals":
                         return args[0]!.ObjectId == ObjectId ? vm.ConstantTrue : vm.ConstantFalse;
                     case "getType":
@@ -82,7 +82,7 @@ namespace KScr.Lib.Core
 
         public string GetKey()
         {
-            return $"instance:{Type.FullName}-{ObjectId:X}";
+            return $"obj:{Type.FullName}-{ObjectId:X}";
         }
     }
 }

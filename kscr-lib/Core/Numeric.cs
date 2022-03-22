@@ -91,7 +91,7 @@ namespace KScr.Lib.Core
             switch (member)
             {
                 case "toString":
-                    return String.Instance(vm, stack, StringValue);
+                    return String.Instance(vm, StringValue);
                 case "ExitCode":
                     return Constant(vm, IntValue);
                 case "equals":
@@ -136,7 +136,7 @@ namespace KScr.Lib.Core
 
         public static IObjectRef Constant(RuntimeBase vm, byte value)
         {
-            return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
+            return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(value), () =>
             {
                 var num = new Numeric(vm, true);
                 num.SetAs(value);
@@ -147,7 +147,7 @@ namespace KScr.Lib.Core
 
         public static IObjectRef Constant(RuntimeBase vm, short value)
         {
-            return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
+            return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(value), () =>
             {
                 var num = new Numeric(vm, true);
                 num.SetAs(value);
@@ -158,7 +158,7 @@ namespace KScr.Lib.Core
 
         public static IObjectRef Constant(RuntimeBase vm, int value)
         {
-            return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
+            return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(value), () =>
             {
                 var num = new Numeric(vm, true);
                 num.SetAs(value);
@@ -169,7 +169,7 @@ namespace KScr.Lib.Core
 
         public static IObjectRef Constant(RuntimeBase vm, long value)
         {
-            return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
+            return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(value), () =>
             {
                 var num = new Numeric(vm, true);
                 num.SetAs(value);
@@ -180,7 +180,7 @@ namespace KScr.Lib.Core
 
         public static IObjectRef Constant(RuntimeBase vm, float value)
         {
-            return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
+            return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(value), () =>
             {
                 var num = new Numeric(vm, true);
                 num.SetAs(value);
@@ -191,7 +191,7 @@ namespace KScr.Lib.Core
 
         public static IObjectRef Constant(RuntimeBase vm, double value)
         {
-            return vm.ComputeObject(VariableContext.Absolute, CreateKey(value), () =>
+            return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(value), () =>
             {
                 var num = new Numeric(vm, true);
                 num.SetAs(value);
@@ -640,7 +640,7 @@ namespace KScr.Lib.Core
 
         public static string CreateKey(string num)
         {
-            return "static-num:" + num;
+            return "num:" + num;
         }
 
         public static string CreateKey(long num)

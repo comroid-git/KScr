@@ -36,7 +36,7 @@ namespace KScr.Lib.Core
             switch (member)
             {
                 case "toString":
-                    return String.Instance(vm, stack, "null");
+                    return String.Instance(vm, "null");
                 case "equals":
                     return args[0] is VoidValue || args[0] is Numeric num && num.ByteValue != 0
                         ? vm.ConstantTrue
@@ -50,7 +50,7 @@ namespace KScr.Lib.Core
 
         public string GetKey()
         {
-            return "static-void:null";
+            return "void:null";
         }
     }
 }

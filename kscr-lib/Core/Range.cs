@@ -37,7 +37,7 @@ namespace KScr.Lib.Core
             switch (member)
             {
                 case "toString":
-                    return String.Instance(vm, stack, ToString(0));
+                    return String.Instance(vm, ToString(0));
                 case "equals":
                     if (args[0] is not Range other)
                         return vm.ConstantFalse;
@@ -46,7 +46,7 @@ namespace KScr.Lib.Core
                     return Type.SelfRef;
                 case "iterator":
                     var iterator = new RangeIterator(vm, this);
-                    return vm.PutObject(VariableContext.Local, iterator);
+                    return vm.PutObject(stack, VariableContext.Local, iterator);
                 case "start": // get first value
                     return start(vm);
                 case "end": // get last value
@@ -73,7 +73,7 @@ namespace KScr.Lib.Core
 
         private static string CreateKey(int start, int end)
         {
-            return $"static-range:{start}~{end}";
+            return $"range:{start}~{end}";
         }
 
         public IObjectRef start(RuntimeBase vm)
@@ -98,7 +98,7 @@ namespace KScr.Lib.Core
 
         public static IObjectRef Instance(RuntimeBase vm, int start, int end)
         {
-            return vm.ComputeObject(VariableContext.Absolute, CreateKey(start, end), () => new Range(vm, start, end));
+            return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(start, end), () => new Range(vm, start, end));
         }
 
         private class RangeIterator : IObject
@@ -116,6 +116,7 @@ namespace KScr.Lib.Core
             public long ObjectId { get; }
             public IClassInstance Type { get; }
 
+            public override string ToString() => ToString(0);
             public string ToString(short variant)
             {
                 return "range-iterator:" + _range;
@@ -140,7 +141,7 @@ namespace KScr.Lib.Core
 
             public string GetKey()
             {
-                return $"{_range.ToString(0)}-iterator#{ObjectId}";
+                return $"{_range.ToString(0)}-iterator#{ObjectId:X}";
             }
         }
     }
