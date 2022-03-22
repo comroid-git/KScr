@@ -28,10 +28,8 @@ namespace KScr.Lib.Core
         public long ObjectId => 0;
         public IClassInstance Type => Class.VoidType.DefaultInstance;
 
-        public string ToString(short variant)
-        {
-            return "null";
-        }
+        public string ToString(short variant) => "null";
+        public override string ToString() => ToString(0);
 
         public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {

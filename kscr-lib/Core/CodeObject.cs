@@ -29,6 +29,7 @@ namespace KScr.Lib.Core
         {
             return Type.Name + "#" + ObjectId.ToString("X");
         }
+        public override string ToString() => ToString(0);
 
         public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
