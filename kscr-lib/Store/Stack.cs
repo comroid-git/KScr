@@ -92,6 +92,7 @@ namespace KScr.Lib.Store
             _parent = parent;
             if (copyRefs)
                 _refs = _parent._refs;
+            else this[StackOutput.Threadsafe] = parent.This;
             _blob = parent._blob;
             KeyGen = CreateKeys;
         }
