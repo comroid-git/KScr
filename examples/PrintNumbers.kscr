@@ -4,10 +4,10 @@ import org.comroid.kscr.core.Throwable;
 import org.comroid.kscr.core.Iterable;
 
 public class PrintNumbers implements Throwable {
-    public static int StackSize -> 64;
-    public int StackValue -> 48;
+    public static int StackSize => 64;
+    public int StackValue => 48;
     public str Message { get; set; }
-    public int ExitCode -> 3;
+    public int ExitCode => 3;
     
     static {
         stdio << "this is a static initializer";
