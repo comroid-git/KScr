@@ -15,7 +15,7 @@ namespace KScr.Lib.Store
     
     public sealed class ObjectStore
     {
-        private readonly ConcurrentDictionary<string, ObjectRef?> _vars = new();
+        private readonly ConcurrentDictionary<string, ObjectRef?> _props = new();
         private readonly ConcurrentDictionary<string, ObjectRef?> _finals = new();
         private readonly ConcurrentDictionary<string, ObjectRef?> _locals = new();
 
@@ -57,7 +57,7 @@ namespace KScr.Lib.Store
             return varctx switch
             {
                 VariableContext.Local => _locals,
-                VariableContext.This or VariableContext.Property => _vars,
+                VariableContext.This or VariableContext.Property => _props,
                 VariableContext.Absolute => _finals,
                 _ => throw new ArgumentOutOfRangeException(nameof(varctx), varctx, "Invalid VariableContext")
             };

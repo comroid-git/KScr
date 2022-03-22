@@ -85,10 +85,10 @@ namespace KScr.Lib.Bytecode
         { // evaluate property with object
             if (Gettable && ReadAccessor == null)
             { // is auto-property
-                if (vm[stack.KeyGen, VariableContext.Absolute, CreateKey(from)] == null)
-                    stack[StackOutput.Alp | StackOutput.Omg] = vm[stack.KeyGen, VariableContext.Property, CreateKey(from)] 
+                if (vm[stack, VariableContext.Property, CreateKey(@from)] == null)
+                    stack[StackOutput.Alp | StackOutput.Omg] = vm[stack, VariableContext.Property, CreateKey(@from)] 
                         = new ObjectRef(ReturnType.ResolveType(stack[StackOutput.Default]!.Value.Type));
-                else stack[StackOutput.Alp | StackOutput.Omg] = vm[stack.KeyGen, VariableContext.Property, CreateKey(from)];
+                else stack[StackOutput.Alp | StackOutput.Omg] = vm[stack, VariableContext.Property, CreateKey(@from)];
                 return stack;
             }
             if (ReadAccessor != null)
@@ -100,7 +100,7 @@ namespace KScr.Lib.Bytecode
         { // evaluate property with object
             if (Settable && WriteAccessor == null)
             { // is auto-property
-                vm[stack.KeyGen, VariableContext.Absolute, CreateKey(to)] = stack[StackOutput.Default];
+                vm[stack, VariableContext.Absolute, CreateKey(to)] = stack[StackOutput.Default];
                 return stack;
             }
             if (WriteAccessor != null)

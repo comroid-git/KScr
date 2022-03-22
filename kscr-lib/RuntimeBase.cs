@@ -35,23 +35,6 @@ namespace KScr.Lib
 
         public static bool Initialized;
         public static readonly Stack MainStack = new();
-        
-        /*
-         * System.TypeInitializationException: The type initializer for 'KScr.Runtime.Program' threw an exception.
- ---> System.NullReferenceException: Object reference not set to an instance of an object.
-   at KScr.Lib.Store.Stack.CreateKeys(VariableContext varctx, String name) in D:\dev\kscr\KScr\kscr-lib\Store\Stack.cs:line 165
-   at KScr.Lib.Store.ObjectStore.get_Item(ObjectStoreKeyGenerator keygen, VariableContext varctx, String name) in D:\dev\kscr\KScr\kscr-lib\Store\ObjectStore.cs:line 24
-   at KScr.Lib.RuntimeBase.get_Item(ObjectStoreKeyGenerator keygen, VariableContext varctx, String name) in D:\dev\kscr\KScr\kscr-lib\RuntimeBase.cs:line 48
-   at KScr.Lib.RuntimeBase.ComputeObject(VariableContext varctx, String key, Func`1 func) in D:\dev\kscr\KScr\kscr-lib\RuntimeBase.cs:line 155
-   at KScr.Lib.Bytecode.Class.Instance.Initialize(RuntimeBase vm) in D:\dev\kscr\KScr\kscr-lib\Bytecode\Class.cs:line 600
-   at KScr.Lib.Bytecode.Class.CreateInstance(RuntimeBase vm, Class owner, ITypeInfo[] typeParameters) in D:\dev\kscr\KScr\kscr-lib\Bytecode\Class.cs:line 172
-   at KScr.Lib.Bytecode.Class.CreateInstance(RuntimeBase vm, ITypeInfo[] typeParameters) in D:\dev\kscr\KScr\kscr-lib\Bytecode\Class.cs:line 105
-   at KScr.Lib.Bytecode.Class.Initialize(RuntimeBase vm) in D:\dev\kscr\KScr\kscr-lib\Bytecode\Class.cs:line 148
-   at KScr.Lib.RuntimeBase.Initialize() in D:\dev\kscr\KScr\kscr-lib\RuntimeBase.cs:line 71
-   at KScr.Runtime.Program..cctor() in D:\dev\kscr\KScr\kscr-runtime\Program.cs:line 29
-   --- End of inner exception stack trace ---
-   at KScr.Runtime.Program.Main(String[] args)
-         */
 
         static RuntimeBase()
         {
@@ -62,10 +45,10 @@ namespace KScr.Lib
         public abstract ObjectStore ObjectStore { get; }
         public abstract ClassStore ClassStore { get; }
 
-        public IObjectRef? this[ObjectStoreKeyGenerator keygen, VariableContext varctx, string name]
+        public IObjectRef? this[Stack stack, VariableContext varctx, string name]
         {
-            get => ObjectStore[keygen, varctx, name];
-            set => ObjectStore[keygen, varctx, name] = value as ObjectRef;
+            get => ObjectStore[stack.KeyGen, varctx, name];
+            set => ObjectStore[stack.KeyGen, varctx, name] = value as ObjectRef;
         }
 
         public IObjectRef ConstantVoid =>
@@ -173,7 +156,7 @@ namespace KScr.Lib
 
         public IObjectRef ComputeObject(Stack stack, VariableContext varctx, string key, Func<IObject> func)
         {
-            return this[MainStack.KeyGen, varctx, key] ?? PutObject(stack, varctx, func());
+            return this[stack, varctx, key] ?? PutObject(stack, varctx, func());
         }
 
         public IObjectRef PutLocal(Stack stack, string name, IObject? value)
@@ -183,7 +166,7 @@ namespace KScr.Lib
 
         public IObjectRef PutObject(Stack stack, VariableContext varctx, IObject value, string? key = null)
         {
-            return this[stack.KeyGen, varctx, key ?? value.GetKey()] = new ObjectRef(value.Type == null && !Initialized ? value as IClassInstance : value.Type, value);
+            return this[stack, varctx, key ?? value.GetKey()] = new ObjectRef(value.Type == null && !Initialized ? value as IClassInstance : value.Type, value);
         }
 
         public IObject? Execute()

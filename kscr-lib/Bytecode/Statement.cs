@@ -169,7 +169,7 @@ namespace KScr.Lib.Bytecode
                     break;
                 case (StatementComponentType.Declaration, _):
                     // variable declaration
-                    stack[Default] = vm[stack.KeyGen, VariableContext, Arg] = new ObjectRef(Statement.TargetType);
+                    stack[Default] = vm[stack, VariableContext, Arg] = new ObjectRef(Statement.TargetType);
                     break;
                 case (StatementComponentType.Pipe, _):
                     throw new NotImplementedException();
@@ -241,7 +241,7 @@ namespace KScr.Lib.Bytecode
                         var iterable = stack.Alp.Value!;
                         stack[Eps] = iterable.Invoke(vm, stack.Output(), "iterator");
                         var iterator = stack.Eps.Value;
-                        vm[stack.KeyGen, VariableContext.Local, Arg] = stack[Del] 
+                        vm[stack, VariableContext.Local, Arg] = stack[Del] 
                             = new ObjectRef(iterator.Type.TypeParameterInstances[0].ResolveType(vm, iterator.Type));
                         while ((stack[Phi] = iterator.Invoke(vm, stack.Output(), "hasNext")).ToBool())
                         {
@@ -372,7 +372,7 @@ namespace KScr.Lib.Bytecode
                     else
                     {
                         // read variable
-                        stack[Default] = vm[stack.KeyGen, VariableContext.Local, Arg]
+                        stack[Default] = vm[stack, VariableContext.Local, Arg]
                                          ?? throw new FatalException("Undefined variable: " + Arg);
                     }
 

@@ -67,7 +67,7 @@ namespace KScr.Lib.Core
         public static IObjectRef Instance(RuntimeBase vm, string str)
         {
             string key = CreateKey(str);
-            var rev = vm[RuntimeBase.MainStack.KeyGen, VariableContext.Absolute, key];
+            var rev = vm[RuntimeBase.MainStack, VariableContext.Absolute, key];
             var obj = rev?.Value;
             if (obj is String strObj && strObj.Str == str)
                 return rev!;
