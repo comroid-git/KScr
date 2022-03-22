@@ -102,7 +102,7 @@ namespace KScr.Runtime
                 .WithNotParsed(errors =>
                 {
                     if (!errors.Any())
-                        VM.Stack.StepInto(VM, RuntimeBase.MainInvocPos, RuntimeBase.MainInvoc, _ => StdIoMode(ref state, ref yield));
+                        RuntimeBase.MainStack.StepInto(VM, RuntimeBase.MainInvocPos, RuntimeBase.MainInvoc, _ => StdIoMode(ref state, ref yield));
                 });
 
             return HandleExit(state, yield, compileTime, executeTime, ioTime, RuntimeBase.ConfirmExit);
@@ -167,7 +167,7 @@ namespace KScr.Runtime
                 compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - compileTime;
 
                 long executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                context.ExecutableCode.Evaluate(VM, VM.Stack);
+                context.ExecutableCode.Evaluate(VM, RuntimeBase.MainStack);
                 executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - executeTime;
                 context.Clear();
 

@@ -34,7 +34,7 @@ namespace KScr.Lib
         private uint _lastObjId = 0xF;
 
         public static bool Initialized;
-        public readonly Stack Stack = new();
+        public static readonly Stack MainStack = new();
         
         /*
          * System.TypeInitializationException: The type initializer for 'KScr.Runtime.Program' threw an exception.
@@ -69,13 +69,13 @@ namespace KScr.Lib
         }
 
         public IObjectRef ConstantVoid =>
-            ComputeObject(VariableContext.Absolute, IObject.Null.GetKey(), () => IObject.Null);
+            ComputeObject(MainStack, VariableContext.Absolute, IObject.Null.GetKey(), () => IObject.Null);
 
         public IObjectRef ConstantFalse =>
-            ComputeObject(VariableContext.Absolute, Numeric.Zero.GetKey(), () => Numeric.Zero);
+            ComputeObject(MainStack, VariableContext.Absolute, Numeric.Zero.GetKey(), () => Numeric.Zero);
 
         public IObjectRef ConstantTrue =>
-            ComputeObject(VariableContext.Absolute, Numeric.One.GetKey(), () => Numeric.One);
+            ComputeObject(MainStack, VariableContext.Absolute, Numeric.One.GetKey(), () => Numeric.One);
 
         public ObjectRef StdioRef { get; private set; }
 
@@ -106,16 +106,16 @@ namespace KScr.Lib
 
             Class.InitializePrimitives(this);
 
-            Class.TypeType.LateInitialization(this, Stack);
-            Class.VoidType.LateInitialization(this, Stack);
-            Class.EnumType.LateInitialization(this, Stack);
-            Class.ArrayType.LateInitialization(this, Stack);
-            Class.StringType.LateInitialization(this, Stack);
-            Class.RangeType.LateInitialization(this, Stack);
-            Class.IterableType.LateInitialization(this, Stack);
-            Class.IteratorType.LateInitialization(this, Stack);
-            Class.ThrowableType.LateInitialization(this, Stack);
-            Class.NumericType.LateInitialization(this, Stack);
+            Class.TypeType.LateInitialization(this, MainStack);
+            Class.VoidType.LateInitialization(this, MainStack);
+            Class.EnumType.LateInitialization(this, MainStack);
+            Class.ArrayType.LateInitialization(this, MainStack);
+            Class.StringType.LateInitialization(this, MainStack);
+            Class.RangeType.LateInitialization(this, MainStack);
+            Class.IterableType.LateInitialization(this, MainStack);
+            Class.IteratorType.LateInitialization(this, MainStack);
+            Class.ThrowableType.LateInitialization(this, MainStack);
+            Class.NumericType.LateInitialization(this, MainStack);
 
             StdioRef = new StandardIORef();
             
@@ -171,19 +171,19 @@ namespace KScr.Lib
             ClassStore.Clear();
         }
 
-        public IObjectRef ComputeObject(VariableContext varctx, string key, Func<IObject> func)
+        public IObjectRef ComputeObject(Stack stack, VariableContext varctx, string key, Func<IObject> func)
         {
-            return this[Stack.KeyGen, varctx, key] ?? PutObject(varctx, func());
+            return this[MainStack.KeyGen, varctx, key] ?? PutObject(stack, varctx, func());
         }
 
-        public IObjectRef PutLocal(string name, IObject? value)
+        public IObjectRef PutLocal(Stack stack, string name, IObject? value)
         {
-            return PutObject(VariableContext.Local, value ?? IObject.Null, name);
+            return PutObject(stack, VariableContext.Local, value ?? IObject.Null, name);
         }
 
-        public IObjectRef PutObject(VariableContext varctx, IObject value, string? key = null)
+        public IObjectRef PutObject(Stack stack, VariableContext varctx, IObject value, string? key = null)
         {
-            return this[Stack.KeyGen, varctx, key ?? value.GetKey()] = new ObjectRef(value.Type == null && !Initialized ? value as IClassInstance : value.Type, value);
+            return this[stack.KeyGen, varctx, key ?? value.GetKey()] = new ObjectRef(value.Type == null && !Initialized ? value as IClassInstance : value.Type, value);
         }
 
         public IObject? Execute(out long timeµs)
@@ -321,7 +321,7 @@ namespace KScr.Lib
                     string txt = Console.ReadLine()!;
                     if (stack.Alp.Type.CanHold(Class.NumericType))
                         stack.Alp.Value = Numeric.Compile(vm, txt).Value;
-                    else stack.Alp.Value = String.Instance(vm, stack, txt).Value;
+                    else stack.Alp.Value = String.Instance(vm, txt).Value;
                     return stack;
                 }
             }

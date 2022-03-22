@@ -133,7 +133,7 @@ namespace KScr.Lib.Bytecode
                     stack[Default] = Numeric.Compile(vm, Arg);
                     break;
                 case (StatementComponentType.Expression, BytecodeType.LiteralString):
-                    stack[Default] = String.Instance(vm, stack, Arg);
+                    stack[Default] = String.Instance(vm, Arg);
                     break;
                 case (StatementComponentType.Expression, BytecodeType.LiteralTrue):
                     stack[Default] = vm.ConstantTrue;
@@ -157,13 +157,13 @@ namespace KScr.Lib.Bytecode
                     var type = vm.FindType(Arg)!;
                     var ctor = (type.ClassMembers.First(x => x.Name == Method.ConstructorName) as IMethod)!;
                     var obj = new CodeObject(vm, type);
-                    stack[Alp] = vm.PutObject(VariableContext.Absolute, obj);
+                    stack[Alp] = vm.PutObject(stack, VariableContext.Absolute, obj);
                     stack[Del] = new ObjectRef(Class.VoidType.DefaultInstance, ctor.Parameters.Count);
                     stack.StepInto(vm, SourcefilePosition, stack.Alp, ctor, stack =>
                     {
                         SubComponent.Evaluate(vm, stack.Output());
                         for (var i = 0; i < ctor.Parameters.Count; i++)
-                            vm.PutLocal(ctor.Parameters[i].Name, stack.Bet[vm, stack, i]);
+                            vm.PutLocal(stack, ctor.Parameters[i].Name, stack.Bet[vm, stack, i]);
                         ctor.Evaluate(vm, stack.Output());
                     });
                     break;
@@ -204,9 +204,8 @@ namespace KScr.Lib.Bytecode
                     stack[Default] = new ObjectRef(Class.VoidType.DefaultInstance, InnerCode!.Main.Count);
                     for (var i = 0; i < InnerCode!.Main.Count; i++)
                     {
-                        var val = vm.ConstantVoid;
-                        InnerCode!.Main[i].Evaluate(vm, stack.Output());
-                        stack[Default][vm, stack, i] = val.Value;
+                        InnerCode!.Main[i].Evaluate(vm, stack.Output()).Copy(Alp);
+                        stack[Default][vm, stack, i] = stack.Alp?.Value ?? IObject.Null;
                     }
 
                     break;
@@ -327,9 +326,12 @@ namespace KScr.Lib.Bytecode
                             var bak = stack[Default];
                             SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
                             // try to use overrides
-                            if ((op & Operator.Plus) == Operator.Plus && stack[Default]?.Value?.Type.Name == "str"
+                            if ((op & Operator.Plus) == Operator.Plus
+                                && stack[Default]?.Value?.Type.Name is "str" or "void"
                                 || (stack[Default]?.Value?.Type.BaseClass as IClass).ClassMembers.Any(x => x.Name == "op" + op))
                             {
+                                if (stack[Default]?.Value?.Type.Name == "void")
+                                    stack[Default].Value = stack[Default]?.Value.Invoke(vm, stack.Output(), "toString").Value;
                                 stack[Default] = stack[Default].Value!.Invoke(vm,
                                     stack.Output(Bet), "op" + ((op & Operator.Compound) == Operator.Compound
                                         ? op ^ Operator.Compound
@@ -362,10 +364,16 @@ namespace KScr.Lib.Bytecode
                         // call member
                         icm1.Evaluate(vm, stack);
                     }
+                    else if (stack.This.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm2)
+                    {
+                        // call to 'this'
+                        icm2.Evaluate(vm, stack);
+                    }
                     else
                     {
                         // read variable
-                        stack[Default] = vm[stack.KeyGen, VariableContext, Arg]!;
+                        stack[Default] = vm[stack.KeyGen, VariableContext.Local, Arg]
+                                         ?? throw new FatalException("Undefined variable: " + Arg);
                     }
 
                     break;
@@ -375,13 +383,12 @@ namespace KScr.Lib.Bytecode
                         && cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is IMethod mtd)
                     {
                         var param = mtd.Parameters;
-                        SubComponent!.Evaluate(vm, stack.Output(Eps)).Copy(Eps);
+                        var output = stack.Output(Eps);
+                        output[Eps] = new ObjectRef(Class.VoidType.DefaultInstance, mtd.Parameters.Count);
+                        SubComponent!.Evaluate(vm, output).Copy(Eps);
                         stack.StepInto(vm, SourcefilePosition, stack[Default], mtd, stack =>
                         {
-                            for (var i = 0; i < param.Count; i++)
-                                vm.PutLocal(param[i].Name, stack.Eps[vm, stack, i]);
-                            var outputStack = stack.Output();
-                            stack[Alp] = stack.Alp.Value!.Invoke(vm, outputStack, Arg, (stack.Eps as ObjectRef)!.Refs);
+                            stack[Alp] = stack.Alp.Value!.Invoke(vm, stack.Output(), Arg, (stack.Eps as ObjectRef)!.Refs);
                         }, Alp);
                     }
                     else if (cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Property && x.Name == Arg) is Property prop)

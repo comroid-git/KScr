@@ -24,11 +24,13 @@ namespace KScr.Lib.Bytecode
         public static readonly Class ObjectType = new(LibClassPackage, "Object", true, MemberModifier.Public);
 
         public static readonly Class EnumType =
-            new(LibClassPackage, "Enum", true, MemberModifier.Public | MemberModifier.Final)
+            new(LibClassPackage, "enum", true, MemberModifier.Public | MemberModifier.Final)
                 { TypeParameters = { new TypeParameter("T") } };
-
         public static readonly Class ArrayType =
             new(LibClassPackage, "array", true, MemberModifier.Public | MemberModifier.Final)
+                { TypeParameters = { new TypeParameter("T") } };
+        public static readonly Class TupleType =
+            new(LibClassPackage, "tuple", true, MemberModifier.Public | MemberModifier.Final)
                 { TypeParameters = { new TypeParameter("T") } };
 
         public static readonly Class StringType = new(LibClassPackage, "str", true,
@@ -44,7 +46,6 @@ namespace KScr.Lib.Bytecode
         public static readonly Class IteratorType =
             new(LibClassPackage, "Iterator", true, MemberModifier.Public, ClassType.Interface)
                 { TypeParameters = { new TypeParameter("T") } };
-
         public static readonly Class IterableType =
             new(LibClassPackage, "Iterable", true, MemberModifier.Public, ClassType.Interface)
                 { TypeParameters = { new TypeParameter("T") } };
@@ -313,7 +314,7 @@ namespace KScr.Lib.Bytecode
                 index += NewLineBytes.Length;
             }
 
-            LateInitialization(vm, vm.Stack);
+            LateInitialization(vm, RuntimeBase.MainStack);
         }
 
         public override string ToString()
@@ -387,6 +388,30 @@ namespace KScr.Lib.Bytecode
             AddToClass(EnumType, toString);
             AddToClass(EnumType, equals);
             AddToClass(EnumType, getType);
+            AddToClass(EnumType, name);
+            AddToClass(EnumType, values);
+
+            #endregion
+
+            #region Array Class
+
+            var length = new Property(ArrayType, "length", NumericIntType, MemberModifier.Public);
+
+            AddToClass(ArrayType, toString);
+            AddToClass(ArrayType, equals);
+            AddToClass(ArrayType, getType);
+            AddToClass(ArrayType, length);
+
+            #endregion
+
+            #region Tuple Class
+
+            var size = new Property(TupleType, "size", NumericIntType, MemberModifier.Public);
+
+            AddToClass(TupleType, toString);
+            AddToClass(TupleType, equals);
+            AddToClass(TupleType, getType);
+            AddToClass(TupleType, size);
 
             #endregion
 
@@ -401,12 +426,12 @@ namespace KScr.Lib.Bytecode
 
             #region String Class
 
-            var length = new DummyMethod(StringType, "length", MemberModifier.Public | MemberModifier.Final,
+            var strlen = new DummyMethod(StringType, "length", MemberModifier.Public | MemberModifier.Final,
                 NumericIntType);
 
             AddToClass(StringType, toString);
             AddToClass(StringType, equals);
-            AddToClass(StringType, length);
+            AddToClass(StringType, strlen);
             AddToClass(StringType, getType);
 
             #endregion
@@ -584,6 +609,9 @@ namespace KScr.Lib.Bytecode
                 {
                     if (!icm.IsStatic())
                         throw new FatalException("Cannot invoke non-static method from static context");
+                    var param = (icm as IMethod)?.Parameters;
+                    for (var i = 0; i < param.Count; i++)
+                        vm.PutLocal(stack, param[i].Name, args.Length - 1 < i ? IObject.Null : args[i]);
                     icm.Evaluate(vm, stack);
                     return stack.Alp;
                 }
