@@ -31,11 +31,7 @@ namespace KScr.Lib.Bytecode
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => new[] { Getter, Setter }
             .Where(x => x != null).Cast<ExecutableCode>();
 
-        public override Stack Evaluate(RuntimeBase vm, Stack stack)
-        {
-            ReadAccessor!.Evaluate(vm, stack);
-            return stack;
-        }
+        public override Stack Evaluate(RuntimeBase vm, Stack stack) => ReadValue(vm, stack, stack.Alp!.Value);
 
         private string CreateSubKey(string ownerKey)
         {
