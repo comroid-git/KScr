@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using CommandLine;
 using KScr.Compiler;
 using KScr.Compiler.Code;
@@ -38,6 +39,7 @@ namespace KScr.Runtime
             Parser.Default.ParseArguments<CmdCompile, CmdExecute, CmdRun>(args)
                 .WithParsed<CmdCompile>(cmd =>
                 {
+                    RuntimeBase.Encoding = Encoding.GetEncoding(cmd.Encoding ?? "ASCII");
                     RuntimeBase.ConfirmExit = cmd.Confirm;
                     RuntimeBase.DebugMode = cmd.Debug;
                     // load std package
@@ -60,6 +62,7 @@ namespace KScr.Runtime
                 })
                 .WithParsed<CmdExecute>(cmd =>
                 {
+                    RuntimeBase.Encoding = Encoding.GetEncoding(cmd.Encoding ?? "ASCII");
                     RuntimeBase.ConfirmExit = cmd.Confirm;
                     RuntimeBase.DebugMode = cmd.Debug;
                     // load std package
@@ -84,6 +87,7 @@ namespace KScr.Runtime
                 })
                 .WithParsed<CmdRun>(cmd =>
                 {
+                    RuntimeBase.Encoding = Encoding.GetEncoding(cmd.Encoding ?? "ASCII");
                     RuntimeBase.ConfirmExit = cmd.Confirm;
                     RuntimeBase.DebugMode = cmd.Debug;
                     // load std package
