@@ -265,11 +265,35 @@ namespace KScr.Compiler.Code
                              ctx.Component.Type == StatementComponentType.Provider && 
                              ctx.NextToken?.Type is not OperatorEquals or ParDiamondClose or null)
                     {
-                        Type = StatementComponentType.Operator,
-                        ByteArg = (ulong)Operator.Equals,
-                        SourcefilePosition = ctx.Token.SourcefilePosition
-                    };
-                    ctx.NextIntoSub = true;
+                        // assignment
+                        ctx.Component = new StatementComponent
+                        {
+                            Type = StatementComponentType.Setter,
+                            SourcefilePosition = ctx.Token.SourcefilePosition
+                        };
+
+                        ctx.TokenIndex += 1;
+                        // compile expression
+                        subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
+                        subctx.Statement = new Statement
+                        {
+                            Type = StatementComponentType.Expression,
+                            TargetType = ctx.Statement.TargetType
+                        };
+                        CompilerLoop(vm, new ExpressionCompiler(this), ref subctx);
+                        ctx.LastComponent!.SubStatement = subctx.Statement;
+                        ctx.TokenIndex = subctx.TokenIndex - 1;
+                    } else if (ctx.NextToken!.Type == OperatorEquals)
+                    {
+                        ctx.TokenIndex += 1;
+                        ctx.Component = new StatementComponent
+                        {
+                            Type = StatementComponentType.Operator,
+                            ByteArg = (ulong) Operator.Equals,
+                            SourcefilePosition = ctx.Token.SourcefilePosition
+                        };
+                        ctx.NextIntoSub = true;
+                    }
                     break;
                 case OperatorPlus:
                     if (ctx.NextToken!.Type is OperatorPlus)
