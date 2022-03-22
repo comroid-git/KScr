@@ -6,6 +6,9 @@ namespace KScr.Runtime
 {
     public interface IGenericCmd
     {
+        [Option(HelpText = "The Encoding to use")]
+        public string? Encoding { get; set; }
+        
         [Option(HelpText = "Whether to keep the program open until a key is pressed after the action")]
         public bool Confirm { get; set; }
 
@@ -40,6 +43,7 @@ namespace KScr.Runtime
         public IEnumerable<DirectoryInfo> Classpath { get; set; }
 
         public DirectoryInfo? Output { get; set; }
+        public string? Encoding { get; set; }
         public bool Confirm { get; set; }
         public bool Debug { get; set; }
         public IEnumerable<string> Sources { get; set; }
@@ -49,6 +53,7 @@ namespace KScr.Runtime
     public sealed class CmdExecute : IClasspathCmd, ISourcesCmd, IOutputCmd
     {
         public IEnumerable<DirectoryInfo> Classpath { get; set; }
+        public string? Encoding { get; set; }
         public bool Confirm { get; set; }
         public bool Debug { get; set; }
         public DirectoryInfo? Output { get; set; }
@@ -59,6 +64,7 @@ namespace KScr.Runtime
     public sealed class CmdRun : IClasspathCmd
     {
         public IEnumerable<DirectoryInfo> Classpath { get; set; }
+        public string? Encoding { get; set; }
         public bool Confirm { get; set; }
         public bool Debug { get; set; }
     }

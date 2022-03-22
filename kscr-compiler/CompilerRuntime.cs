@@ -40,7 +40,7 @@ namespace KScr.Compiler
             var context = new CompilerContext(new CompilerContext(new CompilerContext(), pkg), cls, tokens,
                 CompilerType.Class);
             AbstractCompiler.CompilerLoop(this, new ClassCompiler(), ref context);
-            cls.LateInitialization(this);
+            cls.LateInitialization(this, MainStack);
         }
 
         public override void CompilePackage(DirectoryInfo dir, ref CompilerContext context,

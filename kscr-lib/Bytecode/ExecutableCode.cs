@@ -6,15 +6,20 @@ using KScr.Lib.Store;
 
 namespace KScr.Lib.Bytecode
 {
-    public class ExecutableCode : AbstractBytecode, IStatement<Statement>, IRuntimeSite
+    public class ExecutableCode : AbstractBytecode, IStatement<Statement>, IEvaluable
     {
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main;
 
-        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
+        public Stack Evaluate(RuntimeBase vm, Stack stack)
         {
-            foreach (var statement in Main) state = statement.Evaluate(vm, ref rev);
+            foreach (var statement in Main)
+            {
+                statement.Evaluate(vm, stack);
+                if (stack.State != State.Normal)
+                    break;
+            }
 
-            return null;
+            return stack;
         }
 
         public StatementComponentType Type => StatementComponentType.Code;
@@ -22,14 +27,7 @@ namespace KScr.Lib.Bytecode
 
         public List<Statement> Main { get; } = new();
 
-        public State Evaluate(RuntimeBase vm, ref ObjectRef rev)
-        {
-            var state = State.Normal;
-            Evaluate(vm, ref state, ref rev);
-            return state;
-        }
-
-        public void Append(IEvaluable? here)
+        public void Append(Model.IEvaluable? here)
         {
             if (here is ExecutableCode bc)
                 Main.AddRange(bc.Main);

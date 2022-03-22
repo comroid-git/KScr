@@ -11,7 +11,7 @@ namespace KScr.Lib.Core
         public static readonly DummyMethod ToStringInvoc =
             new(Class.VoidType, "toString", MemberModifier.Public, Class.StringType);
 
-        public static readonly SourcefilePosition ToStringInvocPos = new()
+        public static readonly SourcefilePosition BlankInvocPos = new()
             { SourcefilePath = "<native>org/comroid/kscr/core/Object.kscr" };
 
         public CodeObject(RuntimeBase vm, IClassInstance type)
@@ -29,39 +29,35 @@ namespace KScr.Lib.Core
         {
             return Type.Name + "#" + ObjectId.ToString("X");
         }
+        public override string ToString() => ToString(0);
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
+        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             // try use overrides first
             if (Type.ClassMembers.FirstOrDefault(x => x.Name == member) is { } icm)
             {
                 if (icm.IsStatic())
-                    throw new InternalException("Static method invoked on object instance");
-                IRuntimeSite? site = icm;
-                var param = (icm as IMethod)?.Parameters!;
+                    throw new FatalException("Static method invoked on object instance");
+                var param = (icm as IMethod)?.Parameters;
                 var state = State.Normal;
                 // todo: use correct callLocation
-                vm.Stack.StepInto(vm, ToStringInvocPos, rev!, ToStringInvoc, ref rev, _rev =>
+                stack.StepInto(vm, BlankInvocPos, stack.Alp!, icm, stack =>
                 {
-                    for (var i = 0; i < args.Length; i++)
-                        vm.PutLocal(param[i].Name, args[i]);
-                    do
-                    {
-                        site = site.Evaluate(vm, ref state, ref _rev!);
-                    } while (state == State.Normal && site != null);
+                    for (var i = 0; i < (param?.Count ?? 0); i++)
+                        vm.PutLocal(stack, param![i].Name, args.Length - 1 < i ? IObject.Null : args[i]);
+                    icm.Evaluate(vm, stack.Output()).Copy(StackOutput.Omg, StackOutput.Alp);
+                }, StackOutput.Alp);
 
-                    return _rev;
-                });
-
-                return rev;
+                return stack.Alp;
             }
+            // then inherited members
             else if ((Type.BaseClass as IClass).InheritedMembers
                      .FirstOrDefault(x => x.Name == member && !x.IsAbstract()) is { } superMember)
             {
-                var state = State.Normal;
-                superMember.Evaluate(vm, ref state, ref rev);
-                return rev;
+                superMember.Evaluate(vm, stack.Output(StackOutput.Alp));
+                return stack.Alp;
             }
+            // then primitive implementations
             else
             {
                 switch (member)
@@ -72,7 +68,7 @@ namespace KScr.Lib.Core
                         short variant;
                         if (args.Length > 0 && args[0] is Numeric num)
                             variant = num.ShortValue;
-                        else throw new InternalException("Invalid argument: " + args[0]);
+                        else throw new FatalException("Invalid argument: " + args[0]);
                         return String.Instance(vm, ToString(variant));
                     case "equals":
                         return args[0]!.ObjectId == ObjectId ? vm.ConstantTrue : vm.ConstantFalse;
@@ -81,12 +77,12 @@ namespace KScr.Lib.Core
                 }
             }
 
-            throw new InternalException("Method not implemented: " + member);
+            throw new FatalException("Method not implemented: " + member);
         }
 
         public string GetKey()
         {
-            return $"instance:{Type.FullName}-{ObjectId:X}";
+            return $"obj:{Type.FullName}-{ObjectId:X}";
         }
     }
 }

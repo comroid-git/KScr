@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>KScr.Runtime</RootNamespace>
         <Nullable>enable</Nullable>
         <AssemblyName>kscr</AssemblyName>
@@ -11,19 +11,20 @@
         <AssemblyVersion>0.2.1</AssemblyVersion>
         <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
         <PackageVersion>0.2.1</PackageVersion>
+        <LangVersion>latest</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj"/>
-        <ProjectReference Include="..\kscr-lib\kscr-lib.csproj"/>
+        <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj" />
+        <ProjectReference Include="..\kscr-lib\kscr-lib.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="CommandLineParser" Version="2.9.0-preview1"/>
+        <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Exec Command="mkdir $(TargetDir)\std" ContinueOnError="true"/>
+        <Exec Command="mkdir $(TargetDir)\std" ContinueOnError="true" />
     </Target>
 
 </Project>

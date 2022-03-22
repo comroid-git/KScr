@@ -174,7 +174,7 @@ namespace KScr.Compiler.Class
                     break;
                 // into computed property
                 // todo: setter
-                case TokenType.OperatorMinus:
+                case TokenType.OperatorEquals:
                     if (!inBody)
                         break;
                     if (ctx.NextToken!.Type != TokenType.ParDiamondClose)

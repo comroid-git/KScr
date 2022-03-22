@@ -1,5 +1,7 @@
 package org.comroid.kscr.core;
 
+import org.comroid.kscr.core.Iterator;
+
 public interface Iterable<T> {
     Iterator<T> iterator();
 }

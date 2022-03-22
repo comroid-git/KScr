@@ -32,7 +32,7 @@ namespace KScr.Lib.Core
             };
         }
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
+        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {
@@ -46,7 +46,7 @@ namespace KScr.Lib.Core
                     return Type.SelfRef;
                 case "iterator":
                     var iterator = new RangeIterator(vm, this);
-                    return vm.PutObject(VariableContext.Local, iterator);
+                    return vm.PutObject(stack, VariableContext.Local, iterator);
                 case "start": // get first value
                     return start(vm);
                 case "end": // get last value
@@ -73,55 +73,56 @@ namespace KScr.Lib.Core
 
         private static string CreateKey(int start, int end)
         {
-            return $"static-range:{start}~{end}";
+            return $"range:{start}~{end}";
         }
 
-        public ObjectRef start(RuntimeBase vm)
+        public IObjectRef start(RuntimeBase vm)
         {
             return Numeric.Constant(vm, Start);
         }
 
-        public ObjectRef end(RuntimeBase vm)
+        public IObjectRef end(RuntimeBase vm)
         {
             return Numeric.Constant(vm, End);
         }
 
-        public ObjectRef test(RuntimeBase vm, Numeric n)
+        public IObjectRef test(RuntimeBase vm, Numeric n)
         {
             return (Decremental ? n.IntValue > End : n.IntValue < End) ? vm.ConstantTrue : vm.ConstantFalse;
         }
 
-        public ObjectRef accumulate(RuntimeBase vm, Numeric n)
+        public IObjectRef accumulate(RuntimeBase vm, Numeric n)
         {
             return Decremental ? n.OpMinus(vm, Numeric.One) : n.OpPlus(vm, Numeric.One);
         }
 
-        public static ObjectRef Instance(RuntimeBase vm, int start, int end)
+        public static IObjectRef Instance(RuntimeBase vm, int start, int end)
         {
-            return vm.ComputeObject(VariableContext.Absolute, CreateKey(start, end), () => new Range(vm, start, end));
+            return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(start, end), () => new Range(vm, start, end));
         }
 
         private class RangeIterator : IObject
         {
             private readonly Range _range;
-            private ObjectRef? _n;
+            private IObjectRef? _n;
 
             public RangeIterator(RuntimeBase vm, Range range)
             {
                 _range = range;
                 ObjectId = vm.NextObjId(ToString(0));
-                Type = Class.IteratorType.CreateInstance(vm, Class.NumericIntType);
+                Type = Class.IteratorType.GetInstance(vm, Class.NumericIntType);
             }
 
             public long ObjectId { get; }
             public IClassInstance Type { get; }
 
+            public override string ToString() => ToString(0);
             public string ToString(short variant)
             {
                 return "range-iterator:" + _range;
             }
 
-            public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
+            public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
             {
                 switch (member)
                 {
@@ -140,7 +141,7 @@ namespace KScr.Lib.Core
 
             public string GetKey()
             {
-                return $"{_range.ToString(0)}-iterator#{ObjectId}";
+                return $"{_range.ToString(0)}-iterator#{ObjectId:X}";
             }
         }
     }

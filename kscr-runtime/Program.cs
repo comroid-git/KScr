@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using CommandLine;
 using KScr.Compiler;
 using KScr.Compiler.Code;
@@ -21,7 +22,7 @@ namespace KScr.Runtime
             DefaultOutput = Path.Combine(Directory.GetCurrentDirectory(), "build", "compile");
 
         private static readonly string
-            StdPackageLocation = Path.Combine(RuntimeBase.GetSdkHome().FullName, "std");
+            StdPackageLocation = Path.Combine(RuntimeBase.SdkHome.FullName, "std");
 
         static Program()
         {
@@ -38,19 +39,24 @@ namespace KScr.Runtime
             Parser.Default.ParseArguments<CmdCompile, CmdExecute, CmdRun>(args)
                 .WithParsed<CmdCompile>(cmd =>
                 {
+                    RuntimeBase.Encoding = Encoding.GetEncoding(cmd.Encoding ?? "ASCII");
                     RuntimeBase.ConfirmExit = cmd.Confirm;
                     RuntimeBase.DebugMode = cmd.Debug;
+                    
                     // load std package
                     if (!cmd.System)
                         Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
+                    
                     // load additional classpath packages
                     foreach (var classpath in cmd.Classpath.Where(dir => dir.Exists))
                         Package.ReadAll(VM, classpath);
+                    
                     compileTime = RuntimeBase.UnixTime();
                     VM.CompileFiles(cmd.Sources.SelectMany(path => Directory.Exists(path)
                         ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories)
                         : new[] { new FileInfo(path) }));
                     compileTime = RuntimeBase.UnixTime() - compileTime;
+                    
                     ioTime = RuntimeBase.UnixTime();
                     WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput), cmd.Sources.SelectMany(path =>
                         Directory.Exists(path)
@@ -60,16 +66,20 @@ namespace KScr.Runtime
                 })
                 .WithParsed<CmdExecute>(cmd =>
                 {
+                    RuntimeBase.Encoding = Encoding.GetEncoding(cmd.Encoding ?? "ASCII");
                     RuntimeBase.ConfirmExit = cmd.Confirm;
                     RuntimeBase.DebugMode = cmd.Debug;
+                    
                     // load std package
                     Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
                     // load additional classpath packages
                     foreach (var classpath in cmd.Classpath.Where(dir => dir.Exists))
                         Package.ReadAll(VM, classpath);
+                    
                     compileTime = RuntimeBase.UnixTime();
                     VM.CompileFiles(cmd.Sources.Select(path => new FileInfo(path)));
                     compileTime = RuntimeBase.UnixTime() - compileTime;
+                    
                     if (cmd.Output != null)
                     {
                         ioTime = RuntimeBase.UnixTime();
@@ -79,31 +89,33 @@ namespace KScr.Runtime
                                 : new[] { new FileInfo(path) }));
                         ioTime = RuntimeBase.UnixTime() - ioTime;
                     }
-
-                    yield = VM.Execute(out executeTime);
+                    
+                    executeTime = RuntimeBase.UnixTime();
+                    yield = VM.Execute();
+                    executeTime = RuntimeBase.UnixTime() - executeTime;
                 })
                 .WithParsed<CmdRun>(cmd =>
                 {
+                    RuntimeBase.Encoding = Encoding.GetEncoding(cmd.Encoding ?? "ASCII");
                     RuntimeBase.ConfirmExit = cmd.Confirm;
                     RuntimeBase.DebugMode = cmd.Debug;
                     // load std package
                     Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
+                    
                     // load classpath packages
                     ioTime = RuntimeBase.UnixTime();
                     foreach (var classpath in cmd.Classpath.Where(dir => dir.Exists))
                         Package.ReadAll(VM, classpath);
                     ioTime = RuntimeBase.UnixTime() - ioTime;
-                    yield = VM.Execute(out executeTime);
+                    
+                    executeTime = RuntimeBase.UnixTime();
+                    yield = VM.Execute();
+                    executeTime = RuntimeBase.UnixTime()  - executeTime;
                 })
                 .WithNotParsed(errors =>
                 {
-                    ObjectRef? rev = null!;
                     if (!errors.Any())
-                        VM.Stack.StepInto(VM, RuntimeBase.MainInvocPos, RuntimeBase.MainInvoc, ref rev, _ =>
-                        {
-                            StdIoMode(ref state, ref yield);
-                            return null;
-                        });
+                        RuntimeBase.MainStack.StepInto(VM, RuntimeBase.MainInvocPos, RuntimeBase.MainInvoc, _ => StdIoMode(ref state, ref yield));
                 });
 
             return HandleExit(state, yield, compileTime, executeTime, ioTime, RuntimeBase.ConfirmExit);
@@ -168,7 +180,7 @@ namespace KScr.Runtime
                 compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - compileTime;
 
                 long executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                state = context.ExecutableCode.Evaluate(VM, ref output);
+                context.ExecutableCode.Evaluate(VM, RuntimeBase.MainStack);
                 executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - executeTime;
                 context.Clear();
 

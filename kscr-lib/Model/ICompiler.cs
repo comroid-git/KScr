@@ -232,18 +232,15 @@ namespace KScr.Lib.Model
 
         public IClassInstance? FindType(RuntimeBase vm, string name)
         {
-            if (Class.Imports.Contains(name))
-                return vm.FindType(name);
-            string? imported = Class.Imports.FirstOrDefault(x => x.EndsWith(name));
-            if (imported != null)
-                return vm.FindType(imported);
+            if (Class.Imports.FirstOrDefault(cls => cls.EndsWith(name)) is { } importedName)
+                return vm.FindType(importedName, owner: Class);
             return vm.FindType(name, Package);
         }
 
         public ITypeInfo? FindTypeInfo(RuntimeBase vm, bool _rec = false)
         {
             var type = FindType(vm, Token.Arg!);
-            if (type?.Name == Token.Arg && NextToken?.Type != TokenType.ParDiamondOpen)
+            if ((type?.CanonicalName.EndsWith(Token.Arg) ?? false) && NextToken?.Type != TokenType.ParDiamondOpen)
                 return type!;
             var baseCls = type?.BaseClass ?? Class;
             if (baseCls == null && Class.TypeParameters.Any(x => x.Name == Token.Arg))

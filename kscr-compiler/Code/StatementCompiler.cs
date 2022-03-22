@@ -62,32 +62,6 @@ namespace KScr.Compiler.Code
                     };
                     ctx.TokenIndex = subctx.TokenIndex;
                     break;
-                case OperatorEquals:
-                    if (ctx.Statement.Type == StatementComponentType.Declaration ||
-                        ctx.Component.CodeType == BytecodeType.ExpressionVariable ||
-                        ctx.Component.Type == StatementComponentType.Provider)
-                    {
-                        // assignment
-                        ctx.Component = new StatementComponent
-                        {
-                            Type = StatementComponentType.Setter,
-                            SourcefilePosition = ctx.Token.SourcefilePosition
-                        };
-
-                        ctx.TokenIndex += 1;
-                        // compile expression
-                        subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
-                        subctx.Statement = new Statement
-                        {
-                            Type = StatementComponentType.Expression,
-                            TargetType = ctx.Statement.TargetType
-                        };
-                        CompilerLoop(vm, new ExpressionCompiler(this), ref subctx);
-                        ctx.LastComponent!.SubStatement = subctx.Statement;
-                        ctx.TokenIndex = subctx.TokenIndex - 1;
-                    }
-
-                    break;
                 case If:
                     if (ctx.NextToken?.Type != ParRoundOpen)
                         throw new CompilerException(ctx.Token.SourcefilePosition,

@@ -11,7 +11,7 @@ using Array = System.Array;
 
 namespace KScr.Lib.Bytecode
 {
-    public sealed class Class : AbstractPackageMember, IClass, IRuntimeSite
+    public sealed class Class : AbstractPackageMember, IClass, IEvaluable
     {
         public static readonly Package LibClassPackage = Package.RootPackage.GetOrCreatePackage("org")
             .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr").GetOrCreatePackage("core");
@@ -24,11 +24,13 @@ namespace KScr.Lib.Bytecode
         public static readonly Class ObjectType = new(LibClassPackage, "Object", true, MemberModifier.Public);
 
         public static readonly Class EnumType =
-            new(LibClassPackage, "Enum", true, MemberModifier.Public | MemberModifier.Final)
+            new(LibClassPackage, "enum", true, MemberModifier.Public | MemberModifier.Final)
                 { TypeParameters = { new TypeParameter("T") } };
-
         public static readonly Class ArrayType =
             new(LibClassPackage, "array", true, MemberModifier.Public | MemberModifier.Final)
+                { TypeParameters = { new TypeParameter("T") } };
+        public static readonly Class TupleType =
+            new(LibClassPackage, "tuple", true, MemberModifier.Public | MemberModifier.Final)
                 { TypeParameters = { new TypeParameter("T") } };
 
         public static readonly Class StringType = new(LibClassPackage, "str", true,
@@ -44,7 +46,6 @@ namespace KScr.Lib.Bytecode
         public static readonly Class IteratorType =
             new(LibClassPackage, "Iterator", true, MemberModifier.Public, ClassType.Interface)
                 { TypeParameters = { new TypeParameter("T") } };
-
         public static readonly Class IterableType =
             new(LibClassPackage, "Iterable", true, MemberModifier.Public, ClassType.Interface)
                 { TypeParameters = { new TypeParameter("T") } };
@@ -90,7 +91,8 @@ namespace KScr.Lib.Bytecode
 
         public TypeParameter.Instance[] TypeParameterInstances { get; } = Array.Empty<TypeParameter.Instance>();
 
-        public ObjectRef SelfRef => DefaultInstance.SelfRef;
+        public IObjectRef SelfRef => DefaultInstance.SelfRef;
+
 
         public IDictionary<string, IClassMember> DeclaredMembers { get; } =
             new ConcurrentDictionary<string, IClassMember>();
@@ -100,7 +102,7 @@ namespace KScr.Lib.Bytecode
 
         public ClassType ClassType { get; private set; }
 
-        public Instance CreateInstance(RuntimeBase vm, params ITypeInfo[] typeParameters)
+        public Instance GetInstance(RuntimeBase vm, params ITypeInfo[] typeParameters)
         {
             return CreateInstance(vm, null, typeParameters);
         }
@@ -108,34 +110,30 @@ namespace KScr.Lib.Bytecode
         public Class BaseClass => this;
         public List<ITypeInfo> TypeParameters { get; } = new();
 
-        public override string Name => base.Name +
-                                       (TypeParameters.Count == 0
-                                           ? string.Empty
-                                           : '<' + string.Join(", ", TypeParameters) + '>');
+        public string CanonicalName => FullName;
+        public string DetailedName => Name + (TypeParameters.Count == 0 
+            ? string.Empty : '<' + string.Join(", ", TypeParameters) + '>');
 
         public bool CanHold(IClass? type)
         {
             return Name == "void"
                    || type?.BaseClass.Name == "void"
                    || type?.BaseClass == BaseClass
-                   || (type?.BaseClass as IClass)!.Inheritors.Select(x => x.BaseClass)
-                   .Any(super => super.FullName == FullName);
+                   || ((type?.BaseClass as IClass)?.Inheritors
+                       .Where(x => x != null)
+                       .Select(x => x.BaseClass)
+                       .Any(super => super.FullName == FullName) ?? true);
         }
 
         public bool Primitive { get; }
 
-        public IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
+        public Stack Evaluate(RuntimeBase vm, Stack stack)
         {
             var icm = DeclaredMembers.Values.FirstOrDefault(x => x.Name == Method.StaticInitializerName);
             if (icm == null)
-                return null;
-            vm.Stack.StepInto(vm, new SourcefilePosition(), icm, ref rev, _rev =>
-            {
-                var _state = State.Normal;
-                icm.Evaluate(vm, ref _state, ref _rev);
-                return _rev;
-            });
-            return icm;
+                return stack;
+            stack.StepInto(vm, new SourcefilePosition(), stack.Alp, icm, stack => icm.Evaluate(vm, stack));
+            return stack;
         }
 
         public void Initialize(RuntimeBase vm)
@@ -151,7 +149,8 @@ namespace KScr.Lib.Bytecode
                     break;
             }
 
-            DefaultInstance = CreateInstance(vm, TypeParameters
+            vm.ClassStore.Add(this);
+            DefaultInstance = GetInstance(vm, TypeParameters
                 .Cast<ITypeParameter?>()
                 .Select(tp => tp?.SpecializationTarget)
                 .Where(it => it != null)
@@ -161,12 +160,10 @@ namespace KScr.Lib.Bytecode
             _initialized = true;
         }
 
-        public void LateInitialization(RuntimeBase vm)
+        public void LateInitialization(RuntimeBase vm, Stack stack)
         {
             if (_lateInitialized) return;
-            var state = State.Normal;
-            ObjectRef? rev = null;
-            Evaluate(vm, ref state, ref rev);
+            Evaluate(vm, stack);
             _lateInitialized = true;
         }
 
@@ -278,6 +275,8 @@ namespace KScr.Lib.Bytecode
                 Imports.Add(RuntimeBase.Encoding.GetString(data, index, len2));
                 index += len2;
             }
+            
+            // todo: load imported classes first
 
             // superclasses
             index += NewLineBytes.Length;
@@ -287,7 +286,7 @@ namespace KScr.Lib.Bytecode
             {
                 var len2 = BitConverter.ToInt32(data, index);
                 index += 4;
-                Superclasses.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2))!);
+                Superclasses.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2), owner: this)!);
                 index += len2;
             }
 
@@ -299,7 +298,7 @@ namespace KScr.Lib.Bytecode
             {
                 var len2 = BitConverter.ToInt32(data, index);
                 index += 4;
-                Interfaces.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2))!);
+                Interfaces.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2), owner: this)!);
                 index += len2;
             }
 
@@ -315,7 +314,7 @@ namespace KScr.Lib.Bytecode
                 index += NewLineBytes.Length;
             }
 
-            LateInitialization(vm);
+            LateInitialization(vm, RuntimeBase.MainStack);
         }
 
         public override string ToString()
@@ -389,6 +388,30 @@ namespace KScr.Lib.Bytecode
             AddToClass(EnumType, toString);
             AddToClass(EnumType, equals);
             AddToClass(EnumType, getType);
+            AddToClass(EnumType, name);
+            AddToClass(EnumType, values);
+
+            #endregion
+
+            #region Array Class
+
+            var length = new Property(ArrayType, "length", NumericIntType, MemberModifier.Public);
+
+            AddToClass(ArrayType, toString);
+            AddToClass(ArrayType, equals);
+            AddToClass(ArrayType, getType);
+            AddToClass(ArrayType, length);
+
+            #endregion
+
+            #region Tuple Class
+
+            var size = new Property(TupleType, "size", NumericIntType, MemberModifier.Public);
+
+            AddToClass(TupleType, toString);
+            AddToClass(TupleType, equals);
+            AddToClass(TupleType, getType);
+            AddToClass(TupleType, size);
 
             #endregion
 
@@ -403,12 +426,12 @@ namespace KScr.Lib.Bytecode
 
             #region String Class
 
-            var length = new DummyMethod(StringType, "length", MemberModifier.Public | MemberModifier.Final,
+            var strlen = new DummyMethod(StringType, "length", MemberModifier.Public | MemberModifier.Final,
                 NumericIntType);
 
             AddToClass(StringType, toString);
             AddToClass(StringType, equals);
-            AddToClass(StringType, length);
+            AddToClass(StringType, strlen);
             AddToClass(StringType, getType);
 
             #endregion
@@ -528,27 +551,13 @@ namespace KScr.Lib.Bytecode
             }
 
             public Class BaseClass { get; }
-            public ObjectRef SelfRef { get; internal set; } = null!;
+            public IObjectRef SelfRef { get; internal set; } = null!;
             public TypeParameter.Instance[] TypeParameterInstances { get; }
-            public IDictionary<string, IClassMember> DeclaredMembers => BaseClass.DeclaredMembers;
-            public IList<IClassInstance> Superclasses => BaseClass.Superclasses;
-            public IList<IClassInstance> Interfaces => BaseClass.Interfaces;
-
-            public List<ITypeInfo> TypeParameters => BaseClass.TypeParameters;
-            public MemberModifier Modifier => BaseClass.Modifier;
-            public ClassType ClassType => BaseClass.ClassType;
-
-            public string FullName => BaseClass.Parent?.FullName +
-                                      (BaseClass.IsRoot
-                                          ? string.Empty
-                                          : (BaseClass.Parent?.IsRoot ?? true ? string.Empty : '.') + Name);
-
-            public Instance CreateInstance(RuntimeBase vm, params ITypeInfo[] typeParameters)
-            {
-                return BaseClass.CreateInstance(vm, typeParameters);
-            }
-
-            public string Name
+            public string Name => BaseClass.Name;
+            public string FullName => BaseClass.FullName;
+            public string CanonicalName => BaseClass.CanonicalName;
+            public string FullDetailedName => BaseClass.Parent?.FullName + '.' + DetailedName;
+            public string DetailedName
             {
                 get
                 {
@@ -556,9 +565,23 @@ namespace KScr.Lib.Bytecode
                     return BaseClass.Name.Substring(0, indexOf == -1 ? BaseClass.Name.Length : indexOf)
                            + (TypeParameters.Count == 0
                                ? string.Empty
-                               : '<' + string.Join(", ", TypeParameterInstances.Select(t => t.TargetType.Name)) + '>');
+                               : '<' + string.Join(", ", TypeParameterInstances.Select(t => t.TargetType.FullName)) + '>');
                 }
             }
+            public IDictionary<string, IClassMember> DeclaredMembers => BaseClass.DeclaredMembers;
+            public IList<IClassInstance> Superclasses => BaseClass.Superclasses;
+            public IList<IClassInstance> Interfaces => BaseClass.Interfaces;
+            public Instance DefaultInstance => BaseClass.DefaultInstance;
+
+            public List<ITypeInfo> TypeParameters => BaseClass.TypeParameters;
+            public MemberModifier Modifier => BaseClass.Modifier;
+            public ClassType ClassType => BaseClass.ClassType;
+
+            public Instance GetInstance(RuntimeBase vm, params ITypeInfo[] typeParameters) 
+                => BaseClass.GetInstance(vm, typeParameters);
+
+            public Instance CreateInstance(RuntimeBase vm, Class? owner = null, params ITypeInfo[] typeParameters) 
+                => BaseClass.CreateInstance(vm, owner, typeParameters);
 
             public bool CanHold(IClass? type)
             {
@@ -579,25 +602,21 @@ namespace KScr.Lib.Bytecode
                 };
             }
 
-            public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
+            public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
             {
                 // try invoke static method
                 if (DeclaredMembers.TryGetValue(member, out var icm))
                 {
                     if (!icm.IsStatic())
-                        throw new InternalException("Cannot invoke non-static method from static context");
-                    IRuntimeSite? site = icm;
-                    var state = State.Normal;
-                    var output = vm.Stack.This;
-                    do
-                    {
-                        site = site.Evaluate(vm, ref state, ref output);
-                    } while (state == State.Normal && site != null);
-
-                    return output;
+                        throw new FatalException("Cannot invoke non-static method from static context");
+                    var param = (icm as IMethod)?.Parameters;
+                    for (var i = 0; i < param.Count; i++)
+                        vm.PutLocal(stack, param[i].Name, args.Length - 1 < i ? IObject.Null : args[i]);
+                    icm.Evaluate(vm, stack);
+                    return stack.Alp;
                 }
 
-                throw new InternalException("Method not implemented: " + member);
+                throw new FatalException("Method not implemented: " + member);
             }
 
             public string GetKey()
@@ -610,7 +629,7 @@ namespace KScr.Lib.Bytecode
             public void Initialize(RuntimeBase vm)
             {
                 if (_initialized) return;
-                SelfRef = vm.ComputeObject(VariableContext.Absolute, GetKey(), () => this);
+                SelfRef = vm.ClassStore.Add(this)!;
                 _initialized = true;
             }
 
@@ -689,16 +708,19 @@ namespace KScr.Lib.Bytecode
 
             public ITypeInfo TargetType { get; }
             public string Name => TypeParameter.Name;
-            public string FullName => TypeParameter.FullName;
+            public string FullName => (TargetType as Class.Instance)?.FullDetailedName ?? TypeParameter.FullName;
             public List<ITypeInfo> TypeParameters { get; } = new();
 
             public IClassInstance ResolveType(RuntimeBase vm, IClassInstance usingClass)
             {
                 if (usingClass.TypeParameterInstances.Length == 0
-                    || usingClass.TypeParameterInstances.All(x => x.TypeParameter.Name != TypeParameter.Name))
+                    || usingClass.TypeParameterInstances.All(x => x.Name != Name))
                     throw new ArgumentException("Invalid resolver class");
+                if (usingClass.TypeParameterInstances.FirstOrDefault(x => x.Name == Name) is var tpi
+                    && tpi?.TargetType is IClassInstance ici)
+                    return ici;
                 return vm.FindType(usingClass.TypeParameterInstances
-                    .First(x => x.TypeParameter.Name == TypeParameter.Name).TargetType.FullName)!;
+                    .First(x => x.TypeParameter.Name == TypeParameter.Name).TargetType.FullName, owner: usingClass)!;
             }
         }
     }

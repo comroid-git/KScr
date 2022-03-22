@@ -7,13 +7,13 @@ using KScr.Lib.Store;
 namespace KScr.Lib.Core
 {
     [Obsolete]
-    public sealed class Array : IObject
+    public sealed class Tuple : IObject
     {
-        public Array(RuntimeBase vm, int len) : this(vm, new ObjectRef[len])
+        public Tuple(RuntimeBase vm, int len) : this(vm, new ObjectRef[len])
         {
         }
 
-        public Array(RuntimeBase vm, ObjectRef[] arr)
+        public Tuple(RuntimeBase vm, ObjectRef[] arr)
         {
             Arr = arr;
             ObjectId = vm.NextObjId(GetKey());
@@ -22,7 +22,7 @@ namespace KScr.Lib.Core
         public ObjectRef[] Arr { get; }
         public bool Primitive => true;
         public long ObjectId { get; }
-        public IClassInstance Type => Class.ArrayType.DefaultInstance;
+        public IClassInstance Type => Class.TupleType.DefaultInstance;
 
         public string ToString(short variant)
         {
@@ -46,7 +46,7 @@ namespace KScr.Lib.Core
 
         public string GetKey()
         {
-            return $"array<{Type.FullName}>[{Arr.Length}]";
+            return $"tuple<{Type.FullName}>[{Arr.Length}]";
         }
     }
 }

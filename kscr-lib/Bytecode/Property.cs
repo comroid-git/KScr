@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using KScr.Lib.Core;
+using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 
 namespace KScr.Lib.Bytecode
 {
-    public sealed class Property : AbstractClassMember
+    public sealed class Property : AbstractClassMember, IObjectRef
     {
         public bool Gettable;
         public ExecutableCode? Getter;
@@ -22,26 +25,13 @@ namespace KScr.Lib.Bytecode
 
         public override string FullName => Parent.FullName + '.' + Name + ": " + ReturnType.FullName;
 
-        public override ClassMemberType Type => ClassMemberType.Field;
+        public override ClassMemberType MemberType => ClassMemberType.Property;
         public ITypeInfo ReturnType { get; private set; }
 
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => new[] { Getter, Setter }
             .Where(x => x != null).Cast<ExecutableCode>();
 
-        public override IRuntimeSite? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev, byte alt = 0)
-        {
-            if (alt == 0 && Getter != null)
-                return Getter.Evaluate(vm, ref state, ref rev);
-            if (alt == 0 && Setter != null)
-                return Setter.Evaluate(vm, ref state, ref rev);
-            var value = rev!.Value;
-            string subKey = CreateSubKey(value.GetKey());
-            var clsInst = value.Type;
-            if (vm[VariableContext.Absolute, subKey] == null)
-                rev = vm[VariableContext.Absolute, subKey] = new ObjectRef(ReturnType.ResolveType(clsInst));
-            else rev = vm[VariableContext.Absolute, CreateSubKey(rev.Value.GetKey())];
-            return null;
-        }
+        public override Stack Evaluate(RuntimeBase vm, Stack stack) => ReadValue(vm, stack, stack.Alp!.Value);
 
         private string CreateSubKey(string ownerKey)
         {
@@ -65,7 +55,7 @@ namespace KScr.Lib.Bytecode
             base.Load(vm, data, ref i);
             var len = BitConverter.ToInt32(data, i);
             i += 4;
-            ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len))!;
+            ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len), owner: Parent)!;
             i += len;
             Gettable = BitConverter.ToBoolean(data, i);
             i += 1;
@@ -87,6 +77,73 @@ namespace KScr.Lib.Bytecode
         public new static Property Read(RuntimeBase vm, Class parent, byte[] data, ref int i)
         {
             return (AbstractClassMember.Read(vm, parent, data, ref i) as Property)!;
+        }
+
+        public int Length => 1;
+        public bool IsPipe => false;
+        public Stack ReadValue(RuntimeBase vm, Stack stack, IObject from)
+        { // evaluate property with object
+            if (Gettable && ReadAccessor == null)
+            { // is auto-property
+                if (vm[stack, VariableContext.Property, CreateKey(@from)] == null)
+                    stack[StackOutput.Alp | StackOutput.Omg] = vm[stack, VariableContext.Property, CreateKey(@from)] 
+                        = new ObjectRef(ReturnType.ResolveType(stack[StackOutput.Default]!.Value.Type));
+                else stack[StackOutput.Alp | StackOutput.Omg] = vm[stack, VariableContext.Property, CreateKey(@from)];
+                return stack;
+            }
+            if (ReadAccessor != null)
+            {
+                ReadAccessor.Evaluate(vm, stack.Output()).Copy(StackOutput.Alp, StackOutput.Alp | StackOutput.Omg);
+                return stack;
+            }
+            throw new FatalException("Property " + FullName + " is not gettable"); // invalid state?
+        }
+
+        public Stack WriteValue(RuntimeBase vm, Stack stack, IObject to)
+        { // evaluate property with object
+            if (Settable && WriteAccessor == null)
+            { // is auto-property
+                vm[stack, VariableContext.Absolute, CreateKey(to)] = stack[StackOutput.Default];
+                return stack;
+            }
+            if (WriteAccessor != null)
+                return WriteAccessor.Evaluate(vm, stack);
+            throw new InternalException("Property " + FullName + " is not settable");
+        }
+
+        private string CreateKey(IObject parent)
+        {
+            return $"property-{parent.GetKey()}.{Name}";
+        }
+
+        public IEvaluable? ReadAccessor
+        {
+            get => Getter;
+            set => Getter = (value as ExecutableCode)!;
+        }
+
+        public IEvaluable? WriteAccessor
+        {
+            get => Setter;
+            set => Setter = (value as ExecutableCode)!;
+        }
+
+        public IObject Value
+        {
+            get
+            {
+                Console.Error.WriteLine("Error: Property needs evaluation");
+                return IObject.Null;
+            }
+            set => Console.Error.WriteLine("Error: Property needs evaluation");
+        }
+
+        public IClassInstance Type => ReturnType.ResolveType(Parent.DefaultInstance);
+
+        public IObject this[RuntimeBase vm, Stack stack, int i]
+        {
+            get => Value;
+            set => Value = value;
         }
     }
 }

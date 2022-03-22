@@ -30,7 +30,7 @@ namespace KScr.Lib.Core
             };
         }
 
-        public ObjectRef? Invoke(RuntimeBase vm, string member, ref ObjectRef? rev, params IObject?[] args)
+        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {
@@ -41,7 +41,7 @@ namespace KScr.Lib.Core
                 case "getType":
                     return Type.SelfRef;
                 case "opPlus":
-                    return OpPlus(vm, (args[0]?.Invoke(vm, "toString", ref rev)?.Value as String)?.Str ?? "null");
+                    return OpPlus(vm, stack, (args[0]?.Invoke(vm, stack, "toString")?.Value as String)?.Str ?? "null");
                 case "length":
                     return Numeric.Constant(vm, Str.Length);
                 default:
@@ -56,25 +56,25 @@ namespace KScr.Lib.Core
 
         private static string CreateKey(string str)
         {
-            return "static-str:" + str;
+            return $"str:\"{str}\"";
         }
 
-        private ObjectRef OpPlus(RuntimeBase vm, string other)
+        private IObjectRef OpPlus(RuntimeBase vm, Stack stack, string other)
         {
             return Instance(vm, Str + other);
         }
 
-        public static ObjectRef Instance(RuntimeBase vm, string str)
+        public static IObjectRef Instance(RuntimeBase vm, string str)
         {
             string key = CreateKey(str);
-            var rev = vm[VariableContext.Absolute, key];
+            var rev = vm[RuntimeBase.MainStack, VariableContext.Absolute, key];
             var obj = rev?.Value;
             if (obj is String strObj && strObj.Str == str)
                 return rev!;
             if (obj != null)
-                throw new InternalException("Unexpected object at key " + key);
+                throw new FatalException("Unexpected object at key " + key);
             if (rev == null)
-                rev = vm.ComputeObject(VariableContext.Absolute, key, () => new String(vm, str));
+                rev = vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, key, () => new String(vm, str));
             return rev;
         }
 

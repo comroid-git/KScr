@@ -4,10 +4,10 @@ import org.comroid.kscr.core.Throwable;
 import org.comroid.kscr.core.Iterable;
 
 public class PrintNumbers implements Throwable {
-    public static int StackSize -> 64;
-    public int StackValue -> 48;
+    public static int StackSize => 64;
+    public int StackValue => 48;
     public str Message { get; set; }
-    public int ExitCode -> 3;
+    public int ExitCode => 3;
     
     static {
         stdio << "this is a static initializer";
@@ -57,7 +57,7 @@ public class PrintNumbers implements Throwable {
     }
     
     public str toString(short variant) {
-        return "Items in stack: " + StackValue + "/" + PrintNumbers.StackSize;
+        return this.Message + " --- Items in stack: " + this.StackValue + "/" + PrintNumbers.StackSize;
     }
     
     public void callThroingMethod() {
@@ -69,7 +69,7 @@ public class PrintNumbers implements Throwable {
         if (true) { // any 'multipart' statement
             if (thr)
                 throw this;
-            stdio << "This only is printed when it does not throw";
+            stdio << "This only is printed when it does not throw"; // currently never printed bcs the compiled if body is too long (wrong offset)
         } finally stdio << "This sums up the throingMethod";
     }
     
