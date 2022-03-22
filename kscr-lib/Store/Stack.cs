@@ -56,6 +56,7 @@ namespace KScr.Lib.Store
         None = 0b1000_0000,
         All = 0b0111_1111,
         Threadsafe = 0b0010_1111,
+        Tri = 0b0000_0111,
 
         Alp = 0b0000_0001, // accumulate
         Bet = 0b0000_0010, // buffer
@@ -92,7 +93,7 @@ namespace KScr.Lib.Store
             _parent = parent;
             if (copyRefs)
                 _refs = _parent._refs;
-            else this[StackOutput.Threadsafe] = parent.This;
+            else this[StackOutput.Tri] = parent.This;
             _blob = parent._blob;
             KeyGen = CreateKeys;
         }
@@ -280,8 +281,6 @@ namespace KScr.Lib.Store
 #endif
             finally
             {
-                StepUp(vm);
-
                 if (State == State.Return)
                 {
                     this[StackOutput.Default] = Omg ?? vm.ConstantVoid;
@@ -299,7 +298,7 @@ namespace KScr.Lib.Store
                             || Omg.Value is not { } throwable)
                             throw new FatalException(
                                 "Value is not instanceof Throwable: " + Omg.Value.ToString(0));
-                        RuntimeBase.ExitCode = (throwable.Invoke(vm, Output(StackOutput.Alp), "ExitCode")!.Value as Numeric)!.IntValue;
+                        RuntimeBase.ExitCode = (throwable.Invoke(vm, Output(), "ExitCode")!.Value as Numeric)!.IntValue;
                         var msg = throwable.Invoke(vm, Output(StackOutput.Bet), "Message")!.Value.ToString(0);
                         throw new InternalException(throwable.Type.Name + ": " + msg);
                     }
@@ -320,6 +319,10 @@ namespace KScr.Lib.Store
                     _parent[StackOutput.Phi] = Phi;
                 if ((maintain & StackOutput.Omg) == StackOutput.Omg)
                     _parent[StackOutput.Omg] = Omg;
+                if (maintain != StackOutput.None)
+                    CopyState();
+                
+                StepUp(vm);
             }
         }
 
@@ -334,7 +337,16 @@ namespace KScr.Lib.Store
         public void Copy(StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
             => Copy(_parent, channel, output);
 
-        public void Copy(Stack target, StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default) 
-            => target[output == StackOutput.Default ? _output : output] = this[channel];
+        public void Copy(Stack target, StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
+        {
+            CopyState();
+            target[output == StackOutput.Default ? _output : output] = this[channel];
+        }
+
+        public void CopyState(Stack target = null!)
+        {
+            if (((target ??= _parent).State = State) is State.Return or State.Throw)
+                target[StackOutput.Omg] = this[StackOutput.Omg];
+        }
     }
 }

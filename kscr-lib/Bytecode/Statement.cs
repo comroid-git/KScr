@@ -28,12 +28,16 @@ namespace KScr.Lib.Bytecode
             try
             {
                 foreach (var component in Main)
+                {
                     switch (component.Type)
                     {
                         default:
                             component.Evaluate(vm, stack);
                             break;
                     }
+                    if (stack.State != State.Normal)
+                        break;
+                }
             }
             finally
             {
@@ -214,7 +218,7 @@ namespace KScr.Lib.Bytecode
                     {
                         SubStatement!.Evaluate(vm, stack.Output(Phi, true));
                         if (stack.Phi.ToBool())
-                            InnerCode!.Evaluate(vm, stack.Output());
+                            InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                         else if (SubComponent?.CodeType == BytecodeType.StmtElse)
                             SubComponent!.InnerCode!.Evaluate(vm, stack.Output());
                     });
@@ -226,7 +230,7 @@ namespace KScr.Lib.Bytecode
                         SubComponent!.Evaluate(vm, stack.Output(Phi, true));
                         while (stack.Phi.ToBool())
                         {
-                            InnerCode!.Evaluate(vm, stack.Output());
+                            InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                             var delStack = stack.Output();
                             AltStatement!.Evaluate(vm, delStack);
                             stack[Del].Value = delStack[Alp].Value;
@@ -246,7 +250,7 @@ namespace KScr.Lib.Bytecode
                         while ((stack[Phi] = iterator.Invoke(vm, stack.Output(), "hasNext")).ToBool())
                         {
                             stack[Del].Value = iterator.Invoke(vm, stack.Output(), "next").Value;
-                            InnerCode!.Evaluate(vm, stack.Output());
+                            InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                         }
                     });
                     break;
@@ -256,7 +260,7 @@ namespace KScr.Lib.Bytecode
                         SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Phi);
                         while (stack.Phi.ToBool())
                         {
-                            InnerCode.Evaluate(vm, stack.Output());
+                            InnerCode.Evaluate(vm, stack.Output()).CopyState();
                             SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Phi);
                         }
                     });
@@ -267,7 +271,7 @@ namespace KScr.Lib.Bytecode
                         bool first = true;
                         do
                         {
-                            InnerCode.Evaluate(vm, stack.Output());
+                            InnerCode.Evaluate(vm, stack.Output()).CopyState();
                             if (first)
                             {
                                 SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Phi);

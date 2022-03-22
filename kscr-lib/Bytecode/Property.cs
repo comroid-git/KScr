@@ -92,7 +92,10 @@ namespace KScr.Lib.Bytecode
                 return stack;
             }
             if (ReadAccessor != null)
-                return ReadAccessor.Evaluate(vm, stack);
+            {
+                ReadAccessor.Evaluate(vm, stack.Output()).Copy(StackOutput.Alp, StackOutput.Alp | StackOutput.Omg);
+                return stack;
+            }
             throw new FatalException("Property " + FullName + " is not gettable"); // invalid state?
         }
 

@@ -13,7 +13,12 @@ namespace KScr.Lib.Bytecode
         public Stack Evaluate(RuntimeBase vm, Stack stack)
         {
             foreach (var statement in Main)
+            {
                 statement.Evaluate(vm, stack);
+                if (stack.State != State.Normal)
+                    break;
+            }
+
             return stack;
         }
 

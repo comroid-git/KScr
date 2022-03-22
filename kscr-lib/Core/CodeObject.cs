@@ -43,8 +43,8 @@ namespace KScr.Lib.Core
                 // todo: use correct callLocation
                 stack.StepInto(vm, BlankInvocPos, stack.Alp!, icm, stack =>
                 {
-                    for (var i = 0; i < param.Count; i++)
-                        vm.PutLocal(stack, param[i].Name, args.Length - 1 < i ? IObject.Null : args[i]);
+                    for (var i = 0; i < (param?.Count ?? 0); i++)
+                        vm.PutLocal(stack, param![i].Name, args.Length - 1 < i ? IObject.Null : args[i]);
                     icm.Evaluate(vm, stack.Output()).Copy(StackOutput.Omg, StackOutput.Alp);
                 }, StackOutput.Alp);
 
