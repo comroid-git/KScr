@@ -115,13 +115,13 @@ namespace KScr.Lib.Store
             get => (adr == StackOutput.Default ? _output : adr) switch {
                 StackOutput.Default => throw new System.Exception("Invalid State"),
                 StackOutput.None => This,
-                StackOutput.Alp => _refs[0],
-                StackOutput.Bet => _refs[1],
-                StackOutput.Del => _refs[2],
-                StackOutput.Eps => _refs[3],
-                StackOutput.Tau => _refs[4],
-                StackOutput.Phi => _refs[5],
-                StackOutput.Omg => _refs[6],
+                StackOutput.Alp => _refs[0] ?? _parent?[StackOutput.Alp],
+                StackOutput.Bet => _refs[1] ?? _parent?[StackOutput.Bet],
+                StackOutput.Del => _refs[2] ?? _parent?[StackOutput.Del],
+                StackOutput.Eps => _refs[3] ?? _parent?[StackOutput.Eps],
+                StackOutput.Tau => _refs[4] ?? _parent?[StackOutput.Tau],
+                StackOutput.Phi => _refs[5] ?? _parent?[StackOutput.Phi],
+                StackOutput.Omg => _refs[6] ?? _parent?[StackOutput.Omg],
                 _ => throw new ArgumentOutOfRangeException(nameof(adr), adr, "Single argument required for getter")
             };
             set
@@ -144,13 +144,13 @@ namespace KScr.Lib.Store
             }
         }
 
-        public IObjectRef? Alp => this[StackOutput.Alp] ?? _parent?[StackOutput.Alp];
-        public IObjectRef? Bet => this[StackOutput.Bet] ?? _parent?[StackOutput.Bet];
-        public IObjectRef? Del => this[StackOutput.Del] ?? _parent?[StackOutput.Del];
-        public IObjectRef? Eps => this[StackOutput.Eps] ?? _parent?[StackOutput.Eps];
-        public IObjectRef? Tau => this[StackOutput.Tau] ?? _parent?[StackOutput.Tau];
-        public IObjectRef? Phi => this[StackOutput.Phi] ?? _parent?[StackOutput.Phi];
-        public IObjectRef? Omg => this[StackOutput.Omg] ?? _parent?[StackOutput.Omg];
+        public IObjectRef? Alp => this[StackOutput.Alp];
+        public IObjectRef? Bet => this[StackOutput.Bet];
+        public IObjectRef? Del => this[StackOutput.Del];
+        public IObjectRef? Eps => this[StackOutput.Eps];
+        public IObjectRef? Tau => this[StackOutput.Tau];
+        public IObjectRef? Phi => this[StackOutput.Phi];
+        public IObjectRef? Omg => this[StackOutput.Omg];
         public State State;
 
         private bool ContainsKey(string key) => _keys.Contains(key) || (_parent?.ContainsKey(key) ?? false);
