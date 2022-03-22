@@ -33,6 +33,7 @@ namespace KScr.Compiler.Code
                 return this;
             }
 
+            // todo do not handle token if any token was handled in super
             CompilerContext subctx;
             switch (ctx.Token.Type)
             {
