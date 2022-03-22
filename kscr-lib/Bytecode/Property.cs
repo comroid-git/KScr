@@ -90,7 +90,10 @@ namespace KScr.Lib.Bytecode
         { // evaluate property with object
             if (Gettable && ReadAccessor == null)
             { // is auto-property
-                stack[StackOutput.Default] = vm[stack.KeyGen, VariableContext.Absolute, CreateKey(from)];
+                if (vm[stack.KeyGen, VariableContext.Absolute, CreateKey(from)] == null)
+                    stack[StackOutput.Alp | StackOutput.Omg] = vm[stack.KeyGen, VariableContext.Absolute, CreateKey(from)] 
+                        = new ObjectRef(ReturnType.ResolveType(stack[StackOutput.Default]!.Value.Type));
+                else stack[StackOutput.Alp | StackOutput.Omg] = vm[stack.KeyGen, VariableContext.Absolute, CreateKey(from)];
                 return stack;
             }
             if (ReadAccessor != null)
