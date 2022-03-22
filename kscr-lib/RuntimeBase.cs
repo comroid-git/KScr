@@ -186,14 +186,6 @@ namespace KScr.Lib
             return this[stack.KeyGen, varctx, key ?? value.GetKey()] = new ObjectRef(value.Type == null && !Initialized ? value as IClassInstance : value.Type, value);
         }
 
-        public IObject? Execute(out long timeµs)
-        {
-            timeµs = UnixTime();
-            var yield = Execute();
-            timeµs = UnixTime() - timeµs;
-            return yield;
-        }
-
         public IObject? Execute()
         {
             var method = Package.RootPackage.FindEntrypoint();
