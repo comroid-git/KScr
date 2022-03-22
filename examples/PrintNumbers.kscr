@@ -57,7 +57,7 @@ public class PrintNumbers implements Throwable {
     }
     
     public str toString(short variant) {
-        return "Items in stack: " + this.StackValue + "/" + PrintNumbers.StackSize;
+        return this.Message + " --- Items in stack: " + this.StackValue + "/" + PrintNumbers.StackSize;
     }
     
     public void callThroingMethod() {
