@@ -71,7 +71,8 @@ namespace KScr.Lib.Store
 
         public static bool ToBool(this IObjectRef it)
         {
-            return !(it.Value == IObject.Null // todo inspect
+            return it != null 
+                   && !(it.Value == IObject.Null // todo inspect
                      || ((it.Value as Numeric)?.ImplicitlyFalse ?? false)
                      || it.Value == null);
         }

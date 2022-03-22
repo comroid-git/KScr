@@ -41,11 +41,11 @@ namespace KScr.Lib.Core
                 var param = (icm as IMethod)?.Parameters!;
                 var state = State.Normal;
                 // todo: use correct callLocation
-                stack.StepInto(vm, ToStringInvocPos, stack.Alp!, ToStringInvoc, _rev =>
+                stack.StepInto(vm, ToStringInvocPos, stack.Alp!, ToStringInvoc, stack =>
                 {
-                    for (var i = 0; i < args.Length; i++)
-                        vm.PutLocal(param[i].Name, args[i]);
-                    icm.Evaluate(vm, stack.Output(StackOutput.Alp));
+                    for (var i = 0; i < param.Count; i++)
+                        vm.PutLocal(param[i].Name, args.Length - 1 < i ? IObject.Null : args[i]);
+                    icm.Evaluate(vm, stack.Output());
                 }, StackOutput.Alp);
 
                 return stack.Alp;

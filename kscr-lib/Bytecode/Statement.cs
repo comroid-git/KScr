@@ -164,8 +164,8 @@ namespace KScr.Lib.Bytecode
                         SubComponent.Evaluate(vm, stack.Output());
                         for (var i = 0; i < ctor.Parameters.Count; i++)
                             vm.PutLocal(ctor.Parameters[i].Name, stack.Bet[vm, stack, i]);
-                        ctor.Evaluate(vm, stack.Output()).Copy();
-                    }, Alp);
+                        ctor.Evaluate(vm, stack.Output());
+                    });
                     break;
                 case (StatementComponentType.Declaration, _):
                     // variable declaration
@@ -205,7 +205,7 @@ namespace KScr.Lib.Bytecode
                     for (var i = 0; i < InnerCode!.Main.Count; i++)
                     {
                         var val = vm.ConstantVoid;
-                        InnerCode!.Main[i].Evaluate(vm, stack);
+                        InnerCode!.Main[i].Evaluate(vm, stack.Output());
                         stack[Default][vm, stack, i] = val.Value;
                     }
 
@@ -324,13 +324,13 @@ namespace KScr.Lib.Bytecode
                             if (SubComponent == null ||
                                 (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new FatalException("Invalid binary operator; missing right numeric operand");
-                            var bak = stack.Alp;
+                            var bak = stack[Default];
                             SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
                             // try to use overrides
-                            if ((op & Operator.Plus) == Operator.Plus && stack.Alp?.Value?.Type.Name == "str"
-                                || (stack.Alp?.Value?.Type.BaseClass as IClass).ClassMembers.Any(x => x.Name == "op" + op))
+                            if ((op & Operator.Plus) == Operator.Plus && stack[Default]?.Value?.Type.Name == "str"
+                                || (stack[Default]?.Value?.Type.BaseClass as IClass).ClassMembers.Any(x => x.Name == "op" + op))
                             {
-                                stack[Default] = stack.Alp.Value!.Invoke(vm,
+                                stack[Default] = stack[Default].Value!.Invoke(vm,
                                     stack.Output(Bet), "op" + ((op & Operator.Compound) == Operator.Compound
                                         ? op ^ Operator.Compound
                                         : op), stack.Bet.Value)!;
@@ -371,12 +371,12 @@ namespace KScr.Lib.Bytecode
                     break;
                 case (StatementComponentType.Provider, BytecodeType.Call):
                     // invoke member
-                    if ((stack.Alp.Value is IClass cls || (cls = stack.Alp.Value.Type) != null)
+                    if ((stack[Default].Value is IClass cls || (cls = stack[Default].Value.Type) != null)
                         && cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is IMethod mtd)
                     {
                         var param = mtd.Parameters;
-                        SubComponent!.Evaluate(vm, stack.Output(Eps, true)).Copy(Eps);
-                        stack.StepInto(vm, SourcefilePosition, stack.Alp, mtd, stack =>
+                        SubComponent!.Evaluate(vm, stack.Output(Eps)).Copy(Eps);
+                        stack.StepInto(vm, SourcefilePosition, stack[Default], mtd, stack =>
                         {
                             for (var i = 0; i < param.Count; i++)
                                 vm.PutLocal(param[i].Name, stack.Eps[vm, stack, i]);
@@ -386,12 +386,13 @@ namespace KScr.Lib.Bytecode
                     }
                     else if (cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Property && x.Name == Arg) is Property prop)
                     {
-                        prop.ReadValue(vm, stack.Output(), cls as IClassInstance ?? cls.DefaultInstance).Copy();
+                        prop.ReadValue(vm, stack.Output(), stack[Default]?.Value ?? cls as IClassInstance ?? cls.DefaultInstance).Copy();
                     }
                     else
                     {
                         throw new System.Exception("Invalid state; not a method or property");
                     }
+                    // todo:: shouldnt be necessary
                     stack[Default] = stack.Alp;
 
                     break;
@@ -403,7 +404,7 @@ namespace KScr.Lib.Bytecode
                     break;
                 case (StatementComponentType.Setter, _):
                     // assignment
-                    if (stack.Alp == null)
+                    if (stack[Default] == null)
                         throw new FatalException("Invalid assignment; missing target");
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException("Invalid assignment; no Expression found");
