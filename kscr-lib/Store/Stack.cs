@@ -74,11 +74,11 @@ namespace KScr.Lib.Store
     public sealed class Stack
     {
         public const string Separator = ".";
+        public static readonly List<StackTraceException> StackTrace = new();
         internal readonly StackOutput _output;
         internal readonly Stack _parent = null!;
         private readonly List<string> _keys = new();
         private readonly CtxBlob _blob = null!;
-        public readonly List<StackTraceException> StackTrace = new();
         public readonly ObjectStoreKeyGenerator KeyGen; 
 
         public Stack()

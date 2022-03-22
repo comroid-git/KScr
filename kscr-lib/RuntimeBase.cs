@@ -181,7 +181,7 @@ namespace KScr.Lib
             catch (StackTraceException stc)
             {
                 Console.WriteLine($"An exception occurred:\t{stc.Message}");
-                foreach (var stackTraceElement in stack.StackTrace)
+                foreach (var stackTraceElement in Stack.StackTrace)
                     Console.WriteLine($"\t\tat\t{stackTraceElement.Message}");
             }
 #if !DEBUG
