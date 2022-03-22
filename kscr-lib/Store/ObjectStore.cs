@@ -15,41 +15,52 @@ namespace KScr.Lib.Store
     
     public sealed class ObjectStore
     {
-        private readonly ConcurrentDictionary<string, ObjectRef?> _cache = new();
+        private readonly ConcurrentDictionary<string, ObjectRef?> _vars = new();
+        private readonly ConcurrentDictionary<string, ObjectRef?> _finals = new();
+        private readonly ConcurrentDictionary<string, ObjectRef?> _locals = new();
 
         public ObjectRef? this[ObjectStoreKeyGenerator keygen, VariableContext varctx, string name]
         {
             get
             {
+                var use = UseDict(varctx);
                 foreach (string key in keygen(varctx, name))
-                    if (_cache.ContainsKey(key))
-                        return _cache[key];
+                    if (use.ContainsKey(key))
+                        return use[key];
                 return null;
             }
             set
             {
+                var use = UseDict(varctx);
                 foreach (string key in keygen(varctx, name))
-                    if (value == null && _cache.TryRemove(key, out _))
+                    if (value == null && use.TryRemove(key, out _))
                         return;
-                    else _cache[key] = value;
+                    else use[key] = value;
             }
         }
 
         public void ClearLocals(Stack ctx)
         {
-            foreach (string localKey in _cache.Keys.Where(it => it.StartsWith(ctx.PrefixLocal)))
-                if (!_cache.TryRemove(localKey, out _))
+            foreach (string localKey in _locals.Keys.Where(it => it.StartsWith(ctx.PrefixLocal)))
+                if (!_locals.TryRemove(localKey, out _))
                     throw new FatalException("Unable to remove local variable " + localKey);
-        }
-
-        public bool Remove(string key)
-        {
-            return _cache.TryRemove(key, out _);
         }
 
         public void Clear()
         {
-            _cache.Clear();
+            //_vars.Clear();
+            _locals.Clear();
+        }
+
+        private ConcurrentDictionary<string, ObjectRef?> UseDict(VariableContext varctx)
+        {
+            return varctx switch
+            {
+                VariableContext.Local => _locals,
+                VariableContext.This or VariableContext.Property => _vars,
+                VariableContext.Absolute => _finals,
+                _ => throw new ArgumentOutOfRangeException(nameof(varctx), varctx, "Invalid VariableContext")
+            };
         }
     }
 

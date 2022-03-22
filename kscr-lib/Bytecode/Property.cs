@@ -31,7 +31,6 @@ namespace KScr.Lib.Bytecode
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => new[] { Getter, Setter }
             .Where(x => x != null).Cast<ExecutableCode>();
 
-        [Obsolete] // do not use
         public override Stack Evaluate(RuntimeBase vm, Stack stack)
         {
             ReadAccessor!.Evaluate(vm, stack);
@@ -91,9 +90,9 @@ namespace KScr.Lib.Bytecode
             if (Gettable && ReadAccessor == null)
             { // is auto-property
                 if (vm[stack.KeyGen, VariableContext.Absolute, CreateKey(from)] == null)
-                    stack[StackOutput.Alp | StackOutput.Omg] = vm[stack.KeyGen, VariableContext.Absolute, CreateKey(from)] 
+                    stack[StackOutput.Alp | StackOutput.Omg] = vm[stack.KeyGen, VariableContext.Property, CreateKey(from)] 
                         = new ObjectRef(ReturnType.ResolveType(stack[StackOutput.Default]!.Value.Type));
-                else stack[StackOutput.Alp | StackOutput.Omg] = vm[stack.KeyGen, VariableContext.Absolute, CreateKey(from)];
+                else stack[StackOutput.Alp | StackOutput.Omg] = vm[stack.KeyGen, VariableContext.Property, CreateKey(from)];
                 return stack;
             }
             if (ReadAccessor != null)

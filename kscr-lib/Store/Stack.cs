@@ -13,6 +13,7 @@ namespace KScr.Lib.Store
     {
         Local,
         This,
+        Property,
         Absolute
     }
 
@@ -160,7 +161,7 @@ namespace KScr.Lib.Store
             string me = varctx switch
             {
                 VariableContext.Local => PrefixLocal + name,
-                VariableContext.Absolute => name,
+                VariableContext.Absolute or VariableContext.Property => name,
                 _ => throw new ArgumentOutOfRangeException(nameof(varctx), varctx, null)
             };
             if (varctx == VariableContext.Local && !ContainsKey(me))
@@ -171,7 +172,7 @@ namespace KScr.Lib.Store
                 return arr.Append(varctx switch
                 {
                     VariableContext.Local => parent.Local + Separator + name,
-                    VariableContext.Absolute => name,
+                    VariableContext.Absolute or VariableContext.Property => name,
                     _ => throw new ArgumentOutOfRangeException(nameof(varctx), varctx, null)
                 }).Distinct();
             return arr;
@@ -226,8 +227,8 @@ namespace KScr.Lib.Store
         public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IObjectRef? into, IClassMember local, Action<Stack> exec, StackOutput maintain = StackOutput.None)
         {
             into ??= vm.ConstantVoid;
-            var cls = local.Parent;
-            string localStr = cls.FullName + '#' + (into.Value ?? IObject.Null).ObjectId.ToString("X")
+            var cls = into.Value.Type;
+            string localStr = cls.FullName + '#' + into.Value.ObjectId.ToString("X")
                               + '.' + local.Name + (local is IMethod mtd
                                   ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) +
                                     ')'
@@ -323,8 +324,8 @@ namespace KScr.Lib.Store
 
         private void StepUp(RuntimeBase vm)
         {
-            foreach (string old in _keys)
-                vm.ObjectStore.Remove(old);
+            if (!_blob.IsSub)
+                vm.ObjectStore.ClearLocals(this);
         }
 
         public void Copy(StackOutput passthrough) => Copy(passthrough, passthrough);
