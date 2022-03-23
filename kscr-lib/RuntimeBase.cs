@@ -30,11 +30,11 @@ namespace KScr.Lib
         public static readonly SourcefilePosition MainInvocPos = new()
             { SourcefilePath = "<native>org/comroid/kscr/core/System.kscr" };
         public static readonly DirectoryInfo SdkHome = GetSdkHome();
-
-        private uint _lastObjId = 0xF;
-
         public static bool Initialized;
         public static readonly Stack MainStack = new();
+        public abstract INativeRunner? NativeRunner { get; }
+
+        private uint _lastObjId = 0xF;
 
         static RuntimeBase()
         {

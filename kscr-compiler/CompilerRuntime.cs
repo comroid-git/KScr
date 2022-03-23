@@ -10,6 +10,7 @@ namespace KScr.Compiler
 {
     public class CompilerRuntime : RuntimeBase
     {
+        public override INativeRunner? NativeRunner => null;
         public override ObjectStore ObjectStore => null!;
         public override ClassStore ClassStore { get; } = new();
 
