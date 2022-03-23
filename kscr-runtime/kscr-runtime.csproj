@@ -17,6 +17,7 @@
     <ItemGroup>
         <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj" />
         <ProjectReference Include="..\kscr-lib\kscr-lib.csproj" />
+        <ProjectReference Include="..\kscr-system\kscr-system.csproj" />
     </ItemGroup>
 
     <ItemGroup>
