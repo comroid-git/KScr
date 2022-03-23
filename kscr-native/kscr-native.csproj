@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AssemblyVersion>0.2.1</AssemblyVersion>
+        <Company>comroid</Company>
     </PropertyGroup>
 
     <ItemGroup>
