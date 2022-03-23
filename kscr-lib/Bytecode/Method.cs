@@ -61,7 +61,7 @@ namespace KScr.Lib.Bytecode
         {
             Parent = parent;
             Name = name;
-            Modifier = modifier;
+            Modifier = modifier | MemberModifier.Native;
             Parameters = parameters;
             ReturnType = returnType;
         }
@@ -124,7 +124,7 @@ namespace KScr.Lib.Bytecode
             stream.Write(BitConverter.GetBytes(Parameters.Count));
             foreach (var parameter in Parameters)
                 parameter.Write(stream);
-            if (!this.IsAbstract())
+            if (!this.IsAbstract() && !this.IsNative())
                 Body.Write(stream);
         }
 
@@ -139,7 +139,7 @@ namespace KScr.Lib.Bytecode
             Parameters.Clear();
             for (; len > 0; len--)
                 Parameters.Add(MethodParameter.Read(vm, data, ref i));
-            if (!this.IsAbstract())
+            if (!this.IsAbstract() && !this.IsNative())
             {
                 Body = new ExecutableCode();
                 Body.Load(vm, data, ref i);

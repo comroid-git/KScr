@@ -28,12 +28,12 @@ namespace KScr.Lib.Core
         public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             // try use overrides first
-            if (Type.ClassMembers.FirstOrDefault(x => x.Name == member) is { } icm)
+            if (Type.ClassMembers.FirstOrDefault(x => x.Name == member) is { } icm 
+                && !(icm.IsNative() && icm.Parent.IsNative()))
             {
                 if (icm.IsStatic())
                     throw new FatalException("Static method invoked on object instance");
                 var param = (icm as IMethod)?.Parameters;
-                var state = State.Normal;
                 // todo: use correct callLocation
                 stack.StepInto(vm, RuntimeBase.BlankInvocPos, stack.Alp!, icm, stack =>
                 {
@@ -46,7 +46,8 @@ namespace KScr.Lib.Core
             }
             // then inherited members
             else if ((Type.BaseClass as IClass).InheritedMembers
-                     .FirstOrDefault(x => x.Name == member && !x.IsAbstract()) is { } superMember)
+                     .FirstOrDefault(x => x.Name == member && !x.IsAbstract()) is { } superMember 
+                     && !(superMember.IsNative() && superMember.Parent.IsNative()))
             {
                 superMember.Evaluate(vm, stack.Output(StackOutput.Alp));
                 return stack.Alp;

@@ -80,10 +80,6 @@ public sealed class NativeImpl
     }
     internal NativeImplMember WrapMethod(MethodInfo method) => (vm, stack, args) =>
     {
-        var param = new object[args.Length + 2];
-        Array.Copy(args, 0, param, 2, args.Length);
-        param[0] = vm;
-        param[1] = stack;
-        return method.Invoke(null, param) as IObjectRef;
+        return method.Invoke(null, new object[]{vm, stack, args}) as IObjectRef;
     };
 }

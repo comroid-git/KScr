@@ -386,18 +386,31 @@ namespace KScr.Lib.Bytecode
                     if ((stack[Default].Value is IClass cls || (cls = stack[Default].Value.Type) != null)
                         && cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is IMethod mtd)
                     {
-                        var param = mtd.Parameters;
-                        var output = stack.Output(Eps);
-                        output[Eps] = new ObjectRef(Class.VoidType.DefaultInstance, mtd.Parameters.Count);
-                        SubComponent!.Evaluate(vm, output).Copy(Eps);
-                        stack.StepInto(vm, SourcefilePosition, stack[Default], mtd, stack =>
-                        {
-                            stack[Alp] = stack.Alp.Value!.Invoke(vm, stack.Output(), Arg, (stack.Eps as ObjectRef)!.Refs);
-                        }, Alp);
+                            var param = mtd.Parameters;
+                            var output = stack.Output(Del);
+                            output[Del] = new ObjectRef(Class.VoidType.DefaultInstance, mtd.Parameters.Count);
+                            SubComponent!.Evaluate(vm, output).Copy(Del);
+                            if (mtd.IsNative() && !mtd.Parent.IsNative())
+                                if (vm.NativeRunner == null)
+                                    throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
+                                else vm.NativeRunner.Invoke(vm, stack, mtd).Copy(Omg, Default);
+                            else// todo having both next to each other is stupid
+                            {
+                                stack.StepInto(vm, SourcefilePosition, stack[Default], mtd,
+                                    stack =>
+                                    {
+                                        stack[Alp] = stack.Alp.Value!.Invoke(vm, stack.Output(), Arg,
+                                            (stack.Del as ObjectRef)!.Refs);
+                                    }, Alp);
+                            }
                     }
                     else if (cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Property && x.Name == Arg) is Property prop)
                     {
-                        prop.ReadValue(vm, stack.Output(), stack[Default]?.Value ?? cls as IClassInstance ?? cls.DefaultInstance).Copy();
+                        if (prop.IsNative())
+                            if (vm.NativeRunner == null)
+                                throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
+                            else vm.NativeRunner.Invoke(vm, stack, prop).Copy(Omg, Default);
+                        else prop.ReadValue(vm, stack.Output(), stack[Default]?.Value ?? cls as IClassInstance ?? cls.DefaultInstance).Copy();
                     }
                     else
                     {

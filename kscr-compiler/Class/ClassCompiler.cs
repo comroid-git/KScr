@@ -270,7 +270,7 @@ namespace KScr.Compiler.Class
                         if (method != null && method.Body == null)
                             if (method.Name == Method.ConstructorName)
                                 method.Body = new ExecutableCode();
-                            else if (!method.IsAbstract())
+                            else if (!method.IsAbstract() && !method.IsNative())
                                 throw new CompilerException(ctx.Token.SourcefilePosition,
                                     $"Invalid method {method.Name}: Not abstract and no body defined");
                         ResetData();

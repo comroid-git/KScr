@@ -21,7 +21,7 @@ namespace KScr.Lib.Bytecode
         public static readonly Class TypeType = new(LibClassPackage, "type", true,
             MemberModifier.Public | MemberModifier.Final);
 
-        public static readonly Class ObjectType = new(LibClassPackage, "Object", true, MemberModifier.Public);
+        public static readonly Class ObjectType = new(LibClassPackage, "object", true, MemberModifier.Public | MemberModifier.Native);
 
         public static readonly Class EnumType =
             new(LibClassPackage, "enum", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
