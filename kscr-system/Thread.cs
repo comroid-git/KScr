@@ -4,11 +4,11 @@ using KScr.Lib.Store;
 
 // ReSharper disable InconsistentNaming
 
-namespace KScr.Native.System.Impl;
+namespace KScr.Native.System;
 
 [NativeImpl(Package = "org.comroid.kscr.async", ClassName = "Thread")]
 public sealed class Thread
 {
     [NativeImpl]
-    public static IObject ctor(RuntimeBase vm, Stack stack, params IObject[] args) => throw new NotImplementedException();
+    public static IObjectRef ctor(RuntimeBase vm, Stack stack, params IObject[] args) => throw new NotImplementedException();
 }

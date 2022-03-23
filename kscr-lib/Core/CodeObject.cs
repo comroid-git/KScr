@@ -8,12 +8,6 @@ namespace KScr.Lib.Core
 {
     public sealed class CodeObject : IObject
     {
-        public static readonly DummyMethod ToStringInvoc =
-            new(Class.VoidType, "toString", MemberModifier.Public, Class.StringType);
-
-        public static readonly SourcefilePosition BlankInvocPos = new()
-            { SourcefilePath = "<native>org/comroid/kscr/core/Object.kscr" };
-
         public CodeObject(RuntimeBase vm, IClassInstance type)
         {
             Type = type;
@@ -41,7 +35,7 @@ namespace KScr.Lib.Core
                 var param = (icm as IMethod)?.Parameters;
                 var state = State.Normal;
                 // todo: use correct callLocation
-                stack.StepInto(vm, BlankInvocPos, stack.Alp!, icm, stack =>
+                stack.StepInto(vm, RuntimeBase.BlankInvocPos, stack.Alp!, icm, stack =>
                 {
                     for (var i = 0; i < (param?.Count ?? 0); i++)
                         vm.PutLocal(stack, param![i].Name, args.Length - 1 < i ? IObject.Null : args[i]);

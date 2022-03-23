@@ -265,19 +265,19 @@ namespace KScr.Lib
             {
             }
 
-            public override Model.IEvaluable? ReadAccessor
+            public override IEvaluable? ReadAccessor
             {
                 get => new StdioReader();
                 set => throw new FatalException("Cannot reassign stdio ReadAccessor");
             }
 
-            public override Model.IEvaluable? WriteAccessor
+            public override IEvaluable? WriteAccessor
             {
                 get => new StdioWriter();
                 set => throw new FatalException("Cannot reassign stdio WriteAccessor");
             }
 
-            private sealed class StdioWriter : Model.IEvaluable
+            private sealed class StdioWriter : IEvaluable
             {
                 public Stack Evaluate(RuntimeBase vm, Stack stack)
                 {
@@ -287,7 +287,7 @@ namespace KScr.Lib
                 }
             }
 
-            private sealed class StdioReader : Model.IEvaluable
+            private sealed class StdioReader : IEvaluable
             {
                 public Stack Evaluate(RuntimeBase vm, Stack stack)
                 {
@@ -301,5 +301,8 @@ namespace KScr.Lib
                 }
             }
         }
+
+        public static readonly SourcefilePosition BlankInvocPos = new()
+            { SourcefilePath = "<native>org/comroid/kscr/core/Object.kscr" };
     }
 }
