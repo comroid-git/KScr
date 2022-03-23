@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>KScr.Native</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyVersion>0.2.1</AssemblyVersion>
+        <Company>comroid</Company>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\kscr-lib\kscr-lib.csproj" />
+    </ItemGroup>
+
+</Project>

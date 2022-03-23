@@ -39,11 +39,13 @@ function: annotation* modifiers genericTypeDefs? type idPart LPAREN parameters R
 functionBlock: (block | SEMICOLON);
 functionArrow: RDASHARROW (expr SEMICOLON | statement);
 
-propertyDecl: annotation* modifiers type idPart (ASSIGN expr)?;
+propGetter: 'get' block;
+propSetter: 'set' block;
+propertyDecl: annotation* modifiers type idPart ((ASSIGN expr SEMICOLON) | (block) | (LPAREN propGetter propSetter? RPAREN))?;
 parameter: FINAL? type (indexer | ELIPSES)? idPart (ASSIGN expr)?;
 parameters: (parameter (COMMA parameter)*)?;
 
-block: LBRACE statement* RBRACE | RDASHARROW statement;
+block: LBRACE statement* RBRACE | RDASHARROW statement SEMICOLON;
 
 statement
     : block

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>KScr.Build</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Product>kbuild</Product>
+        <AssemblyVersion>0.2.1</AssemblyVersion>
+        <Company>comroid</Company>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\kscr-runtime\kscr-runtime.csproj" />
+    </ItemGroup>
+
+</Project>
