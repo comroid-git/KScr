@@ -657,5 +657,74 @@ namespace KScr.Lib.Core
         {
             return CreateKey(num.ToString(CultureInfo.InvariantCulture));
         }
+
+        public IObjectRef Sqrt(RuntimeBase vm)
+        {
+            switch (Mode)
+            {
+                case NumericMode.Byte:
+                case NumericMode.Short:
+                case NumericMode.Int:
+                case NumericMode.Long:
+                    return Constant(vm, Math.Sqrt(LongValue));
+                case NumericMode.Float:
+                    return Constant(vm, MathF.Sqrt(FloatValue));
+                case NumericMode.Double:
+                    return Constant(vm, Math.Sqrt(DoubleValue));
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        public IObjectRef Sin(RuntimeBase vm)
+        {
+            switch (Mode)
+            {
+                case NumericMode.Byte:
+                case NumericMode.Short:
+                case NumericMode.Int:
+                case NumericMode.Long:
+                    return Constant(vm, Math.Sin(LongValue));
+                case NumericMode.Float:
+                    return Constant(vm, MathF.Sin(FloatValue));
+                case NumericMode.Double:
+                    return Constant(vm, Math.Sin(DoubleValue));
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        public IObjectRef Cos(RuntimeBase vm)
+        {
+            switch (Mode)
+            {
+                case NumericMode.Byte:
+                case NumericMode.Short:
+                case NumericMode.Int:
+                case NumericMode.Long:
+                    return Constant(vm, Math.Cos(LongValue));
+                case NumericMode.Float:
+                    return Constant(vm, MathF.Cos(FloatValue));
+                case NumericMode.Double:
+                    return Constant(vm, Math.Cos(DoubleValue));
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        public IObjectRef Tan(RuntimeBase vm)
+        {
+            switch (Mode)
+            {
+                case NumericMode.Byte:
+                case NumericMode.Short:
+                case NumericMode.Int:
+                case NumericMode.Long:
+                    return Constant(vm, Math.Tan(LongValue));
+                case NumericMode.Float:
+                    return Constant(vm, MathF.Tan(FloatValue));
+                case NumericMode.Double:
+                    return Constant(vm, Math.Tan(DoubleValue));
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
     }
 }

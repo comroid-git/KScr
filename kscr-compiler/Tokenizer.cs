@@ -222,7 +222,7 @@ namespace KScr.Compiler
             if (isStringLiteral)
                 return;
 
-            switch (str)
+            if (!char.IsLetter(n)) switch (str)
             {
                 case "return":
                     token = new Token(srcPos, TokenType.Return);
@@ -258,8 +258,6 @@ namespace KScr.Compiler
                     token = new Token(srcPos, TokenType.While);
                     return;
                 case "for":
-                    if (n is 'e')
-                        break;
                     token = new Token(srcPos, TokenType.For);
                     return;
                 case "foreach":
@@ -293,8 +291,6 @@ namespace KScr.Compiler
                     token = new Token(srcPos, TokenType.IdentNumShort);
                     break;
                 case "int":
-                    if (char.IsLetter(n))
-                        break;
                     token = new Token(srcPos, TokenType.IdentNumInt);
                     break;
                 case "long":
@@ -370,13 +366,9 @@ namespace KScr.Compiler
                     AddToToken(TokenType.Abstract);
                     break;
                 case "final":
-                    if (char.IsLetter(n))
-                        break;
                     AddToToken(TokenType.Final);
                     break;
                 case "native":
-                    if (char.IsLetter(n))
-                        break;
                     AddToToken(TokenType.Native);
                     break;
                 default:
