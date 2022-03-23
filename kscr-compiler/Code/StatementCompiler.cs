@@ -60,7 +60,7 @@ namespace KScr.Compiler.Code
                         SubStatement = subctx.Statement,
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
-                    ctx.TokenIndex = subctx.TokenIndex;
+                    ctx.TokenIndex = subctx.TokenIndex - 1;
                     break;
                 case If:
                     if (ctx.NextToken?.Type != ParRoundOpen)
