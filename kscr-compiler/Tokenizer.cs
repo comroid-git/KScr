@@ -374,6 +374,11 @@ namespace KScr.Compiler
                         break;
                     AddToToken(TokenType.Final);
                     break;
+                case "native":
+                    if (char.IsLetter(n))
+                        break;
+                    AddToToken(TokenType.Native);
+                    break;
                 default:
                     if (Numeric.NumberRegex.IsMatch(str) && !char.IsDigit(n) && n != '.')
                     {

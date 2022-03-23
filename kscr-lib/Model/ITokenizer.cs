@@ -102,6 +102,7 @@ namespace KScr.Lib.Model
         // other modifiers
         Abstract = 0x020F_10,
         Final = 0x020F_20,
+        Native = 0x020F_40,
 
         // class initializers
         Package = 0x0401_10,
@@ -189,6 +190,7 @@ namespace KScr.Lib.Model
                 TokenType.Dynamic => "dynamic",
                 TokenType.Abstract => "abstract",
                 TokenType.Final => "final",
+                TokenType.Native => "native",
                 TokenType.Package => "package",
                 TokenType.Import => "import",
                 _ => throw new ArgumentOutOfRangeException(token.ToString())
@@ -212,6 +214,8 @@ namespace KScr.Lib.Model
                 mod |= MemberModifier.Abstract;
             if ((type & TokenType.Final) == TokenType.Final)
                 mod |= MemberModifier.Final;
+            if ((type & TokenType.Native) == TokenType.Native)
+                mod |= MemberModifier.Native;
             return mod == 0 ? null : mod;
         }
 
