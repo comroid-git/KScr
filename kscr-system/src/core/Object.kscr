@@ -1,14 +1,11 @@
 package org.comroid.kscr.core;
 
-import org.comroid.kscr.system.annotation.ApiStatus.*;
-
 public class Object {
-    @Experimental
-    public native long InternalID;
+    public final native long InternalID;
+    
+    public final native type Type;
 
-    public native str toString(short alt = 0);
+    public native str toString();//short alt = 0);
     
     public native byte equals(Object other);
-    
-    public native type getType();
 }

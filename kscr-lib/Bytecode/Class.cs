@@ -16,7 +16,7 @@ namespace KScr.Lib.Bytecode
         public static readonly Package LibClassPackage = Package.RootPackage.GetOrCreatePackage("org")
             .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr").GetOrCreatePackage("core");
 
-        public static readonly Class VoidType = new(LibClassPackage, "void", true, MemberModifier.Public);
+        public static readonly Class VoidType = new(LibClassPackage, "void", true, MemberModifier.Public, ClassType.Interface);
 
         public static readonly Class TypeType = new(LibClassPackage, "type", true,
             MemberModifier.Public | MemberModifier.Final);
@@ -24,23 +24,23 @@ namespace KScr.Lib.Bytecode
         public static readonly Class ObjectType = new(LibClassPackage, "Object", true, MemberModifier.Public);
 
         public static readonly Class EnumType =
-            new(LibClassPackage, "enum", true, MemberModifier.Public | MemberModifier.Final)
+            new(LibClassPackage, "enum", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
                 { TypeParameters = { new TypeParameter("T") } };
         public static readonly Class ArrayType =
-            new(LibClassPackage, "array", true, MemberModifier.Public | MemberModifier.Final)
+            new(LibClassPackage, "array", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
                 { TypeParameters = { new TypeParameter("T") } };
         public static readonly Class TupleType =
-            new(LibClassPackage, "tuple", true, MemberModifier.Public | MemberModifier.Final)
+            new(LibClassPackage, "tuple", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
                 { TypeParameters = { new TypeParameter("T") } };
 
         public static readonly Class StringType = new(LibClassPackage, "str", true,
-            MemberModifier.Public | MemberModifier.Final);
+            MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
 
         public static readonly Class RangeType = new(LibClassPackage, "range", true,
-            MemberModifier.Public | MemberModifier.Final);
+            MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
 
         public static readonly Class NumericType =
-            new(LibClassPackage, "num", true, MemberModifier.Public | MemberModifier.Final)
+            new(LibClassPackage, "num", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
                 { TypeParameters = { new TypeParameter("T") } };
 
         public static readonly Class IteratorType =
@@ -54,22 +54,22 @@ namespace KScr.Lib.Bytecode
             new(LibClassPackage, "Throwable", true, MemberModifier.Public, ClassType.Interface);
 
         public static readonly Instance NumericByteType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "byte", true, MemberModifier.Public | MemberModifier.Final));
+            new Class(LibClassPackage, "byte", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
 
         public static readonly Instance NumericShortType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "short", true, MemberModifier.Public | MemberModifier.Final));
+            new Class(LibClassPackage, "short", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
 
         public static readonly Instance NumericIntType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "int", true, MemberModifier.Public | MemberModifier.Final));
+            new Class(LibClassPackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
 
         public static readonly Instance NumericLongType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "long", true, MemberModifier.Public | MemberModifier.Final));
+            new Class(LibClassPackage, "long", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
 
         public static readonly Instance NumericFloatType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "float", true, MemberModifier.Public | MemberModifier.Final));
+            new Class(LibClassPackage, "float", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
 
         public static readonly Instance NumericDoubleType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "double", true, MemberModifier.Public | MemberModifier.Final));
+            new Class(LibClassPackage, "double", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
 
         private bool _initialized;
         private bool _lateInitialized;
@@ -335,7 +335,7 @@ namespace KScr.Lib.Bytecode
             #region Void Class
 
             var toString = new DummyMethod(
-                VoidType,
+                ObjectType,
                 "toString",
                 MemberModifier.Public,
                 StringType,
@@ -348,7 +348,7 @@ namespace KScr.Lib.Bytecode
                     }
                 });
             var equals = new DummyMethod(
-                VoidType,
+                ObjectType,
                 "equals",
                 MemberModifier.Public,
                 NumericByteType,
@@ -357,14 +357,15 @@ namespace KScr.Lib.Bytecode
                     new()
                     {
                         Name = "other",
-                        Type = VoidType.DefaultInstance
+                        Type = ObjectType.DefaultInstance
                     }
                 });
-            var getType = new DummyMethod(VoidType, "getType", MemberModifier.Public | MemberModifier.Final, TypeType);
+            var getType = new DummyMethod(ObjectType, "getType", MemberModifier.Public | MemberModifier.Final, TypeType);
 
             AddToClass(VoidType, toString);
             AddToClass(VoidType, equals);
             AddToClass(VoidType, getType);
+            ObjectType.Interfaces.Add(VoidType.DefaultInstance);
 
             #endregion
 
@@ -373,6 +374,7 @@ namespace KScr.Lib.Bytecode
             AddToClass(TypeType, toString);
             AddToClass(TypeType, equals);
             AddToClass(TypeType, getType);
+            TypeType.Superclasses.Add(ObjectType.DefaultInstance);
 
             #endregion
 
@@ -390,6 +392,7 @@ namespace KScr.Lib.Bytecode
             AddToClass(EnumType, getType);
             AddToClass(EnumType, name);
             AddToClass(EnumType, values);
+            EnumType.Superclasses.Add(ObjectType.DefaultInstance);
 
             #endregion
 
@@ -438,11 +441,11 @@ namespace KScr.Lib.Bytecode
 
             #region Range Class
 
-            var start = new DummyMethod(VoidType, "start", MemberModifier.Public | MemberModifier.Final,
+            var start = new DummyMethod(RangeType, "start", MemberModifier.Public | MemberModifier.Final,
                 NumericIntType);
-            var end = new DummyMethod(VoidType, "end", MemberModifier.Public | MemberModifier.Final, NumericIntType);
+            var end = new DummyMethod(RangeType, "end", MemberModifier.Public | MemberModifier.Final, NumericIntType);
             var test = new DummyMethod(
-                VoidType,
+                RangeType,
                 "test",
                 MemberModifier.Public | MemberModifier.Final,
                 NumericByteType,
@@ -455,7 +458,7 @@ namespace KScr.Lib.Bytecode
                     }
                 });
             var accumulate = new DummyMethod(
-                VoidType,
+                RangeType,
                 "accumulate",
                 MemberModifier.Public | MemberModifier.Final,
                 NumericIntType,
@@ -467,7 +470,7 @@ namespace KScr.Lib.Bytecode
                         Type = NumericIntType
                     }
                 });
-            var decremental = new DummyMethod(VoidType, "decremental", MemberModifier.Public | MemberModifier.Final,
+            var decremental = new DummyMethod(RangeType, "decremental", MemberModifier.Public | MemberModifier.Final,
                 NumericByteType);
 
             // iterable methods
