@@ -70,8 +70,8 @@ namespace KScr.Lib
         public void Initialize()
         {
             if (Initialized) return;
-            Class.TypeType.Initialize(this);
             Class.VoidType.Initialize(this);
+            Class.TypeType.Initialize(this);
             Class.ObjectType.Initialize(this);
             Class.EnumType.Initialize(this);
             Class.ArrayType.Initialize(this);

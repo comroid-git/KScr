@@ -16,13 +16,12 @@ namespace KScr.Lib.Bytecode
         public static readonly Package LibClassPackage = Package.RootPackage.GetOrCreatePackage("org")
             .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr").GetOrCreatePackage("core");
 
-        public static readonly Class VoidType = new(LibClassPackage, "void", true, MemberModifier.Public, ClassType.Interface);
-
-        public static readonly Class TypeType = new(LibClassPackage, "type", true,
-            MemberModifier.Public | MemberModifier.Final);
-
-        public static readonly Class ObjectType = new(LibClassPackage, "object", true, MemberModifier.Public | MemberModifier.Native);
-
+        public static readonly Class VoidType = 
+            new(LibClassPackage, "void", true, MemberModifier.Public, ClassType.Interface);
+        public static readonly Class TypeType =
+            new(LibClassPackage, "type", true, MemberModifier.Public | MemberModifier.Final);
+        public static readonly Class ObjectType = 
+            new(LibClassPackage, "object", true, MemberModifier.Public | MemberModifier.Native);
         public static readonly Class EnumType =
             new(LibClassPackage, "enum", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
                 { TypeParameters = { new TypeParameter("T") } };
@@ -35,41 +34,33 @@ namespace KScr.Lib.Bytecode
 
         public static readonly Class StringType = new(LibClassPackage, "str", true,
             MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
-
-        public static readonly Class RangeType = new(LibClassPackage, "range", true,
-            MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
-
         public static readonly Class NumericType =
             new(LibClassPackage, "num", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
                 { TypeParameters = { new TypeParameter("T") } };
+        public static readonly Class RangeType = new(LibClassPackage, "range", true,
+            MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
 
         public static readonly Class IteratorType =
-            new(LibClassPackage, "Iterator", true, MemberModifier.Public, ClassType.Interface)
+            new(LibClassPackage, "Iterator", false, MemberModifier.Public, ClassType.Interface)
                 { TypeParameters = { new TypeParameter("T") } };
         public static readonly Class IterableType =
-            new(LibClassPackage, "Iterable", true, MemberModifier.Public, ClassType.Interface)
+            new(LibClassPackage, "Iterable", false, MemberModifier.Public, ClassType.Interface)
                 { TypeParameters = { new TypeParameter("T") } };
-
         public static readonly Class ThrowableType =
-            new(LibClassPackage, "Throwable", true, MemberModifier.Public, ClassType.Interface);
+            new(LibClassPackage, "Throwable", false, MemberModifier.Public, ClassType.Interface);
 
         public static readonly Instance NumericByteType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "byte", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
-
+            new Class(LibClassPackage, "byte", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x9};
         public static readonly Instance NumericShortType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "short", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
-
+            new Class(LibClassPackage, "short", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x8};
         public static readonly Instance NumericIntType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
-
+            new Class(LibClassPackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x7};
         public static readonly Instance NumericLongType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "long", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
-
+            new Class(LibClassPackage, "long", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x6};
         public static readonly Instance NumericFloatType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "float", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
-
+            new Class(LibClassPackage, "float", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x5};
         public static readonly Instance NumericDoubleType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "double", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
+            new Class(LibClassPackage, "double", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x4};
 
         private bool _initialized;
         private bool _lateInitialized;
@@ -139,15 +130,15 @@ namespace KScr.Lib.Bytecode
         public void Initialize(RuntimeBase vm)
         {
             if (_initialized) return;
-            switch (ClassType)
+            if (!Primitive) switch (ClassType)
             {
                 case ClassType.Class:
-                    Superclasses.Add(VoidType.DefaultInstance);
+                    Superclasses.Add(ObjectType.DefaultInstance);
                     break;
                 case ClassType.Enum:
                     Superclasses.Add(EnumType.DefaultInstance);
                     break;
-            }
+            } else if (Name != "void") Interfaces.Add(VoidType.DefaultInstance);
 
             vm.ClassStore.Add(this);
             DefaultInstance = GetInstance(vm, TypeParameters
@@ -171,7 +162,7 @@ namespace KScr.Lib.Bytecode
         {
             if (typeParameters.Length != TypeParameters.Count)
                 throw new ArgumentException("Invalid typeParameter count");
-            var instance = new Instance(this, owner, typeParameters);
+            var instance = new Instance(vm, this, owner, typeParameters);
             instance.Initialize(vm);
             return instance;
         }
@@ -536,12 +527,12 @@ namespace KScr.Lib.Bytecode
             private readonly Class? _owner;
             private bool _initialized;
 #pragma warning disable CS0628
-            protected internal Instance(Class baseClass, params ITypeInfo[] args) : this(baseClass, null, args)
+            protected internal Instance(Class baseClass, params ITypeInfo[] args) : this(null!, baseClass, null, args)
 #pragma warning restore CS0628
             {
             }
 #pragma warning disable CS0628
-            protected internal Instance(Class baseClass, Class? owner = null, params ITypeInfo[] args)
+            protected internal Instance(RuntimeBase vm, Class baseClass, Class? owner = null, params ITypeInfo[] args)
 #pragma warning restore CS0628
             {
                 _owner = owner;
@@ -551,6 +542,9 @@ namespace KScr.Lib.Bytecode
                     TypeParameterInstances[i] = new TypeParameter.Instance(
                         (TypeParameters.First(it => it.Name == BaseClass.TypeParameters[i].Name) as TypeParameter)!,
                         args[i]);
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                if (vm != null)
+                    ObjectId = vm.NextObjId(GetKey());
             }
 
             public Class BaseClass { get; }
@@ -592,7 +586,7 @@ namespace KScr.Lib.Bytecode
             }
 
             public bool Primitive => BaseClass.Primitive;
-            public long ObjectId { get; }
+            public long ObjectId { get; init; }
             public IClassInstance Type => Name == "type" ? this : TypeType.DefaultInstance;
 
             public string ToString(short variant)
