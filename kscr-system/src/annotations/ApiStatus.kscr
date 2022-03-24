@@ -1,4 +1,4 @@
-package org.comroid.kscr.annotation;
+package org.comroid.kscr.annotations;
 
 public final class ApiStatus {
     public annotation Experimental;
