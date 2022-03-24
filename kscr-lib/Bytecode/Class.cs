@@ -138,7 +138,10 @@ namespace KScr.Lib.Bytecode
                 case ClassType.Enum:
                     Superclasses.Add(EnumType.DefaultInstance);
                     break;
-            } else if (Name != "void") Interfaces.Add(VoidType.DefaultInstance);
+            } else if (Name == "void") ;
+            else if (Name == "object") Interfaces.Add(VoidType.DefaultInstance);
+            else if (Name != "object") Superclasses.Add(ObjectType.DefaultInstance);
+            
 
             vm.ClassStore.Add(this);
             DefaultInstance = GetInstance(vm, TypeParameters
