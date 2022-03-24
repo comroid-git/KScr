@@ -124,7 +124,7 @@ namespace KScr.Compiler.Class
                         var cls = ctx.FindTypeInfo(vm) as IClassInstance;
                         if (cls == null)
                             throw new CompilerException(ctx.Token.SourcefilePosition,
-                                "Invalid implements-Token; Type not found: " + ctx.NextToken?.Arg!);
+                                "Invalid implements-Token; Type not found: " + ctx.NextToken?.String());
                         if (cls.ClassType != ClassType.Interface)
                             throw new CompilerException(ctx.Token.SourcefilePosition,
                                 "Invalid implements-Token; Type is not interface: " + cls.FullName);
@@ -262,9 +262,10 @@ namespace KScr.Compiler.Class
                     ResetData();
 
                     break;
+                case TokenType.Terminator when !inBody:
+                    _active = false;
+                    break;
                 case TokenType.Terminator:
-                    if (!inBody)
-                        break;
                     if (method != null || property != null)
                     {
                         if (method != null && method.Body == null)
