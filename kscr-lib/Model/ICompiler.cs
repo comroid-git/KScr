@@ -239,13 +239,14 @@ namespace KScr.Lib.Model
 
         public ITypeInfo? FindTypeInfo(RuntimeBase vm, bool _rec = false)
         {
-            var type = FindType(vm, Token.Arg!);
-            if ((type?.CanonicalName.EndsWith(Token.Arg) ?? false) && NextToken?.Type != TokenType.ParDiamondOpen)
+            var name = Token.String();
+            var type = FindType(vm, name);
+            if ((type?.CanonicalName.EndsWith(name) ?? false) && NextToken?.Type != TokenType.ParDiamondOpen)
                 return type!;
             var baseCls = type?.BaseClass ?? Class;
-            if (baseCls == null && Class.TypeParameters.Any(x => x.Name == Token.Arg))
+            if (baseCls == null && Class.TypeParameters.Any(x => x.Name == name))
                 // find base type param
-                return Class.TypeParameters.Find(x => x.Name == Token.Arg)!;
+                return Class.TypeParameters.Find(x => x.Name == name)!;
             if (baseCls!.TypeParameters.Count > 0 && NextToken?.Type == TokenType.ParDiamondOpen)
             {
                 var args = new List<ITypeInfo>();
@@ -255,11 +256,10 @@ namespace KScr.Lib.Model
                     args.Add(FindTypeInfo(vm, true) ?? throw new InvalidOperationException());
                 } while (NextToken?.Type == TokenType.Comma);
 
-                TokenIndex += 1;
                 return baseCls.CreateInstance(vm, Class, args.ToArray());
             }
 
-            return baseCls.TypeParameters.FirstOrDefault(x => x.Name == Token.Arg);
+            return baseCls.TypeParameters.FirstOrDefault(x => x.Name == name);
         }
     }
 
