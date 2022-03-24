@@ -1,6 +1,8 @@
 package org.comroid.kscr.io;
 
-public class File : Pipe<str> {
+import org.comroid.kscr.Pipe;
+
+public class File implements Pipe<str> {
     public native str read(int length);
 
     public native int write(str text);
