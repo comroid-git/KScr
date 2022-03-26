@@ -61,6 +61,7 @@ namespace KScr.Compiler.Code
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     ctx.TokenIndex = subctx.TokenIndex - 1;
+                    _doneAnything = true;
                     break;
                 case If:
                     if (ctx.NextToken?.Type != ParRoundOpen)
@@ -99,6 +100,7 @@ namespace KScr.Compiler.Code
                         hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex - (hasParensBody ? 0 : 1);
+                    _doneAnything = true;
                     break;
                 case Else:
                     if (ctx.LastComponent?.CodeType != BytecodeType.StmtIf)
@@ -118,6 +120,7 @@ namespace KScr.Compiler.Code
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     ctx.TokenIndex = subctx.TokenIndex;
+                    _doneAnything = true;
                     break;
                 case For:
                     if (ctx.NextToken?.Type != ParRoundOpen)
@@ -140,7 +143,7 @@ namespace KScr.Compiler.Code
                     subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
                     CompilerLoop(vm, new StatementCompiler(this, false, Terminator), ref subctx);
                     ctx.LastComponent!.SubStatement = subctx.Statement;
-                    ctx.TokenIndex = subctx.TokenIndex;
+                    ctx.TokenIndex = subctx.TokenIndex + 1;
 
                     // parse continue-check
                     subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
@@ -157,6 +160,12 @@ namespace KScr.Compiler.Code
                     // parse accumulator
                     subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
                     subctx.Statement = new Statement();
+                    subctx.Statement = new Statement
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.StmtCond,
+                        TargetType = Lib.Bytecode.Class.NumericType.DefaultInstance
+                    };
                     CompilerLoop(vm, new StatementCompiler(this, false, ParRoundClose), ref subctx);
                     ctx.LastComponent!.AltStatement = subctx.Statement;
                     ctx.TokenIndex = subctx.TokenIndex + 1;
@@ -168,6 +177,7 @@ namespace KScr.Compiler.Code
                         hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
+                    _doneAnything = true;
                     break;
                 case ForEach:
                     if (ctx.NextToken?.Type != ParRoundOpen)
@@ -216,6 +226,7 @@ namespace KScr.Compiler.Code
                         hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
+                    _doneAnything = true;
                     break;
                 case While:
                     if (ctx.NextToken?.Type != ParRoundOpen)
@@ -252,6 +263,7 @@ namespace KScr.Compiler.Code
                         hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.LastComponent!.InnerCode = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
+                    _doneAnything = true;
                     break;
                 case Do:
                     ctx.Statement = new Statement
@@ -286,6 +298,7 @@ namespace KScr.Compiler.Code
                     CompilerLoop(vm, new ExpressionCompiler(this, false, ParRoundClose), ref subctx);
                     ctx.LastComponent!.SubStatement = subctx.Statement;
                     ctx.TokenIndex = subctx.TokenIndex + 1;
+                    _doneAnything = true;
                     break;
                 case Finally:
                     if (ctx.Statement == null)
@@ -300,6 +313,7 @@ namespace KScr.Compiler.Code
                         hasParensBody ? ParAccClose : Terminator), ref subctx);
                     ctx.Statement.Finally = subctx.ExecutableCode;
                     ctx.TokenIndex = subctx.TokenIndex;
+                    _doneAnything = true;
                     break;
             }
 
