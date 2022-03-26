@@ -21,10 +21,10 @@ public class PrintNumbers implements Throwable {
     public static void main() {
         int start = 0;
         int end = 12;
-        Iterable range = start~end; 
+        Iterable seq = start~end; 
         
-        stdio << "print numbers " + range.start() + " to (exclusive) " + (range.end() - 1 + 1) + ":";
-        foreach (i : range)
+        stdio << "print numbers " + seq.start() + " to (exclusive) " + (seq.end() - 1 + 1) + ":";
+        foreach (i : seq)
             stdio << i;
         //stdio << "i is now " + i; // should error (it did last time)
         
@@ -44,7 +44,7 @@ public class PrintNumbers implements Throwable {
         
         stdio << "length of ABC is " + "ABC".length();
         //todo: static methods NEED the class definition currently 
-        PrintNumbers.printSomething("StackSize: "+PrintNumbers.StackSize+"; range was = " + range, 6345);
+        PrintNumbers.printSomething("StackSize: "+PrintNumbers.StackSize+"; range was = " + seq + " -- int:", 6345);
         
         // forever print something to test for loop robustness
         // todo: this does not compile. find solution for empty statements
