@@ -152,5 +152,24 @@ namespace KScr.Test
 
             Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected), $"Expected output was:\n{expected}\nActual Output was \n{writer}");
         }
+
+        [Test, Repeat(TestRepeat)]
+        public void TestDoWhile()
+        {
+            int desiredLen = rng.Next() % RngMax;
+            if (desiredLen < 10)
+                desiredLen = RngMax;
+
+            var writer = new StringWriter();
+            Console.SetOut(writer);
+            var code = RunSourcecode($"int i = {desiredLen}; do {{ stdio << i; }} while (i--);");
+            string expected = "";
+            int i = desiredLen;
+            do expected += $"{i}\n";
+            while (i-- > 0);
+            expected = expected.Substring(0, expected.Length - 1);
+
+            Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected), $"Expected output was:\n{expected}\nActual Output was \n{writer}");
+        }
     }
 }
