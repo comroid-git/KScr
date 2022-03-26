@@ -157,7 +157,6 @@ namespace KScr.Lib
         public void Clear()
         {
             ObjectStore.Clear();
-            ClassStore.Clear();
         }
 
         public IObjectRef ComputeObject(Stack stack, VariableContext varctx, string key, Func<IObject> func)

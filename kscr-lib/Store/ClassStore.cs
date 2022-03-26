@@ -89,9 +89,5 @@ namespace KScr.Lib.Store
                 ;
             return package.GetOrCreateClass(vm, name);
         }
-
-        public void Clear()
-        {
-        }
     }
 }

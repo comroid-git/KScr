@@ -164,7 +164,7 @@ namespace KScr.Lib.Bytecode
                     stack[Default] = vm.PutObject(stack, VariableContext.Absolute, obj);
                     stack.StepInto(vm, SourcefilePosition, stack.Alp, ctor, stack =>
                     {
-                        SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
+                        SubComponent.Evaluate(vm, stack.Output()).Copy(output: Bet);
                         for (var i = 0; i < ctor.Parameters.Count; i++)
                             vm.PutLocal(stack, ctor.Parameters[i].Name, stack.Bet[vm, stack, i]);
                         ctor.Evaluate(vm, stack.Output());
@@ -184,21 +184,21 @@ namespace KScr.Lib.Bytecode
                     if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException(
                             "Invalid assignment; no Expression found");
-                    SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Del);
+                    SubComponent.Evaluate(vm, stack.Output()).Copy(output: Del);
                     stack[Default].Value = stack.Del?.Value;
                     break;
                 case (StatementComponentType.Code, BytecodeType.Return):
                     // return
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException("Invalid return statement; no Expression found");
-                    SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Alp | Omg);
+                    SubStatement.Evaluate(vm, stack.Output()).Copy(output: Alp | Omg);
                     stack.State = State.Return;
                     break;
                 case (StatementComponentType.Code, BytecodeType.Throw):
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException(
                             "Invalid throw statement; no Exception found");
-                    SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Alp | Omg);
+                    SubStatement.Evaluate(vm, stack.Output()).Copy(output: Alp | Omg);
                     stack.State = State.Throw;
                     break;
                 case (StatementComponentType.Code, BytecodeType.ParameterExpression):
@@ -207,7 +207,7 @@ namespace KScr.Lib.Bytecode
                     stack[Default] = new ObjectRef(Class.VoidType.DefaultInstance, InnerCode!.Main.Count);
                     for (var i = 0; i < InnerCode!.Main.Count; i++)
                     {
-                        InnerCode!.Main[i].Evaluate(vm, stack.Output()).Copy(Alp, Bet);
+                        InnerCode!.Main[i].Evaluate(vm, stack.Output()).Copy(output: Bet);
                         stack[Default][vm, stack, i] = stack.Bet?.Value ?? IObject.Null;
                     }
 
@@ -215,7 +215,7 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Code, BytecodeType.StmtIf):
                     stack.StepInside(vm, SourcefilePosition, "if", stack =>
                     {
-                        SubStatement!.Evaluate(vm, stack.Output(Phi, true));
+                        SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Phi);
                         if (stack.Phi.ToBool())
                             InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                         else if (SubComponent?.CodeType == BytecodeType.StmtElse)
@@ -225,15 +225,13 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Code, BytecodeType.StmtFor):
                     stack.StepInside(vm, SourcefilePosition, "for", stack =>
                     {
-                        SubStatement!.Evaluate(vm, stack.Output()).Copy(Alp, Del);
-                        SubComponent!.Evaluate(vm, stack.Output(Phi, true));
-                        while (stack.Phi.ToBool())
+                        SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Del);
+                        while (SubComponent!.Evaluate(vm, stack.Output(Phi)).Copy(output: Phi).ToBool())
                         {
                             InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                             var delStack = stack.Output();
                             AltStatement!.Evaluate(vm, delStack);
                             stack[Del].Value = delStack[Alp].Value;
-                            SubComponent!.Evaluate(vm, stack.Output(Phi, true));
                         }
                     });
                     break;

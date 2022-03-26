@@ -3,6 +3,7 @@ using System.IO;
 using KScr.Lib;
 using KScr.Lib.Core;
 using KScr.Lib.Exception;
+using KScr.Runtime;
 using NUnit.Framework;
 using static KScr.Test.TestUtil;
 
@@ -16,6 +17,7 @@ namespace KScr.Test
         [SetUp]
         public void setup()
         {
+            Program.VM.Clear();
             bakWrt = Console.Out;
         }
 
