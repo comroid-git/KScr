@@ -393,7 +393,7 @@ namespace KScr.Lib.Bytecode
                             if (mtd.IsNative() && !mtd.Parent.IsNative())
                                 if (vm.NativeRunner == null)
                                     throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
-                                else vm.NativeRunner.Invoke(vm, stack, mtd).Copy(Omg, Default);
+                                else vm.NativeRunner.Invoke(vm, stack, stack[Default][vm, stack, 0], mtd).Copy(Omg, Default);
                             else// todo having both next to each other is stupid
                             {
                                 stack.StepInto(vm, SourcefilePosition, stack[Default], mtd,
@@ -409,7 +409,7 @@ namespace KScr.Lib.Bytecode
                         if (prop.IsNative())
                             if (vm.NativeRunner == null)
                                 throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
-                            else vm.NativeRunner.Invoke(vm, stack, prop).Copy(Omg, Default);
+                            else vm.NativeRunner.Invoke(vm, stack, stack[Default][vm, stack, 0], prop).Copy(Omg, Default);
                         else
                             //stack[Default] = prop;
                             prop.ReadValue(vm, stack.Output(), stack[Default]?.Value ?? cls as IClassInstance ?? cls.DefaultInstance).Copy();
@@ -443,7 +443,7 @@ namespace KScr.Lib.Bytecode
                     if (!stack.Alp.IsPipe)
                         throw new FatalException("Cannot emit value into non-pipe accessor");
                     SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                    stack.Alp.WriteValue(vm, stack.Channel(Bet), stack.Del?.Value ?? IObject.Null);
+                    stack.Alp.WriteValue(vm, stack.Channel(Bet), stack.Bet?.Value ?? IObject.Null);
                     break;
                 case (StatementComponentType.Consumer, _):
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Declaration) == 0)
@@ -451,7 +451,7 @@ namespace KScr.Lib.Bytecode
                     if (!stack.Alp.IsPipe)
                         throw new FatalException("Cannot consume value from non-pipe accessor");
                     SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                    stack.Alp.ReadValue(vm, stack.Channel(Bet), stack.Del?.Value ?? IObject.Null);
+                    stack.Alp.ReadValue(vm, stack.Channel(Bet), stack.Bet?.Value ?? IObject.Null);
                     break;
                 default:
                     throw new NotImplementedException($"Not Implemented: {Type} {CodeType}");

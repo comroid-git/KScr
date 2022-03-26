@@ -308,6 +308,24 @@ namespace KScr.Compiler
                 case "void":
                     token = new Token(srcPos, TokenType.IdentVoid);
                     break;
+                case "object":
+                    token = new Token(srcPos, TokenType.IdentObject);
+                    break;
+                case "type":
+                    token = new Token(srcPos, TokenType.IdentType);
+                    break;
+                case "array":
+                    token = new Token(srcPos, TokenType.IdentArray);
+                    break;
+                case "tuple":
+                    token = new Token(srcPos, TokenType.IdentTuple);
+                    break;
+                case "range":
+                    token = new Token(srcPos, TokenType.IdentRange);
+                    break;
+                case "pipe":
+                    token = new Token(srcPos, TokenType.IdentPipe);
+                    break;
                 case "true":
                     token = new Token(srcPos, TokenType.LiteralTrue);
                     break;

@@ -10,5 +10,5 @@ namespace KScr.Native.System.Impl;
 public static class Thread
 {
     [NativeImpl]
-    public static IObjectRef ctor(RuntimeBase vm, Stack stack, params IObject[] args) => throw new NotImplementedException();
+    public static IObjectRef ctor(RuntimeBase vm, Stack stack, IObject target, params IObject[] args) => throw new NotImplementedException();
 }

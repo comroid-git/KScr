@@ -35,7 +35,14 @@ namespace KScr.Lib.Core
                     throw new FatalException("Static method invoked on object instance");
                 var param = (icm as IMethod)?.Parameters;
                 // todo: use correct callLocation
-                stack.StepInto(vm, icm.SourceLocation, stack.Alp!, icm, stack =>
+                if (icm.IsNative())
+                {
+                    stack[StackOutput.Del] = new ObjectRef(Class.VoidType.DefaultInstance, args.Length);
+                    for (var i = 0; i < args.Length; i++) 
+                        stack[StackOutput.Del]![vm, stack, i] = args[i];
+                    vm.NativeRunner!.Invoke(vm, stack.Channel(StackOutput.Del), this, icm).Copy(StackOutput.Omg, StackOutput.Alp);
+                }
+                else stack.StepInto(vm, icm.SourceLocation, stack.Alp!, icm, stack =>
                 {
                     for (var i = 0; i < (param?.Count ?? 0); i++)
                         vm.PutLocal(stack, param![i].Name, args.Length - 1 < i ? IObject.Null : args[i]);

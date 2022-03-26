@@ -121,8 +121,19 @@ namespace KScr.Lib.Store
 
         public int Length => Refs.Length;
         public bool IsPipe => ReadAccessor != null || WriteAccessor != null || Value.Type.Interfaces.Any(iface => iface.Name == "pipe");
-        public Stack ReadValue(RuntimeBase vm, Stack stack, IObject @from) => ReadAccessor!.Evaluate(vm, stack);
-        public Stack WriteValue(RuntimeBase vm, Stack stack, IObject to) => WriteAccessor!.Evaluate(vm, stack);
+        public Stack ReadValue(RuntimeBase vm, Stack stack, IObject @from)
+        {
+            if (Value.ObjectId != 0 && Class.PipeType.CanHold(Value.Type))
+                return Value.Invoke(vm, stack, "read", stack[StackOutput.Default].Value);
+            return ReadAccessor!.Evaluate(vm, stack);
+        }
+
+        public Stack WriteValue(RuntimeBase vm, Stack stack, IObject to)
+        {
+            if (Value.ObjectId != 0 && Class.PipeType.CanHold(Value.Type))
+                return Value.Invoke(vm, stack, "write", stack[StackOutput.Default].Value);
+            return WriteAccessor!.Evaluate(vm, stack);
+        }
 
         public virtual IEvaluable? ReadAccessor { get; set; }
         public virtual IEvaluable? WriteAccessor { get; set; }
@@ -134,7 +145,7 @@ namespace KScr.Lib.Store
                 if (ReadAccessor != null)
                 {
                     var output = Numeric.Constant(vm, i);
-                    ReadAccessor!.Evaluate(vm, stack);
+                    ReadValue(vm, stack, stack[StackOutput.Default].Value);
                     return output.Value;
                 }
                 else
@@ -148,7 +159,7 @@ namespace KScr.Lib.Store
                 if (WriteAccessor != null)
                 {
                     var output = new ObjectRef(Class.VoidType.DefaultInstance) { Value = value };
-                    WriteAccessor!.Evaluate(vm, stack);
+                    WriteValue(vm, stack, stack[StackOutput.Default].Value);
                 }
                 else
                 {

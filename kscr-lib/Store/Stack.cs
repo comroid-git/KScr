@@ -186,7 +186,7 @@ namespace KScr.Lib.Store
         public Stack Channel(StackOutput channel, StackOutput outputMode = StackOutput.Alp, bool copyRefs = false)
         {
             var stack = new Stack(this, outputMode, false);
-            stack[outputMode] = this[channel];
+            stack[outputMode | channel] = this[channel];
             return stack;
         }
 
@@ -270,7 +270,7 @@ namespace KScr.Lib.Store
                 throw new StackTraceException(CallLocation, _local, ex);
             }
 #if !DEBUG
-            catch (FatalException ex)
+            catch (System.Exception ex)
             {
                 //if (RuntimeBase.DebugMode)
                     // ReSharper disable once PossibleIntendedRethrow

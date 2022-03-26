@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reflection;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
+using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
@@ -55,13 +56,13 @@ public class NativeRunner : INativeRunner
         return true;
     }
 
-    public Stack Invoke(RuntimeBase vm, Stack stack, IClassMember member)
+    public Stack Invoke(RuntimeBase vm, Stack stack, IObject target, IClassMember member)
     {
         if (!member.IsNative())
             throw new FatalException("Member is not native: " + member);
         stack.StepInto(vm, new SourcefilePosition{SourcefilePath = $"{member.FullName} <native>"}, member, stack =>
         {
-            stack[Alp | Omg] = _types[member.Parent.FullName].Members[member.Name](vm, stack, (stack.Del as ObjectRef)?.Refs!); 
+            stack[Alp | Omg] = _types[member.Parent.FullName].Members[member.Name](vm, stack, target, (stack.Del as ObjectRef)?.Refs!); 
         }, Alp | Omg);
         return stack;
     }
@@ -78,8 +79,8 @@ public sealed class NativeImpl
         Name = name;
         Type = type;
     }
-    internal NativeImplMember WrapMethod(MethodInfo method) => (vm, stack, args) =>
+    internal NativeImplMember WrapMethod(MethodInfo method) => (vm, stack, target, args) =>
     {
-        return method.Invoke(null, new object[]{vm, stack, args}) as IObjectRef;
+        return method.Invoke(null, new object[]{vm, stack, target, args}) as IObjectRef;
     };
 }

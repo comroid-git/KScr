@@ -118,7 +118,7 @@ namespace KScr.Compiler.Class
                     if (inBody)
                         throw new CompilerException(ctx.Token.SourcefilePosition,
                             "Invalid implements-Token inside class body");
-                    while (ctx.NextToken?.Type == TokenType.Word)
+                    while (ctx.NextToken?.Type is TokenType.Word or TokenType.IdentPipe)
                     {
                         ctx.TokenIndex += 1;
                         var cls = ctx.FindTypeInfo(vm) as IClassInstance;

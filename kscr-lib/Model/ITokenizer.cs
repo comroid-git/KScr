@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Store;
+using static KScr.Lib.Model.TokenType;
 
 namespace KScr.Lib.Model
 {
@@ -31,6 +32,10 @@ namespace KScr.Lib.Model
         ParDiamondClose = 0x0104_81,
 
         IdentVoid = 0x0108_01,
+        IdentObject = 0x0108_02,
+        IdentType = 0x0108_04,
+        IdentArray = 0x0108_08,
+        IdentTuple = 0x0108_0F,
         IdentNum = 0x0108_10,
         IdentNumByte = 0x0108_20,
         IdentNumShort = 0x0108_21,
@@ -38,6 +43,8 @@ namespace KScr.Lib.Model
         IdentNumLong = 0x0108_24,
         IdentNumFloat = 0x0108_28,
         IdentNumDouble = 0x0108_2F,
+        IdentRange = 0x0108_41,
+        IdentPipe = 0x0108_42,
         IdentStr = 0x0108_80,
         IdentVar = 0x0108_FF,
 
@@ -115,84 +122,90 @@ namespace KScr.Lib.Model
         {
             return token.Type switch
             {
-                TokenType.Whitespace => " ",
-                TokenType.Terminator => ";",
-                TokenType.Word => token.Arg!,
-                TokenType.Return => "return",
-                TokenType.Throw => "throw",
-                TokenType.This => "this",
-                TokenType.StdIo => "stdio",
-                TokenType.Dot => ".",
-                TokenType.Comma => ",",
-                TokenType.ParRoundOpen => "(",
-                TokenType.ParRoundClose => ")",
-                TokenType.ParSquareOpen => "[",
-                TokenType.ParSquareClose => "]",
-                TokenType.ParAccOpen => "{",
-                TokenType.ParAccClose => "}",
-                TokenType.ParDiamondOpen => "<",
-                TokenType.ParDiamondClose => ">",
-                TokenType.IdentVoid => "void",
-                TokenType.IdentNum => "num",
-                TokenType.IdentNumByte => "byte",
-                TokenType.IdentNumShort => "short",
-                TokenType.IdentNumInt => "int",
-                TokenType.IdentNumLong => "long",
-                TokenType.IdentNumFloat => "float",
-                TokenType.IdentNumDouble => "double",
-                TokenType.IdentStr => "str",
-                TokenType.IdentVar => "var",
-                TokenType.LiteralNull => "null",
-                TokenType.LiteralNum => "num",
-                TokenType.LiteralTrue => "true",
-                TokenType.LiteralFalse => "false",
-                TokenType.LiteralStr => "str",
-                TokenType.OperatorPlus => "+",
-                TokenType.OperatorMinus => "-",
-                TokenType.OperatorMultiply => "*",
-                TokenType.OperatorDivide => "/",
-                TokenType.OperatorModulus => "%",
-                TokenType.OperatorEquals => "=",
-                TokenType.Circumflex => "^",
-                TokenType.Ampersand => "&",
-                TokenType.VertBar => "|",
-                TokenType.Exclamation => "!",
-                TokenType.Question => "?",
-                TokenType.Colon => ":",
-                TokenType.Tilde => "~",
-                TokenType.If => "if",
-                TokenType.Else => "else",
-                TokenType.Try => "try",
-                TokenType.Catch => "catch",
-                TokenType.Finally => "finally",
-                TokenType.Do => "do",
-                TokenType.While => "while",
-                TokenType.For => "for",
-                TokenType.ForEach => "foreach",
-                TokenType.Switch => "foreach",
-                TokenType.Case => "foreach",
-                TokenType.Default => "foreach",
-                TokenType.Break => "foreach",
-                TokenType.Continue => "foreach",
-                TokenType.New => "foreach",
-                TokenType.Super => "super",
-                TokenType.Extends => "extends",
-                TokenType.Implements => "implements",
-                TokenType.Public => "public",
-                TokenType.Internal => "internal",
-                TokenType.Protected => "protected",
-                TokenType.Private => "private",
+                Whitespace => " ",
+                Terminator => ";",
+                Word => token.Arg!,
+                Return => "return",
+                Throw => "throw",
+                This => "this",
+                StdIo => "stdio",
+                Dot => ".",
+                Comma => ",",
+                ParRoundOpen => "(",
+                ParRoundClose => ")",
+                ParSquareOpen => "[",
+                ParSquareClose => "]",
+                ParAccOpen => "{",
+                ParAccClose => "}",
+                ParDiamondOpen => "<",
+                ParDiamondClose => ">",
+                IdentVoid => "void",
+                IdentNum => "num",
+                IdentNumByte => "byte",
+                IdentNumShort => "short",
+                IdentNumInt => "int",
+                IdentNumLong => "long",
+                IdentNumFloat => "float",
+                IdentNumDouble => "double",
+                IdentStr => "str",
+                IdentVar => "var",
+                LiteralNull => "null",
+                LiteralNum => "num",
+                LiteralTrue => "true",
+                LiteralFalse => "false",
+                LiteralStr => "str",
+                OperatorPlus => "+",
+                OperatorMinus => "-",
+                OperatorMultiply => "*",
+                OperatorDivide => "/",
+                OperatorModulus => "%",
+                OperatorEquals => "=",
+                Circumflex => "^",
+                Ampersand => "&",
+                VertBar => "|",
+                Exclamation => "!",
+                Question => "?",
+                Colon => ":",
+                Tilde => "~",
+                If => "if",
+                Else => "else",
+                Try => "try",
+                Catch => "catch",
+                Finally => "finally",
+                Do => "do",
+                While => "while",
+                For => "for",
+                ForEach => "foreach",
+                Switch => "foreach",
+                Case => "foreach",
+                Default => "foreach",
+                Break => "foreach",
+                Continue => "foreach",
+                New => "foreach",
+                Super => "super",
+                Extends => "extends",
+                Implements => "implements",
+                Public => "public",
+                Internal => "internal",
+                Protected => "protected",
+                Private => "private",
                 TokenType.Class => "class",
-                TokenType.Interface => "interface",
+                Interface => "interface",
                 TokenType.Enum => "enum",
-                TokenType.Annotation => "annotation",
-                TokenType.Static => "static",
-                TokenType.Dynamic => "dynamic",
-                TokenType.Abstract => "abstract",
-                TokenType.Final => "final",
-                TokenType.Native => "native",
+                Annotation => "annotation",
+                Static => "static",
+                Dynamic => "dynamic",
+                Abstract => "abstract",
+                Final => "final",
+                Native => "native",
                 TokenType.Package => "package",
-                TokenType.Import => "import",
+                Import => "import",
+                IdentObject => "object",
+                IdentType => "type",
+                IdentArray => "array",
+                IdentTuple => "tuple",
+                IdentRange => "range",
+                IdentPipe => "pipe",
                 _ => throw new ArgumentOutOfRangeException(token.ToString())
             };
         }
@@ -200,21 +213,21 @@ namespace KScr.Lib.Model
         public static MemberModifier? Modifier(this TokenType type)
         {
             var mod = MemberModifier.None;
-            if ((type & TokenType.Public) == TokenType.Public)
+            if ((type & Public) == Public)
                 mod |= MemberModifier.Public;
-            if ((type & TokenType.Protected) == TokenType.Protected)
+            if ((type & Protected) == Protected)
                 mod |= MemberModifier.Protected;
-            if ((type & TokenType.Internal) == TokenType.Internal)
+            if ((type & Internal) == Internal)
                 mod |= MemberModifier.Internal;
-            if ((type & TokenType.Private) == TokenType.Private)
+            if ((type & Private) == Private)
                 mod |= MemberModifier.Private;
-            if ((type & TokenType.Static) == TokenType.Static)
+            if ((type & Static) == Static)
                 mod |= MemberModifier.Static;
-            if ((type & TokenType.Abstract) == TokenType.Abstract)
+            if ((type & Abstract) == Abstract)
                 mod |= MemberModifier.Abstract;
-            if ((type & TokenType.Final) == TokenType.Final)
+            if ((type & Final) == Final)
                 mod |= MemberModifier.Final;
-            if ((type & TokenType.Native) == TokenType.Native)
+            if ((type & Native) == Native)
                 mod |= MemberModifier.Native;
             return mod == 0 ? null : mod;
         }
@@ -223,11 +236,11 @@ namespace KScr.Lib.Model
         {
             if ((type & TokenType.Class) == TokenType.Class)
                 return Model.ClassType.Class;
-            if ((type & TokenType.Interface) == TokenType.Interface)
+            if ((type & Interface) == Interface)
                 return Model.ClassType.Interface;
             if ((type & TokenType.Enum) == TokenType.Enum)
                 return Model.ClassType.Enum;
-            if ((type & TokenType.Annotation) == TokenType.Annotation)
+            if ((type & Annotation) == Annotation)
                 return Model.ClassType.Annotation;
             return null;
         }
@@ -285,7 +298,7 @@ namespace KScr.Lib.Model
 
     public abstract class AbstractToken : IToken
     {
-        public AbstractToken(SourcefilePosition sourcefilePosition, TokenType type = TokenType.Whitespace,
+        public AbstractToken(SourcefilePosition sourcefilePosition, TokenType type = Whitespace,
             string arg = null!)
         {
             SourcefilePosition = sourcefilePosition;
@@ -305,7 +318,7 @@ namespace KScr.Lib.Model
 
     public sealed class Token : AbstractToken
     {
-        public Token(SourcefilePosition pos, TokenType type = TokenType.Whitespace, string arg = null!) : base(pos,
+        public Token(SourcefilePosition pos, TokenType type = Whitespace, string arg = null!) : base(pos,
             type, arg)
         {
         }

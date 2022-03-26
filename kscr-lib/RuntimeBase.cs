@@ -190,22 +190,23 @@ namespace KScr.Lib
                 foreach (var stackTraceElement in Stack.StackTrace)
                     Console.WriteLine($"\t\tat\t{stackTraceElement.Message}");
             }
-#if !DEBUG
-            catch (System.Exception exc)
-            {
-                //if (DebugMode)
-                    // ReSharper disable once PossibleIntendedRethrow
-                //    throw exc;
-                Console.WriteLine($"An internal exception occurred:\t{exc.Message}");
-                while (exc.InnerException is InternalException inner && (exc = inner) != null)
-                    Console.WriteLine($"\t\t- Caused by:\t{inner.Message}");
-            }
-#endif
             return stack;
         }
 
         public IClassInstance? FindType(string name, Package? package = null, IClass? owner = null)
         {
+            if (name.EndsWith("object"))
+                return Class.ObjectType.DefaultInstance;
+            if (name.EndsWith("type"))
+                return Class.TypeType.DefaultInstance;
+            if (name.EndsWith("enum"))
+                return Class.EnumType.DefaultInstance;
+            if (name.EndsWith("array"))
+                return Class.ArrayType.DefaultInstance;
+            if (name.EndsWith("tuple"))
+                return Class.TupleType.DefaultInstance;
+            if (name.EndsWith("pipe"))
+                return Class.PipeType.DefaultInstance;
             if (name == "num")
                 return Class.NumericType.DefaultInstance;
             if (name.Contains("num"))
