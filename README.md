@@ -1,4 +1,4 @@
-# KScr.NET
+# KScr.NET ![TeamCity Build Status](https://teamcity.comroid.org/app/rest/builds/buildType:(id:project_KScr_Test),branch:master/statusIcon)
 A simple interpreter that attempts to grow into an object oriented language (eventually)
 
 ## To-Do List
