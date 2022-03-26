@@ -539,7 +539,8 @@ namespace KScr.Compiler.Code
                     break;
                 case ParAccClose:
                 case Terminator:
-                    if (ctx.Statement.Type == StatementComponentType.Undefined
+                    if (ctx.StatementIndex > -1
+                        && ctx.Statement.Type == StatementComponentType.Undefined
                         && ctx.Statement.CodeType == BytecodeType.Undefined
                         && ctx.Statement.Main.Count > 0)
                     {
@@ -547,8 +548,9 @@ namespace KScr.Compiler.Code
                         ctx.Statement.CodeType = BytecodeType.Statement;
                     }
 
-                    if (!_terminators.Contains(ctx.NextToken!.Type)
-                        && (ctx.Statement.Type != StatementComponentType.Undefined
+                    if (!_terminators.Contains(ctx.NextToken!.Type) 
+                        && ctx.StatementIndex > -1 
+                        && (ctx.Statement.Type != StatementComponentType.Undefined 
                             || ctx.Statement.CodeType != BytecodeType.Undefined))
                         ctx.Statement = new Statement();
                     /*
@@ -562,7 +564,7 @@ namespace KScr.Compiler.Code
                     break;
             }
 
-            if (_terminators.Contains(ctx.NextToken!.Type))
+            if (_terminators.Contains(ctx.NextToken!.Type) || _terminators.Contains(ctx.Token.Type))
             {
                 if (_endBeforeTerminator)
                     ctx.TokenIndex -= 1;
