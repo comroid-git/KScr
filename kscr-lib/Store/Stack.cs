@@ -229,7 +229,7 @@ namespace KScr.Lib.Store
         public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IObjectRef? into, IClassMember local, Action<Stack> exec, StackOutput maintain = StackOutput.None)
         {
             into ??= vm.ConstantVoid;
-            var cls = into.Value.Type;
+            var cls = into.Value as IClassInstance ?? into.Value.Type;
             string localStr = cls.FullName + '#' + into.Value.ObjectId.ToString("X")
                               + '.' + local.Name + (local is IMethod mtd
                                   ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) +

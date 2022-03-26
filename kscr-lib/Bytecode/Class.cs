@@ -129,7 +129,7 @@ namespace KScr.Lib.Bytecode
             var icm = DeclaredMembers.Values.FirstOrDefault(x => x.Name == Method.StaticInitializerName);
             if (icm == null)
                 return stack;
-            stack.StepInto(vm, new SourcefilePosition(), stack.Alp, icm, stack => icm.Evaluate(vm, stack));
+            stack.StepInto(vm, new SourcefilePosition(), SelfRef, icm, stack => icm.Evaluate(vm, stack));
             return stack;
         }
 

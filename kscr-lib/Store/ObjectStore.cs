@@ -72,6 +72,7 @@ namespace KScr.Lib.Store
         Stack WriteValue(RuntimeBase vm, Stack stack, IObject to);
         IEvaluable? ReadAccessor { get; set; }
         IEvaluable? WriteAccessor { get; set; }
+        [Obsolete]
         IObject Value { get; set; }
         IClassInstance Type { get; }
         IObject this[RuntimeBase vm, Stack stack, int i] { get; set; }
