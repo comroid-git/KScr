@@ -15,7 +15,7 @@ namespace KScr.Test
 #if DEBUG
             = 2;
 #else
-            = 16;
+            = 64;
 #endif
         public static IObjectRef RunSourcecode(string code)
         {
