@@ -3,6 +3,12 @@ package org.comroid.kscr.io;
 import org.comroid.kscr.Pipe;
 
 public class File implements Pipe<str> {
+    public str RelativePath { get; }
+
+    public File(str path) {
+        this.RelativePath = path;
+    }
+
     public native str read(int length);
 
     public native int write(str text);
