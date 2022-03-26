@@ -17,6 +17,7 @@ namespace KScr.Test
 #else
             = 64;
 #endif
+        public const int TestTimeout = 2000;
         public static IObjectRef RunSourcecode(string code)
         {
             var vm = Program.VM;

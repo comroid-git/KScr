@@ -98,7 +98,7 @@ namespace KScr.Test
             Assert.AreEqual(desired % 2 > 0 ? desired : desired * 2, (code.Value as Numeric).IntValue);
         }
 
-        [Test, Repeat(TestRepeat)]
+        [Test, Timeout(TestTimeout), Repeat(TestRepeat)]
         public void TestFor()
         {
             int desiredLen = rng.Next() % RngMax;
@@ -116,7 +116,7 @@ namespace KScr.Test
             Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected), $"Expected output was:\n{expected}\nActual Output was \n{writer}");
         }
 
-        [Test, Repeat(TestRepeat)]
+        [Test, Timeout(TestTimeout), Repeat(TestRepeat)]
         public void TestForEach()
         {
             int desiredLen = rng.Next() % RngMax;
@@ -134,7 +134,7 @@ namespace KScr.Test
             Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected), $"Expected output was:\n{expected}\nActual Output was \n{writer}");
         }
 
-        [Test, Repeat(TestRepeat)]
+        [Test, Timeout(TestTimeout), Repeat(TestRepeat)]
         public void TestWhile()
         {
             int desiredLen = rng.Next() % RngMax;
@@ -153,7 +153,7 @@ namespace KScr.Test
             Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected), $"Expected output was:\n{expected}\nActual Output was \n{writer}");
         }
 
-        [Test, Repeat(TestRepeat)]
+        [Test, Timeout(TestTimeout), Repeat(TestRepeat)]
         public void TestDoWhile()
         {
             int desiredLen = rng.Next() % RngMax;
