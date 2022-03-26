@@ -612,7 +612,7 @@ namespace KScr.Lib.Bytecode
                 };
             }
 
-            public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+            public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
             {
                 // try invoke static method
                 if (DeclaredMembers.TryGetValue(member, out var icm))
@@ -623,7 +623,7 @@ namespace KScr.Lib.Bytecode
                     for (var i = 0; i < param.Count; i++)
                         vm.PutLocal(stack, param[i].Name, args.Length - 1 < i ? IObject.Null : args[i]);
                     icm.Evaluate(vm, stack);
-                    return stack.Alp;
+                    return stack;
                 }
 
                 throw new FatalException("Method not implemented: " + member);

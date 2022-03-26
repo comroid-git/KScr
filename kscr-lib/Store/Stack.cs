@@ -298,8 +298,8 @@ namespace KScr.Lib.Store
                             || Omg.Value is not { } throwable)
                             throw new FatalException(
                                 "Value is not instanceof Throwable: " + Omg.Value.ToString(0));
-                        RuntimeBase.ExitCode = (throwable.Invoke(vm, Output(), "ExitCode")!.Value as Numeric)!.IntValue;
-                        var msg = throwable.Invoke(vm, Output(StackOutput.Bet), "Message")!.Value.ToString(0);
+                        RuntimeBase.ExitCode = (throwable.Invoke(vm, Output(), "ExitCode").Alp!.Value as Numeric)!.IntValue;
+                        var msg = throwable.Invoke(vm, Output(StackOutput.Bet), "Message").Alp!.Value.ToString(0);
                         throw new InternalException(throwable.Type.Name + ": " + msg);
                     }
                 }
@@ -332,15 +332,15 @@ namespace KScr.Lib.Store
                 vm.ObjectStore.ClearLocals(this);
         }
 
-        public void Copy(StackOutput passthrough) => Copy(passthrough, passthrough);
+        public IObjectRef? Copy(StackOutput passthrough) => Copy(passthrough, passthrough);
 
-        public void Copy(StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
+        public IObjectRef? Copy(StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
             => Copy(_parent, channel, output);
 
-        public void Copy(Stack target, StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
+        public IObjectRef? Copy(Stack target, StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
         {
             CopyState();
-            target[output == StackOutput.Default ? _output : output] = this[channel];
+            return target[output] = this[channel];
         }
 
         public void CopyState(Stack target = null!)

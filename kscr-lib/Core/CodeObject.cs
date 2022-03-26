@@ -25,7 +25,7 @@ namespace KScr.Lib.Core
         }
         public override string ToString() => ToString(0);
 
-        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+        public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             // try use overrides first
             if (Type.ClassMembers.FirstOrDefault(x => x.Name == member) is { } icm 
@@ -42,15 +42,15 @@ namespace KScr.Lib.Core
                     icm.Evaluate(vm, stack.Output()).Copy(StackOutput.Omg, StackOutput.Alp);
                 }, StackOutput.Alp);
 
-                return stack.Alp;
+                return stack;
             }
             // then inherited members
             else if ((Type.BaseClass as IClass).InheritedMembers
                      .FirstOrDefault(x => x.Name == member && !x.IsAbstract()) is { } superMember 
                      && !(superMember.IsNative() && superMember.Parent.IsNative()))
             {
-                superMember.Evaluate(vm, stack.Output(StackOutput.Alp));
-                return stack.Alp;
+                superMember.Evaluate(vm, stack.Output());
+                return stack;
             }
             // then primitive implementations
             else
@@ -58,21 +58,27 @@ namespace KScr.Lib.Core
                 switch (member)
                 {
                     case "InternalID":
-                        return Numeric.Constant(vm, ObjectId);
+                        stack[StackOutput.Default] = Numeric.Constant(vm, ObjectId);
+                        break;
                     case "toString":
                         short variant;
                         if (args.Length > 0 && args[0] is Numeric num)
                             variant = num.ShortValue;
                         else throw new FatalException("Invalid argument: " + args[0]);
-                        return String.Instance(vm, ToString(variant));
+                        stack[StackOutput.Default] = String.Instance(vm, ToString(variant));
+                        break;
                     case "equals":
-                        return args[0]!.ObjectId == ObjectId ? vm.ConstantTrue : vm.ConstantFalse;
+                        stack[StackOutput.Default] = args[0]!.ObjectId == ObjectId ? vm.ConstantTrue : vm.ConstantFalse;
+                        break;
                     case "getType":
-                        return Type.SelfRef;
+                        stack[StackOutput.Default] = Type.SelfRef;
+                        break;
+                    default: throw new FatalException("Method not implemented: " + member);
                 }
+
+                return stack;
             }
 
-            throw new FatalException("Method not implemented: " + member);
         }
 
         public string GetKey()

@@ -32,7 +32,7 @@ namespace KScr.Lib.Bytecode
                     switch (component.Type)
                     {
                         default:
-                            component.Evaluate(vm, stack);
+                            component.Evaluate(vm, stack).Copy(Omg);
                             break;
                     }
                     if (stack.State != State.Normal)
@@ -243,13 +243,14 @@ namespace KScr.Lib.Bytecode
                     {
                         SubStatement!.Evaluate(vm, stack.Output()).Copy(Alp, Alp);
                         var iterable = stack.Alp.Value!;
-                        stack[Eps] = iterable.Invoke(vm, stack.Output(), "iterator");
+                        iterable.Invoke(vm, stack.Output(), "iterator").Copy(Alp, Eps);
                         var iterator = stack.Eps.Value;
                         vm[stack, VariableContext.Local, Arg] = stack[Del] 
                             = new ObjectRef(iterator.Type.TypeParameterInstances[0].ResolveType(vm, iterator.Type));
-                        while ((stack[Phi] = iterator.Invoke(vm, stack.Output(), "hasNext")).ToBool())
+                        while (iterator.Invoke(vm, stack.Output(), "hasNext").Copy(Alp, Phi).ToBool())
                         {
-                            stack[Del].Value = iterator.Invoke(vm, stack.Output(), "next").Value;
+                            iterator.Invoke(vm, stack.Output(), "next").Copy(Alp, Bet);
+                            stack[Del].Value = stack[Bet].Value;
                             InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                         }
                     });
@@ -301,8 +302,7 @@ namespace KScr.Lib.Bytecode
                                 (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new FatalException("Invalid binary operator; missing right operand");
                             SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                            stack[Default] = stack.Alp.Value!.Invoke(vm, 
-                                stack.Output(Phi, true), "equals", stack.Bet.Value) ?? vm.ConstantFalse;
+                            stack.Alp.Value!.Invoke(vm, stack.Output(), "equals", stack.Bet.Value).Copy(Alp, Alp | Phi);
                             if (op == Operator.NotEquals)
                                 stack[Default] = stack[Default].LogicalNot(vm);
                             break;
@@ -335,11 +335,13 @@ namespace KScr.Lib.Bytecode
                                 || (stack[Default]?.Value?.Type.BaseClass as IClass).ClassMembers.Any(x => x.Name == "op" + op))
                             {
                                 if (stack[Default]?.Value?.Type.Name == "void")
-                                    stack[Default].Value = stack[Default]?.Value.Invoke(vm, stack.Output(), "toString").Value;
-                                stack[Default] = stack[Default].Value!.Invoke(vm,
+                                {
+                                    stack[Default] = String.Instance(vm, "null");
+                                }
+                                stack[Default].Value!.Invoke(vm,
                                     stack.Output(Bet), "op" + ((op & Operator.Compound) == Operator.Compound
                                         ? op ^ Operator.Compound
-                                        : op), stack.Bet.Value)!;
+                                        : op), stack.Bet.Value).Copy(Bet, Default);
                             }
                             else
                             {
@@ -399,8 +401,8 @@ namespace KScr.Lib.Bytecode
                                 stack.StepInto(vm, SourcefilePosition, stack[Default], mtd,
                                     stack =>
                                     {
-                                        stack[Alp] = stack.Alp.Value!.Invoke(vm, stack.Output(), Arg,
-                                            (stack.Del as ObjectRef)!.Refs);
+                                        stack.Alp.Value!.Invoke(vm, stack.Output(), Arg,
+                                            (stack.Del as ObjectRef)!.Refs).Copy(Alp);
                                     }, Alp);
                             }
                     }

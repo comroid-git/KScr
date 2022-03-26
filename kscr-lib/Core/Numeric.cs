@@ -86,22 +86,27 @@ namespace KScr.Lib.Core
             };
         }
 
-        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+        public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {
                 case "toString":
-                    return String.Instance(vm, StringValue);
+                    stack[StackOutput.Default] = String.Instance(vm, StringValue);
+                    break;
                 case "ExitCode":
-                    return Constant(vm, IntValue);
+                    stack[StackOutput.Default] = Constant(vm, IntValue);
+                    break;
                 case "equals":
                     if (args[0] is not Numeric other)
-                        return vm.ConstantFalse;
+                    {
+                        stack[StackOutput.Default] = vm.ConstantFalse;
+                        break;
+                    }
                     if (Mode is NumericMode.Float or NumericMode.Double && args.Length == 2 &&
                         args[1] is not Numeric delta)
                         throw new FatalException("Invalid second argument; expected: num delta");
                     else delta = (Constant(vm, 0.001).Value as Numeric)!;
-                    return Mode switch
+                    stack[StackOutput.Default] = Mode switch
                     {
                         NumericMode.Byte => ByteValue == other.ByteValue,
                         NumericMode.Short => ShortValue == other.ShortValue,
@@ -113,11 +118,14 @@ namespace KScr.Lib.Core
                     }
                         ? vm.ConstantTrue
                         : vm.ConstantFalse;
+                    break;
                 case "getType":
-                    return Type.SelfRef;
-                default:
-                    throw new NotImplementedException();
+                    stack[StackOutput.Default] = Type.SelfRef;
+                    break;
+                default: throw new NotImplementedException();
             }
+
+            return stack;
         }
 
         public string GetKey()

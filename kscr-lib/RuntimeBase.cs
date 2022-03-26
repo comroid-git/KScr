@@ -177,7 +177,7 @@ namespace KScr.Lib
 
             try
             {
-                stack.StepInto(this, MainInvocPos, method, stack => method.Evaluate(this, stack));
+                stack.StepInto(this, MainInvocPos, method, stack => method.Evaluate(this, stack).Copy(StackOutput.Omg), StackOutput.Omg);
             }
             catch (StackTraceException stc)
             {
@@ -196,7 +196,6 @@ namespace KScr.Lib
                     Console.WriteLine($"\t\t- Caused by:\t{inner.Message}");
             }
 #endif
-            ExitCode = stack.Omg?.Value is Numeric num ? num.IntValue : stack.Omg!.ToBool() ? 0 : ExitCode;
             return stack.Omg?.Value ?? IObject.Null;
         }
 

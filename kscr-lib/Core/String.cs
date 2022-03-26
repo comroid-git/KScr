@@ -30,23 +30,31 @@ namespace KScr.Lib.Core
             };
         }
 
-        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+        public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {
                 case "toString":
-                    return Instance(vm, Str);
+                    stack[StackOutput.Default] = Instance(vm, Str);
+                    break;
                 case "equals":
-                    return args[0] is String other && Str == other.Str ? vm.ConstantTrue : vm.ConstantFalse;
+                    stack[StackOutput.Default] = args[0] is String other1 && Str == other1.Str ? vm.ConstantTrue : vm.ConstantFalse;
+                    break;
                 case "getType":
-                    return Type.SelfRef;
+                    stack[StackOutput.Default] = Type.SelfRef;
+                    break;
                 case "opPlus":
-                    return OpPlus(vm, stack, (args[0]?.Invoke(vm, stack, "toString")?.Value as String)?.Str ?? "null");
+                    var other2 = args[0]?.Invoke(vm, stack.Output(), "toString").Copy(StackOutput.Alp, StackOutput.Bet);
+                    stack[StackOutput.Default] = OpPlus(vm, stack, (other2?.Value as String)?.Str ?? "null");
+                    break;
                 case "length":
-                    return Numeric.Constant(vm, Str.Length);
+                    stack[StackOutput.Default] = Numeric.Constant(vm, Str.Length);
+                    break;
                 default:
                     throw new NotImplementedException();
             }
+
+            return stack;
         }
 
         public string GetKey()
