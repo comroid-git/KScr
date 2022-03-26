@@ -82,7 +82,7 @@ namespace KScr.Test
         {
             int desired = rng.Next() % 16;
             
-            var code = TestUtil.RunSourcecode($"public static int main() {{ int x = {desired}; if (x % 2) {{ return x; }} else return x * 2; }}");
+            var code = TestUtil.RunSourcecode($"public static int main() {{ int x = {desired}; if (x % 2) {{ return x; }} else return x * 2; throw x; }}");
             
             Assert.AreEqual(desired % 2 > 0 ? desired : desired * 2, (code.Value as Numeric).IntValue);
         }
