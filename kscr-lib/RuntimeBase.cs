@@ -66,6 +66,7 @@ namespace KScr.Lib
         public static bool ConfirmExit { get; set; }
         public static bool DebugMode { get; set; }
         public static int ExitCode { get; set; } = int.MinValue;
+        public static string? ExitMessage { get; set; } = null;
 
         public void Initialize()
         {
@@ -170,7 +171,7 @@ namespace KScr.Lib
             return this[stack, varctx, key ?? value.GetKey()] = new ObjectRef(value.Type == null && !Initialized ? value as IClassInstance : value.Type, value);
         }
 
-        public IObject? Execute()
+        public Stack Execute()
         {
             var method = Package.RootPackage.FindEntrypoint();
             var stack = new Stack();
@@ -196,7 +197,7 @@ namespace KScr.Lib
                     Console.WriteLine($"\t\t- Caused by:\t{inner.Message}");
             }
 #endif
-            return stack.Omg?.Value ?? IObject.Null;
+            return stack;
         }
 
         public IClassInstance? FindType(string name, Package? package = null, IClass? owner = null)

@@ -618,7 +618,7 @@ namespace KScr.Lib.Bytecode
                 if (DeclaredMembers.TryGetValue(member, out var icm))
                 {
                     if (!icm.IsStatic())
-                        throw new FatalException("Cannot invoke non-static method from static context");
+                        throw new FatalException($"Cannot invoke non-static method {icm.FullName} from static context");
                     var param = (icm as IMethod)?.Parameters;
                     for (var i = 0; i < param.Count; i++)
                         vm.PutLocal(stack, param[i].Name, args.Length - 1 < i ? IObject.Null : args[i]);

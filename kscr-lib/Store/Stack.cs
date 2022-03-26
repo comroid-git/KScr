@@ -299,8 +299,8 @@ namespace KScr.Lib.Store
                             throw new FatalException(
                                 "Value is not instanceof Throwable: " + Omg.Value.ToString(0));
                         RuntimeBase.ExitCode = (throwable.Invoke(vm, Output(), "ExitCode").Alp!.Value as Numeric)!.IntValue;
-                        var msg = throwable.Invoke(vm, Output(StackOutput.Bet), "Message").Alp!.Value.ToString(0);
-                        throw new InternalException(throwable.Type.Name + ": " + msg);
+                        RuntimeBase.ExitMessage = throwable.Invoke(vm, Output(StackOutput.Bet), "Message").Alp!.Value.ToString(0);
+                        throw new InternalException($"{throwable.Type.Name}: {RuntimeBase.ExitMessage} ({RuntimeBase.ExitCode})");
                     }
                 }
                 
@@ -319,9 +319,8 @@ namespace KScr.Lib.Store
                     _parent[StackOutput.Phi] = Phi;
                 if ((maintain & StackOutput.Omg) == StackOutput.Omg)
                     _parent[StackOutput.Omg] = Omg;
-                if (maintain != StackOutput.None)
-                    CopyState();
-                
+
+                CopyState();
                 StepUp(vm);
             }
         }

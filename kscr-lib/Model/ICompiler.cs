@@ -198,11 +198,11 @@ namespace KScr.Lib.Model
                 {
                     NextIntoSub = false;
                     value.Statement = Statement;
-                    LastComponent.SubComponent = LastComponent = value;
+                    LastComponent.SubComponent = _lastComponent = value;
                 }
                 else
                 {
-                    (value.Statement = Statement).Main.Add(LastComponent = value);
+                    (value.Statement = Statement).Main.Add(_lastComponent = value);
                     ComponentIndex += 1;
                 }
             }
@@ -213,11 +213,7 @@ namespace KScr.Lib.Model
 
         public StatementComponent? PrevComponent => ComponentIndex - 1 >= 0 ? Statement.Main[ComponentIndex - 1] : null;
 
-        public StatementComponent? LastComponent
-        {
-            get => _lastComponent ?? Parent?.LastComponent;
-            private set => _lastComponent = value;
-        }
+        public StatementComponent? LastComponent => _lastComponent ?? Parent?.LastComponent;
 
         public bool NextIntoSub { get; set; }
 
@@ -380,6 +376,15 @@ namespace KScr.Lib.Model
                 use = use.AcceptToken(vm, ref context) ?? use.Parent!;
                 context.TokenIndex += 1;
             }
+            
+            // remove empty statements
+            for (var i = 0; i < (context.ExecutableCode?.Main?.Count ?? 0); i++)
+                if (context.ExecutableCode!.Main![i].Main.Count == 0)
+                {
+                    context.ExecutableCode.Main.RemoveAt(i);
+                    context.StatementIndex -= 1;
+                    i -= 1;
+                }
         }
     }
 }

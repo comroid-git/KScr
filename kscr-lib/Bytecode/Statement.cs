@@ -338,10 +338,9 @@ namespace KScr.Lib.Bytecode
                                 {
                                     stack[Default] = String.Instance(vm, "null");
                                 }
-                                stack[Default].Value!.Invoke(vm,
-                                    stack.Output(Bet), "op" + ((op & Operator.Compound) == Operator.Compound
-                                        ? op ^ Operator.Compound
-                                        : op), stack.Bet.Value).Copy(Bet, Default);
+
+                                var opMtdName = "op" + ((op & Operator.Compound) == Operator.Compound ? op ^ Operator.Compound : op);
+                                stack[Default].Value!.Invoke(vm, stack.Output(Bet), opMtdName, stack.Bet.Value).Copy(Bet, Default);
                             }
                             else
                             {

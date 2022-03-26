@@ -14,7 +14,7 @@ public class PrintNumbers implements Throwable {
     }
     
     public PrintNumbers() {
-        //this.Message = "hello world";
+        this.Message = "hello world";
     }
     
     // prints numbers 0 to 11
@@ -48,7 +48,7 @@ public class PrintNumbers implements Throwable {
         // forever print something to test for loop robustness
         // todo: this does not compile. find solution for empty statements
         //for (;;) stdio << "abc";
-        //obj.Message += " & world2";
+        obj.Message += " & world2";
         
         stdio << "look at my cool object: " + obj.toString(0);
         stdio << "and of course i can access it this way too: " + obj.StackValue;

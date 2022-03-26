@@ -561,15 +561,14 @@ namespace KScr.Compiler.Code
 
                     _doneAnything = true;
                     break;
+                case Comma:
+                    _doneAnything = true;
+                    break;
                 case ParAccClose:
                 case Terminator:
-                    if (!_doneAnything && ctx.StatementIndex > -1
-                        && ctx.Statement.Type == StatementComponentType.Undefined
-                        && ctx.Statement.CodeType == BytecodeType.Undefined
-                        && ctx.Statement.Main.Count > 0)
+                    if (!_doneAnything && ctx.StatementIndex > -1 && ctx.ComponentIndex > -1)
                     {
-                        ctx.Statement.Type = StatementComponentType.Code;
-                        ctx.Statement.CodeType = BytecodeType.Statement;
+                        ctx.Statement = new Statement();
                         _doneAnything = true;
                     }
                     /*
@@ -583,16 +582,12 @@ namespace KScr.Compiler.Code
                     break;
             }
 
-            if (!_doneAnything 
-                && _terminators.Contains(ctx.NextToken!.Type) 
-                && ctx.StatementIndex > -1 
-                && (ctx.Statement.Type != StatementComponentType.Undefined 
-                    || ctx.Statement.CodeType != BytecodeType.Undefined))
-                ctx.Statement = new Statement();
-
             if (_terminators.Contains(ctx.NextToken!.Type) || !_doneAnything && _terminators.Contains(ctx.Token.Type))
             {
                 if (_endBeforeTerminator)
+                    ctx.TokenIndex -= 1;
+                // allow empty body parens
+                if (!_doneAnything && (ctx.ExecutableCode.Main.Count == 0 || ctx.Statement.Main.Count == 0) && ctx.Token.Type == ParAccClose)
                     ctx.TokenIndex -= 1;
                 _active = false;
             }
