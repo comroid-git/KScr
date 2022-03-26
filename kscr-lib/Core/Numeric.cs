@@ -93,6 +93,9 @@ namespace KScr.Lib.Core
                 case "toString":
                     stack[StackOutput.Default] = String.Instance(vm, StringValue);
                     break;
+                case "Message":
+                    stack[StackOutput.Default] = vm.ConstantVoid;
+                    break;
                 case "ExitCode":
                     stack[StackOutput.Default] = Constant(vm, IntValue);
                     break;
@@ -440,7 +443,7 @@ namespace KScr.Lib.Core
 
         public IObjectRef Operator(RuntimeBase vm, Operator op, Numeric? right = null)
         {
-            return op switch
+            return ((op & Model.Operator.Compound) != 0 ? op ^ Model.Operator.Compound : op) switch
             {
                 Model.Operator.IncrementRead => OpIR(vm),
                 Model.Operator.ReadIncrement => OpRI(vm),
