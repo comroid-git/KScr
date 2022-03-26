@@ -8,14 +8,15 @@ namespace KScr.Native.System.Impl;
 public class File
 {
     [NativeImpl]
-    public static IObjectRef read(RuntimeBase vm, Stack stack, params IObject[] args)
-    {
-        throw new NotImplementedException();
-    }
-
+    public static IObjectRef read(RuntimeBase vm, Stack stack, params IObject[] args) => throw new NotImplementedException();
     [NativeImpl]
-    public static IObjectRef write(RuntimeBase vm, Stack stack, params IObject[] args)
-    {
-        throw new NotImplementedException();
-    }
+    public static IObjectRef write(RuntimeBase vm, Stack stack, params IObject[] args) => throw new NotImplementedException();
+    [NativeImpl]
+    public static IObjectRef absPath(RuntimeBase vm, Stack stack, params IObject[] args) => throw new NotImplementedException();
+    [NativeImpl]
+    public static IObjectRef name(RuntimeBase vm, Stack stack, params IObject[] args) => throw new NotImplementedException();
+    [NativeImpl]
+    public static IObjectRef exists(RuntimeBase vm, Stack stack, params IObject[] args) => throw new NotImplementedException();
+    [NativeImpl]
+    public static IObjectRef isDir(RuntimeBase vm, Stack stack, params IObject[] args) => throw new NotImplementedException();
 }

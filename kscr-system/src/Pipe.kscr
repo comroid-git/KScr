@@ -1,7 +1,0 @@
-package org.comroid.kscr;
-
-public interface Pipe<T> {
-    public T read(int length);
-
-    public int write(T data);
-}
