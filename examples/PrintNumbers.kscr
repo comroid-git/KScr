@@ -19,7 +19,9 @@ public class PrintNumbers implements Throwable {
     
     // prints numbers 0 to 11
     public static void main() {
-        Iterable range = 0~12; 
+        int start = 0;
+        int end = 12;
+        Iterable range = start~end; 
         
         stdio << "print numbers " + range.start() + " to (exclusive) " + (range.end() - 1 + 1) + ":";
         foreach (i : range)
@@ -27,16 +29,15 @@ public class PrintNumbers implements Throwable {
         //stdio << "i is now " + i; // should error (it did last time)
         
         stdio << "and now backwards bcs we're cool:";
-        for (int i = range.end(); i; --i) {
+        for (int i = end); i; --i) {
             stdio << i;
         }
         
-        stdio << "and once more:";
-        int i = range.end();
+        stdio << "and one last time:";
         do {
-            stdio << "number: " + i;
-        } while (i--);
-        stdio << "i is now " + i; // should be 0
+            stdio << "number: " + end;
+        } while (end--);
+        stdio << "end is now " + end; // should be -1
             
         PrintNumbers obj = new PrintNumbers();
         obj.throingMethod(false);
