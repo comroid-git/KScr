@@ -152,7 +152,7 @@ namespace KScr.Compiler.Class
                         gettable = ctx.PrevToken?.Type == TokenType.Word && ctx.PrevToken?.Arg == "get";
                         settable = ctx.NextToken?.Type == TokenType.Word && ctx.NextToken?.Arg == "set";
 
-                        ctx.Class.DeclaredMembers[memberName!] = property = new Property(ctx.Class, memberName!,
+                        ctx.Class.DeclaredMembers[memberName!] = property = new Property(ctx.Token.SourcefilePosition, ctx.Class, memberName!,
                             targetType,
                             modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation
                                 ? MemberModifier.Public | MemberModifier.Abstract
@@ -182,7 +182,7 @@ namespace KScr.Compiler.Class
                     if (memberType != 2) // computed property
                         throw new CompilerException(ctx.Token.SourcefilePosition,
                             "Could not create field; invalid memberType = " + memberType);
-                    ctx.Class.DeclaredMembers[memberName!] = property = new Property(ctx.Class, memberName!, targetType,
+                    ctx.Class.DeclaredMembers[memberName!] = property = new Property(ctx.Token.SourcefilePosition, ctx.Class, memberName!, targetType,
                         modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation
                             ? MemberModifier.Public
                             : MemberModifier.Protected));
@@ -214,7 +214,7 @@ namespace KScr.Compiler.Class
                         modifier |= MemberModifier.Static; // constructor must be static
                     // compile parameter definition
                     ctx.Class.DeclaredMembers[memberName ?? Method.ConstructorName] = method
-                        = new Method(ctx.Class, memberName ?? Method.ConstructorName, targetType,
+                        = new Method(ctx.Token.SourcefilePosition, ctx.Class, memberName ?? Method.ConstructorName, targetType,
                             modifier ?? (ctx.Class.ClassType is ClassType.Interface or ClassType.Annotation
                                 ? MemberModifier.Public | MemberModifier.Abstract
                                 : MemberModifier.Protected));
@@ -247,7 +247,7 @@ namespace KScr.Compiler.Class
                     if (method == null)
                         if (modifier == MemberModifier.Static && memberName == null)
                             ctx.Class.DeclaredMembers[memberName ?? Method.StaticInitializerName]
-                                = method = new Method(ctx.Class, Method.StaticInitializerName,
+                                = method = new Method(ctx.Token.SourcefilePosition, ctx.Class, Method.StaticInitializerName,
                                     Lib.Bytecode.Class.VoidType, MemberModifier.Private | MemberModifier.Static);
                         else break;
 

@@ -59,7 +59,7 @@ public class NativeRunner : INativeRunner
     {
         if (!member.IsNative())
             throw new FatalException("Member is not native: " + member);
-        stack.StepInto(vm, RuntimeBase.BlankInvocPos, member, stack =>
+        stack.StepInto(vm, new SourcefilePosition{SourcefilePath = $"{member.FullName} <native>"}, member, stack =>
         {
             stack[Alp | Omg] = _types[member.Parent.FullName].Members[member.Name](vm, stack, (stack.Del as ObjectRef)?.Refs!); 
         }, Alp | Omg);

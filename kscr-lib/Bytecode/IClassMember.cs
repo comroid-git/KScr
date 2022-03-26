@@ -17,17 +17,19 @@ namespace KScr.Lib.Bytecode
         public string Name { get; }
         public string FullName { get; }
         public ClassMemberType MemberType { get; }
+        public SourcefilePosition SourceLocation { get; }
     }
 
     public abstract class AbstractClassMember : AbstractBytecode, IClassMember
     {
         private protected string _name;
 
-        protected AbstractClassMember(Class parent, string name, MemberModifier modifier)
+        protected AbstractClassMember(SourcefilePosition sourceLocation, Class parent, string name, MemberModifier modifier)
         {
             Parent = parent;
             _name = name;
             Modifier = modifier;
+            SourceLocation = sourceLocation;
         }
 
         public Class Parent { get; }
@@ -37,6 +39,7 @@ namespace KScr.Lib.Bytecode
         public virtual string FullName => Parent.FullName + '.' + Name;
         public MemberModifier Modifier { get; protected set; }
         public abstract ClassMemberType MemberType { get; }
+        public SourcefilePosition SourceLocation { get; }
 
         public abstract Stack Evaluate(RuntimeBase vm, Stack stack);
 
@@ -62,8 +65,8 @@ namespace KScr.Lib.Bytecode
             var type = _Load(data, ref index, out string name, out var modifier);
             AbstractClassMember member = type switch
             {
-                ClassMemberType.Method => new Method(parent, name, null, modifier), // todo fixme
-                ClassMemberType.Property => new Property(parent, name, null, modifier),
+                ClassMemberType.Method => new Method(RuntimeBase.SystemSrcPos, parent, name, null, modifier), // todo fixme
+                ClassMemberType.Property => new Property(RuntimeBase.SystemSrcPos, parent, name, null, modifier),
                 _ => throw new ArgumentOutOfRangeException()
             };
             member.Load(vm, data, ref index);

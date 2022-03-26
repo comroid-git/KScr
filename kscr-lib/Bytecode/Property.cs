@@ -17,8 +17,7 @@ namespace KScr.Lib.Bytecode
         public bool Settable;
         public ExecutableCode? Setter;
 
-        public Property(Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(parent, name,
-            modifier)
+        public Property(SourcefilePosition sourceLocation, Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(sourceLocation, parent, name, modifier)
         {
             ReturnType = returnType;
         }

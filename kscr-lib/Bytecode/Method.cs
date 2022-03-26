@@ -78,6 +78,7 @@ namespace KScr.Lib.Bytecode
         public List<MethodParameter> Parameters { get; set; }
         public ITypeInfo ReturnType { get; set; }
         public ClassMemberType MemberType => ClassMemberType.Method;
+        public SourcefilePosition SourceLocation => RuntimeBase.SystemSrcPos;
 
         public IEvaluable? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev)
         {
@@ -91,8 +92,7 @@ namespace KScr.Lib.Bytecode
         public const string StaticInitializerName = "cctor";
         public ExecutableCode Body = null!;
 
-        public Method(Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(parent, name,
-            modifier)
+        public Method(SourcefilePosition sourceLocation, Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(sourceLocation, parent, name, modifier)
         {
             ReturnType = returnType;
         }

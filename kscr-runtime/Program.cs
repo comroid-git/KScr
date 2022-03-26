@@ -114,7 +114,7 @@ namespace KScr.Runtime
                 .WithNotParsed(errors =>
                 {
                     if (!errors.Any())
-                        RuntimeBase.MainStack.StepInto(VM, RuntimeBase.MainInvocPos, RuntimeBase.MainInvoc, _ => StdIoMode());
+                        RuntimeBase.MainStack.StepInto(VM, RuntimeBase.SystemSrcPos, RuntimeBase.MainInvoc, _ => StdIoMode());
                 });
 
             return HandleExit(stack.State, stack.Omg?.Value, compileTime, executeTime, ioTime, RuntimeBase.ConfirmExit);

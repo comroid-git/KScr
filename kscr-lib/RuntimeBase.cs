@@ -27,8 +27,7 @@ namespace KScr.Lib
 
         public static readonly DummyMethod MainInvoc = new(Class.VoidType, "main",
             MemberModifier.Public | MemberModifier.Final | MemberModifier.Static, Class.NumericIntType);
-        public static readonly SourcefilePosition MainInvocPos = new()
-            { SourcefilePath = "<native>org/comroid/kscr/core/System.kscr" };
+        public static readonly SourcefilePosition SystemSrcPos = new() { SourcefilePath = "org.comroid.kscr.core.System.cctor() <native>" };
         public static readonly DirectoryInfo SdkHome = GetSdkHome();
         public static bool Initialized;
         public static readonly Stack MainStack = new();
@@ -178,7 +177,7 @@ namespace KScr.Lib
 
             try
             {
-                stack.StepInto(this, MainInvocPos, method, stack => method.Evaluate(this, stack).Copy(StackOutput.Omg), StackOutput.Omg);
+                stack.StepInto(this, SystemSrcPos, method, stack => method.Evaluate(this, stack).Copy(StackOutput.Omg), StackOutput.Omg);
             }
             catch (StackTraceException stc)
             {
@@ -302,8 +301,5 @@ namespace KScr.Lib
                 }
             }
         }
-
-        public static readonly SourcefilePosition BlankInvocPos = new()
-            { SourcefilePath = "<native>org/comroid/kscr/core/Object.kscr" };
     }
 }

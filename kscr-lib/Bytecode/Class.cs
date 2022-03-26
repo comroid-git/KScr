@@ -384,7 +384,7 @@ namespace KScr.Lib.Bytecode
 
             #region Enum Class
 
-            var name = new Property(EnumType, "name", StringType, MemberModifier.Public);
+            var name = new Property(RuntimeBase.SystemSrcPos, EnumType, "name", StringType, MemberModifier.Public);
             var values = new DummyMethod(
                 EnumType,
                 "values",
@@ -402,7 +402,7 @@ namespace KScr.Lib.Bytecode
 
             #region Array Class
 
-            var length = new Property(ArrayType, "length", NumericIntType, MemberModifier.Public);
+            var length = new Property(RuntimeBase.SystemSrcPos, ArrayType, "length", NumericIntType, MemberModifier.Public);
 
             AddToClass(ArrayType, toString);
             AddToClass(ArrayType, equals);
@@ -413,7 +413,7 @@ namespace KScr.Lib.Bytecode
 
             #region Tuple Class
 
-            var size = new Property(TupleType, "size", NumericIntType, MemberModifier.Public);
+            var size = new Property(RuntimeBase.SystemSrcPos, TupleType, "size", NumericIntType, MemberModifier.Public);
 
             AddToClass(TupleType, toString);
             AddToClass(TupleType, equals);
