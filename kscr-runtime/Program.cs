@@ -239,7 +239,10 @@ namespace KScr.Runtime
             }
             else
             {
-                Console.WriteLine($"with exit code {RuntimeBase.ExitCode} and message: {result?.ToString(0)}");
+                Console.Write($"with exit code {RuntimeBase.ExitCode}");
+                if (result != null && result.ObjectId != 0)
+                    Console.WriteLine($" and message: {result.ToString(0)}");
+                else Console.WriteLine();
             }
 
             if (pressToExit)
