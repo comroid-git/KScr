@@ -231,11 +231,7 @@ namespace KScr.Runtime
                     break;
             }
 
-            if (result == null || result.Type.Name == "type")
-            {
-                Console.WriteLine("without exit value");
-            }
-            else if (result is Numeric num)
+            if (result is Numeric num)
             {
                 int rtn = num.IntValue;
                 Console.WriteLine("with exit code " + rtn);
@@ -243,7 +239,7 @@ namespace KScr.Runtime
             }
             else
             {
-                Console.WriteLine("with exit message: " + result.ToString(0));
+                Console.WriteLine($"with exit code {RuntimeBase.ExitCode} and message: {result?.ToString(0)}");
             }
 
             if (pressToExit)
