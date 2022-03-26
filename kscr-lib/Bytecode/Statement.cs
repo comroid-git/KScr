@@ -32,7 +32,7 @@ namespace KScr.Lib.Bytecode
                     switch (component.Type)
                     {
                         default:
-                            component.Evaluate(vm, stack).Copy(Omg);
+                            component.Evaluate(vm, stack);
                             break;
                     }
                     if (stack.State != State.Normal)
@@ -161,11 +161,10 @@ namespace KScr.Lib.Bytecode
                     var type = vm.FindType(Arg)!;
                     var ctor = (type.ClassMembers.First(x => x.Name == Method.ConstructorName) as IMethod)!;
                     var obj = new CodeObject(vm, type);
-                    stack[Alp] = vm.PutObject(stack, VariableContext.Absolute, obj);
-                    stack[Del] = new ObjectRef(Class.VoidType.DefaultInstance, ctor.Parameters.Count);
+                    stack[Default] = vm.PutObject(stack, VariableContext.Absolute, obj);
                     stack.StepInto(vm, SourcefilePosition, stack.Alp, ctor, stack =>
                     {
-                        SubComponent.Evaluate(vm, stack.Output());
+                        SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
                         for (var i = 0; i < ctor.Parameters.Count; i++)
                             vm.PutLocal(stack, ctor.Parameters[i].Name, stack.Bet[vm, stack, i]);
                         ctor.Evaluate(vm, stack.Output());
@@ -208,8 +207,8 @@ namespace KScr.Lib.Bytecode
                     stack[Default] = new ObjectRef(Class.VoidType.DefaultInstance, InnerCode!.Main.Count);
                     for (var i = 0; i < InnerCode!.Main.Count; i++)
                     {
-                        InnerCode!.Main[i].Evaluate(vm, stack.Output()).Copy(Alp);
-                        stack[Default][vm, stack, i] = stack.Alp?.Value ?? IObject.Null;
+                        InnerCode!.Main[i].Evaluate(vm, stack.Output()).Copy(Alp, Bet);
+                        stack[Default][vm, stack, i] = stack.Bet?.Value ?? IObject.Null;
                     }
 
                     break;
