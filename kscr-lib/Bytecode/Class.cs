@@ -8,6 +8,7 @@ using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 using Array = System.Array;
+using String = System.String;
 
 namespace KScr.Lib.Bytecode
 {
@@ -74,8 +75,10 @@ namespace KScr.Lib.Bytecode
 
         public Instance DefaultInstance { get; private set; } = null!;
 
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers =>
-            (this as IClass).ClassMembers.Where(it => it is AbstractBytecode).Cast<AbstractBytecode>();
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => DeclaredMembers
+            .Where(it => it.Value is AbstractBytecode)
+            .Select(x => x.Value)
+            .Cast<AbstractBytecode>();
 
         public IList<string> Imports { get; } =
             new List<string>();
@@ -99,9 +102,12 @@ namespace KScr.Lib.Bytecode
         }
 
         public Class BaseClass => this;
-        public List<ITypeInfo> TypeParameters { get; } = new();
+        public List<TypeParameter> TypeParameters { get; } = new();
 
         public string CanonicalName => FullName;
+        public string FullDetailedName => FullName + (TypeParameters.Count == 0 ? string.Empty
+            : '<' + string.Join(", ", TypeParameters.Select(x => x.FullDetailedName)) + '>');
+
         public string DetailedName => Name + (TypeParameters.Count == 0 
             ? string.Empty : '<' + string.Join(", ", TypeParameters) + '>');
 
@@ -211,9 +217,11 @@ namespace KScr.Lib.Bytecode
 
             // superclasses
             stream.Write(NewLineBytes);
-            stream.Write(BitConverter.GetBytes(Superclasses.Count));
+            stream.Write(BitConverter.GetBytes(Superclasses.Count(x => x.Name != "object")));
             foreach (var superclass in Superclasses)
             {
+                if  (superclass.Name == "object")
+                    continue;
                 buf = RuntimeBase.Encoding.GetBytes(superclass.FullName);
                 stream.Write(BitConverter.GetBytes(buf.Length));
                 stream.Write(buf);
@@ -221,9 +229,11 @@ namespace KScr.Lib.Bytecode
 
             // interfaces
             stream.Write(NewLineBytes);
-            stream.Write(BitConverter.GetBytes(Interfaces.Count));
+            stream.Write(BitConverter.GetBytes(Interfaces.Count(x => x.Name != "void")));
             foreach (var iface in Interfaces)
             {
+                if  (iface.Name == "void")
+                    continue;
                 buf = RuntimeBase.Encoding.GetBytes(iface.FullName);
                 stream.Write(BitConverter.GetBytes(buf.Length));
                 stream.Write(buf);
@@ -300,7 +310,7 @@ namespace KScr.Lib.Bytecode
             index += NewLineBytes.Length;
             len = BitConverter.ToInt32(data, index);
             index += 4;
-            for (var i = 0; i < len; i++)
+            for (; len > 0; len--)
             {
                 index += NewLineBytes.Length;
                 var member = AbstractClassMember.Read(vm, this, data, ref index);
@@ -573,7 +583,7 @@ namespace KScr.Lib.Bytecode
             public IList<IClassInstance> Interfaces => BaseClass.Interfaces;
             public Instance DefaultInstance => BaseClass.DefaultInstance;
 
-            public List<ITypeInfo> TypeParameters => BaseClass.TypeParameters;
+            public List<TypeParameter> TypeParameters => BaseClass.TypeParameters;
             public MemberModifier Modifier => BaseClass.Modifier;
             public ClassType ClassType => BaseClass.ClassType;
 
@@ -648,19 +658,20 @@ namespace KScr.Lib.Bytecode
             IClass? specializationTarget = null!)
         {
             Name = name;
-            Specialization = name == "n"
-                ? TypeParameterSpecializationType.N
-                : specialization ?? TypeParameterSpecializationType.Extends;
+            Specialization = specialization ?? TypeParameterSpecializationType.Extends;
             SpecializationTarget = specializationTarget ?? Class.VoidType;
         }
 
         public string Name { get; }
         public string FullName => Name;
-        public List<ITypeInfo> TypeParameters { get; } = new();
+        public string CanonicalName => Name;
+        public string FullDetailedName => Name;
+        public string DetailedName => Name;
+        public List<TypeParameter> TypeParameters { get; } = new();
 
         public TypeParameterSpecializationType Specialization
         {
-            get => _specialization;
+            get => Name == "n" ? TypeParameterSpecializationType.N : _specialization;
             set
             {
                 if (_specialization == TypeParameterSpecializationType.N)
@@ -670,6 +681,7 @@ namespace KScr.Lib.Bytecode
         }
 
         public IClass SpecializationTarget { get; }
+        public ITypeInfo? DefaultValue { get; init; }
 
         public ITypeInfo? TargetType => null;
 
@@ -708,8 +720,11 @@ namespace KScr.Lib.Bytecode
 
             public ITypeInfo TargetType { get; }
             public string Name => TypeParameter.Name;
-            public string FullName => (TargetType as Class.Instance)?.FullDetailedName ?? TypeParameter.FullName;
-            public List<ITypeInfo> TypeParameters { get; } = new();
+            public string CanonicalName => Name;
+            public string FullName => (TargetType as Class.Instance)?.FullName ?? TypeParameter.FullName;
+            public string FullDetailedName => (TargetType as Class.Instance)?.FullDetailedName ?? TypeParameter.FullDetailedName;
+            public string DetailedName => (TargetType as Class.Instance)?.DetailedName ?? TypeParameter.DetailedName;
+            public List<TypeParameter> TypeParameters { get; } = new();
 
             public IClassInstance ResolveType(RuntimeBase vm, IClassInstance usingClass)
             {

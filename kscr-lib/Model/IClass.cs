@@ -22,16 +22,22 @@ namespace KScr.Lib.Model
 
     public interface ITypeInfo
     {
+        List<TypeParameter> TypeParameters { get; }
         string Name { get; }
         string FullName { get; }
-        List<ITypeInfo> TypeParameters { get; }
+        string CanonicalName { get; }
+        string FullDetailedName { get; }
+        string DetailedName { get; }
     }
 
     public struct TypeInfo : ITypeInfo
     {
         public string Name { get; set; }
         public string FullName { get; set; }
-        public List<ITypeInfo> TypeParameters { get; set; }
+        public string CanonicalName { get; set; }
+        public string FullDetailedName { get; set; }
+        public string DetailedName { get; set; }
+        public List<TypeParameter> TypeParameters { get; set; }
     }
 
     public interface IClassInfo : ITypeInfo
@@ -51,8 +57,6 @@ namespace KScr.Lib.Model
 
         IEnumerable<IClassMember> InheritedMembers =>
             Inheritors.Where(it => it != null).SelectMany(it => it.ClassMembers);
-        string CanonicalName { get; }
-        string DetailedName { get; }
 
         IDictionary<string, IClassMember> DeclaredMembers { get; }
         IEnumerable<IClassInstance> Inheritors => Superclasses.Concat(Interfaces);
@@ -70,20 +74,22 @@ namespace KScr.Lib.Model
 
     public struct ClassInfo : IClassInfo
     {
-        public ClassInfo(MemberModifier modifier, ClassType classType, string name, string fullName)
+        public ClassInfo(MemberModifier modifier, ClassType classType, string name)
         {
             Modifier = modifier;
             ClassType = classType;
             Name = name;
-            FullName = fullName;
-            TypeParameters = null!;
+            TypeParameters = new List<TypeParameter>();
         }
 
         public MemberModifier Modifier { get; }
         public ClassType ClassType { get; }
         public string Name { get; }
-        public string FullName { get; }
-        public List<ITypeInfo> TypeParameters { get; set; }
+        public string FullName { get; init; } = null!;
+        public string CanonicalName { get; init; } = null!;
+        public string FullDetailedName { get; init; } = null!;
+        public string DetailedName { get; init; } = null!;
+        public List<TypeParameter> TypeParameters { get; set; }
 
         public bool CanHold(IClass? type)
         {
@@ -115,6 +121,7 @@ namespace KScr.Lib.Model
     {
         TypeParameterSpecializationType Specialization { get; }
         IClass SpecializationTarget { get; }
+        ITypeInfo? DefaultValue { get; init; } 
     }
 
     public enum TypeParameterSpecializationType

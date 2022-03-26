@@ -231,7 +231,7 @@ namespace KScr.Compiler.Class
                     {
                         ctx = new CompilerContext(ctx, CompilerType.TypeParameterDefinition);
                         ctx.TokenIndex += 1;
-                        CompilerLoop(vm, new TypeParameterDefinitionCompiler(this, ctx.Class), ref ctx);
+                        CompilerLoop(vm, new TypeParameterDefinitionCompiler(this), ref ctx);
                         ctx.Parent!.TokenIndex = ctx.TokenIndex - 1;
                         ctx = ctx.Parent!;
                     }

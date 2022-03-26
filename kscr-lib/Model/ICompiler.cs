@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 
@@ -253,6 +254,12 @@ namespace KScr.Lib.Model
                 do
                 {
                     TokenIndex += 2;
+                    if (Token.Type == TokenType.Word && Regex.IsMatch(Token.Arg!, "\\d+"))
+                    { // use tuple instead
+                        return Class.TupleType.CreateInstance(vm, baseCls, 
+                            new ITypeInfo[]{new TypeParameter(Token.Arg!, 
+                                TypeParameterSpecializationType.N, Class.NumericIntType)});
+                    }
                     args.Add(FindTypeInfo(vm, true) ?? throw new InvalidOperationException());
                 } while (NextToken?.Type == TokenType.Comma);
 
@@ -359,7 +366,11 @@ namespace KScr.Lib.Model
                 else name = ctx.Token.Arg!;
             else throw new CompilerException(ctx.Token.SourcefilePosition, "Missing Class name");
 
-            return new ClassInfo(mod.Value, type.Value, name, packageName + '.' + name);
+            return new ClassInfo(mod.Value, type.Value, name)
+            {
+                FullName = packageName + '.' + name,
+                CanonicalName = packageName + '.' + name
+            };
         }
 
         public static void CompilerLoop(RuntimeBase vm, ICompiler use, ref CompilerContext context)

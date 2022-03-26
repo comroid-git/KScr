@@ -232,7 +232,7 @@ namespace KScr.Lib
                 return Class.NumericDoubleType;
             if (name.EndsWith("str"))
                 return Class.StringType.DefaultInstance;
-            if (name.EndsWith("void") || name.EndsWith("Object"))
+            if (name.EndsWith("void") || name.EndsWith("object") || name == "object")
                 return Class.VoidType.DefaultInstance;
 
             if (name.Contains('<'))
@@ -254,7 +254,7 @@ namespace KScr.Lib
         public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)
         {
             return inClass.TypeParameters.FirstOrDefault(tp => tp.FullName == identifier)
-                   ?? FindType(identifier, inPackage)!;
+                       .ResolveType(inClass.DefaultInstance) ?? FindType(identifier, inPackage)!;
         }
 
         public abstract void CompilePackage(DirectoryInfo dir, ref CompilerContext context,

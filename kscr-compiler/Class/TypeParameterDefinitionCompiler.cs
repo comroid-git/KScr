@@ -1,21 +1,19 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
+using static KScr.Lib.Model.TokenType;
 
 namespace KScr.Compiler.Class
 {
     public class TypeParameterDefinitionCompiler : AbstractCompiler
     {
-        private readonly Lib.Bytecode.Class _class;
         private bool _active = true;
         private int pIndex = -1, pState;
 
-        public TypeParameterDefinitionCompiler(ClassCompiler parent, IClass @class) : base(parent)
-        {
-            _class = @class.BaseClass;
-        }
+        public TypeParameterDefinitionCompiler(ClassCompiler parent) : base(parent) { }
 
         public override bool Active => _active;
 
@@ -23,18 +21,18 @@ namespace KScr.Compiler.Class
         {
             switch (ctx.Token.Type)
             {
-                case TokenType.Word:
+                case Word:
                     if (pState == 0)
                     {
                         // parse name
-                        if (pIndex >= _class.BaseClass.TypeParameters.Count)
+                        if (pIndex >= ctx.Class.BaseClass.TypeParameters.Count)
                             throw new CompilerException(ctx.Token.SourcefilePosition,
                                 "Invalid TypeParameter index during compilation");
 
                         var context = ctx;
-                        if (_class.TypeParameters.Any(x => x.Name == context.Token.Arg!))
+                        if (ctx.Class.TypeParameters.Any(x => x.Name == context.Token.Arg!))
                             break;
-                        _class.TypeParameters.Add(new TypeParameter(ctx.Token.Arg!));
+                        ctx.Class.TypeParameters.Add(new TypeParameter(ctx.Token.Arg!));
                         pIndex += 1;
                         pState += 1;
                     }
@@ -42,33 +40,34 @@ namespace KScr.Compiler.Class
                     {
                         // parse spec type name
                         // todo
+                        throw new NotImplementedException();
                     }
 
                     break;
-                case TokenType.Comma:
+                case Comma:
                     pState = 0;
                     break;
-                case TokenType.Extends:
+                case Extends:
                     // default state
                     break;
-                case TokenType.Super:
-                    (_class.TypeParameters[pIndex] as TypeParameter)!.Specialization =
+                case Super:
+                    (ctx.Class.TypeParameters[pIndex] as TypeParameter)!.Specialization =
                         TypeParameterSpecializationType.Super;
                     break;
-                case TokenType.Dot:
+                case Dot:
                     ctx.TokenIndex += 1;
                     if (ctx.PrevToken!.Type != ctx.Token.Type
                         || ctx.Token.Type != ctx.NextToken!.Type
-                        || ctx.NextToken!.Type != TokenType.Dot)
+                        || ctx.NextToken!.Type != Dot)
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid Dot token");
-                    if ((_class.TypeParameters[pIndex] as TypeParameter)!.Specialization ==
+                    if ((ctx.Class.TypeParameters[pIndex] as TypeParameter)!.Specialization ==
                         TypeParameterSpecializationType.N)
                         throw new CompilerException(ctx.Token.SourcefilePosition, "Cannot list N");
-                    (_class.TypeParameters[pIndex] as TypeParameter)!.Specialization =
+                    (ctx.Class.TypeParameters[pIndex] as TypeParameter)!.Specialization =
                         TypeParameterSpecializationType.List;
                     ctx.TokenIndex += 1;
                     return this;
-                case TokenType.ParDiamondClose:
+                case ParDiamondClose:
                     _active = false;
                     return this;
                 default: throw new CompilerException(ctx.Token.SourcefilePosition, "Unexpected token: " + ctx.Token);
