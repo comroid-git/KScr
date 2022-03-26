@@ -74,7 +74,9 @@ namespace KScr.Lib
             Class.ObjectType.Initialize(this);
             Class.TypeType.Initialize(this);
             Class.EnumType.Initialize(this);
+            Class.PipeType.Initialize(this);
             Class.ArrayType.Initialize(this);
+            Class.TupleType.Initialize(this);
             Class.StringType.Initialize(this);
             Class.RangeType.Initialize(this);
             Class.IterableType.Initialize(this);
@@ -90,10 +92,13 @@ namespace KScr.Lib
 
             Class.InitializePrimitives(this);
 
-            Class.TypeType.LateInitialization(this, MainStack);
             Class.VoidType.LateInitialization(this, MainStack);
+            Class.ObjectType.LateInitialization(this, MainStack);
+            Class.TypeType.LateInitialization(this, MainStack);
             Class.EnumType.LateInitialization(this, MainStack);
+            Class.PipeType.LateInitialization(this, MainStack);
             Class.ArrayType.LateInitialization(this, MainStack);
+            Class.TupleType.LateInitialization(this, MainStack);
             Class.StringType.LateInitialization(this, MainStack);
             Class.RangeType.LateInitialization(this, MainStack);
             Class.IterableType.LateInitialization(this, MainStack);

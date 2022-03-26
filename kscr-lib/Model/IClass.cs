@@ -60,8 +60,8 @@ namespace KScr.Lib.Model
 
         IDictionary<string, IClassMember> DeclaredMembers { get; }
         IEnumerable<IClassInstance> Inheritors => Superclasses.Concat(Interfaces);
-        IList<IClassInstance> Superclasses { get; }
-        IList<IClassInstance> Interfaces { get; }
+        IEnumerable<IClassInstance> Superclasses { get; }
+        IEnumerable<IClassInstance> Interfaces { get; }
         Class.Instance DefaultInstance { get; }
         Class.Instance GetInstance(RuntimeBase vm, params ITypeInfo[] typeParameters);
         Class.Instance CreateInstance(RuntimeBase vm, Class? owner = null, params ITypeInfo[] typeParameters);

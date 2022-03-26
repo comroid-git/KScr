@@ -108,7 +108,7 @@ namespace KScr.Compiler.Class
                         if (cls.ClassType != ctx.Class.ClassType)
                             throw new CompilerException(ctx.Token.SourcefilePosition,
                                 "Invalid extends-Token; Type is not " + ctx.Class.ClassType + ": " + cls.FullName);
-                        ctx.Class.Interfaces.Add(cls);
+                        ctx.Class._interfaces.Add(cls);
                         ctx.TokenIndex += 1;
                     }
 
@@ -128,7 +128,7 @@ namespace KScr.Compiler.Class
                         if (cls.ClassType != ClassType.Interface)
                             throw new CompilerException(ctx.Token.SourcefilePosition,
                                 "Invalid implements-Token; Type is not interface: " + cls.FullName);
-                        ctx.Class.Interfaces.Add(cls);
+                        ctx.Class._interfaces.Add(cls);
                         ctx.TokenIndex += 1;
                     }
 
