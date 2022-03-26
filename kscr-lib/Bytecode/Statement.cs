@@ -219,7 +219,7 @@ namespace KScr.Lib.Bytecode
                         if (stack.Phi.ToBool())
                             InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                         else if (SubComponent?.CodeType == BytecodeType.StmtElse)
-                            SubComponent!.InnerCode!.Evaluate(vm, stack.Output());
+                            SubComponent!.InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                     });
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtFor):
