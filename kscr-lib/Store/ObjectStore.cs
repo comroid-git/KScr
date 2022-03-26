@@ -120,7 +120,7 @@ namespace KScr.Lib.Store
         }
 
         public int Length => Refs.Length;
-        public bool IsPipe => ReadAccessor != null || WriteAccessor != null;
+        public bool IsPipe => ReadAccessor != null || WriteAccessor != null || Value.Type.Interfaces.Any(iface => iface.Name == "pipe");
         public Stack ReadValue(RuntimeBase vm, Stack stack, IObject @from) => ReadAccessor!.Evaluate(vm, stack);
         public Stack WriteValue(RuntimeBase vm, Stack stack, IObject to) => WriteAccessor!.Evaluate(vm, stack);
 
