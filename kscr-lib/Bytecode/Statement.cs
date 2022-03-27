@@ -395,12 +395,11 @@ namespace KScr.Lib.Bytecode
                                 else vm.NativeRunner.Invoke(vm, stack, stack[Default][vm, stack, 0], mtd).Copy(Omg, Default);
                             else// todo having both next to each other is stupid
                             {
-                                stack.StepInto(vm, SourcefilePosition, stack[Default], mtd,
-                                    stack =>
-                                    {
-                                        stack[Default].Value!.Invoke(vm, stack.Output(), Arg,
-                                            (stack.Del as ObjectRef)!.Refs).Copy(Alp);
-                                    }, Alp);
+                                stack.StepInto(vm, SourcefilePosition, stack[Default], mtd, stack =>
+                                {
+                                    stack[Default].Value!.Invoke(vm, stack.Output(), Arg,
+                                        (stack.Del as ObjectRef)!.Refs).Copy(Alp);
+                                }, Alp);
                             }
                     }
                     else if (cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Property && x.Name == Arg) is Property prop)
