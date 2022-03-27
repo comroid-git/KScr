@@ -53,13 +53,15 @@ namespace KScr.Test
             }
             catch (InternalException expected)
             {
+                var expectedOut = "";
+
+                Console.WriteLine($"test: ExitCode == {desiredCode}");
+                Assert.AreEqual(desiredCode, RuntimeBase.ExitCode);
+                Assert.IsTrue(writer.ToString().StartsWith(expectedOut), $"Expected output was:\n{expectedOut}\nActual Output was \n{writer}");
+                Assert.Pass();
+                return;
             }
-
-            var expectedOut = "";
-
-            Console.WriteLine($"test: ExitCode == {desiredCode}");
-            Assert.AreEqual(desiredCode, RuntimeBase.ExitCode);
-            Assert.IsTrue(writer.ToString().StartsWith(expectedOut), $"Expected output was:\n{expectedOut}\nActual Output was \n{writer}");
+            Assert.Fail("Did not throw");
         }
 
         [Test, Repeat(TestRepeat)]
