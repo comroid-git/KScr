@@ -390,25 +390,25 @@ namespace KScr.Compiler
                     AddToToken(TokenType.Native);
                     break;
                 default:
-                    if (Numeric.NumberRegex.IsMatch(str) && !char.IsDigit(n) && n != '.')
+                    if (Numeric.NumberRegex.IsMatch(str.EndsWith('.') ? str.Substring(0, str.Length - 1) : str) 
+                        && (!char.IsDigit(n) || n is '.' or 'b' or 'i' or 'l' or 'f' or 'd'))
                     {
-                        if (n == 'b' || n == 'i' || n == 'l' || n == 'f' || n == 'd')
+                        if (n is '.' or 'b' or 'i' or 'l' or 'f' or 'd')
                         {
                             str += n;
                             i++;
                         }
-
-                        token = new Token(srcPos, TokenType.LiteralNum, str);
                     }
                     else if (str.Length >= 2 && str[0] == '"' && str[^1] == '"')
                     {
-                        token = new Token(srcPos, TokenType.LiteralStr, str.Substring(1, str.Length - 2))
-                            ;
+                        token = new Token(srcPos, TokenType.LiteralStr, str.Substring(1, str.Length - 2));
                     }
                     else if (!char.IsLetterOrDigit(n) && str != string.Empty && !char.IsDigit(str[^1]))
                     {
                         token = new Token(srcPos, TokenType.Word, str);
                     }
+                    if (!char.IsDigit(n) && n is not '.' and not 'b' and not 'i' and not 'l' and not 'f' and not 'd' && Numeric.NumberRegex.IsMatch(str))
+                        token = new Token(srcPos, TokenType.LiteralNum, str);
 
                     break;
             }
