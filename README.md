@@ -21,13 +21,13 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 - - [ ] Arrays
 - - [ ] Tuple Literals
 - - [x] Computed Properties
-- - [ ] Properties with Getters and Setters
+- - [x] Properties with Getters and Setters
 - - [x] Auto-Properties
 - - [x] `extends` and `implements`
 - - [ ] Variable Caching
 - - [ ] Annotations
 - - [x] Methods
-- - [ ] `native` Keyword
+- - [x] `native` Keyword
 - - [x] Static and Dynamic components
 - - [x] Prettier StackTrace
 - - [x] Compiling into Bytecode
