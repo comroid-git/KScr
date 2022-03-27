@@ -225,13 +225,18 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Code, BytecodeType.StmtFor):
                     stack.StepInside(vm, SourcefilePosition, "for", stack =>
                     {
-                        SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Del);
-                        while (SubComponent!.Evaluate(vm, stack.Channel(Del, Phi)).Copy(Phi).ToBool())
+                        
+                        for (SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Del);
+                             SubComponent!.Evaluate(vm, stack.Channel(Del, Phi)).Copy(Phi).ToBool();
+                             )
                         {
                             InnerCode!.Evaluate(vm, stack.Output()).CopyState();
-                            var delStack = stack.Output();
+                            var delStack = stack.Channel(Del, Del);
+                            // accumulate
                             AltStatement!.Evaluate(vm, delStack);
-                            stack[Del].Value = delStack[Alp].Value;
+                            var val = stack[Del].Value = delStack[Del].Value;
+                            if (val == null || val.ObjectId == 0)
+                                throw new NullReferenceException();
                         }
                     });
                     break;
@@ -257,28 +262,15 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Code, BytecodeType.StmtWhile):
                     stack.StepInside(vm, SourcefilePosition, "while", stack =>
                     {
-                        SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Phi);
-                        while (stack.Phi.ToBool())
-                        {
+                        while (SubStatement.Evaluate(vm, stack.Output(Phi)).Copy(Phi).ToBool())
                             InnerCode.Evaluate(vm, stack.Output()).CopyState();
-                            SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Phi);
-                        }
                     });
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtDo):
                     stack.StepInside(vm, SourcefilePosition, "do-while", stack =>
                     {
-                        bool first = true;
-                        do
-                        {
-                            InnerCode.Evaluate(vm, stack.Output()).CopyState();
-                            if (first)
-                            {
-                                SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Phi);
-                                first = false;
-                            }
-                            else SubStatement.Evaluate(vm, stack.Channel(Phi)).Copy(Alp, Phi);
-                        } while (stack.Phi.ToBool());
+                        do InnerCode.Evaluate(vm, stack.Output()).CopyState();
+                        while (SubStatement.Evaluate(vm, stack.Output(Phi)).Copy( Phi).ToBool());
                     });
                     break;
                 case (StatementComponentType.Operator, _):
@@ -324,7 +316,7 @@ namespace KScr.Lib.Bytecode
                                 (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new FatalException("Invalid binary operator; missing right operand");
                             SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                            stack.Alp.Value!.Invoke(vm, stack.Output(), "equals", stack.Bet.Value).Copy(Alp, Alp | Phi);
+                            stack[Default].Value!.Invoke(vm, stack.Output(), "equals", stack.Bet.Value).Copy(Alp, Alp | Phi);
                             if (op == Operator.NotEquals)
                                 stack[Default] = stack[Default].LogicalNot(vm);
                             break;
