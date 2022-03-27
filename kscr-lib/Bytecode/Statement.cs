@@ -226,7 +226,7 @@ namespace KScr.Lib.Bytecode
                     stack.StepInside(vm, SourcefilePosition, "for", stack =>
                     {
                         SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Del);
-                        while (SubComponent!.Evaluate(vm, stack.Output(Phi)).Copy(output: Phi).ToBool())
+                        while (SubComponent!.Evaluate(vm, stack.Channel(Del, Phi)).Copy(Phi).ToBool())
                         {
                             InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                             var delStack = stack.Output();
