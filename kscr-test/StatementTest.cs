@@ -9,6 +9,7 @@ using static KScr.Test.TestUtil;
 
 namespace KScr.Test;
 
+[Parallelizable(ParallelScope.Children)]
 public class StatementTest
 {
     public static readonly Random rng = new();
@@ -17,7 +18,7 @@ public class StatementTest
     [SetUp]
     public void setup()
     {
-        Program.VM.Clear();
+        //Program.VM.Clear();
         bakWrt = Console.Out;
     }
 
@@ -34,7 +35,7 @@ public class StatementTest
         if (desiredCode < 10)
             desiredCode = RngMax;
 
-        var code = RunSourcecode($"return {desiredCode};");
+        var code = RunSourcecode("TestReturn", $"return {desiredCode};");
         Assert.AreEqual(desiredCode, (code.Value as Numeric).IntValue);
     }
 
@@ -49,7 +50,7 @@ public class StatementTest
         Console.SetOut(writer);
         try
         {
-            RunSourcecode($"throw {desiredCode};");
+            RunSourcecode("TestThrow", $"throw {desiredCode};");
         }
         catch (InternalException expected)
         {
@@ -73,7 +74,7 @@ public class StatementTest
             
         var writer = new StringWriter();
         Console.SetOut(writer);
-        var code = RunSourcecode($"public static int main() {{ int x = {desired}; return x; }}");
+        var code = RunSourcecode("TestDeclaration", $"public static int main() {{ int x = {desired}; return x; }}");
             
         Assert.AreEqual(desired, (code.Value as Numeric).IntValue);
     }
@@ -85,7 +86,7 @@ public class StatementTest
         if (desired < 10)
             desired = RngMax;
             
-        var code = RunSourcecode($"public static int main() {{ int x = {desired}; if (x > 8) return x; return x * 2; }}");
+        var code = RunSourcecode("TestIf", $"public static int main() {{ int x = {desired}; if (x > 8) return x; return x * 2; }}");
             
         Assert.AreEqual(desired > 8 ? desired : desired * 2, (code.Value as Numeric).IntValue);
     }
@@ -97,7 +98,7 @@ public class StatementTest
         if (desired < 10)
             desired = RngMax;
             
-        var code = RunSourcecode($"public static int main() {{ int x = {desired}; if (x % 2) {{ return x; }} else return x * 2; throw x; }}");
+        var code = RunSourcecode("TestIfElse", $"public static int main() {{ int x = {desired}; if (x % 2) {{ return x; }} else return x * 2; throw x; }}");
             
         Assert.AreEqual(desired % 2 > 0 ? desired : desired * 2, (code.Value as Numeric).IntValue);
     }
@@ -111,7 +112,7 @@ public class StatementTest
 
         var writer = new StringWriter();
         Console.SetOut(writer);
-        var code = RunSourcecode($"for (int i = {desiredLen}; i; i -= 1) stdio << i;");
+        var code = RunSourcecode("TestFor", $"for (int i = {desiredLen}; i; i -= 1) stdio << i;");
         string expected = "";
         for (int i = desiredLen; i > 0; i -= 1)
             expected += $"{i}\n";
@@ -129,7 +130,7 @@ public class StatementTest
 
         var writer = new StringWriter();
         Console.SetOut(writer);
-        var code = RunSourcecode($"foreach (i : 0~{desiredLen}) stdio << i;");
+        var code = RunSourcecode("TestForEach", $"foreach (i : 0~{desiredLen}) stdio << i;");
         string expected = "";
         for (int i = 0; i < desiredLen; i++)
             expected += $"{i}\n";
@@ -147,7 +148,7 @@ public class StatementTest
 
         var writer = new StringWriter();
         Console.SetOut(writer);
-        var code = RunSourcecode($"int i = {desiredLen}; while (i--) stdio << i;");
+        var code = RunSourcecode("TestWhile", $"int i = {desiredLen}; while (i--) stdio << i;");
         string expected = "";
         int i = desiredLen;
         while (i-- > 0)
@@ -166,7 +167,7 @@ public class StatementTest
 
         var writer = new StringWriter();
         Console.SetOut(writer);
-        var code = RunSourcecode($"int i = {desiredLen}; do {{ stdio << i; }} while (i--);");
+        var code = RunSourcecode("TestDoWhile", $"int i = {desiredLen}; do {{ stdio << i; }} while (i--);");
         string expected = "";
         int i = desiredLen;
         do expected += $"{i}\n";
