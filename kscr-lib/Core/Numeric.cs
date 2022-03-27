@@ -21,7 +21,7 @@ namespace KScr.Lib.Core
 
     public sealed class Numeric : IObject
     {
-        public static readonly Regex NumberRegex = new(@"([\d]+)(i|l|f|d|b)?(\.([\d]+)(f|d)?)?");
+        public static readonly Regex NumberRegex = new(@"([\d]+(i|l|f|d|s|b)?)([.,]([\d]+)(f|d))?");
 
         public static readonly Numeric Zero = new(0)
         {
@@ -396,9 +396,9 @@ namespace KScr.Lib.Core
                     case NumericMode.Long:
                         return (T)(object)LongValue.ToString();
                     case NumericMode.Float:
-                        return (T)(object)FloatValue.ToString();
+                        return (T)(object)FloatValue.ToString(CultureInfo.InvariantCulture);
                     case NumericMode.Double:
-                        return (T)(object)DoubleValue.ToString();
+                        return (T)(object)DoubleValue.ToString(CultureInfo.InvariantCulture);
                     default:
                         throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode);
                 }
@@ -423,14 +423,14 @@ namespace KScr.Lib.Core
                 return Constant(vm, int.Parse(str.Substring(0, str.Length - 1)));
             if (type == "l")
                 return Constant(vm, long.Parse(str.Substring(0, str.Length - 1)));
-            if (type == "f")
-                return Constant(vm, float.Parse(str.Substring(0, str.Length - 1)));
             if (type == "d")
-                return Constant(vm, double.Parse(str.Substring(0, str.Length - 1)));
+                return Constant(vm, double.Parse(str.Substring(0, str.Length - 1), CultureInfo.InvariantCulture));
+            if (type == "f")
+                return Constant(vm, float.Parse(str.Substring(0, str.Length - 1), CultureInfo.InvariantCulture));
             if (type != string.Empty)
                 throw new FatalException("Invalid target Type: " + type);
             if (groups[3].Length > groups[4].Length)
-                return Constant(vm, float.Parse(str));
+                return Constant(vm, float.Parse(str, CultureInfo.InvariantCulture));
             try
             {
                 return Constant(vm, int.Parse(str));
