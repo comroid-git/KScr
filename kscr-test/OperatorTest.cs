@@ -29,11 +29,11 @@ public class OperatorTest
         Console.SetOut(bakWrt);
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestStrPlus()
     {
-        int a = rng.Next() % RngMax;
-        int b = rng.Next() % RngMax;
+        int a = rng.Next() % TestScale;
+        int b = rng.Next() % TestScale;
         int buf;
 
         var writer = new StringWriter();
@@ -42,66 +42,66 @@ public class OperatorTest
         Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith($"{a}{b}"), $"{a}{b} != {writer.ToString()}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestIntPlus()
     {
-        int a = rng.Next() % RngMax;
-        int b = rng.Next() % RngMax;
+        int a = rng.Next() % TestScale;
+        int b = rng.Next() % TestScale;
         int buf;
 
         var code = RunSourcecode("TestIntPlus", $"return {a} + {b};");
         Assert.AreEqual(a + b, buf = (code.Value as Numeric).IntValue, $"{a} + {b} == {a + b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestIntMinus()
     {
-        int a = rng.Next() % RngMax;
-        int b = rng.Next() % RngMax;
+        int a = rng.Next() % TestScale;
+        int b = rng.Next() % TestScale;
         int buf;
 
         var code = RunSourcecode("TestIntMinus", $"return {a} - {b};");
         Assert.AreEqual(a - b, buf = (code.Value as Numeric).IntValue, $"{a} - {b} == {a - b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestIntMultiply()
     {
-        int a = rng.Next() % RngMax;
-        int b = rng.Next() % RngMax;
+        int a = rng.Next() % TestScale;
+        int b = rng.Next() % TestScale;
         int buf;
 
         var code = RunSourcecode("TestIntMultiply", $"return {a} * {b};");
         Assert.AreEqual(a * b, buf = (code.Value as Numeric).IntValue, $"{a} * {b} == {a * b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestIntDivide()
     {
-        int a = rng.Next() % RngMax;
-        int b = rng.Next() % RngMax + 1;
+        int a = rng.Next() % TestScale;
+        int b = rng.Next() % TestScale + 1;
         int buf;
 
         var code = RunSourcecode("TestIntDivide", $"return {a} / {b};");
         Assert.AreEqual(a / b, buf = (code.Value as Numeric).IntValue, $"{a} / {b} == {a / b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestIntModulus()
     {
-        int a = rng.Next() % RngMax;
-        int b = rng.Next() % RngMax + 1;
+        int a = rng.Next() % TestScale;
+        int b = rng.Next() % TestScale + 1;
         int buf;
 
         var code = RunSourcecode("TestIntModulus", $"return {a} % {b};");
         Assert.AreEqual(a % b, buf = (code.Value as Numeric).IntValue, $"{a} % {b} == {a % b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestLongPlus()
     {
-        long a = rng.NextInt64() % RngMax;
-        long b = rng.NextInt64() % RngMax;
+        long a = rng.NextInt64() % TestScale;
+        long b = rng.NextInt64() % TestScale;
         long buf;
 
         var code = RunSourcecode("TestLongPlus", 
@@ -109,11 +109,11 @@ public class OperatorTest
         Assert.AreEqual(a + b, buf = (code.Value as Numeric).LongValue, $"{a} + {b} == {a + b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestLongMinus()
     {
-        long a = rng.NextInt64() % RngMax;
-        long b = rng.NextInt64() % RngMax;
+        long a = rng.NextInt64() % TestScale;
+        long b = rng.NextInt64() % TestScale;
         long buf;
 
         var code = RunSourcecode("TestLongMinus", 
@@ -121,11 +121,11 @@ public class OperatorTest
         Assert.AreEqual(a - b, buf = (code.Value as Numeric).LongValue, $"{a} - {b} == {a - b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestLongMultiply()
     {
-        long a = rng.NextInt64() % RngMax;
-        long b = rng.NextInt64() % RngMax;
+        long a = rng.NextInt64() % TestScale;
+        long b = rng.NextInt64() % TestScale;
         long buf;
 
         var code = RunSourcecode("TestLongMultiply", 
@@ -133,11 +133,11 @@ public class OperatorTest
         Assert.AreEqual(a * b, buf = (code.Value as Numeric).LongValue, $"{a} * {b} == {a * b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestLongDivide()
     {
-        long a = rng.NextInt64() % RngMax;
-        long b = rng.NextInt64() % RngMax + 1;
+        long a = rng.NextInt64() % TestScale;
+        long b = rng.NextInt64() % TestScale + 1;
         long buf;
 
         var code = RunSourcecode("TestLongDivide", 
@@ -145,11 +145,11 @@ public class OperatorTest
         Assert.AreEqual(a / b, buf = (code.Value as Numeric).LongValue, $"{a} / {b} == {a / b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestLongModulus()
     {
-        long a = rng.NextInt64() % RngMax;
-        long b = rng.NextInt64() % RngMax + 1;
+        long a = rng.NextInt64() % TestScale;
+        long b = rng.NextInt64() % TestScale + 1;
         long buf;
 
         var code = RunSourcecode("TestLongModulus", 
@@ -157,11 +157,11 @@ public class OperatorTest
         Assert.AreEqual(a % b, buf = (code.Value as Numeric).LongValue, $"{a} % {b} == {a % b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestFloatPlus()
     {
-        float a = rng.NextInt64() % RngMax;
-        float b = rng.NextInt64() % RngMax;
+        float a = rng.NextInt64() % TestScale;
+        float b = rng.NextInt64() % TestScale;
         float buf;
 
         var code = RunSourcecode("TestFloatPlus", 
@@ -169,11 +169,11 @@ public class OperatorTest
         Assert.AreEqual(a + b, buf = (code.Value as Numeric).FloatValue, $"{a} + {b} == {a + b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestFloatMinus()
     {
-        float a = rng.NextInt64() % RngMax;
-        float b = rng.NextInt64() % RngMax;
+        float a = rng.NextInt64() % TestScale;
+        float b = rng.NextInt64() % TestScale;
         float buf;
 
         var code = RunSourcecode("TestFloatMinus", 
@@ -181,11 +181,11 @@ public class OperatorTest
         Assert.AreEqual(a - b, buf = (code.Value as Numeric).FloatValue, $"{a} - {b} == {a - b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestFloatMultiply()
     {
-        float a = rng.NextInt64() % RngMax;
-        float b = rng.NextInt64() % RngMax;
+        float a = rng.NextInt64() % TestScale;
+        float b = rng.NextInt64() % TestScale;
         float buf;
 
         var code = RunSourcecode("TestFloatMultiply", 
@@ -193,11 +193,11 @@ public class OperatorTest
         Assert.AreEqual(a * b, buf = (code.Value as Numeric).FloatValue, $"{a} * {b} == {a * b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestFloatDivide()
     {
-        float a = rng.NextInt64() % RngMax;
-        float b = rng.NextInt64() % RngMax + 1;
+        float a = rng.NextInt64() % TestScale;
+        float b = rng.NextInt64() % TestScale + 1;
         float buf;
 
         var code = RunSourcecode("TestFloatDivide", 
@@ -205,11 +205,11 @@ public class OperatorTest
         Assert.AreEqual(a / b, buf = (code.Value as Numeric).FloatValue, $"{a} / {b} == {a / b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestFloatModulus()
     {
-        float a = rng.NextInt64() % RngMax;
-        float b = rng.NextInt64() % RngMax + 1;
+        float a = rng.NextInt64() % TestScale;
+        float b = rng.NextInt64() % TestScale + 1;
         float buf;
 
         var code = RunSourcecode("TestFloatModulus", 
@@ -217,11 +217,11 @@ public class OperatorTest
         Assert.AreEqual(a % b, buf = (code.Value as Numeric).FloatValue, $"{a} % {b} == {a % b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestDoublePlus()
     {
-        double a = rng.NextDouble() % RngMax;
-        double b = rng.NextDouble() % RngMax;
+        double a = rng.NextDouble() % TestScale;
+        double b = rng.NextDouble() % TestScale;
         double buf;
 
         var code = RunSourcecode("TestDoublePlus", 
@@ -229,11 +229,11 @@ public class OperatorTest
         Assert.AreEqual(a + b, buf = (code.Value as Numeric).DoubleValue, $"{a} + {b} == {a + b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestDoubleMinus()
     {
-        double a = rng.NextDouble() % RngMax;
-        double b = rng.NextDouble() % RngMax;
+        double a = rng.NextDouble() % TestScale;
+        double b = rng.NextDouble() % TestScale;
         double buf;
 
         var code = RunSourcecode("TestDoubleMinus", 
@@ -241,11 +241,11 @@ public class OperatorTest
         Assert.AreEqual(a - b, buf = (code.Value as Numeric).DoubleValue, $"{a} - {b} == {a - b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestDoubleMultiply()
     {
-        double a = rng.NextDouble() % RngMax;
-        double b = rng.NextDouble() % RngMax;
+        double a = rng.NextDouble() % TestScale;
+        double b = rng.NextDouble() % TestScale;
         double buf;
 
         var code = RunSourcecode("TestDoubleMultiply", 
@@ -253,11 +253,11 @@ public class OperatorTest
         Assert.AreEqual(a * b, buf = (code.Value as Numeric).DoubleValue, $"{a} * {b} == {a * b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestDoubleDivide()
     {
-        double a = rng.NextDouble() % RngMax;
-        double b = rng.NextDouble() % RngMax + 1;
+        double a = rng.NextDouble() % TestScale;
+        double b = rng.NextDouble() % TestScale + 1;
         double buf;
 
         var code = RunSourcecode("TestDoubleDivide", 
@@ -265,11 +265,11 @@ public class OperatorTest
         Assert.AreEqual(a / b, buf = (code.Value as Numeric).DoubleValue, $"{a} / {b} == {a / b} != {buf}");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestDoubleModulus()
     {
-        double a = rng.NextDouble() % RngMax;
-        double b = rng.NextDouble() % RngMax + 1;
+        double a = rng.NextDouble() % TestScale;
+        double b = rng.NextDouble() % TestScale + 1;
         double buf;
 
         var code = RunSourcecode("TestDoubleModulus", 

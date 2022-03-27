@@ -10,17 +10,11 @@ namespace KScr.Test
 {
     public class TestUtil
     {
-        public const int RngMax
+        public const int TestScale
 #if DEBUG
             = 64;
 #else
             = 512;
-#endif
-        public const int TestRepeat
-#if DEBUG
-            = 2;
-#else
-            = 64;
 #endif
         public const int TestTimeout = 2000;
 

@@ -28,23 +28,23 @@ public class StatementTest
         Console.SetOut(bakWrt);
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestReturn()
     {
-        int desiredCode = rng.Next() % RngMax;
+        int desiredCode = rng.Next() % TestScale;
         if (desiredCode < 10)
-            desiredCode = RngMax;
+            desiredCode = TestScale;
 
         var code = RunSourcecode("TestReturn", $"return {desiredCode};");
         Assert.AreEqual(desiredCode, (code.Value as Numeric).IntValue);
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestThrow()
     {
-        int desiredCode = rng.Next() % RngMax;
+        int desiredCode = rng.Next() % TestScale;
         if (desiredCode < 10)
-            desiredCode = RngMax;
+            desiredCode = TestScale;
 
         var writer = new StringWriter();
         Console.SetOut(writer);
@@ -65,12 +65,12 @@ public class StatementTest
         Assert.Fail("Did not throw");
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestDeclaration()
     {
-        int desired = rng.Next() % RngMax;
+        int desired = rng.Next() % TestScale;
         if (desired < 10)
-            desired = RngMax;
+            desired = TestScale;
             
         var writer = new StringWriter();
         Console.SetOut(writer);
@@ -79,36 +79,36 @@ public class StatementTest
         Assert.AreEqual(desired, (code.Value as Numeric).IntValue);
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestIf()
     {
-        int desired = rng.Next() % RngMax;
+        int desired = rng.Next() % TestScale;
         if (desired < 10)
-            desired = RngMax;
+            desired = TestScale;
             
         var code = RunSourcecode("TestIf", $"public static int main() {{ int x = {desired}; if (x > 8) return x; return x * 2; }}");
             
         Assert.AreEqual(desired > 8 ? desired : desired * 2, (code.Value as Numeric).IntValue);
     }
 
-    [Test, Repeat(TestRepeat)]
+    [Test, Repeat(TestScale / 16)]
     public void TestIfElse()
     {
-        int desired = rng.Next() % RngMax;
+        int desired = rng.Next() % TestScale;
         if (desired < 10)
-            desired = RngMax;
+            desired = TestScale;
             
         var code = RunSourcecode("TestIfElse", $"public static int main() {{ int x = {desired}; if (x % 2) {{ return x; }} else return x * 2; throw x; }}");
             
         Assert.AreEqual(desired % 2 > 0 ? desired : desired * 2, (code.Value as Numeric).IntValue);
     }
 
-    [Test, Timeout(TestTimeout), Repeat(TestRepeat)]
+    [Test, Timeout(TestTimeout), Repeat(TestScale / 16)]
     public void TestFor()
     {
-        int desiredLen = rng.Next() % RngMax;
+        int desiredLen = rng.Next() % TestScale;
         if (desiredLen < 10)
-            desiredLen = RngMax;
+            desiredLen = TestScale;
 
         var writer = new StringWriter();
         Console.SetOut(writer);
@@ -121,12 +121,12 @@ public class StatementTest
         Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected), $"Expected output was:\n{expected}\nActual Output was \n{writer}");
     }
 
-    [Test, Timeout(TestTimeout), Repeat(TestRepeat)]
+    [Test, Timeout(TestTimeout), Repeat(TestScale / 16)]
     public void TestForEach()
     {
-        int desiredLen = rng.Next() % RngMax;
+        int desiredLen = rng.Next() % TestScale;
         if (desiredLen < 10)
-            desiredLen = RngMax;
+            desiredLen = TestScale;
 
         var writer = new StringWriter();
         Console.SetOut(writer);
@@ -139,12 +139,12 @@ public class StatementTest
         Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected), $"Expected output was:\n{expected}\nActual Output was \n{writer}");
     }
 
-    [Test, Timeout(TestTimeout), Repeat(TestRepeat)]
+    [Test, Timeout(TestTimeout), Repeat(TestScale / 16)]
     public void TestWhile()
     {
-        int desiredLen = rng.Next() % RngMax;
+        int desiredLen = rng.Next() % TestScale;
         if (desiredLen < 10)
-            desiredLen = RngMax;
+            desiredLen = TestScale;
 
         var writer = new StringWriter();
         Console.SetOut(writer);
@@ -158,12 +158,12 @@ public class StatementTest
         Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected), $"Expected output was:\n{expected}\nActual Output was \n{writer}");
     }
 
-    [Test, Timeout(TestTimeout), Repeat(TestRepeat)]
+    [Test, Timeout(TestTimeout), Repeat(TestScale / 16)]
     public void TestDoWhile()
     {
-        int desiredLen = rng.Next() % RngMax;
+        int desiredLen = rng.Next() % TestScale;
         if (desiredLen < 10)
-            desiredLen = RngMax;
+            desiredLen = TestScale;
 
         var writer = new StringWriter();
         Console.SetOut(writer);
