@@ -238,16 +238,18 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Code, BytecodeType.StmtForEach):
                     stack.StepInside(vm, SourcefilePosition, "foreach", stack =>
                     {
-                        SubStatement!.Evaluate(vm, stack.Output()).Copy(Alp, Alp);
+                        SubStatement!.Evaluate(vm, stack.Output()).Copy(Alp);
                         var iterable = stack.Alp.Value!;
-                        iterable.Invoke(vm, stack.Output(), "iterator").Copy(Alp, Eps);
+                        iterable.Invoke(vm, stack.Output(Eps), "iterator").Copy(Eps);
                         var iterator = stack.Eps.Value;
-                        vm[stack, VariableContext.Local, Arg] = stack[Del] 
+                        vm[stack, VariableContext.Local, Arg] = stack[Del]
                             = new ObjectRef(iterator.Type.TypeParameterInstances[0].ResolveType(vm, iterator.Type));
-                        while (iterator.Invoke(vm, stack.Output(), "hasNext").Copy(Alp, Phi).ToBool())
+                        while (iterator.Invoke(vm, stack.Channel(Eps, Phi), "hasNext").Copy(Phi).ToBool())
                         {
-                            iterator.Invoke(vm, stack.Output(), "next").Copy(Alp, Bet);
-                            stack[Del].Value = stack[Bet].Value;
+                            iterator.Invoke(vm, stack.Channel(Eps, Bet), "next").Copy(Bet);
+                            var val = stack[Del].Value = stack[Bet].Value;
+                            if (val == null || val.ObjectId == 0)
+                                throw new NullReferenceException();
                             InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                         }
                     });
