@@ -593,8 +593,24 @@ namespace KScr.Lib.Bytecode
             public Class BaseClass { get; }
             public IObjectRef SelfRef { get; internal set; } = null!;
             public TypeParameter.Instance[] TypeParameterInstances { get; }
+            public Class Parent { get; }
+            public IDictionary<string, IPackageMember> PackageMembers { get; }
+            public bool IsRoot { get; }
+            public Package? Package { get; }
             public string Name => BaseClass.Name;
             public string FullName => BaseClass.FullName;
+            public IPackageMember GetMember(string name)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IPackageMember Add(IPackageMember member)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ClassMemberType MemberType { get; }
+            public SourcefilePosition SourceLocation { get; }
             public string CanonicalName => BaseClass.CanonicalName;
             public string FullDetailedName => BaseClass.Parent?.FullName + '.' + DetailedName;
             public string DetailedName
@@ -677,7 +693,13 @@ namespace KScr.Lib.Bytecode
             {
                 return FullName;
             }
+
+            public Stack Evaluate(RuntimeBase vm, Stack stack) => throw new NotSupportedException();
         }
+
+        public ClassMemberType MemberType => ClassMemberType.Class;
+        public Class? Parent { get; init; } = null;
+        public SourcefilePosition SourceLocation { get; init; }
     }
 
     public sealed class TypeParameter : ITypeParameter

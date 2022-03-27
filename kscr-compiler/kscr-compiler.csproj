@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <RootNamespace>KScr.Compiler</RootNamespace>
+        <RootNamespace></RootNamespace>
         <Nullable>enable</Nullable>
         <Company>comroid</Company>
         <AssemblyVersion>0.2.2</AssemblyVersion>

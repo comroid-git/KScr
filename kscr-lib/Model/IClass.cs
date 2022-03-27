@@ -49,8 +49,11 @@ namespace KScr.Lib.Model
         bool CanHold(IClass? type);
     }
 
-    public interface IClass : IClassInfo
+    public interface IClass : IClassInfo, IClassMember, IPackageMember
     {
+        new string Name { get; }
+        new string FullName { get; }
+        new MemberModifier Modifier { get; }
         Class BaseClass { get; }
         IObjectRef SelfRef { get; }
         IEnumerable<IClassMember> ClassMembers => DeclaredMembers.Values.Concat(InheritedMembers);

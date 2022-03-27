@@ -8,7 +8,8 @@ namespace KScr.Lib.Bytecode
     public enum ClassMemberType : byte
     {
         Method = 0x1,
-        Property = 0x2
+        Property = 0x2,
+        Class = 0x4
     }
 
     public interface IClassMember : IEvaluable, IModifierContainer

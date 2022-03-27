@@ -33,7 +33,7 @@ namespace KScr.Lib.Bytecode
         public void Write(DirectoryInfo dir, ClassInfo[]? names = null)
         {
             names ??= Array.Empty<ClassInfo>();
-            foreach (var member in Members.Values)
+            foreach (var member in PackageMembers.Values)
                 if (!names.Any(name => name.FullName.StartsWith(member.FullName.Contains("<")
                         ? member.FullName.Substring(0, member.FullName.IndexOf('<'))
                         : member.FullName)))
@@ -86,7 +86,7 @@ namespace KScr.Lib.Bytecode
 
         public Package GetOrCreatePackage(string name)
         {
-            if (Members.TryGetValue(name, out var pm) && pm is Package pkg)
+            if (PackageMembers.TryGetValue(name, out var pm) && pm is Package pkg)
                 return pkg;
             Add(pkg = new Package(this, name));
             return pkg;
@@ -95,7 +95,7 @@ namespace KScr.Lib.Bytecode
         public Class? GetOrCreateClass(RuntimeBase vm, string name, MemberModifier mod = MemberModifier.None,
             ClassType type = ClassType.Class)
         {
-            if (Members.TryGetValue(name, out var pm) && pm is Class cls)
+            if (PackageMembers.TryGetValue(name, out var pm) && pm is Class cls)
                 return cls;
             if (mod == MemberModifier.None)
                 return null;

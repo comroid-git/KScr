@@ -27,6 +27,7 @@ namespace KScr.Lib.Model
         PipeConsumer = 21 // from-pipe consumer >>
     }
 
+    [Obsolete]
     public class TokenContext
     {
         public int TokenIndex;
@@ -308,66 +309,6 @@ namespace KScr.Lib.Model
             if (i + 1 >= names.Length)
                 return inside;
             return ResolvePackage(inside, names, i + 1);
-        }
-
-        public static string FindClassPackageName(TokenContext ctx)
-        {
-            ctx.TokenIndex = 0;
-            if (ctx.Token.Type != TokenType.Package)
-                throw new CompilerException(ctx.Token.SourcefilePosition, ClassPackageMissing);
-            ctx.TokenIndex += 1;
-            return ctx.FindCompoundWord();
-        }
-
-        private static IList<string> FindClassImports(TokenContext ctx)
-        {
-            // skip package name if necessary
-            ctx.SkipPackage();
-
-            var yields = new List<string>();
-            while (ctx.Token.Type != TokenType.Terminator && ctx.NextToken?.Type == TokenType.Import)
-            {
-                ctx.TokenIndex += 2;
-                yields.Add(ctx.FindCompoundWord());
-            }
-
-            return yields;
-        }
-
-        public static ClassInfo FindClassInfo(FileInfo file, ITokenizer tokenizer)
-        {
-            var tokens = new TokenContext(tokenizer.Tokenize(file.FullName, File.ReadAllText(file.FullName)));
-            return FindClassInfo(FindClassPackageName(tokens), tokens, file.Name.Substring(0, file.Name.IndexOf('.')));
-        }
-
-        public static ClassInfo FindClassInfo(string findClassPackageName, TokenContext ctx, string? clsName)
-        {
-            ctx.TokenIndex = 0;
-            // skip package and imports if necessary
-            string packageName = findClassPackageName;
-            ctx.SkipPackage();
-            ctx.SkipImports();
-
-            if (ctx.Token.Type == TokenType.Terminator)
-                ctx.TokenIndex += 1;
-
-            var mod = ctx.Token.Type.Modifier();
-            var type = ctx.Token.Type.ClassType();
-            string name;
-
-            ctx.TokenIndex += 1;
-
-            if (ctx.Token.Type == TokenType.Word)
-                if (clsName != null && clsName != ctx.Token.Arg)
-                    throw new CompilerException(ctx.Token.SourcefilePosition, ClassNameMismatch, ctx.Token.Arg, clsName);
-                else name = ctx.Token.Arg!;
-            else throw new CompilerException(ctx.Token.SourcefilePosition, ClassNameMissing, clsName);
-
-            return new ClassInfo(mod.Value, type.Value, name)
-            {
-                FullName = packageName + '.' + name,
-                CanonicalName = packageName + '.' + name
-            };
         }
 
         public static void CompilerLoop(RuntimeBase vm, ICompiler use, ref CompilerContext context)

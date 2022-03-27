@@ -191,8 +191,7 @@ namespace KScr.Runtime
         {
             if (output.Exists)
                 output.Delete(true);
-            Package.RootPackage.Write(output,
-                sources.Select(f => AbstractCompiler.FindClassInfo(f, new Tokenizer())).ToArray());
+            Package.RootPackage.Write(output, sources.Select(f => VM.FindClassInfo(f)).ToArray());
         }
 
         private static void HandleResult(State state, IObject? result, long compileTime, long executeTime)
