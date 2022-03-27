@@ -34,25 +34,46 @@ member
     ;
 
 initDecl: STATIC block;
-constructorDecl: annotation* modifiers type parameters subConstructorCalls? (block | SEMICOLON);
-subConstructorCalls: COLON subConstructorCall (COMMA subConstructorCall)*?;
-subConstructorCall: type arguments;
+constructorDecl: annotation* modifiers type parameters (COLON (THIS | id) LPAREN expr* RPAREN)? (block | SEMICOLON);
 methodDecl: annotation* modifiers genericTypeDefs? type idPart parameters (block | SEMICOLON);
 
-propGetter: GET block;
-propSetter: SET block;
-propertyDecl: annotation* modifiers type idPart ((ASSIGN expr SEMICOLON) | (block) | (LBRACE propGetter propSetter? RBRACE) | SEMICOLON);
+propGetter: 'get' block;
+propSetter: 'set' block;
+propertyDecl: annotation* modifiers type idPart ((ASSIGN expr SEMICOLON) | (block) | (LBRACE propGetter propSetter? RBRACE))?;
 parameter: FINAL? type (indexer | ELIPSES)? idPart (ASSIGN expr)?;
 parameters: LPAREN (parameter (COMMA parameter)*)? RPAREN;
 
 block: (LBRACE statement* RBRACE | REQARROW expr SEMICOLON | statement) | SEMICOLON;
+
+lightStatement
+    : varDeclaration
+    | varAssignment
+    | varIncDecOp
+    | ()
+    ;
+statement
+    : innerCtorCall SEMICOLON
+    | lightStatement SEMICOLON
+    | returnStatement SEMICOLON
+    | throwStatement SEMICOLON
+    | initialisation SEMICOLON
+    | pipeStatement SEMICOLON
+    | tryCatchStatement finallyBlock?
+    | tryWithResourcesStatement finallyBlock?
+    | ifStatement finallyBlock?
+    | whileStatement finallyBlock?
+    | doWhile finallyBlock?
+    | forStatement finallyBlock?
+    | foreachStatement finallyBlock?
+    | switchStatement finallyBlock?
+    | SEMICOLON
+    ;
 
 annotation: AT id (LPAREN (annotationArg (COMMA annotationArg)* | expr)? RPAREN)?;
 annotationArg: idPart ASSIGN expr;
 
 type
     : rawType genericTypeUses?
-    | idPart
     | type genericTypeUses? (LSQUAR RSQUAR)
     | genericTypeUses? (LSQUAR RSQUAR)?
     ;
@@ -71,29 +92,33 @@ inferType: VOID | VAR;
 modifiers: modifier*;
 
 expr
-    : expr INSTANCEOF type                                                         #instanceCheckValue
-    | arr=expr LSQUAR index=expr RSQUAR                                            #arrayIndexValue
-    | prefixop expr                                                                #prefixOpValue
-    | typ=type left=idPart ASSIGN right=expr                                       #inlineDeclareValue // can't use varDeclaration due to recursive rules
-    | left=expr binaryop? ASSIGN right=expr                                        #inlineAssignValue // can't use varAssignment due to recursive rules
-    | left=expr binaryop right=expr                                                #binaryOpValue
-    | expr postfixop                                                               #postfixOpValue
-    | LPAREN expr RPAREN                                                           #parenValue
-    | initialisation                                                               #initialisationValue
-    | switchStatement                                                              #switchValue
-    | left=expr DOT call                                                            #callMethod
-    | left=expr DOT idPart                                                          #callProperty
-    | cast                                                                           #castValue
-    | newArray                                                                       #newArrayValue
-    | newListedArray                                                                 #newListedArrayValue
-    | primitiveLit                                                                   #thisValue
-    | idPart                                                                         #varValue
+    : expr INSTANCEOF type                                        #instanceCheckValue
+    | arr=expr LSQUAR index=expr RSQUAR                          #arrayIndexValue
+    //| (expr | SUPER | THIS) DOT call                                #functionValue
+    //| (expr | SUPER | THIS) DOT idPart                             #varValue
+    | prefixop expr                                                 #prefixOpValue
+    | typ=type left=idPart ASSIGN right=expr                        #inlineDeclareValue // can't use varDeclaration due to recursive rules
+    | left=expr binaryop? ASSIGN right=expr                        #inlineAssignValue // can't use varAssignment due to recursive rules
+    | left=expr binaryop right=expr                                #binaryOpValue
+    | expr postfixop                                                #postfixOpValue
+    | LPAREN expr RPAREN                                            #parenValue
+    | initialisation                                                 #initialisationValue
+    | switchStatement                                                #switchValue
+    | expr (LSHIFT | RSHIFT | LBOXARROW | RBOXARROW) expr           #pipeOperatorStatement // can't use pipeStatement due to recursive rules
+    | id DOT call                                                   #classValue
+    | primitiveLit DOT call                                        #primitiveClassValue
+    | cast                                                           #castValue
+    | newArray                                                       #newArrayValue
+    | newListedArray                                                 #newListedArrayValue
+    | primitiveLit                                                 #thisValue
+    | idPart                                                         #varValue
     ;
 
 initialisation: NEW type arguments;
 cast: LPAREN type RPAREN expr;
-varDeclaration: type idPart ASSIGN expr;
+varDeclaration: type expr binaryop? ASSIGN expr;
 varAssignment: expr binaryop? ASSIGN expr;
+varIncDecOp: expr (PLUSPLUS | MINUSMINUS) | (PLUSPLUS | MINUSMINUS) expr;
 call: idPart arguments;
 innerCtorCall: (THIS | SUPER) arguments;
 newArray: NEW type LSQUAR expr RSQUAR;
@@ -102,31 +127,10 @@ indexer: LSQUAR RSQUAR;
 
 arguments: LPAREN (expr (COMMA expr)*) RPAREN;
 
-statement
-    : innerCtorCall SEMICOLON
-    | varDeclaration SEMICOLON
-    | varAssignment SEMICOLON
-    | returnStatement SEMICOLON
-    | throwStatement SEMICOLON
-    | initialisation SEMICOLON
-    | pipeStatement SEMICOLON
-    | tryCatchStatement finallyBlock?
-    | tryWithResourcesStatement finallyBlock?
-    | ifStatement finallyBlock?
-    | whileStatement finallyBlock?
-    | doWhile finallyBlock?
-    | forStatement finallyBlock?
-    | foreachStatement finallyBlock?
-    | switchStatement finallyBlock?
-    | SEMICOLON
-    ;
-
 returnStatement: RETURN expr?;
 throwStatement: THROW expr;
 
-pipeStatement: pipeWriteStatement*? expr pipeReadStatement*?;
-pipeWriteStatement: expr (RBOXARROW | URSHIFT | RSHIFT);
-pipeReadStatement: (LSHIFT | ULSHIFT | LBOXARROW) expr;
+pipeStatement: expr (LSHIFT | RSHIFT | LBOXARROW | RBOXARROW) expr;
 
 tryCatchStatement: TRY block CATCH block;
 tryWithResourcesStatement: TRY LPAREN varDeclaration (COMMA varDeclaration)* RPAREN block CATCH block;
@@ -136,7 +140,7 @@ ifStatement: IF LPAREN expr RPAREN block elseStatement?;
 elseStatement: ELSE block;
 
 whileStatement: WHILE LPAREN expr RPAREN block;
-forStatement: FOR LPAREN start=statement? SEMICOLON cond=expr? SEMICOLON end=statement? RPAREN action=block;
+forStatement: FOR LPAREN start=lightStatement? SEMICOLON cond=lightStatement SEMICOLON end=lightStatement? RPAREN action=block;
 foreachStatement: FOREACH LPAREN idPart COLON expr RPAREN block;
 doWhile: DO block WHILE LPAREN expr RPAREN SEMICOLON;
 
@@ -165,8 +169,6 @@ binaryop
     | RSHIFT
     | ULSHIFT
     | URSHIFT
-    | LBOXARROW
-    | RBOXARROW
     | TILDE
     ;
 
@@ -221,7 +223,6 @@ primitiveLit:
     | tuple
     | num
     | THIS
-    | SUPER
     | TYPE
     | ENUM
     | NUMLIT
