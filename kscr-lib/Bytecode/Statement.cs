@@ -162,7 +162,7 @@ namespace KScr.Lib.Bytecode
                     var ctor = (type.ClassMembers.First(x => x.Name == Method.ConstructorName) as IMethod)!;
                     var obj = new CodeObject(vm, type);
                     stack[Default] = vm.PutObject(stack, VariableContext.Absolute, obj);
-                    stack.StepInto(vm, SourcefilePosition, stack.Alp, ctor, stack =>
+                    stack.StepInto(vm, SourcefilePosition, stack[Default], ctor, stack =>
                     {
                         SubComponent.Evaluate(vm, stack.Output()).Copy(output: Bet);
                         for (var i = 0; i < ctor.Parameters.Count; i++)
@@ -178,7 +178,7 @@ namespace KScr.Lib.Bytecode
                     throw new NotImplementedException();
                 case (StatementComponentType.Code, BytecodeType.Assignment):
                     // assignment
-                    if (stack.Alp == null)
+                    if (stack[Default] == null)
                         throw new FatalException(
                             "Invalid assignment; missing variable name");
                     if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
@@ -358,10 +358,10 @@ namespace KScr.Lib.Bytecode
                     break;
                 case (StatementComponentType.Provider, BytecodeType.LiteralRange):
                     SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                    stack[Default] = Range.Instance(vm, (stack.Alp.Value as Numeric)!.IntValue, (stack.Bet.Value as Numeric)!.IntValue);
+                    stack[Default] = Range.Instance(vm, (stack[Default].Value as Numeric)!.IntValue, (stack.Bet.Value as Numeric)!.IntValue);
                     break;
                 case (StatementComponentType.Provider, BytecodeType.ExpressionVariable):
-                    if (stack.Alp?.Value is { } obj1
+                    if (stack[Default]?.Value is { } obj1
                         && obj1.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm1)
                     {
                         // call member
@@ -398,7 +398,7 @@ namespace KScr.Lib.Bytecode
                                 stack.StepInto(vm, SourcefilePosition, stack[Default], mtd,
                                     stack =>
                                     {
-                                        stack.Alp.Value!.Invoke(vm, stack.Output(), Arg,
+                                        stack[Default].Value!.Invoke(vm, stack.Output(), Arg,
                                             (stack.Del as ObjectRef)!.Refs).Copy(Alp);
                                     }, Alp);
                             }
@@ -439,18 +439,18 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Emitter, _):
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException("Invalid emitter; no Expression found");
-                    if (!stack.Alp.IsPipe)
+                    if (!stack[Default].IsPipe)
                         throw new FatalException("Cannot emit value into non-pipe accessor");
                     SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                    stack.Alp.WriteValue(vm, stack.Channel(Bet), stack.Bet?.Value ?? IObject.Null);
+                    stack[Default].WriteValue(vm, stack.Channel(Bet), stack.Bet?.Value ?? IObject.Null);
                     break;
                 case (StatementComponentType.Consumer, _):
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Declaration) == 0)
                         throw new FatalException("Invalid consumer; no declaration found");
-                    if (!stack.Alp.IsPipe)
+                    if (!stack[Default].IsPipe)
                         throw new FatalException("Cannot consume value from non-pipe accessor");
                     SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                    stack.Alp.ReadValue(vm, stack.Channel(Bet), stack.Bet?.Value ?? IObject.Null);
+                    stack[Default].ReadValue(vm, stack.Channel(Bet), stack.Bet?.Value ?? IObject.Null);
                     break;
                 default:
                     throw new NotImplementedException($"Not Implemented: {Type} {CodeType}");

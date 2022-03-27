@@ -25,9 +25,8 @@ namespace KScr.Lib
     {
         public static Encoding Encoding = Encoding.ASCII;
 
-        public static readonly DummyMethod MainInvoc = new(Class.VoidType, "main",
-            MemberModifier.Public | MemberModifier.Final | MemberModifier.Static, Class.NumericIntType);
-        public static readonly SourcefilePosition SystemSrcPos = new() { SourcefilePath = "org.comroid.kscr.core.System.cctor() <native>" };
+        public static readonly DummyMethod MainInvoc = new(Class.ObjectType, "main", MemberModifier.Public | MemberModifier.Final | MemberModifier.Static, Class.NumericIntType);
+        public static readonly SourcefilePosition SystemSrcPos = new() { SourcefilePath = MainInvoc.FullName + " <native>" };
         public static readonly DirectoryInfo SdkHome = GetSdkHome();
         public static bool Initialized;
         public static readonly Stack MainStack = new();
@@ -177,11 +176,13 @@ namespace KScr.Lib
         public Stack Execute()
         {
             var method = Package.RootPackage.FindEntrypoint();
-            var stack = new Stack();
+            var stack = MainStack;
 
             try
             {
-                stack.StepInto(this, SystemSrcPos, method, stack => method.Evaluate(this, stack).Copy(StackOutput.Omg), StackOutput.Omg);
+                stack.StepInto(this, SystemSrcPos, method, stack => method
+                    .Evaluate(this, stack.Output(StackOutput.Omg))
+                    .Copy(StackOutput.Omg), StackOutput.Omg);
             }
             catch (StackTraceException stc)
             {
