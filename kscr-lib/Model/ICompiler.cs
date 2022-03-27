@@ -27,80 +27,7 @@ namespace KScr.Lib.Model
         PipeConsumer = 21 // from-pipe consumer >>
     }
 
-    [Obsolete]
-    public class TokenContext
-    {
-        public int TokenIndex;
-
-        protected TokenContext(TokenContext? parent = null)
-        {
-            Tokens = null!;
-            if (parent != null)
-                TokenIndex = parent.TokenIndex;
-        }
-
-        public TokenContext(IList<IToken> tokens, int tokenIndex = 0)
-        {
-            Tokens = tokens;
-            TokenIndex = tokenIndex;
-        }
-
-        public virtual IList<IToken> Tokens { get; }
-
-        public IToken Token => Tokens[TokenIndex];
-        public IToken? NextToken => Tokens.Count > TokenIndex + 1 ? Tokens[TokenIndex + 1] : null;
-
-        public IToken? PrevToken => TokenIndex - 1 >= 0 ? Tokens[TokenIndex - 1] : null;
-
-        public int SkipTrailingTokens(TokenType type = TokenType.Whitespace)
-        {
-            for (var i = 0; Token.Type == type && i < Tokens.Count; i++)
-                if (++TokenIndex > Tokens.Count)
-                {
-                    TokenIndex--;
-                    return -1;
-                }
-                else if (Token.Type != type)
-                {
-                    return i;
-                }
-
-            return -1;
-        }
-
-        public string FindCompoundWord(TokenType delimiter = TokenType.Dot, TokenType terminator = TokenType.Terminator)
-        {
-            var str = "";
-            while (Token.Type != terminator && Token.Type == TokenType.Word || Token.Type == delimiter)
-            {
-                str += Token.String();
-                TokenIndex += 1;
-            }
-
-            return str;
-        }
-
-        public void SkipPackage()
-        {
-            if (Token.Type != TokenType.Package)
-                return;
-            do
-            {
-                TokenIndex++;
-            } while (Token.Type != TokenType.Terminator);
-        }
-
-        public void SkipImports()
-        {
-            while (NextToken?.Type == TokenType.Import)
-                do
-                {
-                    TokenIndex++;
-                } while (Token.Type != TokenType.Terminator);
-        }
-    }
-
-    public sealed class CompilerContext : TokenContext
+    public sealed class CompilerContext
     {
         public readonly Class Class;
         public readonly ExecutableCode ExecutableCode;
@@ -122,7 +49,7 @@ namespace KScr.Lib.Model
         {
         }
 
-        public CompilerContext(CompilerContext ctx, Class @class, TokenContext tokens,
+        public CompilerContext(CompilerContext ctx, Class @class, object tokens,
             [Range(10, 19)] CompilerType type)
             : this(ctx, type, tokens, ctx.Package, @class, null!)
         {
@@ -164,7 +91,6 @@ namespace KScr.Lib.Model
             ComponentIndex = componentIndex;
         }
 
-        public override IList<IToken> Tokens => TokenContext.Tokens;
         public TokenContext TokenContext { get; }
 
 
