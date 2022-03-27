@@ -36,8 +36,7 @@ namespace KScr.Compiler.Class
                     {
                         // parse type
                         if (pIndex > _method.Parameters.Count)
-                            throw new CompilerException(ctx.Token.SourcefilePosition,
-                                "Invalid parameter index during compilation");
+                            throw new FatalException("Invalid parameter index during compilation");
 
                         _method.Parameters.Add(new MethodParameter());
                         var name = ctx.Token.String();

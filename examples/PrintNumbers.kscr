@@ -29,7 +29,7 @@ public class PrintNumbers implements Throwable {
         //stdio << "i is now " + i; // should error (it did last time)
         
         stdio << "and now backwards bcs we're cool:";
-        for (int i = end); i; --i) {
+        for (int i = end; i; --i) {
             stdio << i;
         }
         

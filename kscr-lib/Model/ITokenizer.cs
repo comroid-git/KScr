@@ -185,19 +185,21 @@ namespace KScr.Lib.Model
                 Super => "super",
                 Extends => "extends",
                 Implements => "implements",
-                Public => "public",
-                Internal => "internal",
-                Protected => "protected",
-                Private => "private",
-                TokenType.Class => "class",
-                Interface => "interface",
-                TokenType.Enum => "enum",
-                Annotation => "annotation",
-                Static => "static",
-                Dynamic => "dynamic",
-                Abstract => "abstract",
-                Final => "final",
-                Native => "native",
+                /*
+                    Public => "public",
+                    Internal => "internal",
+                    Protected => "protected",
+                    Private => "private",
+                    TokenType.Class => "class",
+                    Interface => "interface",
+                    TokenType.Enum => "enum",
+                    Annotation => "annotation",
+                    Static => "static",
+                    Dynamic => "dynamic",
+                    Abstract => "abstract",
+                    Final => "final",
+                    Native => "native",
+                */
                 TokenType.Package => "package",
                 Import => "import",
                 IdentObject => "object",
@@ -206,8 +208,40 @@ namespace KScr.Lib.Model
                 IdentTuple => "tuple",
                 IdentRange => "range",
                 IdentPipe => "pipe",
-                _ => throw new ArgumentOutOfRangeException(token.ToString())
+                _ => String(token.Type)
             };
+        }
+
+        private static string String(TokenType type)
+        {
+            string txt = "";
+            if ((type & Public) == Public)
+                txt += " public";
+            if ((type & Internal) == Internal)
+                txt += " internal";
+            if ((type & Protected) == Protected)
+                txt += " protected";
+            if ((type & Private) == Private)
+                txt += " private";
+            if ((type & Static) == Static)
+                txt += " static";
+            if ((type & Dynamic) == Dynamic)
+                txt += " dynamic";
+            if ((type & Abstract) == Abstract)
+                txt += " abstract";
+            if ((type & Final) == Final)
+                txt += " final";
+            if ((type & Native) == Native)
+                txt += " native";
+            if ((type & TokenType.Class) == TokenType.Class)
+                txt += " class";
+            if ((type & Interface) == Interface)
+                txt += " interface";
+            if ((type & TokenType.Enum) == TokenType.Enum)
+                txt += " enum";
+            if ((type & Annotation) == Annotation)
+                txt += " annotation";
+            return txt.Substring(1);
         }
 
         public static MemberModifier? Modifier(this TokenType type)

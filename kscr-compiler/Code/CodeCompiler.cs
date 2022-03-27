@@ -6,6 +6,7 @@ using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
+using static KScr.Lib.Exception.CompilerError;
 using static KScr.Lib.Model.TokenType;
 
 namespace KScr.Compiler.Code
@@ -67,13 +68,13 @@ namespace KScr.Compiler.Code
                     return this;
                 case New:
                     if (ctx.NextToken!.Type != Word)
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid new-Statement; missing type identifier");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, InvalidToken, 
+                            ctx.Class.FullName, ctx.Token.String(), "missing type identifier");
                     ctx.TokenIndex += 1;
                     var ctor = ctx.FindType(vm, ctx.FindCompoundWord(terminator: ParRoundOpen))!;
                     if (!ctx.Statement.TargetType.CanHold(ctor))
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            $"Invalid new-Statement; Cannot assign {ctor} to {ctx.Statement.TargetType}");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, CannotAssign, 
+                            ctx.Statement.TargetType.FullDetailedName, ctor.FullDetailedName);
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
@@ -194,8 +195,8 @@ namespace KScr.Compiler.Code
                     if (ctx.PrevToken?.Type != Tilde // fixme todo this may break with non-compile time constant range
                         && ctx.NextToken?.Type != Tilde 
                         && !ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid Numeric literal; expected " + ctx.Statement.TargetType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition, CannotAssign, 
+                            ctx.Statement.TargetType, Lib.Bytecode.Class.NumericType.FullName);
                     var numstr = Numeric.Compile(vm, ctx.Token.Arg!).Value!.ToString(IObject.ToString_LongName);
                     ctx.Component = new StatementComponent
                     {
@@ -208,8 +209,8 @@ namespace KScr.Compiler.Code
                     break;
                 case LiteralStr:
                     if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.StringType))
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid String literal; expected " + ctx.Statement.TargetType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition, CannotAssign, 
+                            ctx.Statement.TargetType, Lib.Bytecode.Class.StringType.FullName);
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
@@ -221,8 +222,8 @@ namespace KScr.Compiler.Code
                     break;
                 case LiteralTrue:
                     if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid Boolean literal; expected " + ctx.Statement.TargetType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition, CannotAssign, 
+                            ctx.Statement.TargetType, Lib.Bytecode.Class.NumericType.FullName);
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
@@ -233,8 +234,8 @@ namespace KScr.Compiler.Code
                     break;
                 case LiteralFalse:
                     if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid Boolean literal; expected " + ctx.Statement.TargetType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition, CannotAssign, 
+                            ctx.Statement.TargetType, Lib.Bytecode.Class.NumericType.FullName);
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
@@ -580,6 +581,11 @@ namespace KScr.Compiler.Code
                     };
                     */
                     break;
+                default:
+                    if (!_doneAnything)
+                        throw new CompilerException(ctx.Token.SourcefilePosition, UnexpectedToken, 
+                            ctx.Class.FullName, ctx.Token.String(), "");
+                    break;
             }
 
             if (_terminators.Contains(ctx.NextToken!.Type) || !_doneAnything && _terminators.Contains(ctx.Token.Type))
@@ -599,7 +605,8 @@ namespace KScr.Compiler.Code
         private void CompileDeclaration(CompilerContext ctx, IClassInstance targetType)
         {
             if (ctx.NextToken?.Type != Word)
-                throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid declaration; missing variable name");
+                throw new CompilerException(ctx.Token.SourcefilePosition, Invalid, 
+                    ctx.Class.FullName, "declaration", "missing variable name");
 
             ctx.Statement = new Statement
             {

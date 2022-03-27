@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
+using static KScr.Lib.Exception.CompilerError;
 
 namespace KScr.Lib.Model
 {
@@ -312,7 +313,7 @@ namespace KScr.Lib.Model
         {
             ctx.TokenIndex = 0;
             if (ctx.Token.Type != TokenType.Package)
-                throw new CompilerException(ctx.Token.SourcefilePosition, "Missing Package name at index 0");
+                throw new CompilerException(ctx.Token.SourcefilePosition, ClassPackageMissing);
             ctx.TokenIndex += 1;
             return ctx.FindCompoundWord();
         }
@@ -357,10 +358,9 @@ namespace KScr.Lib.Model
 
             if (ctx.Token.Type == TokenType.Word)
                 if (clsName != null && clsName != ctx.Token.Arg)
-                    throw new CompilerException(ctx.Token.SourcefilePosition,
-                        "Declared Class name mismatches File name");
+                    throw new CompilerException(ctx.Token.SourcefilePosition, ClassNameMismatch, ctx.Token.Arg, clsName);
                 else name = ctx.Token.Arg!;
-            else throw new CompilerException(ctx.Token.SourcefilePosition, "Missing Class name");
+            else throw new CompilerException(ctx.Token.SourcefilePosition, ClassNameMissing, clsName);
 
             return new ClassInfo(mod.Value, type.Value, name)
             {

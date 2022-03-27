@@ -4,6 +4,7 @@ using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
+using static KScr.Lib.Exception.CompilerError;
 using static KScr.Lib.Model.TokenType;
 
 namespace KScr.Compiler.Class
@@ -26,8 +27,7 @@ namespace KScr.Compiler.Class
                     {
                         // parse name
                         if (pIndex >= ctx.Class.BaseClass.TypeParameters.Count)
-                            throw new CompilerException(ctx.Token.SourcefilePosition,
-                                "Invalid TypeParameter index during compilation");
+                            throw new FatalException("Invalid TypeParameter index during compilation");
 
                         var context = ctx;
                         if (ctx.Class.TypeParameters.Any(x => x.Name == context.Token.Arg!))
@@ -59,10 +59,12 @@ namespace KScr.Compiler.Class
                     if (ctx.PrevToken!.Type != ctx.Token.Type
                         || ctx.Token.Type != ctx.NextToken!.Type
                         || ctx.NextToken!.Type != Dot)
-                        throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid Dot token");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, InvalidToken, 
+                            ctx.Class.FullName, ".", "");
                     if ((ctx.Class.TypeParameters[pIndex] as TypeParameter)!.Specialization ==
                         TypeParameterSpecializationType.N)
-                        throw new CompilerException(ctx.Token.SourcefilePosition, "Cannot list N");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, InvalidToken, 
+                            ctx.Class.FullName, "...", "Type Parameter n cannot be varargs!");
                     (ctx.Class.TypeParameters[pIndex] as TypeParameter)!.Specialization =
                         TypeParameterSpecializationType.List;
                     ctx.TokenIndex += 1;
@@ -70,7 +72,7 @@ namespace KScr.Compiler.Class
                 case ParDiamondClose:
                     _active = false;
                     return this;
-                default: throw new CompilerException(ctx.Token.SourcefilePosition, "Unexpected token: " + ctx.Token);
+                default: throw new CompilerException(ctx.Token.SourcefilePosition, UnexpectedToken,  ctx.Class.FullName, ctx.Token.String());
             }
 
             return this;

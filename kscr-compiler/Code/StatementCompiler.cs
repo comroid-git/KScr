@@ -2,6 +2,7 @@
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
+using static KScr.Lib.Exception.CompilerError;
 using static KScr.Lib.Model.TokenType;
 
 namespace KScr.Compiler.Code
@@ -65,8 +66,8 @@ namespace KScr.Compiler.Code
                     break;
                 case If:
                     if (ctx.NextToken?.Type != ParRoundOpen)
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid if-Statement; missing condition");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, InvalidToken, 
+                            ctx.Class.FullName, ctx.Token.String(), "missing condition");
                     ctx.Statement = new Statement
                     {
                         Type = StatementComponentType.Code,
@@ -104,8 +105,8 @@ namespace KScr.Compiler.Code
                     break;
                 case Else:
                     if (ctx.LastComponent?.CodeType != BytecodeType.StmtIf)
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid else-Statement; missing if Statement");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, InvalidToken, 
+                            ctx.Class.FullName, ctx.Token.String(), "must be trailing an if-Statement");
                     ctx.TokenIndex += 1;
                     // parse body
                     subctx = new CompilerContext(ctx, CompilerType.CodeStatement);
@@ -124,8 +125,8 @@ namespace KScr.Compiler.Code
                     break;
                 case For:
                     if (ctx.NextToken?.Type != ParRoundOpen)
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid for-Statement; missing specification");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, InvalidToken, 
+                            ctx.Class.FullName, ctx.Token.String(), "missing specification");
                     ctx.Statement = new Statement
                     {
                         Type = StatementComponentType.Code,
@@ -181,8 +182,8 @@ namespace KScr.Compiler.Code
                     break;
                 case ForEach:
                     if (ctx.NextToken?.Type != ParRoundOpen)
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid foreach-Statement; missing specification");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, InvalidToken, 
+                            ctx.Class.FullName, ctx.Token.String(), "missing specification");
                     ctx.Statement = new Statement
                     {
                         Type = StatementComponentType.Code,
@@ -198,15 +199,15 @@ namespace KScr.Compiler.Code
                     ctx.TokenIndex += 2;
                     // parse n's name
                     if (ctx.Token.Type != Word)
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid foreach-Statement; missing n Identifier");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, InvalidToken, 
+                            ctx.Class.FullName, "foreach.n", "missing n Identifier");
                     ctx.LastComponent!.Arg = ctx.Token.Arg!;
 
                     // parse range
                     ctx.TokenIndex += 2;
                     if (ctx.PrevToken!.Type != Colon)
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid foreach-Statement; missing delimiter colon");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, InvalidToken, 
+                            ctx.Class.FullName, "foreach.colon", "missing delimiter colon");
                     subctx = new CompilerContext(ctx, CompilerType.CodeExpression);
                     subctx.Statement = new Statement
                     {
@@ -230,8 +231,8 @@ namespace KScr.Compiler.Code
                     break;
                 case While:
                     if (ctx.NextToken?.Type != ParRoundOpen)
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid while-Statement; missing condition");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, InvalidToken, 
+                            ctx.Class.FullName, ctx.Token.String(), "missing condition");
                     ctx.Statement = new Statement
                     {
                         Type = StatementComponentType.Code,
@@ -302,8 +303,8 @@ namespace KScr.Compiler.Code
                     break;
                 case Finally:
                     if (ctx.Statement == null)
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid finally-Statement; cannot be first statement");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, UnexpectedToken, 
+                            ctx.Class.FullName, ctx.Token.String(), "must be trailing statement");
 
                     // parse body
                     ctx.TokenIndex += 1;
