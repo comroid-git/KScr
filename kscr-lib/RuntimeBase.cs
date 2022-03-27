@@ -181,8 +181,8 @@ namespace KScr.Lib
             try
             {
                 stack.StepInto(this, SystemSrcPos, method, stack => method
-                    .Evaluate(this, stack.Output(StackOutput.Omg))
-                    .Copy(StackOutput.Omg), StackOutput.Omg);
+                    .Evaluate(this, stack.Output())
+                    .Copy(StackOutput.Alp, StackOutput.Omg), StackOutput.Omg);
             }
             catch (StackTraceException stc)
             {
