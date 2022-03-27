@@ -285,17 +285,40 @@ namespace KScr.Lib.Bytecode
                     var op = (Operator)ByteArg;
                     switch (op)
                     {
+                        // prefix operator: logical not
                         case Operator.LogicalNot:
                             if (SubComponent == null ||
                                 (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new FatalException(
                                     "Invalid unary operator; missing right operand");
                             SubComponent.Evaluate(vm, stack.Output(copyRefs: true));
-                            stack[Default] = stack.Alp.LogicalNot(vm);
+                            stack[Default] = stack[Default].LogicalNot(vm);
                             break;
+                        // prefix operators
+                        case Operator.IncrementRead:
+                        case Operator.DecrementRead:
+                        case Operator.ArithmeticNot:
+                        case Operator.Minus when stack[Default].Value.Type.BaseClass.Name != "num":
+                            if (op == Operator.Minus) op = Operator.ArithmeticNot;
+                            if (SubComponent == null ||
+                                (SubComponent.Type & StatementComponentType.Expression) == 0)
+                                throw new FatalException("Invalid unary operator; missing right numeric operand");
+                            SubComponent.Evaluate(vm, stack.Output(copyRefs: true));
+                            if (stack[Default].Value is not Numeric right2)
+                                throw new FatalException("Invalid unary operator; missing right numeric operand");
+                            stack[Default] = right2.Operator(vm, op);
+                            break;
+                        // postfix operators
+                        case Operator.ReadIncrement:
+                        case Operator.ReadDecrement:
+                            if (stack[Default].Value is not Numeric left2)
+                                throw new FatalException("Invalid unary operator; missing left numeric operand");
+                            stack[Default] = left2.Operator(vm, op);
+                            break;
+                        // binary operator: equals
                         case Operator.Equals:
                         case Operator.NotEquals:
-                            if (stack.Alp == null)
+                            if (stack[Default] == null)
                                 throw new FatalException("Invalid binary operator; missing left operand");
                             if (SubComponent == null ||
                                 (SubComponent.Type & StatementComponentType.Expression) == 0)
@@ -305,23 +328,7 @@ namespace KScr.Lib.Bytecode
                             if (op == Operator.NotEquals)
                                 stack[Default] = stack[Default].LogicalNot(vm);
                             break;
-                        case Operator.IncrementRead:
-                        case Operator.DecrementRead:
-                        case Operator.ArithmeticNot:
-                            if (SubComponent == null ||
-                                (SubComponent.Type & StatementComponentType.Expression) == 0)
-                                throw new FatalException("Invalid unary operator; missing right numeric operand");
-                            SubComponent.Evaluate(vm, stack.Output(copyRefs: true));
-                            if (stack.Alp.Value is not Numeric right2)
-                                throw new FatalException("Invalid unary operator; missing right numeric operand");
-                            stack[Default] = right2.Operator(vm, op);
-                            break;
-                        case Operator.ReadIncrement:
-                        case Operator.ReadDecrement:
-                            if (stack.Alp.Value is not Numeric left2)
-                                throw new FatalException("Invalid unary operator; missing left numeric operand");
-                            stack[Default] = left2.Operator(vm, op);
-                            break;
+                        // binary operators
                         default:
                             if (SubComponent == null ||
                                 (SubComponent.Type & StatementComponentType.Expression) == 0)
@@ -344,7 +351,7 @@ namespace KScr.Lib.Bytecode
                             else
                             {
                                 // else try numeric operation
-                                if (stack.Alp.Value is not Numeric left3)
+                                if (stack[Default].Value is not Numeric left3)
                                     throw new FatalException(
                                         "Invalid binary operator; missing left numeric operand");
                                 stack[Default] = left3.Operator(vm, op, (stack.Bet.Value as Numeric)!);
