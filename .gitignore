@@ -827,6 +827,7 @@ sysinfo.txt
 !**.sln
 !**.csproj
 .antlr/
+.vscode/
 
 // ignore kscr build directory
 build/

@@ -32,8 +32,7 @@ namespace KScr.Runtime
 
         public static int Main(params string[] args)
         {
-            var state = State.Normal;
-            var yield = VM.ConstantVoid.Value!;
+            var stack = RuntimeBase.MainStack;
             long compileTime = -1, executeTime = -1, ioTime = -1;
 
             Parser.Default.ParseArguments<CmdCompile, CmdExecute, CmdRun>(args)
@@ -91,7 +90,7 @@ namespace KScr.Runtime
                     }
                     
                     executeTime = RuntimeBase.UnixTime();
-                    yield = VM.Execute();
+                    stack = VM.Execute();
                     executeTime = RuntimeBase.UnixTime() - executeTime;
                 })
                 .WithParsed<CmdRun>(cmd =>
@@ -109,16 +108,16 @@ namespace KScr.Runtime
                     ioTime = RuntimeBase.UnixTime() - ioTime;
                     
                     executeTime = RuntimeBase.UnixTime();
-                    yield = VM.Execute();
+                    stack = VM.Execute();
                     executeTime = RuntimeBase.UnixTime()  - executeTime;
                 })
                 .WithNotParsed(errors =>
                 {
                     if (!errors.Any())
-                        RuntimeBase.MainStack.StepInto(VM, RuntimeBase.MainInvocPos, RuntimeBase.MainInvoc, _ => StdIoMode(ref state, ref yield));
+                        RuntimeBase.MainStack.StepInto(VM, RuntimeBase.SystemSrcPos, RuntimeBase.MainInvoc, _ => StdIoMode());
                 });
 
-            return HandleExit(state, yield, compileTime, executeTime, ioTime, RuntimeBase.ConfirmExit);
+            return HandleExit(stack.State, stack.Omg?.Value, compileTime, executeTime, ioTime, RuntimeBase.ConfirmExit);
         }
 
         private static StatementComponent BuildProgramArgsParams(string[] args)
@@ -147,7 +146,7 @@ namespace KScr.Runtime
             return comp;
         }
 
-        private static void StdIoMode(ref State state, ref IObject yield)
+        private static void StdIoMode()
         {
             Console.WriteLine("Entering StdIoMode - Only Expressions are allowed");
             VM.StdIoMode = true;
@@ -156,7 +155,7 @@ namespace KScr.Runtime
             var contextBase = new CompilerContext();
             var output = VM.ConstantVoid;
 
-            while (state == State.Normal)
+            while (true)
             {
                 Console.Write("kscr> ");
                 string? expr = Console.ReadLine();
@@ -184,7 +183,7 @@ namespace KScr.Runtime
                 executeTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - executeTime;
                 context.Clear();
 
-                HandleResult(state, output.Value, compileTime, executeTime);
+                HandleResult(State.Return, output.Value, compileTime, executeTime);
             }
         }
 
@@ -231,11 +230,7 @@ namespace KScr.Runtime
                     break;
             }
 
-            if (result == null || result.Type.Name == "type")
-            {
-                Console.WriteLine("without exit value");
-            }
-            else if (result is Numeric num)
+            if (result is Numeric num)
             {
                 int rtn = num.IntValue;
                 Console.WriteLine("with exit code " + rtn);
@@ -243,7 +238,10 @@ namespace KScr.Runtime
             }
             else
             {
-                Console.WriteLine("with exit message: " + result.ToString(0));
+                Console.Write($"with exit code {RuntimeBase.ExitCode}");
+                if (RuntimeBase.ExitMessage != null)
+                    Console.WriteLine($" and message: {RuntimeBase.ExitMessage}");
+                else Console.WriteLine();
             }
 
             if (pressToExit)

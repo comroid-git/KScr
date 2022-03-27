@@ -161,11 +161,10 @@ namespace KScr.Lib.Bytecode
                     var type = vm.FindType(Arg)!;
                     var ctor = (type.ClassMembers.First(x => x.Name == Method.ConstructorName) as IMethod)!;
                     var obj = new CodeObject(vm, type);
-                    stack[Alp] = vm.PutObject(stack, VariableContext.Absolute, obj);
-                    stack[Del] = new ObjectRef(Class.VoidType.DefaultInstance, ctor.Parameters.Count);
-                    stack.StepInto(vm, SourcefilePosition, stack.Alp, ctor, stack =>
+                    stack[Default] = vm.PutObject(stack, VariableContext.Absolute, obj);
+                    stack.StepInto(vm, SourcefilePosition, stack[Default], ctor, stack =>
                     {
-                        SubComponent.Evaluate(vm, stack.Output());
+                        SubComponent.Evaluate(vm, stack.Output()).Copy(output: Bet);
                         for (var i = 0; i < ctor.Parameters.Count; i++)
                             vm.PutLocal(stack, ctor.Parameters[i].Name, stack.Bet[vm, stack, i]);
                         ctor.Evaluate(vm, stack.Output());
@@ -179,27 +178,27 @@ namespace KScr.Lib.Bytecode
                     throw new NotImplementedException();
                 case (StatementComponentType.Code, BytecodeType.Assignment):
                     // assignment
-                    if (stack.Alp == null)
+                    if (stack[Default] == null)
                         throw new FatalException(
                             "Invalid assignment; missing variable name");
                     if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException(
                             "Invalid assignment; no Expression found");
-                    SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Del);
+                    SubComponent.Evaluate(vm, stack.Output()).Copy(output: Del);
                     stack[Default].Value = stack.Del?.Value;
                     break;
                 case (StatementComponentType.Code, BytecodeType.Return):
                     // return
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException("Invalid return statement; no Expression found");
-                    SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Alp | Omg);
+                    SubStatement.Evaluate(vm, stack.Output()).Copy(output: Alp | Omg);
                     stack.State = State.Return;
                     break;
                 case (StatementComponentType.Code, BytecodeType.Throw):
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException(
                             "Invalid throw statement; no Exception found");
-                    SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Alp | Omg);
+                    SubStatement.Evaluate(vm, stack.Output()).Copy(output: Alp | Omg);
                     stack.State = State.Throw;
                     break;
                 case (StatementComponentType.Code, BytecodeType.ParameterExpression):
@@ -208,48 +207,54 @@ namespace KScr.Lib.Bytecode
                     stack[Default] = new ObjectRef(Class.VoidType.DefaultInstance, InnerCode!.Main.Count);
                     for (var i = 0; i < InnerCode!.Main.Count; i++)
                     {
-                        InnerCode!.Main[i].Evaluate(vm, stack.Output()).Copy(Alp);
-                        stack[Default][vm, stack, i] = stack.Alp?.Value ?? IObject.Null;
+                        InnerCode!.Main[i].Evaluate(vm, stack.Output()).Copy(output: Bet);
+                        stack[Default][vm, stack, i] = stack.Bet?.Value ?? IObject.Null;
                     }
 
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtIf):
                     stack.StepInside(vm, SourcefilePosition, "if", stack =>
                     {
-                        SubStatement!.Evaluate(vm, stack.Output(Phi, true));
+                        SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Phi);
                         if (stack.Phi.ToBool())
                             InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                         else if (SubComponent?.CodeType == BytecodeType.StmtElse)
-                            SubComponent!.InnerCode!.Evaluate(vm, stack.Output());
+                            SubComponent!.InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                     });
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtFor):
                     stack.StepInside(vm, SourcefilePosition, "for", stack =>
                     {
-                        SubStatement!.Evaluate(vm, stack.Output()).Copy(Alp, Del);
-                        SubComponent!.Evaluate(vm, stack.Output(Phi, true));
-                        while (stack.Phi.ToBool())
+                        
+                        for (SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Del);
+                             SubComponent!.Evaluate(vm, stack.Channel(Del, Phi)).Copy(Phi).ToBool();
+                             )
                         {
                             InnerCode!.Evaluate(vm, stack.Output()).CopyState();
-                            var delStack = stack.Output();
+                            var delStack = stack.Channel(Del, Del);
+                            // accumulate
                             AltStatement!.Evaluate(vm, delStack);
-                            stack[Del].Value = delStack[Alp].Value;
-                            SubComponent!.Evaluate(vm, stack.Output(Phi, true));
+                            var val = stack[Del].Value = delStack[Del].Value;
+                            if (val == null || val.ObjectId == 0)
+                                throw new NullReferenceException();
                         }
                     });
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtForEach):
                     stack.StepInside(vm, SourcefilePosition, "foreach", stack =>
                     {
-                        SubStatement!.Evaluate(vm, stack.Output()).Copy(Alp, Alp);
+                        SubStatement!.Evaluate(vm, stack.Output()).Copy(Alp);
                         var iterable = stack.Alp.Value!;
-                        stack[Eps] = iterable.Invoke(vm, stack.Output(), "iterator");
+                        iterable.Invoke(vm, stack.Output(Eps), "iterator").Copy(Eps);
                         var iterator = stack.Eps.Value;
-                        vm[stack, VariableContext.Local, Arg] = stack[Del] 
+                        vm[stack, VariableContext.Local, Arg] = stack[Del]
                             = new ObjectRef(iterator.Type.TypeParameterInstances[0].ResolveType(vm, iterator.Type));
-                        while ((stack[Phi] = iterator.Invoke(vm, stack.Output(), "hasNext")).ToBool())
+                        while (iterator.Invoke(vm, stack.Channel(Eps, Phi), "hasNext").Copy(Phi).ToBool())
                         {
-                            stack[Del].Value = iterator.Invoke(vm, stack.Output(), "next").Value;
+                            iterator.Invoke(vm, stack.Channel(Eps, Bet), "next").Copy(Bet);
+                            var val = stack[Del].Value = stack[Bet].Value;
+                            if (val == null || val.ObjectId == 0)
+                                throw new NullReferenceException();
                             InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                         }
                     });
@@ -257,72 +262,65 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Code, BytecodeType.StmtWhile):
                     stack.StepInside(vm, SourcefilePosition, "while", stack =>
                     {
-                        SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Phi);
-                        while (stack.Phi.ToBool())
-                        {
+                        while (SubStatement.Evaluate(vm, stack.Output(Phi)).Copy(Phi).ToBool())
                             InnerCode.Evaluate(vm, stack.Output()).CopyState();
-                            SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Phi);
-                        }
                     });
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtDo):
                     stack.StepInside(vm, SourcefilePosition, "do-while", stack =>
                     {
-                        bool first = true;
-                        do
-                        {
-                            InnerCode.Evaluate(vm, stack.Output()).CopyState();
-                            if (first)
-                            {
-                                SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Phi);
-                                first = false;
-                            }
-                            else SubStatement.Evaluate(vm, stack.Channel(Phi)).Copy(Alp, Phi);
-                        } while (stack.Phi.ToBool());
+                        do InnerCode.Evaluate(vm, stack.Output()).CopyState();
+                        while (SubStatement.Evaluate(vm, stack.Output(Phi)).Copy( Phi).ToBool());
                     });
                     break;
                 case (StatementComponentType.Operator, _):
                     var op = (Operator)ByteArg;
                     switch (op)
                     {
+                        // prefix operator: logical not
                         case Operator.LogicalNot:
                             if (SubComponent == null ||
                                 (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new FatalException(
                                     "Invalid unary operator; missing right operand");
                             SubComponent.Evaluate(vm, stack.Output(copyRefs: true));
-                            stack[Default] = stack.Alp.LogicalNot(vm);
+                            stack[Default] = stack[Default].LogicalNot(vm);
                             break;
+                        // prefix operators
+                        case Operator.IncrementRead:
+                        case Operator.DecrementRead:
+                        case Operator.ArithmeticNot:
+                        case Operator.Minus when stack[Default].Value.Type.BaseClass.Name != "num":
+                            if (op == Operator.Minus) op = Operator.ArithmeticNot;
+                            if (SubComponent == null ||
+                                (SubComponent.Type & StatementComponentType.Expression) == 0)
+                                throw new FatalException("Invalid unary operator; missing right numeric operand");
+                            SubComponent.Evaluate(vm, stack.Output(copyRefs: true));
+                            if (stack[Default].Value is not Numeric right2)
+                                throw new FatalException("Invalid unary operator; missing right numeric operand");
+                            stack[Default] = right2.Operator(vm, op);
+                            break;
+                        // postfix operators
+                        case Operator.ReadIncrement:
+                        case Operator.ReadDecrement:
+                            if (stack[Default].Value is not Numeric left2)
+                                throw new FatalException("Invalid unary operator; missing left numeric operand");
+                            stack[Default] = left2.Operator(vm, op);
+                            break;
+                        // binary operator: equals
                         case Operator.Equals:
                         case Operator.NotEquals:
-                            if (stack.Alp == null)
+                            if (stack[Default] == null)
                                 throw new FatalException("Invalid binary operator; missing left operand");
                             if (SubComponent == null ||
                                 (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new FatalException("Invalid binary operator; missing right operand");
                             SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                            stack[Default] = stack.Alp.Value!.Invoke(vm, 
-                                stack.Output(Phi, true), "equals", stack.Bet.Value) ?? vm.ConstantFalse;
+                            stack[Default].Value!.Invoke(vm, stack.Output(), "equals", stack.Bet.Value).Copy(Alp, Alp | Phi);
                             if (op == Operator.NotEquals)
                                 stack[Default] = stack[Default].LogicalNot(vm);
                             break;
-                        case Operator.IncrementRead:
-                        case Operator.DecrementRead:
-                        case Operator.ArithmeticNot:
-                            if (SubComponent == null ||
-                                (SubComponent.Type & StatementComponentType.Expression) == 0)
-                                throw new FatalException("Invalid unary operator; missing right numeric operand");
-                            SubComponent.Evaluate(vm, stack.Output(copyRefs: true));
-                            if (stack.Alp.Value is not Numeric right2)
-                                throw new FatalException("Invalid unary operator; missing right numeric operand");
-                            stack[Default] = right2.Operator(vm, op);
-                            break;
-                        case Operator.ReadIncrement:
-                        case Operator.ReadDecrement:
-                            if (stack.Alp.Value is not Numeric left2)
-                                throw new FatalException("Invalid unary operator; missing left numeric operand");
-                            stack[Default] = left2.Operator(vm, op);
-                            break;
+                        // binary operators
                         default:
                             if (SubComponent == null ||
                                 (SubComponent.Type & StatementComponentType.Expression) == 0)
@@ -335,16 +333,17 @@ namespace KScr.Lib.Bytecode
                                 || (stack[Default]?.Value?.Type.BaseClass as IClass).ClassMembers.Any(x => x.Name == "op" + op))
                             {
                                 if (stack[Default]?.Value?.Type.Name == "void")
-                                    stack[Default].Value = stack[Default]?.Value.Invoke(vm, stack.Output(), "toString").Value;
-                                stack[Default] = stack[Default].Value!.Invoke(vm,
-                                    stack.Output(Bet), "op" + ((op & Operator.Compound) == Operator.Compound
-                                        ? op ^ Operator.Compound
-                                        : op), stack.Bet.Value)!;
+                                {
+                                    stack[Default] = String.Instance(vm, "null");
+                                }
+
+                                var opMtdName = "op" + ((op & Operator.Compound) == Operator.Compound ? op ^ Operator.Compound : op);
+                                stack[Default].Value!.Invoke(vm, stack.Output(Bet), opMtdName, stack.Bet.Value).Copy(Bet, Default);
                             }
                             else
                             {
                                 // else try numeric operation
-                                if (stack.Alp.Value is not Numeric left3)
+                                if (stack[Default].Value is not Numeric left3)
                                     throw new FatalException(
                                         "Invalid binary operator; missing left numeric operand");
                                 stack[Default] = left3.Operator(vm, op, (stack.Bet.Value as Numeric)!);
@@ -359,10 +358,10 @@ namespace KScr.Lib.Bytecode
                     break;
                 case (StatementComponentType.Provider, BytecodeType.LiteralRange):
                     SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                    stack[Default] = Range.Instance(vm, (stack.Alp.Value as Numeric)!.IntValue, (stack.Bet.Value as Numeric)!.IntValue);
+                    stack[Default] = Range.Instance(vm, (stack[Default].Value as Numeric)!.IntValue, (stack.Bet.Value as Numeric)!.IntValue);
                     break;
                 case (StatementComponentType.Provider, BytecodeType.ExpressionVariable):
-                    if (stack.Alp?.Value is { } obj1
+                    if (stack[Default]?.Value is { } obj1
                         && obj1.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm1)
                     {
                         // call member
@@ -386,18 +385,32 @@ namespace KScr.Lib.Bytecode
                     if ((stack[Default].Value is IClass cls || (cls = stack[Default].Value.Type) != null)
                         && cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is IMethod mtd)
                     {
-                        var param = mtd.Parameters;
-                        var output = stack.Output(Eps);
-                        output[Eps] = new ObjectRef(Class.VoidType.DefaultInstance, mtd.Parameters.Count);
-                        SubComponent!.Evaluate(vm, output).Copy(Eps);
-                        stack.StepInto(vm, SourcefilePosition, stack[Default], mtd, stack =>
-                        {
-                            stack[Alp] = stack.Alp.Value!.Invoke(vm, stack.Output(), Arg, (stack.Eps as ObjectRef)!.Refs);
-                        }, Alp);
+                            var param = mtd.Parameters;
+                            var output = stack.Output(Del);
+                            output[Del] = new ObjectRef(Class.VoidType.DefaultInstance, mtd.Parameters.Count);
+                            SubComponent!.Evaluate(vm, output).Copy(Del);
+                            if (mtd.IsNative() && !mtd.Parent.IsNative())
+                                if (vm.NativeRunner == null)
+                                    throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
+                                else vm.NativeRunner.Invoke(vm, stack, stack[Default][vm, stack, 0], mtd).Copy(Omg, Default);
+                            else// todo having both next to each other is stupid
+                            {
+                                stack.StepInto(vm, SourcefilePosition, stack[Default], mtd, stack =>
+                                {
+                                    stack[Default].Value!.Invoke(vm, stack.Output(), Arg,
+                                        (stack.Del as ObjectRef)!.Refs).Copy(Alp);
+                                }, Alp);
+                            }
                     }
                     else if (cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Property && x.Name == Arg) is Property prop)
                     {
-                        prop.ReadValue(vm, stack.Output(), stack[Default]?.Value ?? cls as IClassInstance ?? cls.DefaultInstance).Copy();
+                        if (prop.IsNative())
+                            if (vm.NativeRunner == null)
+                                throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
+                            else vm.NativeRunner.Invoke(vm, stack, stack[Default][vm, stack, 0], prop).Copy(Omg, Default);
+                        else
+                            //stack[Default] = prop;
+                            prop.ReadValue(vm, stack.Output(), stack[Default]?.Value ?? cls as IClassInstance ?? cls.DefaultInstance).Copy();
                     }
                     else
                     {
@@ -425,18 +438,18 @@ namespace KScr.Lib.Bytecode
                 case (StatementComponentType.Emitter, _):
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException("Invalid emitter; no Expression found");
-                    if (!stack.Alp.IsPipe)
+                    if (!stack[Default].IsPipe)
                         throw new FatalException("Cannot emit value into non-pipe accessor");
                     SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                    stack.Alp.WriteAccessor!.Evaluate(vm, stack.Channel(Bet));
+                    stack[Default].WriteValue(vm, stack.Channel(Bet), stack.Bet?.Value ?? IObject.Null);
                     break;
                 case (StatementComponentType.Consumer, _):
                     if (SubStatement == null || (SubStatement.Type & StatementComponentType.Declaration) == 0)
                         throw new FatalException("Invalid consumer; no declaration found");
-                    if (!stack.Alp.IsPipe)
+                    if (!stack[Default].IsPipe)
                         throw new FatalException("Cannot consume value from non-pipe accessor");
                     SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                    stack.Alp.ReadAccessor!.Evaluate(vm, stack.Channel(Bet));
+                    stack[Default].ReadValue(vm, stack.Channel(Bet), stack.Bet?.Value ?? IObject.Null);
                     break;
                 default:
                     throw new NotImplementedException($"Not Implemented: {Type} {CodeType}");

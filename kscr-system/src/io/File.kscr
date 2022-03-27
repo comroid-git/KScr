@@ -1,7 +1,21 @@
 package org.comroid.kscr.io;
 
-public class File : Pipe<str> {
-    public native str read(int length);
+public class File implements pipe<str> {
+    public str RelativePath { get; }
+    public str AbsolutePath { get; }
+    public str Name { get; }
 
+    public File(str path) {
+        this.RelativePath = path;
+        this.AbsolutePath = File.absPath(path);
+        this.Name = File.name(path);
+    }
+
+    public native str read(int length);
     public native int write(str text);
+
+    private static native str absPath(str path);
+    private static native str name(str path);
+    private static native byte exists(str path);
+    private static native byte isDir(str path);
 }

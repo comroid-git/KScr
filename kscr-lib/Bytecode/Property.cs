@@ -17,8 +17,7 @@ namespace KScr.Lib.Bytecode
         public bool Settable;
         public ExecutableCode? Setter;
 
-        public Property(Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(parent, name,
-            modifier)
+        public Property(SourcefilePosition sourceLocation, Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(sourceLocation, parent, name, modifier)
         {
             ReturnType = returnType;
         }
@@ -44,9 +43,11 @@ namespace KScr.Lib.Bytecode
             byte[] buf = RuntimeBase.Encoding.GetBytes(ReturnType.FullName);
             stream.Write(BitConverter.GetBytes(buf.Length));
             stream.Write(buf);
-            stream.Write(BitConverter.GetBytes(Getter != null));
+            stream.Write(new[] {(byte) ((Gettable ? 0b0001 : 0)
+                                        | (Settable ? 0b0010 : 0) 
+                                        | (Getter != null ? 0b0100 : 0)
+                                        | (Setter != null ? 0b1000 : 0))});
             Getter?.Write(stream);
-            stream.Write(BitConverter.GetBytes(Setter != null));
             Setter?.Write(stream);
         }
 
@@ -57,17 +58,17 @@ namespace KScr.Lib.Bytecode
             i += 4;
             ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len), owner: Parent)!;
             i += len;
-            Gettable = BitConverter.ToBoolean(data, i);
+            Gettable = (data[i] & 0b0001) != 0; 
+            Settable = (data[i] & 0b0010) != 0; 
+            var getter = (data[i] & 0b0100) != 0; 
+            var setter = (data[i] & 0b1000) != 0; 
             i += 1;
-            if (Gettable)
+            if (getter)
             {
                 Getter = new ExecutableCode();
                 Getter.Load(vm, data, ref i);
             }
-
-            Settable = BitConverter.ToBoolean(data, i);
-            i += 1;
-            if (Settable)
+            if (setter)
             {
                 Setter = new ExecutableCode();
                 Setter.Load(vm, data, ref i);
@@ -80,7 +81,7 @@ namespace KScr.Lib.Bytecode
         }
 
         public int Length => 1;
-        public bool IsPipe => false;
+        public bool IsPipe => false; // todo
         public Stack ReadValue(RuntimeBase vm, Stack stack, IObject from)
         { // evaluate property with object
             if (Gettable && ReadAccessor == null)

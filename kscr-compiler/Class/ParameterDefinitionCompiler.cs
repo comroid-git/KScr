@@ -1,4 +1,5 @@
-﻿using KScr.Lib;
+﻿using System.Linq;
+using KScr.Lib;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
@@ -35,11 +36,14 @@ namespace KScr.Compiler.Class
                     {
                         // parse type
                         if (pIndex > _method.Parameters.Count)
-                            throw new CompilerException(ctx.Token.SourcefilePosition,
-                                "Invalid parameter index during compilation");
+                            throw new FatalException("Invalid parameter index during compilation");
 
                         _method.Parameters.Add(new MethodParameter());
-                        _method.Parameters[++pIndex].Type = ctx.FindType(vm, ctx.Token.String())!;
+                        var name = ctx.Token.String();
+                        if (ctx.FindType(vm, name) is { }  cls)
+                            _method.Parameters[++pIndex].Type = cls;
+                        else if (ctx.Class.TypeParameters.FirstOrDefault(x => x.Name == name) is {}  tp)
+                            _method.Parameters[++pIndex].Type = tp;
                         pState = 1;
                     }
                     else if (pState == 1)

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using KScr.Lib.Bytecode;
 using KScr.Lib.Exception;
+using static KScr.Lib.Exception.CompilerError;
 
 namespace KScr.Lib.Model
 {
@@ -197,11 +199,11 @@ namespace KScr.Lib.Model
                 {
                     NextIntoSub = false;
                     value.Statement = Statement;
-                    LastComponent.SubComponent = LastComponent = value;
+                    LastComponent.SubComponent = _lastComponent = value;
                 }
                 else
                 {
-                    (value.Statement = Statement).Main.Add(LastComponent = value);
+                    (value.Statement = Statement).Main.Add(_lastComponent = value);
                     ComponentIndex += 1;
                 }
             }
@@ -212,11 +214,7 @@ namespace KScr.Lib.Model
 
         public StatementComponent? PrevComponent => ComponentIndex - 1 >= 0 ? Statement.Main[ComponentIndex - 1] : null;
 
-        public StatementComponent? LastComponent
-        {
-            get => _lastComponent ?? Parent?.LastComponent;
-            private set => _lastComponent = value;
-        }
+        public StatementComponent? LastComponent => _lastComponent ?? Parent?.LastComponent;
 
         public bool NextIntoSub { get; set; }
 
@@ -239,27 +237,33 @@ namespace KScr.Lib.Model
 
         public ITypeInfo? FindTypeInfo(RuntimeBase vm, bool _rec = false)
         {
-            var type = FindType(vm, Token.Arg!);
-            if ((type?.CanonicalName.EndsWith(Token.Arg) ?? false) && NextToken?.Type != TokenType.ParDiamondOpen)
+            var name = Token.String();
+            var type = FindType(vm, name);
+            if ((type?.CanonicalName.EndsWith(name) ?? false) && NextToken?.Type != TokenType.ParDiamondOpen)
                 return type!;
             var baseCls = type?.BaseClass ?? Class;
-            if (baseCls == null && Class.TypeParameters.Any(x => x.Name == Token.Arg))
+            if (baseCls == null && Class.TypeParameters.Any(x => x.Name == name))
                 // find base type param
-                return Class.TypeParameters.Find(x => x.Name == Token.Arg)!;
+                return Class.TypeParameters.Find(x => x.Name == name)!;
             if (baseCls!.TypeParameters.Count > 0 && NextToken?.Type == TokenType.ParDiamondOpen)
             {
                 var args = new List<ITypeInfo>();
                 do
                 {
                     TokenIndex += 2;
+                    if (Token.Type == TokenType.Word && Regex.IsMatch(Token.Arg!, "\\d+"))
+                    { // use tuple instead
+                        return Class.TupleType.CreateInstance(vm, baseCls, 
+                            new ITypeInfo[]{new TypeParameter(Token.Arg!, 
+                                TypeParameterSpecializationType.N, Class.NumericIntType)});
+                    }
                     args.Add(FindTypeInfo(vm, true) ?? throw new InvalidOperationException());
                 } while (NextToken?.Type == TokenType.Comma);
 
-                TokenIndex += 1;
                 return baseCls.CreateInstance(vm, Class, args.ToArray());
             }
 
-            return baseCls.TypeParameters.FirstOrDefault(x => x.Name == Token.Arg);
+            return baseCls.TypeParameters.FirstOrDefault(x => x.Name == name);
         }
     }
 
@@ -309,7 +313,7 @@ namespace KScr.Lib.Model
         {
             ctx.TokenIndex = 0;
             if (ctx.Token.Type != TokenType.Package)
-                throw new CompilerException(ctx.Token.SourcefilePosition, "Missing Package name at index 0");
+                throw new CompilerException(ctx.Token.SourcefilePosition, ClassPackageMissing);
             ctx.TokenIndex += 1;
             return ctx.FindCompoundWord();
         }
@@ -354,12 +358,15 @@ namespace KScr.Lib.Model
 
             if (ctx.Token.Type == TokenType.Word)
                 if (clsName != null && clsName != ctx.Token.Arg)
-                    throw new CompilerException(ctx.Token.SourcefilePosition,
-                        "Declared Class name mismatches File name");
+                    throw new CompilerException(ctx.Token.SourcefilePosition, ClassNameMismatch, ctx.Token.Arg, clsName);
                 else name = ctx.Token.Arg!;
-            else throw new CompilerException(ctx.Token.SourcefilePosition, "Missing Class name");
+            else throw new CompilerException(ctx.Token.SourcefilePosition, ClassNameMissing, clsName);
 
-            return new ClassInfo(mod.Value, type.Value, name, packageName + '.' + name);
+            return new ClassInfo(mod.Value, type.Value, name)
+            {
+                FullName = packageName + '.' + name,
+                CanonicalName = packageName + '.' + name
+            };
         }
 
         public static void CompilerLoop(RuntimeBase vm, ICompiler use, ref CompilerContext context)
@@ -369,6 +376,15 @@ namespace KScr.Lib.Model
                 use = use.AcceptToken(vm, ref context) ?? use.Parent!;
                 context.TokenIndex += 1;
             }
+            
+            // remove empty statements
+            for (var i = 0; i < (context.ExecutableCode?.Main?.Count ?? 0); i++)
+                if (context.ExecutableCode!.Main![i].Main.Count == 0)
+                {
+                    context.ExecutableCode.Main.RemoveAt(i);
+                    context.StatementIndex -= 1;
+                    i -= 1;
+                }
         }
     }
 }

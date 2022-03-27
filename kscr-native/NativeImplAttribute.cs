@@ -1,4 +1,8 @@
-﻿namespace KScr.Native;
+﻿using KScr.Lib;
+using KScr.Lib.Core;
+using KScr.Lib.Store;
+
+namespace KScr.Native;
 
 public sealed class NativeImplAttribute : Attribute
 {

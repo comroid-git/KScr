@@ -10,7 +10,7 @@ namespace KScr.Lib.Bytecode
 {
     public class MethodParameter : IBytecode
     {
-        public IClassInstance Type { get; set; }
+        public ITypeInfo Type { get; set; }
         public string Name { get; set; }
 
         public void Write(Stream stream)
@@ -61,7 +61,7 @@ namespace KScr.Lib.Bytecode
         {
             Parent = parent;
             Name = name;
-            Modifier = modifier;
+            Modifier = modifier | MemberModifier.Native;
             Parameters = parameters;
             ReturnType = returnType;
         }
@@ -78,6 +78,7 @@ namespace KScr.Lib.Bytecode
         public List<MethodParameter> Parameters { get; set; }
         public ITypeInfo ReturnType { get; set; }
         public ClassMemberType MemberType => ClassMemberType.Method;
+        public SourcefilePosition SourceLocation => RuntimeBase.SystemSrcPos;
 
         public IEvaluable? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev)
         {
@@ -91,8 +92,7 @@ namespace KScr.Lib.Bytecode
         public const string StaticInitializerName = "cctor";
         public ExecutableCode Body = null!;
 
-        public Method(Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(parent, name,
-            modifier)
+        public Method(SourcefilePosition sourceLocation, Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(sourceLocation, parent, name, modifier)
         {
             ReturnType = returnType;
         }
@@ -124,7 +124,7 @@ namespace KScr.Lib.Bytecode
             stream.Write(BitConverter.GetBytes(Parameters.Count));
             foreach (var parameter in Parameters)
                 parameter.Write(stream);
-            if (!this.IsAbstract())
+            if (!this.IsAbstract() && !this.IsNative() && Parent.ClassType is not ClassType.Interface or ClassType.Annotation)
                 Body.Write(stream);
         }
 
@@ -139,7 +139,7 @@ namespace KScr.Lib.Bytecode
             Parameters.Clear();
             for (; len > 0; len--)
                 Parameters.Add(MethodParameter.Read(vm, data, ref i));
-            if (!this.IsAbstract())
+            if (!this.IsAbstract() && !this.IsNative() && Parent.ClassType is not ClassType.Interface or ClassType.Annotation)
             {
                 Body = new ExecutableCode();
                 Body.Load(vm, data, ref i);

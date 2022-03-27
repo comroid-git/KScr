@@ -1,4 +1,4 @@
-<idea-plugin>
+<idea-plugin require-restart="true">
     <id>org.comroid.KScrIntelliJPlugin</id>
     <name>KScr Language</name>
     <vendor>comroid</vendor>

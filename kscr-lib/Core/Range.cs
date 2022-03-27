@@ -32,38 +32,47 @@ namespace KScr.Lib.Core
             };
         }
 
-        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+        public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {
                 case "toString":
-                    return String.Instance(vm, ToString(0));
+                    stack[StackOutput.Default] = String.Instance(vm, ToString(0));
+                    break;
                 case "equals":
-                    if (args[0] is not Range other)
-                        return vm.ConstantFalse;
-                    return Start == other.Start && End == other.End ? vm.ConstantTrue : vm.ConstantFalse;
+                    stack[StackOutput.Default] = args[0] is not Range other ? vm.ConstantFalse :
+                        Start == other.Start && End == other.End ? vm.ConstantTrue : vm.ConstantFalse;
+                    break;
                 case "getType":
-                    return Type.SelfRef;
+                    stack[StackOutput.Default] = Type.SelfRef;
+                    break;
                 case "iterator":
                     var iterator = new RangeIterator(vm, this);
-                    return vm.PutObject(stack, VariableContext.Local, iterator);
+                    stack[StackOutput.Default] = vm.PutObject(stack, VariableContext.Local, iterator);
+                    break;
                 case "start": // get first value
-                    return start(vm);
+                    stack[StackOutput.Default] = start(vm);
+                    break;
                 case "end": // get last value
-                    return end(vm);
+                    stack[StackOutput.Default] = end(vm);
+                    break;
                 case "test": // can accumulate?
                     if (args[0] is not Numeric i)
                         throw new ArgumentException("Invalid Argument; expected num");
-                    return test(vm, i);
+                    stack[StackOutput.Default] = test(vm, i);
+                    break;
                 case "accumulate": // accumulate
                     if (args[0] is not Numeric x)
                         throw new ArgumentException("Invalid Argument; expected num");
-                    return accumulate(vm, x);
+                    stack[StackOutput.Default] = accumulate(vm, x);
+                    break;
                 case "decremental": // accumulate
-                    return Decremental ? vm.ConstantTrue : vm.ConstantFalse;
+                    stack[StackOutput.Default] = Decremental ? vm.ConstantTrue : vm.ConstantFalse;
+                    break;
+                default: throw new NotImplementedException();
             }
 
-            throw new NotImplementedException();
+            return stack;
         }
 
         public string GetKey()
@@ -122,21 +131,25 @@ namespace KScr.Lib.Core
                 return "range-iterator:" + _range;
             }
 
-            public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+            public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
             {
                 switch (member)
                 {
                     case "current":
-                        return _n ?? vm.ConstantVoid;
+                        stack[StackOutput.Default] = _n ?? vm.ConstantVoid;
+                        break;
                     case "next":
-                        return _n = _n == null ? _range.start(vm) : _range.accumulate(vm, (_n.Value as Numeric)!);
+                        stack[StackOutput.Default] = _n = _n == null ? _range.start(vm) : _range.accumulate(vm, (_n.Value as Numeric)!);
+                        break;
                     case "hasNext":
-                        return _n == null
+                        stack[StackOutput.Default] = _n == null
                             ? vm.ConstantTrue
                             : _range.test(vm, (_range.accumulate(vm, (_n.Value as Numeric)!).Value as Numeric)!);
-                    default:
-                        throw new InvalidOperationException();
+                        break;
+                    default: throw new InvalidOperationException();
                 }
+
+                return stack;
             }
 
             public string GetKey()

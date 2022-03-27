@@ -29,19 +29,22 @@ namespace KScr.Lib.Core
             return string.Join(", ", Arr.Select(it => it.Value?.ToString(variant)));
         }
 
-        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+        public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {
                 case "length":
-                    return Numeric.Constant(vm, Arr.Length);
+                    stack[StackOutput.Default] = Numeric.Constant(vm, Arr.Length);
+                    break;
                 case "get":
                     if (args[0] is Numeric num)
-                        return Arr[num.IntValue];
+                        stack[StackOutput.Default] = Arr[num.IntValue];
                     break;
+                default:
+                    throw new NotImplementedException();
             }
 
-            return null;
+            return stack;
         }
 
         public string GetKey()

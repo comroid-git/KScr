@@ -8,71 +8,69 @@ using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
 using Array = System.Array;
+using String = System.String;
 
 namespace KScr.Lib.Bytecode
 {
     public sealed class Class : AbstractPackageMember, IClass, IEvaluable
     {
-        public static readonly Package LibClassPackage = Package.RootPackage.GetOrCreatePackage("org")
-            .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr").GetOrCreatePackage("core");
+        public static readonly Package LibRootPackage = Package.RootPackage.GetOrCreatePackage("org")
+            .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr");
+        public static readonly Package LibCorePackage = LibRootPackage.GetOrCreatePackage("core");
 
-        public static readonly Class VoidType = new(LibClassPackage, "void", true, MemberModifier.Public);
-
-        public static readonly Class TypeType = new(LibClassPackage, "type", true,
-            MemberModifier.Public | MemberModifier.Final);
-
-        public static readonly Class ObjectType = new(LibClassPackage, "Object", true, MemberModifier.Public);
-
+        public static readonly Class VoidType = 
+            new(LibCorePackage, "void", true, MemberModifier.Public, ClassType.Interface);
+        public static readonly Class TypeType =
+            new(LibCorePackage, "type", true, MemberModifier.Public | MemberModifier.Final);
+        public static readonly Class ObjectType = 
+            new(LibCorePackage, "object", true, MemberModifier.Public | MemberModifier.Native);
         public static readonly Class EnumType =
-            new(LibClassPackage, "enum", true, MemberModifier.Public | MemberModifier.Final)
+            new(LibCorePackage, "enum", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+                { TypeParameters = { new TypeParameter("T") } };
+        public static readonly Class PipeType =
+            new(LibCorePackage, "pipe", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native, ClassType.Interface)
                 { TypeParameters = { new TypeParameter("T") } };
         public static readonly Class ArrayType =
-            new(LibClassPackage, "array", true, MemberModifier.Public | MemberModifier.Final)
+            new(LibCorePackage, "array", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
                 { TypeParameters = { new TypeParameter("T") } };
         public static readonly Class TupleType =
-            new(LibClassPackage, "tuple", true, MemberModifier.Public | MemberModifier.Final)
-                { TypeParameters = { new TypeParameter("T") } };
+            new(LibCorePackage, "tuple", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+                { TypeParameters = { new TypeParameter("T", TypeParameterSpecializationType.List) } };
 
-        public static readonly Class StringType = new(LibClassPackage, "str", true,
-            MemberModifier.Public | MemberModifier.Final);
-
-        public static readonly Class RangeType = new(LibClassPackage, "range", true,
-            MemberModifier.Public | MemberModifier.Final);
-
+        public static readonly Class StringType = new(LibCorePackage, "str", true,
+            MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
         public static readonly Class NumericType =
-            new(LibClassPackage, "num", true, MemberModifier.Public | MemberModifier.Final)
+            new(LibCorePackage, "num", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
                 { TypeParameters = { new TypeParameter("T") } };
+        public static readonly Class RangeType = new(LibCorePackage, "range", true,
+            MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
 
         public static readonly Class IteratorType =
-            new(LibClassPackage, "Iterator", true, MemberModifier.Public, ClassType.Interface)
+            new(LibCorePackage, "Iterator", false, MemberModifier.Public, ClassType.Interface)
                 { TypeParameters = { new TypeParameter("T") } };
         public static readonly Class IterableType =
-            new(LibClassPackage, "Iterable", true, MemberModifier.Public, ClassType.Interface)
+            new(LibCorePackage, "Iterable", false, MemberModifier.Public, ClassType.Interface)
                 { TypeParameters = { new TypeParameter("T") } };
-
         public static readonly Class ThrowableType =
-            new(LibClassPackage, "Throwable", true, MemberModifier.Public, ClassType.Interface);
+            new(LibCorePackage, "Throwable", false, MemberModifier.Public, ClassType.Interface);
 
-        public static readonly Instance NumericByteType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "byte", true, MemberModifier.Public | MemberModifier.Final));
-
-        public static readonly Instance NumericShortType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "short", true, MemberModifier.Public | MemberModifier.Final));
-
-        public static readonly Instance NumericIntType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "int", true, MemberModifier.Public | MemberModifier.Final));
-
-        public static readonly Instance NumericLongType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "long", true, MemberModifier.Public | MemberModifier.Final));
-
-        public static readonly Instance NumericFloatType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "float", true, MemberModifier.Public | MemberModifier.Final));
-
-        public static readonly Instance NumericDoubleType = new(NumericType, (ITypeInfo)
-            new Class(LibClassPackage, "double", true, MemberModifier.Public | MemberModifier.Final));
+        public static readonly Instance NumericByteType = new(NumericType,
+            new Class(LibCorePackage, "byte", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x9};
+        public static readonly Instance NumericShortType = new(NumericType, 
+            new Class(LibCorePackage, "short", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x8};
+        public static readonly Instance NumericIntType = new(NumericType, 
+            new Class(LibCorePackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x7};
+        public static readonly Instance NumericLongType = new(NumericType, 
+            new Class(LibCorePackage, "long", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x6};
+        public static readonly Instance NumericFloatType = new(NumericType, 
+            new Class(LibCorePackage, "float", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x5};
+        public static readonly Instance NumericDoubleType = new(NumericType, 
+            new Class(LibCorePackage, "double", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x4};
 
         private bool _initialized;
         private bool _lateInitialized;
+        public readonly IList<IClassInstance> _interfaces = new List<IClassInstance>();
+        private readonly IList<IClassInstance> _superclasses = new List<IClassInstance>();
 
         public Class(Package package, string name, bool primitive, MemberModifier modifier = MemberModifier.Protected,
             ClassType type = ClassType.Class) : base(package, name, modifier)
@@ -83,8 +81,10 @@ namespace KScr.Lib.Bytecode
 
         public Instance DefaultInstance { get; private set; } = null!;
 
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers =>
-            (this as IClass).ClassMembers.Where(it => it is AbstractBytecode).Cast<AbstractBytecode>();
+        protected override IEnumerable<AbstractBytecode> BytecodeMembers => DeclaredMembers
+            .Where(it => it.Value is AbstractBytecode)
+            .Select(x => x.Value)
+            .Cast<AbstractBytecode>();
 
         public IList<string> Imports { get; } =
             new List<string>();
@@ -97,8 +97,10 @@ namespace KScr.Lib.Bytecode
         public IDictionary<string, IClassMember> DeclaredMembers { get; } =
             new ConcurrentDictionary<string, IClassMember>();
 
-        public IList<IClassInstance> Superclasses { get; } = new List<IClassInstance>();
-        public IList<IClassInstance> Interfaces { get; } = new List<IClassInstance>();
+        public IEnumerable<IClassInstance> Superclasses => _superclasses.SelectMany(ExpandSuperclasses);
+        public IEnumerable<IClassInstance> Interfaces => _interfaces.Concat(Superclasses.SelectMany(x => x.Interfaces)).SelectMany(ExpandInterfaces);
+        private IEnumerable<IClassInstance> ExpandSuperclasses(IClassInstance arg) => arg == null ? Enumerable.Empty<IClassInstance>() : new[]{arg}.Concat(arg.Superclasses);
+        private IEnumerable<IClassInstance> ExpandInterfaces(IClassInstance arg) => arg == null ? Enumerable.Empty<IClassInstance>() : new[]{arg}.Concat(arg.Interfaces);
 
         public ClassType ClassType { get; private set; }
 
@@ -108,9 +110,12 @@ namespace KScr.Lib.Bytecode
         }
 
         public Class BaseClass => this;
-        public List<ITypeInfo> TypeParameters { get; } = new();
+        public List<TypeParameter> TypeParameters { get; } = new();
 
         public string CanonicalName => FullName;
+        public string FullDetailedName => FullName + (TypeParameters.Count == 0 ? string.Empty
+            : '<' + string.Join(", ", TypeParameters.Select(x => x.FullDetailedName)) + '>');
+
         public string DetailedName => Name + (TypeParameters.Count == 0 
             ? string.Empty : '<' + string.Join(", ", TypeParameters) + '>');
 
@@ -132,22 +137,25 @@ namespace KScr.Lib.Bytecode
             var icm = DeclaredMembers.Values.FirstOrDefault(x => x.Name == Method.StaticInitializerName);
             if (icm == null)
                 return stack;
-            stack.StepInto(vm, new SourcefilePosition(), stack.Alp, icm, stack => icm.Evaluate(vm, stack));
+            stack.StepInto(vm, new SourcefilePosition(), SelfRef, icm, stack => icm.Evaluate(vm, stack));
             return stack;
         }
 
         public void Initialize(RuntimeBase vm)
         {
             if (_initialized) return;
-            switch (ClassType)
+            if (!Primitive) switch (ClassType)
             {
                 case ClassType.Class:
-                    Superclasses.Add(VoidType.DefaultInstance);
+                    _superclasses.Add(ObjectType.DefaultInstance);
                     break;
                 case ClassType.Enum:
-                    Superclasses.Add(EnumType.DefaultInstance);
+                    _superclasses.Add(EnumType.DefaultInstance);
                     break;
-            }
+            } else if (Name == "void") ;
+            else if (Name == "object") _interfaces.Add(VoidType.DefaultInstance);
+            else if (Name != "object") _superclasses.Add(ObjectType.DefaultInstance);
+            
 
             vm.ClassStore.Add(this);
             DefaultInstance = GetInstance(vm, TypeParameters
@@ -171,7 +179,7 @@ namespace KScr.Lib.Bytecode
         {
             if (typeParameters.Length != TypeParameters.Count)
                 throw new ArgumentException("Invalid typeParameter count");
-            var instance = new Instance(this, owner, typeParameters);
+            var instance = new Instance(vm, this, owner, typeParameters);
             instance.Initialize(vm);
             return instance;
         }
@@ -217,9 +225,11 @@ namespace KScr.Lib.Bytecode
 
             // superclasses
             stream.Write(NewLineBytes);
-            stream.Write(BitConverter.GetBytes(Superclasses.Count));
+            stream.Write(BitConverter.GetBytes(Superclasses.Count(x => x.Name != "object")));
             foreach (var superclass in Superclasses)
             {
+                if  (superclass.Name == "object")
+                    continue;
                 buf = RuntimeBase.Encoding.GetBytes(superclass.FullName);
                 stream.Write(BitConverter.GetBytes(buf.Length));
                 stream.Write(buf);
@@ -227,9 +237,11 @@ namespace KScr.Lib.Bytecode
 
             // interfaces
             stream.Write(NewLineBytes);
-            stream.Write(BitConverter.GetBytes(Interfaces.Count));
+            stream.Write(BitConverter.GetBytes(Interfaces.Count(x => x.Name != "void")));
             foreach (var iface in Interfaces)
             {
+                if  (iface.Name == "void")
+                    continue;
                 buf = RuntimeBase.Encoding.GetBytes(iface.FullName);
                 stream.Write(BitConverter.GetBytes(buf.Length));
                 stream.Write(buf);
@@ -286,7 +298,7 @@ namespace KScr.Lib.Bytecode
             {
                 var len2 = BitConverter.ToInt32(data, index);
                 index += 4;
-                Superclasses.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2), owner: this)!);
+                _superclasses.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2), owner: this)!);
                 index += len2;
             }
 
@@ -298,7 +310,7 @@ namespace KScr.Lib.Bytecode
             {
                 var len2 = BitConverter.ToInt32(data, index);
                 index += 4;
-                Interfaces.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2), owner: this)!);
+                _interfaces.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2), owner: this)!);
                 index += len2;
             }
 
@@ -306,7 +318,7 @@ namespace KScr.Lib.Bytecode
             index += NewLineBytes.Length;
             len = BitConverter.ToInt32(data, index);
             index += 4;
-            for (var i = 0; i < len; i++)
+            for (; len > 0; len--)
             {
                 index += NewLineBytes.Length;
                 var member = AbstractClassMember.Read(vm, this, data, ref index);
@@ -335,7 +347,7 @@ namespace KScr.Lib.Bytecode
             #region Void Class
 
             var toString = new DummyMethod(
-                VoidType,
+                ObjectType,
                 "toString",
                 MemberModifier.Public,
                 StringType,
@@ -348,7 +360,7 @@ namespace KScr.Lib.Bytecode
                     }
                 });
             var equals = new DummyMethod(
-                VoidType,
+                ObjectType,
                 "equals",
                 MemberModifier.Public,
                 NumericByteType,
@@ -357,14 +369,15 @@ namespace KScr.Lib.Bytecode
                     new()
                     {
                         Name = "other",
-                        Type = VoidType.DefaultInstance
+                        Type = ObjectType.DefaultInstance
                     }
                 });
-            var getType = new DummyMethod(VoidType, "getType", MemberModifier.Public | MemberModifier.Final, TypeType);
+            var getType = new DummyMethod(ObjectType, "getType", MemberModifier.Public | MemberModifier.Final, TypeType);
 
             AddToClass(VoidType, toString);
             AddToClass(VoidType, equals);
             AddToClass(VoidType, getType);
+            ObjectType._interfaces.Add(VoidType.DefaultInstance);
 
             #endregion
 
@@ -373,12 +386,13 @@ namespace KScr.Lib.Bytecode
             AddToClass(TypeType, toString);
             AddToClass(TypeType, equals);
             AddToClass(TypeType, getType);
+            TypeType._superclasses.Add(ObjectType.DefaultInstance);
 
             #endregion
 
             #region Enum Class
 
-            var name = new Property(EnumType, "name", StringType, MemberModifier.Public);
+            var name = new Property(RuntimeBase.SystemSrcPos, EnumType, "name", StringType, MemberModifier.Public);
             var values = new DummyMethod(
                 EnumType,
                 "values",
@@ -390,12 +404,35 @@ namespace KScr.Lib.Bytecode
             AddToClass(EnumType, getType);
             AddToClass(EnumType, name);
             AddToClass(EnumType, values);
+            EnumType._superclasses.Add(ObjectType.DefaultInstance);
+
+            #endregion
+
+            #region Pipe Class
+            var read = new DummyMethod(
+                PipeType,
+                "read",
+                MemberModifier.Public, 
+                PipeType.TypeParameters[0], 
+                new List<MethodParameter>{new(){Name = "length", Type = NumericIntType}});
+            var write = new DummyMethod(
+                PipeType,
+                "write",
+                MemberModifier.Public, 
+                NumericIntType, 
+                new List<MethodParameter>{new(){Name = "data", Type = PipeType.TypeParameters[0]}});
+
+            AddToClass(PipeType, toString);
+            AddToClass(PipeType, equals);
+            AddToClass(PipeType, getType);
+            AddToClass(PipeType, name);
+            AddToClass(PipeType, values);
 
             #endregion
 
             #region Array Class
 
-            var length = new Property(ArrayType, "length", NumericIntType, MemberModifier.Public);
+            var length = new Property(RuntimeBase.SystemSrcPos, ArrayType, "length", NumericIntType, MemberModifier.Public);
 
             AddToClass(ArrayType, toString);
             AddToClass(ArrayType, equals);
@@ -406,7 +443,7 @@ namespace KScr.Lib.Bytecode
 
             #region Tuple Class
 
-            var size = new Property(TupleType, "size", NumericIntType, MemberModifier.Public);
+            var size = new Property(RuntimeBase.SystemSrcPos, TupleType, "size", NumericIntType, MemberModifier.Public);
 
             AddToClass(TupleType, toString);
             AddToClass(TupleType, equals);
@@ -420,7 +457,7 @@ namespace KScr.Lib.Bytecode
             AddToClass(NumericType, toString);
             AddToClass(NumericType, equals);
             AddToClass(NumericType, getType);
-            NumericType.Interfaces.Add(ThrowableType.DefaultInstance);
+            NumericType._interfaces.Add(ThrowableType.DefaultInstance);
 
             #endregion
 
@@ -438,11 +475,11 @@ namespace KScr.Lib.Bytecode
 
             #region Range Class
 
-            var start = new DummyMethod(VoidType, "start", MemberModifier.Public | MemberModifier.Final,
+            var start = new DummyMethod(RangeType, "start", MemberModifier.Public | MemberModifier.Final,
                 NumericIntType);
-            var end = new DummyMethod(VoidType, "end", MemberModifier.Public | MemberModifier.Final, NumericIntType);
+            var end = new DummyMethod(RangeType, "end", MemberModifier.Public | MemberModifier.Final, NumericIntType);
             var test = new DummyMethod(
-                VoidType,
+                RangeType,
                 "test",
                 MemberModifier.Public | MemberModifier.Final,
                 NumericByteType,
@@ -455,7 +492,7 @@ namespace KScr.Lib.Bytecode
                     }
                 });
             var accumulate = new DummyMethod(
-                VoidType,
+                RangeType,
                 "accumulate",
                 MemberModifier.Public | MemberModifier.Final,
                 NumericIntType,
@@ -467,7 +504,7 @@ namespace KScr.Lib.Bytecode
                         Type = NumericIntType
                     }
                 });
-            var decremental = new DummyMethod(VoidType, "decremental", MemberModifier.Public | MemberModifier.Final,
+            var decremental = new DummyMethod(RangeType, "decremental", MemberModifier.Public | MemberModifier.Final,
                 NumericByteType);
 
             // iterable methods
@@ -483,7 +520,7 @@ namespace KScr.Lib.Bytecode
             AddToClass(RangeType, decremental);
             AddToClass(RangeType, getType);
             AddToClass(RangeType, iterator);
-            RangeType.Interfaces.Add(IterableType.CreateInstance(vm, RangeType, NumericIntType));
+            RangeType._interfaces.Add(IterableType.CreateInstance(vm, RangeType, NumericIntType));
 
             #endregion
 
@@ -533,12 +570,12 @@ namespace KScr.Lib.Bytecode
             private readonly Class? _owner;
             private bool _initialized;
 #pragma warning disable CS0628
-            protected internal Instance(Class baseClass, params ITypeInfo[] args) : this(baseClass, null, args)
+            protected internal Instance(Class baseClass, params ITypeInfo[] args) : this(null!, baseClass, null, args)
 #pragma warning restore CS0628
             {
             }
 #pragma warning disable CS0628
-            protected internal Instance(Class baseClass, Class? owner = null, params ITypeInfo[] args)
+            protected internal Instance(RuntimeBase vm, Class baseClass, Class? owner = null, params ITypeInfo[] args)
 #pragma warning restore CS0628
             {
                 _owner = owner;
@@ -548,6 +585,9 @@ namespace KScr.Lib.Bytecode
                     TypeParameterInstances[i] = new TypeParameter.Instance(
                         (TypeParameters.First(it => it.Name == BaseClass.TypeParameters[i].Name) as TypeParameter)!,
                         args[i]);
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                if (vm != null)
+                    ObjectId = vm.NextObjId(GetKey());
             }
 
             public Class BaseClass { get; }
@@ -569,11 +609,11 @@ namespace KScr.Lib.Bytecode
                 }
             }
             public IDictionary<string, IClassMember> DeclaredMembers => BaseClass.DeclaredMembers;
-            public IList<IClassInstance> Superclasses => BaseClass.Superclasses;
-            public IList<IClassInstance> Interfaces => BaseClass.Interfaces;
+            public IEnumerable<IClassInstance> Superclasses => BaseClass.Superclasses;
+            public IEnumerable<IClassInstance> Interfaces => BaseClass.Interfaces;
             public Instance DefaultInstance => BaseClass.DefaultInstance;
 
-            public List<ITypeInfo> TypeParameters => BaseClass.TypeParameters;
+            public List<TypeParameter> TypeParameters => BaseClass.TypeParameters;
             public MemberModifier Modifier => BaseClass.Modifier;
             public ClassType ClassType => BaseClass.ClassType;
 
@@ -589,7 +629,7 @@ namespace KScr.Lib.Bytecode
             }
 
             public bool Primitive => BaseClass.Primitive;
-            public long ObjectId { get; }
+            public long ObjectId { get; init; }
             public IClassInstance Type => Name == "type" ? this : TypeType.DefaultInstance;
 
             public string ToString(short variant)
@@ -602,18 +642,18 @@ namespace KScr.Lib.Bytecode
                 };
             }
 
-            public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+            public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
             {
                 // try invoke static method
                 if (DeclaredMembers.TryGetValue(member, out var icm))
                 {
                     if (!icm.IsStatic())
-                        throw new FatalException("Cannot invoke non-static method from static context");
+                        throw new FatalException($"Cannot invoke non-static method {icm.FullName} from static context");
                     var param = (icm as IMethod)?.Parameters;
                     for (var i = 0; i < param.Count; i++)
                         vm.PutLocal(stack, param[i].Name, args.Length - 1 < i ? IObject.Null : args[i]);
                     icm.Evaluate(vm, stack);
-                    return stack.Alp;
+                    return stack;
                 }
 
                 throw new FatalException("Method not implemented: " + member);
@@ -648,19 +688,20 @@ namespace KScr.Lib.Bytecode
             IClass? specializationTarget = null!)
         {
             Name = name;
-            Specialization = name == "n"
-                ? TypeParameterSpecializationType.N
-                : specialization ?? TypeParameterSpecializationType.Extends;
+            Specialization = specialization ?? TypeParameterSpecializationType.Extends;
             SpecializationTarget = specializationTarget ?? Class.VoidType;
         }
 
         public string Name { get; }
         public string FullName => Name;
-        public List<ITypeInfo> TypeParameters { get; } = new();
+        public string CanonicalName => Name;
+        public string FullDetailedName => Name;
+        public string DetailedName => Name;
+        public List<TypeParameter> TypeParameters { get; } = new();
 
         public TypeParameterSpecializationType Specialization
         {
-            get => _specialization;
+            get => Name == "n" ? TypeParameterSpecializationType.N : _specialization;
             set
             {
                 if (_specialization == TypeParameterSpecializationType.N)
@@ -670,6 +711,7 @@ namespace KScr.Lib.Bytecode
         }
 
         public IClass SpecializationTarget { get; }
+        public ITypeInfo? DefaultValue { get; init; }
 
         public ITypeInfo? TargetType => null;
 
@@ -708,8 +750,11 @@ namespace KScr.Lib.Bytecode
 
             public ITypeInfo TargetType { get; }
             public string Name => TypeParameter.Name;
-            public string FullName => (TargetType as Class.Instance)?.FullDetailedName ?? TypeParameter.FullName;
-            public List<ITypeInfo> TypeParameters { get; } = new();
+            public string CanonicalName => Name;
+            public string FullName => (TargetType as Class.Instance)?.FullName ?? TypeParameter.FullName;
+            public string FullDetailedName => (TargetType as Class.Instance)?.FullDetailedName ?? TypeParameter.FullDetailedName;
+            public string DetailedName => (TargetType as Class.Instance)?.DetailedName ?? TypeParameter.DetailedName;
+            public List<TypeParameter> TypeParameters { get; } = new();
 
             public IClassInstance ResolveType(RuntimeBase vm, IClassInstance usingClass)
             {

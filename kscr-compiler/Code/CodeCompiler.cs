@@ -6,6 +6,7 @@ using KScr.Lib.Core;
 using KScr.Lib.Exception;
 using KScr.Lib.Model;
 using KScr.Lib.Store;
+using static KScr.Lib.Exception.CompilerError;
 using static KScr.Lib.Model.TokenType;
 
 namespace KScr.Compiler.Code
@@ -15,6 +16,7 @@ namespace KScr.Compiler.Code
         private readonly bool _endBeforeTerminator;
         private readonly TokenType[] _terminators;
         protected bool _active = true;
+        protected bool _doneAnything = false;
 
         protected AbstractCodeCompiler(ICompiler parent, bool endBeforeTerminator, TokenType[] terminators) :
             base(parent)
@@ -66,13 +68,13 @@ namespace KScr.Compiler.Code
                     return this;
                 case New:
                     if (ctx.NextToken!.Type != Word)
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid new-Statement; missing type identifier");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, InvalidToken, 
+                            ctx.Class.FullName, ctx.Token.String(), "missing type identifier");
                     ctx.TokenIndex += 1;
                     var ctor = ctx.FindType(vm, ctx.FindCompoundWord(terminator: ParRoundOpen))!;
                     if (!ctx.Statement.TargetType.CanHold(ctor))
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            $"Invalid new-Statement; Cannot assign {ctor} to {ctx.Statement.TargetType}");
+                        throw new CompilerException(ctx.Token.SourcefilePosition, CannotAssign, 
+                            ctx.Statement.TargetType.FullDetailedName, ctor.FullDetailedName);
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
@@ -86,6 +88,7 @@ namespace KScr.Compiler.Code
                     CompilerLoop(vm, new ParameterExpressionCompiler(this), ref subctx);
                     ctx.LastComponent!.SubComponent = subctx.Component;
                     ctx.TokenIndex = subctx.TokenIndex - 1;
+                    _doneAnything = true;
                     break;
                 case Dot:
                     // member call
@@ -107,6 +110,7 @@ namespace KScr.Compiler.Code
                         ctx.LastComponent!.PostComponent!.SubComponent = subctx.Component;
                         ctx.TokenIndex = subctx.TokenIndex - 1;
                     }
+                    _doneAnything = true;
 
                     break;
                 case Word:
@@ -150,6 +154,7 @@ namespace KScr.Compiler.Code
                             SourcefilePosition = ctx.Token.SourcefilePosition
                         };
                     }
+                    _doneAnything = true;
 
                     break;
                 case ParRoundOpen:
@@ -171,6 +176,7 @@ namespace KScr.Compiler.Code
                     CompilerLoop(vm, new ExpressionCompiler(this, false, ParRoundClose), ref subctx);
                     ctx.LastComponent!.SubStatement = subctx.Statement;
                     ctx.TokenIndex = subctx.TokenIndex;
+                    _doneAnything = true;
                     // finished
                     //_active = false;
                     return this;
@@ -181,6 +187,7 @@ namespace KScr.Compiler.Code
                         CodeType = BytecodeType.Null,
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
+                    _doneAnything = true;
                     break;
                 case LiteralNum:
                     //if (ctx.NextToken?.Type == TokenType.Tilde)
@@ -188,8 +195,8 @@ namespace KScr.Compiler.Code
                     if (ctx.PrevToken?.Type != Tilde // fixme todo this may break with non-compile time constant range
                         && ctx.NextToken?.Type != Tilde 
                         && !ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid Numeric literal; expected " + ctx.Statement.TargetType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition, CannotAssign, 
+                            ctx.Statement.TargetType, Lib.Bytecode.Class.NumericType.FullName);
                     var numstr = Numeric.Compile(vm, ctx.Token.Arg!).Value!.ToString(IObject.ToString_LongName);
                     ctx.Component = new StatementComponent
                     {
@@ -198,11 +205,12 @@ namespace KScr.Compiler.Code
                         Arg = numstr,
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
+                    _doneAnything = true;
                     break;
                 case LiteralStr:
                     if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.StringType))
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid String literal; expected " + ctx.Statement.TargetType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition, CannotAssign, 
+                            ctx.Statement.TargetType, Lib.Bytecode.Class.StringType.FullName);
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
@@ -210,28 +218,31 @@ namespace KScr.Compiler.Code
                         Arg = ctx.Token.Arg!,
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
+                    _doneAnything = true;
                     break;
                 case LiteralTrue:
                     if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid Boolean literal; expected " + ctx.Statement.TargetType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition, CannotAssign, 
+                            ctx.Statement.TargetType, Lib.Bytecode.Class.NumericType.FullName);
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
                         CodeType = BytecodeType.LiteralTrue,
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
+                    _doneAnything = true;
                     break;
                 case LiteralFalse:
                     if (!ctx.Statement.TargetType.CanHold(Lib.Bytecode.Class.NumericType))
-                        throw new CompilerException(ctx.Token.SourcefilePosition,
-                            "Invalid Boolean literal; expected " + ctx.Statement.TargetType);
+                        throw new CompilerException(ctx.Token.SourcefilePosition, CannotAssign, 
+                            ctx.Statement.TargetType, Lib.Bytecode.Class.NumericType.FullName);
                     ctx.Component = new StatementComponent
                     {
                         Type = StatementComponentType.Expression,
                         CodeType = BytecodeType.LiteralFalse,
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
+                    _doneAnything = true;
                     break;
                 // range literal
                 case Tilde:
@@ -242,6 +253,7 @@ namespace KScr.Compiler.Code
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
                     ctx.NextIntoSub = true;
+                    _doneAnything = true;
                     break;
                 case This:
                     ctx.Component = new StatementComponent
@@ -250,6 +262,7 @@ namespace KScr.Compiler.Code
                         VariableContext = VariableContext.This,
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
+                    _doneAnything = true;
                     break;
                 case StdIo:
                     ctx.Component = new StatementComponent
@@ -258,6 +271,7 @@ namespace KScr.Compiler.Code
                         CodeType = BytecodeType.StdioExpression,
                         SourcefilePosition = ctx.Token.SourcefilePosition
                     };
+                    _doneAnything = true;
                     break;
                 // equality operators
                 case OperatorEquals:
@@ -284,6 +298,7 @@ namespace KScr.Compiler.Code
                         CompilerLoop(vm, new ExpressionCompiler(this), ref subctx);
                         ctx.LastComponent!.SubStatement = subctx.Statement;
                         ctx.TokenIndex = subctx.TokenIndex - 1;
+                        _doneAnything = true;
                     } else if (ctx.NextToken!.Type == OperatorEquals)
                     {
                         ctx.TokenIndex += 1;
@@ -294,6 +309,7 @@ namespace KScr.Compiler.Code
                             SourcefilePosition = ctx.Token.SourcefilePosition
                         };
                         ctx.NextIntoSub = true;
+                        _doneAnything = true;
                     }
                     break;
                 case OperatorPlus:
@@ -308,6 +324,7 @@ namespace KScr.Compiler.Code
                                 SourcefilePosition = ctx.Token.SourcefilePosition
                             };
                             ctx.TokenIndex += 1;
+                            _doneAnything = true;
                             break;
                         }
 
@@ -350,6 +367,7 @@ namespace KScr.Compiler.Code
                         };
                         ctx.NextIntoSub = true;
                     }
+                    _doneAnything = true;
 
                     break;
                 case OperatorMinus:
@@ -376,6 +394,7 @@ namespace KScr.Compiler.Code
                                 SourcefilePosition = ctx.Token.SourcefilePosition
                             };
                             ctx.TokenIndex += 1;
+                            _doneAnything = true;
                             break;
                         }
 
@@ -418,6 +437,7 @@ namespace KScr.Compiler.Code
                         };
                         ctx.NextIntoSub = true;
                     }
+                    _doneAnything = true;
 
                     break;
                 case Exclamation:
@@ -432,6 +452,7 @@ namespace KScr.Compiler.Code
                                 SourcefilePosition = ctx.Token.SourcefilePosition
                             };
                             ctx.NextIntoSub = true;
+                            _doneAnything = true;
                             break;
                         case Word or LiteralFalse or LiteralTrue:
                             ctx.Component = new StatementComponent
@@ -441,6 +462,7 @@ namespace KScr.Compiler.Code
                                 SourcefilePosition = ctx.Token.SourcefilePosition
                             };
                             ctx.NextIntoSub = true;
+                            _doneAnything = true;
                             break;
                     }
 
@@ -468,6 +490,7 @@ namespace KScr.Compiler.Code
                     if (ctx.NextToken!.Type == OperatorEquals)
                         ctx.TokenIndex += 1;
                     ctx.NextIntoSub = true;
+                    _doneAnything = true;
                     break;
                 // pipe operators
                 case ParDiamondOpen:
@@ -506,6 +529,7 @@ namespace KScr.Compiler.Code
                         ctx.NextIntoSub = true;
                     }
 
+                    _doneAnything = true;
                     break;
                 case ParDiamondClose:
                     if (ctx.NextToken!.Type == ParDiamondClose)
@@ -536,21 +560,18 @@ namespace KScr.Compiler.Code
                         ctx.NextIntoSub = true;
                     }
 
+                    _doneAnything = true;
+                    break;
+                case Comma:
+                    _doneAnything = true;
                     break;
                 case ParAccClose:
                 case Terminator:
-                    if (ctx.Statement.Type == StatementComponentType.Undefined
-                        && ctx.Statement.CodeType == BytecodeType.Undefined
-                        && ctx.Statement.Main.Count > 0)
+                    if (!_doneAnything && ctx.StatementIndex > -1 && ctx.ComponentIndex > -1)
                     {
-                        ctx.Statement.Type = StatementComponentType.Code;
-                        ctx.Statement.CodeType = BytecodeType.Statement;
-                    }
-
-                    if (!_terminators.Contains(ctx.NextToken!.Type)
-                        && (ctx.Statement.Type != StatementComponentType.Undefined
-                            || ctx.Statement.CodeType != BytecodeType.Undefined))
                         ctx.Statement = new Statement();
+                        _doneAnything = true;
+                    }
                     /*
                     ctx.Component = new StatementComponent
                     {
@@ -560,28 +581,39 @@ namespace KScr.Compiler.Code
                     };
                     */
                     break;
+                default:
+                    if (!_doneAnything)
+                        throw new CompilerException(ctx.Token.SourcefilePosition, UnexpectedToken, 
+                            ctx.Class.FullName, ctx.Token.String(), "");
+                    break;
             }
 
-            if (_terminators.Contains(ctx.NextToken!.Type))
+            if (_terminators.Contains(ctx.NextToken!.Type) || !_doneAnything && _terminators.Contains(ctx.Token.Type))
             {
                 if (_endBeforeTerminator)
                     ctx.TokenIndex -= 1;
+                // allow empty body parens
+                if (!_doneAnything && (ctx.ExecutableCode.Main.Count == 0 || ctx.Statement.Main.Count == 0) && ctx.Token.Type == ParAccClose)
+                    ctx.TokenIndex -= 1;
                 _active = false;
             }
-
+            
+            _doneAnything = false;
             return this;
         }
 
-        private static void CompileDeclaration(CompilerContext ctx, IClassInstance targetType)
+        private void CompileDeclaration(CompilerContext ctx, IClassInstance targetType)
         {
             if (ctx.NextToken?.Type != Word)
-                throw new CompilerException(ctx.Token.SourcefilePosition, "Invalid declaration; missing variable name");
+                throw new CompilerException(ctx.Token.SourcefilePosition, Invalid, 
+                    ctx.Class.FullName, "declaration", "missing variable name");
 
             ctx.Statement = new Statement
             {
                 Type = StatementComponentType.Declaration,
                 TargetType = targetType
-            }; /*
+            }; 
+            _doneAnything = true;/*
             ctx.Component = new StatementComponent
             {
                 Type = StatementComponentType.Declaration,

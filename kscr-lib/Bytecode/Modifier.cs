@@ -12,7 +12,8 @@ namespace KScr.Lib.Bytecode
         Private = 0x0000_8000,
         Abstract = 0x0040_0000,
         Final = 0x0080_0000,
-        Static = 0x0010_0000
+        Static = 0x0010_0000,
+        Native = 0x0100_0000
     }
 
     public static class ModifierMethods
@@ -40,6 +41,11 @@ namespace KScr.Lib.Bytecode
         public static bool IsAbstract(this IModifierContainer container)
         {
             return IsAbstract(container.Modifier);
+        }
+        
+        public static bool IsNative(this IModifierContainer container)
+        {
+            return IsNative(container.Modifier);
         }
 
         public static bool IsFinal(this IModifierContainer container)
@@ -75,6 +81,11 @@ namespace KScr.Lib.Bytecode
         public static bool IsAbstract(this MemberModifier mod)
         {
             return (mod & MemberModifier.Abstract) != 0;
+        }
+
+        public static bool IsNative(this MemberModifier mod)
+        {
+            return (mod & MemberModifier.Native) != 0;
         }
 
         public static bool IsFinal(this MemberModifier mod)

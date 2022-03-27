@@ -21,7 +21,7 @@ namespace KScr.Lib.Core
 
     public sealed class Numeric : IObject
     {
-        public static readonly Regex NumberRegex = new(@"([\d]+)(i|l|f|d|b)?(\.([\d]+)(f|d)?)?");
+        public static readonly Regex NumberRegex = new(@"([\d]+(i|l|f|d|s|b)?)([.,]([\d]+)(f|d))?");
 
         public static readonly Numeric Zero = new(0)
         {
@@ -86,22 +86,30 @@ namespace KScr.Lib.Core
             };
         }
 
-        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+        public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {
                 case "toString":
-                    return String.Instance(vm, StringValue);
+                    stack[StackOutput.Default] = String.Instance(vm, StringValue);
+                    break;
+                case "Message":
+                    stack[StackOutput.Default] = vm.ConstantVoid;
+                    break;
                 case "ExitCode":
-                    return Constant(vm, IntValue);
+                    stack[StackOutput.Default] = Constant(vm, IntValue);
+                    break;
                 case "equals":
                     if (args[0] is not Numeric other)
-                        return vm.ConstantFalse;
+                    {
+                        stack[StackOutput.Default] = vm.ConstantFalse;
+                        break;
+                    }
                     if (Mode is NumericMode.Float or NumericMode.Double && args.Length == 2 &&
                         args[1] is not Numeric delta)
                         throw new FatalException("Invalid second argument; expected: num delta");
                     else delta = (Constant(vm, 0.001).Value as Numeric)!;
-                    return Mode switch
+                    stack[StackOutput.Default] = Mode switch
                     {
                         NumericMode.Byte => ByteValue == other.ByteValue,
                         NumericMode.Short => ShortValue == other.ShortValue,
@@ -113,11 +121,14 @@ namespace KScr.Lib.Core
                     }
                         ? vm.ConstantTrue
                         : vm.ConstantFalse;
+                    break;
                 case "getType":
-                    return Type.SelfRef;
-                default:
-                    throw new NotImplementedException();
+                    stack[StackOutput.Default] = Type.SelfRef;
+                    break;
+                default: throw new NotImplementedException();
             }
+
+            return stack;
         }
 
         public string GetKey()
@@ -385,9 +396,9 @@ namespace KScr.Lib.Core
                     case NumericMode.Long:
                         return (T)(object)LongValue.ToString();
                     case NumericMode.Float:
-                        return (T)(object)FloatValue.ToString();
+                        return (T)(object)FloatValue.ToString(CultureInfo.InvariantCulture);
                     case NumericMode.Double:
-                        return (T)(object)DoubleValue.ToString();
+                        return (T)(object)DoubleValue.ToString(CultureInfo.InvariantCulture);
                     default:
                         throw new ArgumentOutOfRangeException(nameof(Mode), "Unexpected NumericMode: " + Mode);
                 }
@@ -412,14 +423,14 @@ namespace KScr.Lib.Core
                 return Constant(vm, int.Parse(str.Substring(0, str.Length - 1)));
             if (type == "l")
                 return Constant(vm, long.Parse(str.Substring(0, str.Length - 1)));
-            if (type == "f")
-                return Constant(vm, float.Parse(str.Substring(0, str.Length - 1)));
             if (type == "d")
-                return Constant(vm, double.Parse(str.Substring(0, str.Length - 1)));
+                return Constant(vm, double.Parse(str.Substring(0, str.Length - 1), CultureInfo.InvariantCulture));
+            if (type == "f")
+                return Constant(vm, float.Parse(str.Substring(0, str.Length - 1), CultureInfo.InvariantCulture));
             if (type != string.Empty)
                 throw new FatalException("Invalid target Type: " + type);
             if (groups[3].Length > groups[4].Length)
-                return Constant(vm, float.Parse(str));
+                return Constant(vm, float.Parse(str, CultureInfo.InvariantCulture));
             try
             {
                 return Constant(vm, int.Parse(str));
@@ -432,7 +443,7 @@ namespace KScr.Lib.Core
 
         public IObjectRef Operator(RuntimeBase vm, Operator op, Numeric? right = null)
         {
-            return op switch
+            return ((op & Model.Operator.Compound) != 0 ? op ^ Model.Operator.Compound : op) switch
             {
                 Model.Operator.IncrementRead => OpIR(vm),
                 Model.Operator.ReadIncrement => OpRI(vm),
@@ -656,6 +667,75 @@ namespace KScr.Lib.Core
         public static string CreateKey(double num)
         {
             return CreateKey(num.ToString(CultureInfo.InvariantCulture));
+        }
+
+        public IObjectRef Sqrt(RuntimeBase vm)
+        {
+            switch (Mode)
+            {
+                case NumericMode.Byte:
+                case NumericMode.Short:
+                case NumericMode.Int:
+                case NumericMode.Long:
+                    return Constant(vm, Math.Sqrt(LongValue));
+                case NumericMode.Float:
+                    return Constant(vm, MathF.Sqrt(FloatValue));
+                case NumericMode.Double:
+                    return Constant(vm, Math.Sqrt(DoubleValue));
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        public IObjectRef Sin(RuntimeBase vm)
+        {
+            switch (Mode)
+            {
+                case NumericMode.Byte:
+                case NumericMode.Short:
+                case NumericMode.Int:
+                case NumericMode.Long:
+                    return Constant(vm, Math.Sin(LongValue));
+                case NumericMode.Float:
+                    return Constant(vm, MathF.Sin(FloatValue));
+                case NumericMode.Double:
+                    return Constant(vm, Math.Sin(DoubleValue));
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        public IObjectRef Cos(RuntimeBase vm)
+        {
+            switch (Mode)
+            {
+                case NumericMode.Byte:
+                case NumericMode.Short:
+                case NumericMode.Int:
+                case NumericMode.Long:
+                    return Constant(vm, Math.Cos(LongValue));
+                case NumericMode.Float:
+                    return Constant(vm, MathF.Cos(FloatValue));
+                case NumericMode.Double:
+                    return Constant(vm, Math.Cos(DoubleValue));
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        public IObjectRef Tan(RuntimeBase vm)
+        {
+            switch (Mode)
+            {
+                case NumericMode.Byte:
+                case NumericMode.Short:
+                case NumericMode.Int:
+                case NumericMode.Long:
+                    return Constant(vm, Math.Tan(LongValue));
+                case NumericMode.Float:
+                    return Constant(vm, MathF.Tan(FloatValue));
+                case NumericMode.Double:
+                    return Constant(vm, Math.Tan(DoubleValue));
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }

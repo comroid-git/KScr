@@ -1,6 +1,6 @@
 package org.comroid.kscr.enumerable;
 
-public interface Collection<K = int, T> extends Pipe<Entry<K, T>> {
+public interface Collection<K, T> extends Pipe<Entry<K, T>> {
     int Length;
 
     @Contract("null -> null")
@@ -26,15 +26,6 @@ public interface Collection<K = int, T> extends Pipe<Entry<K, T>> {
     }
 
     bool containsKey(K key) {
-        return whether fori (0, n) >> getEntry(i).Key == key;
-
-                // OR
-                
-        return whether fori (0, n)
-            getEntry(i).Key == key;
-
-                //
-
         fori (0, n)
             if (getEntry(i).Key == key)
                 return true;

@@ -222,7 +222,7 @@ namespace KScr.Compiler
             if (isStringLiteral)
                 return;
 
-            switch (str)
+            if (!char.IsLetter(n)) switch (str)
             {
                 case "return":
                     token = new Token(srcPos, TokenType.Return);
@@ -258,8 +258,6 @@ namespace KScr.Compiler
                     token = new Token(srcPos, TokenType.While);
                     return;
                 case "for":
-                    if (n is 'e')
-                        break;
                     token = new Token(srcPos, TokenType.For);
                     return;
                 case "foreach":
@@ -293,8 +291,6 @@ namespace KScr.Compiler
                     token = new Token(srcPos, TokenType.IdentNumShort);
                     break;
                 case "int":
-                    if (char.IsLetter(n))
-                        break;
                     token = new Token(srcPos, TokenType.IdentNumInt);
                     break;
                 case "long":
@@ -311,6 +307,24 @@ namespace KScr.Compiler
                     break;
                 case "void":
                     token = new Token(srcPos, TokenType.IdentVoid);
+                    break;
+                case "object":
+                    token = new Token(srcPos, TokenType.IdentObject);
+                    break;
+                case "type":
+                    token = new Token(srcPos, TokenType.IdentType);
+                    break;
+                case "array":
+                    token = new Token(srcPos, TokenType.IdentArray);
+                    break;
+                case "tuple":
+                    token = new Token(srcPos, TokenType.IdentTuple);
+                    break;
+                case "range":
+                    token = new Token(srcPos, TokenType.IdentRange);
+                    break;
+                case "pipe":
+                    token = new Token(srcPos, TokenType.IdentPipe);
                     break;
                 case "true":
                     token = new Token(srcPos, TokenType.LiteralTrue);
@@ -370,30 +384,31 @@ namespace KScr.Compiler
                     AddToToken(TokenType.Abstract);
                     break;
                 case "final":
-                    if (char.IsLetter(n))
-                        break;
                     AddToToken(TokenType.Final);
                     break;
+                case "native":
+                    AddToToken(TokenType.Native);
+                    break;
                 default:
-                    if (Numeric.NumberRegex.IsMatch(str) && !char.IsDigit(n) && n != '.')
+                    if (Numeric.NumberRegex.IsMatch(str.EndsWith('.') ? str.Substring(0, str.Length - 1) : str) 
+                        && (!char.IsDigit(n) || n is '.' or 'b' or 'i' or 'l' or 'f' or 'd'))
                     {
-                        if (n == 'b' || n == 'i' || n == 'l' || n == 'f' || n == 'd')
+                        if (n is '.' or 'b' or 'i' or 'l' or 'f' or 'd')
                         {
                             str += n;
                             i++;
                         }
-
-                        token = new Token(srcPos, TokenType.LiteralNum, str);
                     }
                     else if (str.Length >= 2 && str[0] == '"' && str[^1] == '"')
                     {
-                        token = new Token(srcPos, TokenType.LiteralStr, str.Substring(1, str.Length - 2))
-                            ;
+                        token = new Token(srcPos, TokenType.LiteralStr, str.Substring(1, str.Length - 2));
                     }
                     else if (!char.IsLetterOrDigit(n) && str != string.Empty && !char.IsDigit(str[^1]))
                     {
                         token = new Token(srcPos, TokenType.Word, str);
                     }
+                    if (!char.IsDigit(n) && n is not '.' and not 'b' and not 'i' and not 'l' and not 'f' and not 'd' && Numeric.NumberRegex.IsMatch(str))
+                        token = new Token(srcPos, TokenType.LiteralNum, str);
 
                     break;
             }

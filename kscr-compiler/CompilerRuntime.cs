@@ -10,6 +10,7 @@ namespace KScr.Compiler
 {
     public class CompilerRuntime : RuntimeBase
     {
+        public override INativeRunner? NativeRunner => null;
         public override ObjectStore ObjectStore => null!;
         public override ClassStore ClassStore { get; } = new();
 
@@ -26,7 +27,7 @@ namespace KScr.Compiler
             CompileClass(clsName, File.ReadAllText(file.FullName), file.FullName);
         }
 
-        public void CompileClass(string clsName, string source, string filePath = "org/comroid/kscr/core/System.kscr")
+        public Lib.Bytecode.Class CompileClass(string clsName, string source, string filePath = "org/comroid/kscr/core/System.kscr")
         {
             var tokenlist = new Tokenizer().Tokenize(filePath,
                 source ?? throw new FileNotFoundException("Source file not found: " + filePath));
@@ -41,6 +42,7 @@ namespace KScr.Compiler
                 CompilerType.Class);
             AbstractCompiler.CompilerLoop(this, new ClassCompiler(), ref context);
             cls.LateInitialization(this, MainStack);
+            return cls;
         }
 
         public override void CompilePackage(DirectoryInfo dir, ref CompilerContext context,

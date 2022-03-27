@@ -17,8 +17,8 @@ namespace KScr.Lib.Core
         IClassInstance Type { get; }
 
         string ToString(short variant);
-
-        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args);
+        
+        public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args);
 
         public string GetKey();
     }
@@ -31,21 +31,26 @@ namespace KScr.Lib.Core
         public string ToString(short variant) => "null";
         public override string ToString() => ToString(0);
 
-        public IObjectRef? Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+        public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {
                 case "toString":
-                    return String.Instance(vm, "null");
+                    stack[StackOutput.Default] = String.Instance(vm, "null");
+                    break;
                 case "equals":
-                    return args[0] is VoidValue || args[0] is Numeric num && num.ByteValue != 0
+                    stack[StackOutput.Default] = args[0] is VoidValue || args[0] is Numeric num && num.ByteValue != 0
                         ? vm.ConstantTrue
                         : vm.ConstantFalse;
+                    break;
                 case "getType":
-                    return Type.SelfRef;
+                    stack[StackOutput.Default] = Type.SelfRef;
+                    break;
                 default:
                     throw new FatalException("NullPointerException");
             }
+
+            return stack;
         }
 
         public string GetKey()

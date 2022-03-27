@@ -25,16 +25,14 @@ namespace KScr.Lib
     {
         public static Encoding Encoding = Encoding.ASCII;
 
-        public static readonly DummyMethod MainInvoc = new(Class.VoidType, "main",
-            MemberModifier.Public | MemberModifier.Final | MemberModifier.Static, Class.NumericIntType);
-        public static readonly SourcefilePosition MainInvocPos = new()
-            { SourcefilePath = "<native>org/comroid/kscr/core/System.kscr" };
+        public static readonly DummyMethod MainInvoc = new(Class.ObjectType, "main", MemberModifier.Public | MemberModifier.Final | MemberModifier.Static, Class.NumericIntType);
+        public static readonly SourcefilePosition SystemSrcPos = new() { SourcefilePath = MainInvoc.FullName + " <native>" };
         public static readonly DirectoryInfo SdkHome = GetSdkHome();
-
-        private uint _lastObjId = 0xF;
-
         public static bool Initialized;
         public static readonly Stack MainStack = new();
+        public abstract INativeRunner? NativeRunner { get; }
+
+        private uint _lastObjId = 0xF;
 
         static RuntimeBase()
         {
@@ -66,14 +64,18 @@ namespace KScr.Lib
         public static bool ConfirmExit { get; set; }
         public static bool DebugMode { get; set; }
         public static int ExitCode { get; set; } = int.MinValue;
+        public static string? ExitMessage { get; set; } = null;
 
         public void Initialize()
         {
             if (Initialized) return;
-            Class.TypeType.Initialize(this);
             Class.VoidType.Initialize(this);
+            Class.ObjectType.Initialize(this);
+            Class.TypeType.Initialize(this);
             Class.EnumType.Initialize(this);
+            Class.PipeType.Initialize(this);
             Class.ArrayType.Initialize(this);
+            Class.TupleType.Initialize(this);
             Class.StringType.Initialize(this);
             Class.RangeType.Initialize(this);
             Class.IterableType.Initialize(this);
@@ -89,10 +91,13 @@ namespace KScr.Lib
 
             Class.InitializePrimitives(this);
 
-            Class.TypeType.LateInitialization(this, MainStack);
             Class.VoidType.LateInitialization(this, MainStack);
+            Class.ObjectType.LateInitialization(this, MainStack);
+            Class.TypeType.LateInitialization(this, MainStack);
             Class.EnumType.LateInitialization(this, MainStack);
+            Class.PipeType.LateInitialization(this, MainStack);
             Class.ArrayType.LateInitialization(this, MainStack);
+            Class.TupleType.LateInitialization(this, MainStack);
             Class.StringType.LateInitialization(this, MainStack);
             Class.RangeType.LateInitialization(this, MainStack);
             Class.IterableType.LateInitialization(this, MainStack);
@@ -151,7 +156,6 @@ namespace KScr.Lib
         public void Clear()
         {
             ObjectStore.Clear();
-            ClassStore.Clear();
         }
 
         public IObjectRef ComputeObject(Stack stack, VariableContext varctx, string key, Func<IObject> func)
@@ -169,14 +173,16 @@ namespace KScr.Lib
             return this[stack, varctx, key ?? value.GetKey()] = new ObjectRef(value.Type == null && !Initialized ? value as IClassInstance : value.Type, value);
         }
 
-        public IObject? Execute()
+        public Stack Execute()
         {
             var method = Package.RootPackage.FindEntrypoint();
-            var stack = new Stack();
+            var stack = MainStack;
 
             try
             {
-                stack.StepInto(this, MainInvocPos, method, stack => method.Evaluate(this, stack));
+                stack.StepInto(this, SystemSrcPos, method, stack => method
+                    .Evaluate(this, stack.Output())
+                    .Copy(StackOutput.Alp, StackOutput.Omg), StackOutput.Omg);
             }
             catch (StackTraceException stc)
             {
@@ -184,23 +190,23 @@ namespace KScr.Lib
                 foreach (var stackTraceElement in Stack.StackTrace)
                     Console.WriteLine($"\t\tat\t{stackTraceElement.Message}");
             }
-#if !DEBUG
-            catch (System.Exception exc)
-            {
-                //if (DebugMode)
-                    // ReSharper disable once PossibleIntendedRethrow
-                //    throw exc;
-                Console.WriteLine($"An internal exception occurred:\t{exc.Message}");
-                while (exc.InnerException is InternalException inner && (exc = inner) != null)
-                    Console.WriteLine($"\t\t- Caused by:\t{inner.Message}");
-            }
-#endif
-            ExitCode = stack.Omg?.Value is Numeric num ? num.IntValue : stack.Omg!.ToBool() ? 0 : ExitCode;
-            return stack.Omg?.Value ?? IObject.Null;
+            return stack;
         }
 
         public IClassInstance? FindType(string name, Package? package = null, IClass? owner = null)
         {
+            if (name.EndsWith("object"))
+                return Class.ObjectType.DefaultInstance;
+            if (name.EndsWith("type"))
+                return Class.TypeType.DefaultInstance;
+            if (name.EndsWith("enum"))
+                return Class.EnumType.DefaultInstance;
+            if (name.EndsWith("array"))
+                return Class.ArrayType.DefaultInstance;
+            if (name.EndsWith("tuple"))
+                return Class.TupleType.DefaultInstance;
+            if (name.EndsWith("pipe"))
+                return Class.PipeType.DefaultInstance;
             if (name == "num")
                 return Class.NumericType.DefaultInstance;
             if (name.Contains("num"))
@@ -231,7 +237,7 @@ namespace KScr.Lib
                 return Class.NumericDoubleType;
             if (name.EndsWith("str"))
                 return Class.StringType.DefaultInstance;
-            if (name.EndsWith("void") || name.EndsWith("Object"))
+            if (name.EndsWith("void") || name.EndsWith("object") || name == "object")
                 return Class.VoidType.DefaultInstance;
 
             if (name.Contains('<'))
@@ -253,7 +259,7 @@ namespace KScr.Lib
         public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)
         {
             return inClass.TypeParameters.FirstOrDefault(tp => tp.FullName == identifier)
-                   ?? FindType(identifier, inPackage)!;
+                       .ResolveType(inClass.DefaultInstance) ?? FindType(identifier, inPackage)!;
         }
 
         public abstract void CompilePackage(DirectoryInfo dir, ref CompilerContext context,
@@ -265,19 +271,19 @@ namespace KScr.Lib
             {
             }
 
-            public override Model.IEvaluable? ReadAccessor
+            public override IEvaluable? ReadAccessor
             {
                 get => new StdioReader();
                 set => throw new FatalException("Cannot reassign stdio ReadAccessor");
             }
 
-            public override Model.IEvaluable? WriteAccessor
+            public override IEvaluable? WriteAccessor
             {
                 get => new StdioWriter();
                 set => throw new FatalException("Cannot reassign stdio WriteAccessor");
             }
 
-            private sealed class StdioWriter : Model.IEvaluable
+            private sealed class StdioWriter : IEvaluable
             {
                 public Stack Evaluate(RuntimeBase vm, Stack stack)
                 {
@@ -287,7 +293,7 @@ namespace KScr.Lib
                 }
             }
 
-            private sealed class StdioReader : Model.IEvaluable
+            private sealed class StdioReader : IEvaluable
             {
                 public Stack Evaluate(RuntimeBase vm, Stack stack)
                 {

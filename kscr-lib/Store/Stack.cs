@@ -106,9 +106,9 @@ namespace KScr.Lib.Store
             KeyGen = CreateKeys;
         }
 
-        private string _local => _blob?.Local ?? RuntimeBase.MainInvocPos.SourcefilePath;
         public IObjectRef This => _blob.This ?? _parent.This;
         public IClass Class => _blob.Class ?? _parent.Class;
+        private string _local => _blob?.Local ?? _parent?._local ?? RuntimeBase.SystemSrcPos.SourcefilePath;
         public CallLocation CallLocation => _blob.CallLocation ?? _parent.CallLocation;
         public string PrefixLocal => _local + Separator;
 
@@ -186,7 +186,7 @@ namespace KScr.Lib.Store
         public Stack Channel(StackOutput channel, StackOutput outputMode = StackOutput.Alp, bool copyRefs = false)
         {
             var stack = new Stack(this, outputMode, false);
-            stack[outputMode] = this[channel];
+            stack[outputMode | channel] = this[channel];
             return stack;
         }
 
@@ -229,7 +229,7 @@ namespace KScr.Lib.Store
         public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IObjectRef? into, IClassMember local, Action<Stack> exec, StackOutput maintain = StackOutput.None)
         {
             into ??= vm.ConstantVoid;
-            var cls = into.Value.Type;
+            var cls = into.Value as IClassInstance ?? into.Value.Type;
             string localStr = cls.FullName + '#' + into.Value.ObjectId.ToString("X")
                               + '.' + local.Name + (local is IMethod mtd
                                   ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) +
@@ -270,7 +270,7 @@ namespace KScr.Lib.Store
                 throw new StackTraceException(CallLocation, _local, ex);
             }
 #if !DEBUG
-            catch (FatalException ex)
+            catch (System.Exception ex)
             {
                 //if (RuntimeBase.DebugMode)
                     // ReSharper disable once PossibleIntendedRethrow
@@ -298,9 +298,9 @@ namespace KScr.Lib.Store
                             || Omg.Value is not { } throwable)
                             throw new FatalException(
                                 "Value is not instanceof Throwable: " + Omg.Value.ToString(0));
-                        RuntimeBase.ExitCode = (throwable.Invoke(vm, Output(), "ExitCode")!.Value as Numeric)!.IntValue;
-                        var msg = throwable.Invoke(vm, Output(StackOutput.Bet), "Message")!.Value.ToString(0);
-                        throw new InternalException(throwable.Type.Name + ": " + msg);
+                        RuntimeBase.ExitCode = (throwable.Invoke(vm, Output(), "ExitCode").Alp!.Value as Numeric)!.IntValue;
+                        RuntimeBase.ExitMessage = throwable.Invoke(vm, Output(StackOutput.Bet), "Message").Alp!.Value.ToString(0);
+                        throw new InternalException($"{throwable.Type.Name}: {RuntimeBase.ExitMessage} ({RuntimeBase.ExitCode})");
                     }
                 }
                 
@@ -319,9 +319,8 @@ namespace KScr.Lib.Store
                     _parent[StackOutput.Phi] = Phi;
                 if ((maintain & StackOutput.Omg) == StackOutput.Omg)
                     _parent[StackOutput.Omg] = Omg;
-                if (maintain != StackOutput.None)
-                    CopyState();
-                
+
+                CopyState();
                 StepUp(vm);
             }
         }
@@ -332,15 +331,15 @@ namespace KScr.Lib.Store
                 vm.ObjectStore.ClearLocals(this);
         }
 
-        public void Copy(StackOutput passthrough) => Copy(passthrough, passthrough);
+        public IObjectRef? Copy(StackOutput passthrough) => Copy(passthrough, passthrough);
 
-        public void Copy(StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
+        public IObjectRef? Copy(StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
             => Copy(_parent, channel, output);
 
-        public void Copy(Stack target, StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
+        public IObjectRef? Copy(Stack target, StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
         {
             CopyState();
-            target[output == StackOutput.Default ? _output : output] = this[channel];
+            return target[output] = this[channel];
         }
 
         public void CopyState(Stack target = null!)

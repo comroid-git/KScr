@@ -13,4 +13,8 @@
       <ProjectReference Include="..\kscr-native\kscr-native.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="src-todo" />
+    </ItemGroup>
+
 </Project>
