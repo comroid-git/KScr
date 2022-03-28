@@ -1,0 +1,25 @@
+{
+    "name": "kscr-vscode",
+    "displayName": "KScr Language Support",
+    "description": "Language support for KScr in VS Code",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.65.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "kscr",
+            "aliases": ["KScr", "kscr"],
+            "extensions": [".kscr .kbin"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "kscr",
+            "scopeName": "source.kscr",
+            "path": "./syntaxes/kscr.tmLanguage.json"
+        }]
+    }
+}
