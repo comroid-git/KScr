@@ -1,4 +1,7 @@
-namespace KScr.Compiler.Class;
+using KScr.Antlr;
+using KScr.Lib.Bytecode;
+
+namespace KScr.Compiler.Code;
 
 public class StatementVisitor : KScrParserBaseVisitor<Statement> {
 }

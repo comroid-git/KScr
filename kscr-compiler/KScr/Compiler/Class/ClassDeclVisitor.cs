@@ -1,10 +1,11 @@
 ﻿using System;
+using System.ComponentModel.Design;
 using KScr.Antlr;
 using KScr.Lib.Bytecode;
 
 namespace KScr.Compiler.Class;
 
-public class ClassDeclVisitor : KScrBaseVisitor<Lib.Bytecode.Class>
+public class ClassDeclVisitor : KScrParserBaseVisitor<Lib.Bytecode.Class>
 {
     public Lib.Bytecode.Class Class { get; }
 
@@ -30,20 +31,14 @@ public class ClassDeclVisitor : KScrBaseVisitor<Lib.Bytecode.Class>
 
     public override Lib.Bytecode.Class VisitMember(KScrParser.MemberContext context)
     {
-        IClassMember member;
-        switch (context.RuleIndex)
+        IClassMember member = context.RuleIndex switch
         {
-            case KScrParser.RULE_methodDecl:
-                member = new Method()
-                break;
-            case KScrParser.RULE_constructorDecl: 
-                break;
-            case KScrParser.RULE_propertyDecl: 
-                break;
-            case KScrParser.RULE_classDecl: 
-                break;
-            case KScrParser.RULE_initDecl: 
-                break;
-        }
+            KScrParser.RULE_methodDecl => new MethodVisitor().Visit(context.methodDecl()),
+            KScrParser.RULE_constructorDecl => new ConstructorVisitor().Visit(context.methodDecl()),
+            KScrParser.RULE_propertyDecl => new PropertyVisitor().Visit(context.methodDecl()),
+            KScrParser.RULE_initDecl => new InitializerVisitor().Visit(context.methodDecl()),
+            //KScrParser.RULE_classDecl => new MethodVisitor().Visit(context.methodDecl()),
+            _ => throw new ArgumentOutOfRangeException(nameof(context.RuleIndex), context.RuleIndex, "Invalid rule " + context)
+        };
     }
 }

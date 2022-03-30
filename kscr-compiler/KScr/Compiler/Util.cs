@@ -38,11 +38,11 @@ public static class AntlrExtensions
     };
 }
 
-public class PackageDeclVisitor : KScrBaseVisitor<string>
+public class PackageDeclVisitor : KScrParserBaseVisitor<string>
 {
     public override string VisitPackageDecl(KScrParser.PackageDeclContext context) => context.id().ToString();
 }
-public class ClassInfoVisitor : KScrBaseVisitor<ClassInfo>
+public class ClassInfoVisitor : KScrParserBaseVisitor<ClassInfo>
 {
     public override ClassInfo VisitClassDecl(KScrParser.ClassDeclContext context)
     {

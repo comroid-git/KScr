@@ -153,8 +153,8 @@ foreachStatement: FOREACH LPAREN idPart COLON expr RPAREN block;
 doWhile: DO block WHILE LPAREN expr RPAREN SEMICOLON;
 
 pipeStatement: pipeWriteStatement*? expr pipeReadStatement*?;
-pipeWriteStatement: expr (RBOXARROW | URSHIFT | RSHIFT);
-pipeReadStatement: (LSHIFT | ULSHIFT | LBOXARROW) expr;
+pipeWriteStatement: expr (RBOXARROW | RREQARROW | RRDASHARROW | RSHIFT);
+pipeReadStatement: (LSHIFT | RREQARROW | RDASHARROW | LBOXARROW) expr;
 
 switchStatement: SWITCH LPAREN expr RPAREN LBRACE caseClause* defaultClause? RBRACE;
 caseClause: CASE expr block;
