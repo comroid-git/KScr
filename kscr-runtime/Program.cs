@@ -7,10 +7,10 @@ using CommandLine;
 using KScr.Compiler;
 using KScr.Compiler.Code;
 using KScr.Lib;
-using KScr.Lib.Bytecode;
-using KScr.Lib.Core;
-using KScr.Lib.Model;
-using KScr.Lib.Store;
+using KScr.Core.Bytecode;
+using KScr.Core.Core;
+using KScr.Core.Model;
+using KScr.Core.Store;
 
 namespace KScr.Runtime
 {

@@ -1,6 +1,6 @@
 ﻿using KScr.Lib;
-using KScr.Lib.Bytecode;
-using KScr.Lib.Model;
+using KScr.Core.Bytecode;
+using KScr.Core.Model;
 
 namespace KScr.Compiler.Code
 {

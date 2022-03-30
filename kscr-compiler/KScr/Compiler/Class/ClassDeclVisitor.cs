@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.Design;
 using KScr.Antlr;
-using KScr.Lib.Bytecode;
+using KScr.Core.Bytecode;
 
 namespace KScr.Compiler.Class;
 

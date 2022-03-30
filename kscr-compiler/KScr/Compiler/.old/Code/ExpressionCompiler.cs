@@ -1,8 +1,8 @@
 ﻿using System;
-using KScr.Lib.Bytecode;
-using KScr.Lib.Core;
-using KScr.Lib.Exception;
-using KScr.Lib.Model;
+using KScr.Core.Bytecode;
+using KScr.Core.Core;
+using KScr.Core.Exception;
+using KScr.Core.Model;
 
 namespace KScr.Compiler.Code
 {

@@ -1,9 +1,9 @@
 ﻿using KScr.Lib;
-using KScr.Lib.Bytecode;
-using KScr.Lib.Exception;
-using KScr.Lib.Model;
-using static KScr.Lib.Exception.CompilerError;
-using static KScr.Lib.Model.TokenType;
+using KScr.Core.Bytecode;
+using KScr.Core.Exception;
+using KScr.Core.Model;
+using static KScr.Core.Exception.CompilerError;
+using static KScr.Core.Model.TokenType;
 
 namespace KScr.Compiler.Code
 {

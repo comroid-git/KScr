@@ -9,10 +9,11 @@
         <PackageVersion>0.2.1</PackageVersion>
         <LangVersion>latest</LangVersion>
         <FileVersion>10</FileVersion>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\kscr-lib\kscr-lib.csproj" />
+        <ProjectReference Include="..\kscr-core\kscr-core.csproj" />
     </ItemGroup>
 
     <ItemGroup>

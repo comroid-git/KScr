@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using KScr.Lib;
-using KScr.Lib.Bytecode;
-using KScr.Lib.Model;
-using KScr.Lib.Store;
+using KScr.Core.Bytecode;
+using KScr.Core.Model;
+using KScr.Core.Store;
 using KScr.Runtime;
 
 namespace KScr.Test

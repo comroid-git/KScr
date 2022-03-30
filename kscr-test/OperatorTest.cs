@@ -2,8 +2,8 @@
 using System.Globalization;
 using System.IO;
 using KScr.Lib;
-using KScr.Lib.Core;
-using KScr.Lib.Exception;
+using KScr.Core.Core;
+using KScr.Core.Exception;
 using KScr.Runtime;
 using NUnit.Framework;
 using static KScr.Test.TestUtil;

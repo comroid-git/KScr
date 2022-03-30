@@ -5,10 +5,10 @@ using KScr.Antlr;
 using KScr.Antlr;
 using KScr.Compiler.Class;
 using KScr.Lib;
-using KScr.Lib.Bytecode;
-using KScr.Lib.Exception;
-using KScr.Lib.Model;
-using KScr.Lib.Store;
+using KScr.Core.Bytecode;
+using KScr.Core.Exception;
+using KScr.Core.Model;
+using KScr.Core.Store;
 
 namespace KScr.Compiler
 {

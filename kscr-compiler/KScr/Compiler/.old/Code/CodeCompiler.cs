@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Linq;
 using KScr.Lib;
-using KScr.Lib.Bytecode;
-using KScr.Lib.Core;
-using KScr.Lib.Exception;
-using KScr.Lib.Model;
-using KScr.Lib.Store;
-using static KScr.Lib.Exception.CompilerError;
-using static KScr.Lib.Model.TokenType;
+using KScr.Core.Bytecode;
+using KScr.Core.Core;
+using KScr.Core.Exception;
+using KScr.Core.Model;
+using KScr.Core.Store;
+using static KScr.Core.Exception.CompilerError;
+using static KScr.Core.Model.TokenType;
 
 namespace KScr.Compiler.Code
 {

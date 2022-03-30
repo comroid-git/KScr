@@ -2,12 +2,12 @@
 using System.Diagnostics;
 using System.Reflection;
 using KScr.Lib;
-using KScr.Lib.Bytecode;
-using KScr.Lib.Core;
-using KScr.Lib.Exception;
-using KScr.Lib.Model;
-using KScr.Lib.Store;
-using static KScr.Lib.Store.StackOutput;
+using KScr.Core.Bytecode;
+using KScr.Core.Core;
+using KScr.Core.Exception;
+using KScr.Core.Model;
+using KScr.Core.Store;
+using static KScr.Core.Store.StackOutput;
 
 namespace KScr.Native;
 

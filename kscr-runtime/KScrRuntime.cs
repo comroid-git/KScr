@@ -1,6 +1,6 @@
 ﻿using KScr.Compiler;
-using KScr.Lib.Model;
-using KScr.Lib.Store;
+using KScr.Core.Model;
+using KScr.Core.Store;
 using KScr.Native;
 
 namespace KScr.Runtime
