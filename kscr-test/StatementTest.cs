@@ -103,7 +103,7 @@ public class StatementTest
         Assert.AreEqual(desired % 2 > 0 ? desired : desired * 2, (code.Value as Numeric).IntValue);
     }
 
-    [Test, Timeout(TestTimeout), Repeat(TestScale / 16)]
+    [Test, Timeout(TestTimeout), Repeat(TestScale / 16), NonParallelizable]
     public void TestFor()
     {
         int desiredLen = rng.Next() % TestScale;
@@ -121,7 +121,7 @@ public class StatementTest
         Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected), $"Expected output was:\n{expected}\nActual Output was \n{writer}");
     }
 
-    [Test, Timeout(TestTimeout), Repeat(TestScale / 16)]
+    [Test, Timeout(TestTimeout), Repeat(TestScale / 16), NonParallelizable]
     public void TestForEach()
     {
         int desiredLen = rng.Next() % TestScale;
@@ -139,7 +139,7 @@ public class StatementTest
         Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected), $"Expected output was:\n{expected}\nActual Output was \n{writer}");
     }
 
-    [Test, Timeout(TestTimeout), Repeat(TestScale / 16)]
+    [Test, Timeout(TestTimeout), Repeat(TestScale / 16), NonParallelizable]
     public void TestWhile()
     {
         int desiredLen = rng.Next() % TestScale;
@@ -158,7 +158,7 @@ public class StatementTest
         Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected), $"Expected output was:\n{expected}\nActual Output was \n{writer}");
     }
 
-    [Test, Timeout(TestTimeout), Repeat(TestScale / 16)]
+    [Test, Timeout(TestTimeout), Repeat(TestScale / 16), NonParallelizable]
     public void TestDoWhile()
     {
         int desiredLen = rng.Next() % TestScale;

@@ -29,7 +29,7 @@ public class OperatorTest
         Console.SetOut(bakWrt);
     }
 
-    [Test, Repeat(TestScale / 16)]
+    [Test, Repeat(TestScale / 16), NonParallelizable]
     public void TestStrPlus()
     {
         int a = rng.Next() % TestScale;
