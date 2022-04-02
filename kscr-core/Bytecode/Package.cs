@@ -86,6 +86,13 @@ namespace KScr.Core.Bytecode
 
         public Package GetOrCreatePackage(string name)
         {
+            if (name.Contains('.'))
+            {
+                var rec = this;
+                foreach (var sub in name.Split('.'))
+                    rec = rec.GetOrCreatePackage(sub);
+                return rec;
+            }
             if (PackageMembers.TryGetValue(name, out var pm) && pm is Package pkg)
                 return pkg;
             Add(pkg = new Package(this, name));

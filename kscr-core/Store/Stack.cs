@@ -13,6 +13,7 @@ namespace KScr.Core.Store
     {
         Local,
         This,
+        Super,
         Property,
         Absolute
     }

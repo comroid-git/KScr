@@ -45,8 +45,16 @@ namespace KScr.Core.Model
         MemberModifier Modifier { get; }
         ClassType ClassType { get; }
         bool Primitive { get; }
-
         bool CanHold(IClass? type);
+
+        Class AsClass(RuntimeBase vm)
+        {
+            if (this is Class cls)
+                return cls;
+            if (this is Class.Instance inst)
+                return inst.BaseClass;
+            return vm.FindType(this.CanonicalName)!.BaseClass;
+        }
     }
 
     public interface IClass : IClassInfo, IClassMember, IPackageMember

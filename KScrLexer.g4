@@ -65,9 +65,8 @@ VOID: 'void';
 VAR: 'var';
 
 // literals
-NUMLIT: MINUS? DIGIT+ ((DOT DIGIT+ ('f'? | 'd'))? | ('l' | 'i' | 's' | 'b')?);
+NUMLIT: MINUS? DIGIT+ ((DOT DIGIT+ ('f'? | 'd'))? | ('l' | 'i' | 's' | 'b')?) | 'n';
 STRLIT: QUOTE (ESCAPE_QUOTE | (~[\r\n"]))*? (QUOTE);
-BOOLLIT: TRUE | FALSE;
 STDIOLIT: 'stdio';
 NULL: 'null';
 TRUE: 'true';
@@ -130,13 +129,15 @@ LESSER: '<';
 
 ASSIGN: '=';
 
-RDASHARROW: '->';
-RRDASHARROW: '->>';
 LDASHARROW: '<-';
 LLDASHARROW: '<<-';
+RDASHARROW: '->';
+RRDASHARROW: '->>';
 REQARROW: '=>';
-RREQARROW: '=>>';
 LLEQARROW: '<<=';
+RREQARROW: '=>>';
+LPULLARROW: '=<<';
+RPULLARROW: '>>=';
 LBOXARROW: '<|';
 RBOXARROW: '|>';
 DBOXARROW: '<|>';

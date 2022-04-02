@@ -70,7 +70,7 @@ namespace KScr.Core.Bytecode
         private bool _initialized;
         private bool _lateInitialized;
         public readonly IList<IClassInstance> _interfaces = new List<IClassInstance>();
-        private readonly IList<IClassInstance> _superclasses = new List<IClassInstance>();
+        public readonly IList<IClassInstance> _superclasses = new List<IClassInstance>();
 
         public Class(Package package, string name, bool primitive, MemberModifier modifier = MemberModifier.Protected,
             ClassType type = ClassType.Class) : base(package, name, modifier)

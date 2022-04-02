@@ -25,12 +25,8 @@ namespace KScr.Core.Model
         LiteralFalse = 0x0000_0800 | Expression,
         LiteralRange = 0x0F00_0000 | Expression,
         ExpressionVariable = 0x0000_0F00 | Expression,
-
-        OperatorPlus = 0x0000_1000 | Operator,
-        OperatorMinus = 0x0000_2000 | Operator,
-        OperatorMultiply = 0x0000_4000 | Operator,
-        OperatorDivide = 0x0000_8000 | Operator,
-        OperatorModulus = 0x0000_F000 | Operator,
+        
+        NullFallback = 0x0000_1000 | Expression,
 
         StmtIf = 0x0011_0000 | Statement,
         StmtCond = 0x0012_0000 | Statement,
@@ -61,7 +57,7 @@ namespace KScr.Core.Model
         ReadIncrement = 0x0000_0002, // x++
         DecrementRead = 0x0000_0004, // --x
         ReadDecrement = 0x0000_0008, // x--
-        LogicalNot = 0x0000_000F, // !x
+        LogicNot = 0x0000_000F, // !x
         ArithmeticNot = 0x0000_0010, // -x
 
         // binary operators
@@ -70,7 +66,7 @@ namespace KScr.Core.Model
         Multiply = 0x0000_0080, // *
         Divide = 0x0000_00F0, // /
         Modulus = 0x0000_0100, // %
-        Circumflex = 0x0000_0200, // ^
+        Pow = 0x0000_0200, // ^
         Equals = 0x0000_0400, // ==
         NotEquals = 0x0000_0800, // !=
         Greater = 0x0000_0F00, // >
@@ -78,6 +74,16 @@ namespace KScr.Core.Model
         Lesser = 0x0000_2000, // <
         LesserEq = 0x0000_4000, // <=
         
-        Compound = 0xFFFF_0000
+        BitAnd = 0x0001_0000,
+        BitOr = 0x0002_0000,
+        LogicAnd = 0x0004_0000,
+        LogicOr = 0x0008_0000,
+        
+        LShift = 0x0010_0000,
+        RShift = 0x0020_0000,
+        ULShift = 0x0040_0000,
+        URShift = 0x0080_0000,
+
+        Compound = 0xF_0000
     }
 }

@@ -455,7 +455,7 @@ namespace KScr.Core.Core
                 Model.Operator.Multiply => OpMultiply(vm, right!),
                 Model.Operator.Divide => OpDivide(vm, right!),
                 Model.Operator.Modulus => OpModulus(vm, right!),
-                Model.Operator.Circumflex => OpCircumflex(vm, right!),
+                Model.Operator.Pow => OpCircumflex(vm, right!),
                 Model.Operator.Greater => OpGt(vm, right!),
                 Model.Operator.GreaterEq => OpGtEq(vm, right!),
                 Model.Operator.Lesser => OpLs(vm, right!),

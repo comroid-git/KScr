@@ -170,6 +170,49 @@ namespace KScr.Core.Bytecode
                         ctor.Evaluate(vm, stack.Output());
                     });
                     break;
+                case (StatementComponentType.Expression, BytecodeType.Call):
+                    // invoke member
+                    if ((stack[Default].Value is IClass cls || (cls = stack[Default].Value.Type) != null)
+                        && cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is IMethod mtd)
+                    {
+                            var param = mtd.Parameters;
+                            var output = stack.Output(Del);
+                            output[Del] = new ObjectRef(Class.VoidType.DefaultInstance, mtd.Parameters.Count);
+                            SubComponent!.Evaluate(vm, output).Copy(Del);
+                            if (mtd.IsNative() && !mtd.Parent.IsNative())
+                                if (vm.NativeRunner == null)
+                                    throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
+                                else vm.NativeRunner.Invoke(vm, stack, stack[Default][vm, stack, 0], mtd).Copy(Omg, Default);
+                            else// todo having both next to each other is stupid
+                            {
+                                stack.StepInto(vm, SourcefilePosition, stack[Default], mtd, stack =>
+                                {
+                                    stack[Default].Value!.Invoke(vm, stack.Output(), Arg,
+                                        (stack.Del as ObjectRef)!.Refs).Copy(Alp);
+                                }, Alp);
+                            }
+                    }
+                    else if (cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Property && x.Name == Arg) is Property prop)
+                    {
+                        if (prop.IsNative())
+                            if (vm.NativeRunner == null)
+                                throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
+                            else vm.NativeRunner.Invoke(vm, stack, stack[Default][vm, stack, 0], prop).Copy(Omg, Default);
+                        else
+                            //stack[Default] = prop;
+                            prop.ReadValue(vm, stack.Output(), stack[Default]?.Value ?? cls as IClassInstance ?? cls.DefaultInstance).Copy();
+                    }
+                    else
+                    {
+                        throw new System.Exception("Invalid state; not a method or property");
+                    }
+                    // todo:: shouldnt be necessary
+                    stack[Default] = stack.Alp;
+
+                    break;
+                case (StatementComponentType.Expression, BytecodeType.StdioExpression):
+                    stack[Default] = vm.StdioRef;
+                    break;
                 case (StatementComponentType.Declaration, _):
                     // variable declaration
                     stack[Default] = vm[stack, VariableContext, Arg] = new ObjectRef(Statement.TargetType);
@@ -278,7 +321,7 @@ namespace KScr.Core.Bytecode
                     switch (op)
                     {
                         // prefix operator: logical not
-                        case Operator.LogicalNot:
+                        case Operator.LogicNot:
                             if (SubComponent == null ||
                                 (SubComponent.Type & StatementComponentType.Expression) == 0)
                                 throw new FatalException(
@@ -379,49 +422,6 @@ namespace KScr.Core.Bytecode
                                          ?? throw new FatalException("Undefined variable: " + Arg);
                     }
 
-                    break;
-                case (StatementComponentType.Provider, BytecodeType.Call):
-                    // invoke member
-                    if ((stack[Default].Value is IClass cls || (cls = stack[Default].Value.Type) != null)
-                        && cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is IMethod mtd)
-                    {
-                            var param = mtd.Parameters;
-                            var output = stack.Output(Del);
-                            output[Del] = new ObjectRef(Class.VoidType.DefaultInstance, mtd.Parameters.Count);
-                            SubComponent!.Evaluate(vm, output).Copy(Del);
-                            if (mtd.IsNative() && !mtd.Parent.IsNative())
-                                if (vm.NativeRunner == null)
-                                    throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
-                                else vm.NativeRunner.Invoke(vm, stack, stack[Default][vm, stack, 0], mtd).Copy(Omg, Default);
-                            else// todo having both next to each other is stupid
-                            {
-                                stack.StepInto(vm, SourcefilePosition, stack[Default], mtd, stack =>
-                                {
-                                    stack[Default].Value!.Invoke(vm, stack.Output(), Arg,
-                                        (stack.Del as ObjectRef)!.Refs).Copy(Alp);
-                                }, Alp);
-                            }
-                    }
-                    else if (cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Property && x.Name == Arg) is Property prop)
-                    {
-                        if (prop.IsNative())
-                            if (vm.NativeRunner == null)
-                                throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
-                            else vm.NativeRunner.Invoke(vm, stack, stack[Default][vm, stack, 0], prop).Copy(Omg, Default);
-                        else
-                            //stack[Default] = prop;
-                            prop.ReadValue(vm, stack.Output(), stack[Default]?.Value ?? cls as IClassInstance ?? cls.DefaultInstance).Copy();
-                    }
-                    else
-                    {
-                        throw new System.Exception("Invalid state; not a method or property");
-                    }
-                    // todo:: shouldnt be necessary
-                    stack[Default] = stack.Alp;
-
-                    break;
-                case (StatementComponentType.Provider, BytecodeType.StdioExpression):
-                    stack[Default] = vm.StdioRef;
                     break;
                 case (StatementComponentType.Provider, BytecodeType.Undefined):
                     stack[Default] = stack.This!;

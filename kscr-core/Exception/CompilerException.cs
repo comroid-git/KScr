@@ -12,6 +12,9 @@ public sealed class CompilerError
     
     public static readonly CompilerError CannotAssign = new("Cannot assign type {1} to type {0}");
     
+    public static readonly CompilerError SymbolNotFound = new("Symbol '{0}' not found");
+    public static readonly CompilerError TypeSymbolNotFound = new("Type '{0}' not found");
+    
     public static readonly CompilerError ClassPackageMissing = new("Missing package declaration in class {0}");
     public static readonly CompilerError ClassNameMissing = new("Missing class name in class {0}");
     public static readonly CompilerError ClassNameMismatch = new("Declared Class name {1} mismatches File name {0}");

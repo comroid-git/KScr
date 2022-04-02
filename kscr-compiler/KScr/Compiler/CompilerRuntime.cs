@@ -46,7 +46,7 @@ namespace KScr.Compiler
                 var classInfo = new ClassInfoVisitor().Visit(classDecl);
                 var cls = pkg.GetOrCreateClass(this, clsName, classInfo.Modifier, classInfo.ClassType);
                 if (cls == null) throw new FatalException("invalid state");
-                new ClassDeclVisitor(cls).Visit(classDecl);
+                new ClassVisitor(cls).Visit(classDecl);
                 cls.LateInitialization(this, MainStack);
                 news[cls.Name] = cls;
             }
@@ -87,7 +87,7 @@ namespace KScr.Compiler
         public ClassInfo FindClassInfo(FileInfo file)
         {
             var fileDecl = MakeFileDecl(new AntlrFileStream(file.FullName));
-            return new ClassInfoVisitor().Visit(fileDecl.classDecl(0));
+            return new SourceInfoVisitor().Visit(fileDecl.classDecl(0));
         }
     }
 }
