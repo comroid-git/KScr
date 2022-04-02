@@ -1,4 +1,4 @@
-﻿using KScr.Lib;
+﻿using KScr.Core;
 using KScr.Core.Core;
 using KScr.Core.Store;
 

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using KScr.Lib;
+using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
 using KScr.Core.Store;

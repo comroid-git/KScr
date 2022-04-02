@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
-using KScr.Lib;
+using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Core;
 using KScr.Core.Exception;

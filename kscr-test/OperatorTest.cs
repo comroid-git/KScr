@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
-using KScr.Lib;
 using KScr.Core.Core;
 using KScr.Core.Exception;
 using KScr.Runtime;

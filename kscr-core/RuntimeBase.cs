@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -12,7 +11,7 @@ using KScr.Core.Model;
 using KScr.Core.Store;
 using String = KScr.Core.Core.String;
 
-namespace KScr.Lib
+namespace KScr.Core
 {
     public enum State : uint
     {
