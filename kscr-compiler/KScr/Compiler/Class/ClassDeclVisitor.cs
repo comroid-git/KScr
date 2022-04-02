@@ -5,31 +5,31 @@ using KScr.Core.Bytecode;
 
 namespace KScr.Compiler.Class;
 
-public class ClassDeclVisitor : KScrParserBaseVisitor<Lib.Bytecode.Class>
+public class ClassDeclVisitor : KScrParserBaseVisitor<Core.Bytecode.Class>
 {
-    public Lib.Bytecode.Class Class { get; }
+    public Core.Bytecode.Class Class { get; }
 
-    public ClassDeclVisitor(Lib.Bytecode.Class @class)
+    public ClassDeclVisitor(Core.Bytecode.Class @class)
     {
         Class = @class;
     }
 
-    public override Lib.Bytecode.Class VisitGenericTypeDef(KScrParser.GenericTypeDefContext context)
+    public override Core.Bytecode.Class VisitGenericTypeDef(KScrParser.GenericTypeDefContext context)
     {
         throw new NotImplementedException();
     }
 
-    public override Lib.Bytecode.Class VisitObjectExtends(KScrParser.ObjectExtendsContext context)
+    public override Core.Bytecode.Class VisitObjectExtends(KScrParser.ObjectExtendsContext context)
     {
         throw new NotImplementedException();
     }
 
-    public override Lib.Bytecode.Class VisitObjectImplements(KScrParser.ObjectImplementsContext context)
+    public override Core.Bytecode.Class VisitObjectImplements(KScrParser.ObjectImplementsContext context)
     {
         throw new NotImplementedException();
     }
 
-    public override Lib.Bytecode.Class VisitMember(KScrParser.MemberContext context)
+    public override Core.Bytecode.Class VisitMember(KScrParser.MemberContext context)
     {
         IClassMember member = context.RuleIndex switch
         {

@@ -31,7 +31,7 @@ namespace KScr.Compiler
             CompileClass(clsName, file.FullName);
         }
 
-        public Lib.Bytecode.Class CompileClass(string clsName, string filePath = "org/comroid/kscr/core/System.kscr", string? source = null)
+        public Core.Bytecode.Class CompileClass(string clsName, string filePath = "org/comroid/kscr/core/System.kscr", string? source = null)
         {
             var fileDecl = MakeFileDecl(source != null ? new AntlrInputStream(source) : new AntlrFileStream(filePath, Encoding));
 
@@ -39,7 +39,7 @@ namespace KScr.Compiler
             var pkg = AbstractCompiler.ResolvePackage(Package.RootPackage, 
                 new PackageDeclVisitor().VisitPackageDecl(fileDecl.packageDecl()).Split("."));
             var imports = FindClassImports(fileDecl.imports());
-            var news = new Dictionary<string, Lib.Bytecode.Class>();
+            var news = new Dictionary<string, Core.Bytecode.Class>();
             
             foreach (var classDecl in fileDecl.classDecl())
             {

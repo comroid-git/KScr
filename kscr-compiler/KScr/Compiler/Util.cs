@@ -30,10 +30,10 @@ public static class AntlrExtensions
 
     public static ClassType ClassType(this KScrParser.ClassTypeContext ctx) => ctx.RuleIndex switch
     {
-        KScrParser.CLASS => Lib.Model.ClassType.Class,
-        KScrParser.INTERFACE => Lib.Model.ClassType.Interface,
-        KScrParser.ANNOTATION => Lib.Model.ClassType.Annotation,
-        KScrParser.ENUM => Lib.Model.ClassType.Enum,
+        KScrParser.CLASS => Core.Model.ClassType.Class,
+        KScrParser.INTERFACE => Core.Model.ClassType.Interface,
+        KScrParser.ANNOTATION => Core.Model.ClassType.Annotation,
+        KScrParser.ENUM => Core.Model.ClassType.Enum,
         _ => throw new ArgumentOutOfRangeException(nameof(ctx.RuleIndex), ctx.RuleIndex, "Invalid class type")
     };
 }
