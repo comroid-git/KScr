@@ -259,6 +259,7 @@ namespace KScr.Lib.Model
                     }
                     args.Add(FindTypeInfo(vm, true) ?? throw new InvalidOperationException());
                 } while (NextToken?.Type == TokenType.Comma);
+                TokenIndex += 1;
 
                 return baseCls.CreateInstance(vm, Class, args.ToArray());
             }
