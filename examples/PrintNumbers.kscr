@@ -70,7 +70,7 @@ public class PrintNumbers implements Throwable {
         if (true) { // any 'multipart' statement
             if (thr)
                 throw this;
-            stdio << "This only is printed when it does not throw"; // currently never printed bcs the compiled if body is too long (wrong offset)
+            stdio << "This only is printed when it does not throw";
         } finally stdio << "This sums up the throingMethod";
     }
     
