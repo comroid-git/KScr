@@ -6,13 +6,14 @@
         <RootNamespace>KScr.Build</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AssemblyName>kbuild</AssemblyName>
         <Product>kbuild</Product>
         <AssemblyVersion>0.2.1</AssemblyVersion>
         <Company>comroid</Company>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\kscr-runtime\kscr-runtime.csproj" />
+      <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj" />
     </ItemGroup>
 
     <ItemGroup>
