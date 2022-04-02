@@ -1,7 +1,7 @@
 package org.comroid.kscr.numerics;
 
 public final class Math {
-    public static final double Pi = 3.14159265359;
+    public static final double Pi => 3.14159265359d;
 
     public static native double sin(num x);
 
