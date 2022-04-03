@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
 using KScr.Antlr;
 using KScr.Compiler.Class;
 using KScr.Compiler.Code;
@@ -14,6 +15,8 @@ namespace KScr.Compiler;
 
 public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
 {
+    protected override bool ShouldVisitNextChild(IRuleNode node, T currentResult) => currentResult == null;
+
     protected RuntimeBase vm { get; }
     protected CompilerContext ctx { get; }
 
