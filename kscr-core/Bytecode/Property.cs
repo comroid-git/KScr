@@ -86,7 +86,7 @@ namespace KScr.Core.Bytecode
         public bool IsPipe => false; // todo
         public Stack ReadValue(RuntimeBase vm, Stack stack, IObject from)
         { // evaluate property with object
-            if (Gettable)
+            if (Gettable && (ReadAccessor is not ExecutableCode ra || ra.Main.Count == 0))
             { // is auto-property
                 if (vm[stack, VariableContext.Property, CreateKey(@from)] == null)
                     stack[StackOutput.Alp | StackOutput.Omg] = vm[stack, VariableContext.Property, CreateKey(@from)] 
@@ -104,7 +104,7 @@ namespace KScr.Core.Bytecode
 
         public Stack WriteValue(RuntimeBase vm, Stack stack, IObject to)
         { // evaluate property with object
-            if (Settable)
+            if (Settable && (WriteAccessor is not ExecutableCode wa || wa.Main.Count == 0))
             { // is auto-property
                 vm[stack, VariableContext.Absolute, CreateKey(to)] = stack[StackOutput.Default];
                 return stack;
