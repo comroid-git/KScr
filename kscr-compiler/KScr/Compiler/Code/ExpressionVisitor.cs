@@ -11,7 +11,7 @@ namespace KScr.Compiler.Code;
 
 public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 {
-    public ExpressionVisitor(RuntimeBase vm, KScrParser parser, CompilerContext ctx) : base(vm, parser, ctx)
+    public ExpressionVisitor(RuntimeBase vm, KScrParser parser, CompilerContext ctx) : base(vm, ctx)
     {
     }
 
@@ -167,6 +167,10 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         CodeType = BytecodeType.TypeExpression,
         Arg = Core.Bytecode.Class.NumericShortType.CanonicalName
     };
+
+    public override StatementComponent VisitType(KScrParser.TypeContext context)
+    {
+    }
 
     public override StatementComponent VisitNumTypeLitInt(KScrParser.NumTypeLitIntContext context) => new()
     {

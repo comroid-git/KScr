@@ -53,13 +53,21 @@ namespace KScr.Core.Bytecode
                 { TypeParameters = { new TypeParameter("T") } };
         public static readonly Class ThrowableType =
             new(LibCorePackage, "Throwable", false, MemberModifier.Public, ClassType.Interface);
-
+        
         public static readonly Instance NumericByteType = new(NumericType,
             new Class(LibCorePackage, "byte", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x9};
         public static readonly Instance NumericShortType = new(NumericType, 
             new Class(LibCorePackage, "short", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x8};
-        public static readonly Instance NumericIntType = new(NumericType, 
-            new Class(LibCorePackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x7};
+        public static readonly Class IntType =
+            new(LibCorePackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+            {
+                TypeParameters =
+                {
+                    new TypeParameter("n", TypeParameterSpecializationType.N)
+                        { DefaultValue = new TypeInfo() { Name = "32" } }
+                }
+            };
+        public static readonly Instance NumericIntType = new(NumericType, IntType){ObjectId = 0x7};
         public static readonly Instance NumericLongType = new(NumericType, 
             new Class(LibCorePackage, "long", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)){ObjectId = 0x6};
         public static readonly Instance NumericFloatType = new(NumericType, 

@@ -10,14 +10,8 @@ namespace KScr.Compiler.Code;
 
 public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
 {
-    public TypeInfoVisitor(RuntimeBase vm, KScrParser parser, CompilerContext ctx) : base(vm, parser, ctx)
+    public TypeInfoVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
-    }
-
-    public override ITypeInfo VisitQualifiedTypeName(KScrParser.QualifiedTypeNameContext context)
-    {
-        return vm.FindType(context.id().GetText()) 
-               ?? throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.id().GetText());
     }
 
     public override ITypeInfo VisitId(KScrParser.IdContext context) {
@@ -25,10 +19,10 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
                ?? throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.GetText());
     }
 
-    public override ITypeInfo VisitImportedTypeName(KScrParser.ImportedTypeNameContext context)
+    public override ITypeInfo VisitIdPart(KScrParser.IdPartContext context)
     {
-        return FindType(context.idPart().GetText())
-               ?? throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.idPart().GetText());
+        return FindType(context.GetText())
+               ?? throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.GetText());
     }
 
     public override ITypeInfo VisitNormalTypeUse(KScrParser.NormalTypeUseContext context)
@@ -70,6 +64,31 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
 
     public override ITypeInfo VisitNumTypeLitTuple(KScrParser.NumTypeLitTupleContext context)
     {
+        var args = new List<ITypeInfo>();
+
+        bool intN = context.Start.Type == KScrLexer.INT;
+        if (context.genericTypeUses().n is {} n)
+        {
+            if (intN)
+                args.Add(new TypeInfo() { Name = n.Text });
+            else throw new CompilerException(ToSrcPos(context.genericTypeUses()), UnexpectedToken,
+                    ctx.Class?.FullName, n.Text, "Int Literal expected");
+        } else if (context.genericTypeUses().first is { } t)
+        {
+            args.Add(new TypeInfo() { Name = "1" });
+            args.Add(Visit(t));
+        }
+        foreach (var t in context.genericTypeUses().type()) 
+            args.Add(Visit(t));
+
+        if (intN)
+        { // is int<n> type
+            return Core.Bytecode.Class.IntType.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
+        }
+        else
+        { // is tuple<num<T>> type
+            return Core.Bytecode.Class.TupleType.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
+        }
     }
 
     public override ITypeInfo VisitNumTypeLitByte(KScrParser.NumTypeLitByteContext context) => Core.Bytecode.Class.NumericByteType;
@@ -79,17 +98,7 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
     public override ITypeInfo VisitNumTypeLitFloat(KScrParser.NumTypeLitFloatContext context) => Core.Bytecode.Class.NumericFloatType;
     public override ITypeInfo VisitNumTypeLitDouble(KScrParser.NumTypeLitDoubleContext context) => Core.Bytecode.Class.NumericDoubleType;
 
-    public override ITypeInfo VisitTypeLitType(KScrParser.TypeLitTypeContext context) => new()
-    {
-        Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.TypeExpression,
-        Arg = Core.Bytecode.Class.TypeType.CanonicalName
-    };
+    public override ITypeInfo VisitTypeLitType(KScrParser.TypeLitTypeContext context) => Core.Bytecode.Class.TypeType;
 
-    public override ITypeInfo VisitTypeLitEnum(KScrParser.TypeLitEnumContext context) => new()
-    {
-        Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.TypeExpression,
-        Arg = Core.Bytecode.Class.EnumType.CanonicalName
-    };
+    public override ITypeInfo VisitTypeLitEnum(KScrParser.TypeLitEnumContext context) => Core.Bytecode.Class.EnumType;
 }

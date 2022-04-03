@@ -6,31 +6,31 @@ namespace KScr.Compiler.Class;
 
 public abstract class ClassMemberVisitor<T> : AbstractVisitor<T> where T : IClassMember
 {
-    protected ClassMemberVisitor(RuntimeBase vm, KScrParser parser, CompilerContext ctx) : base(vm, parser, ctx)
+    protected ClassMemberVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 }
 public class MethodVisitor : ClassMemberVisitor<Method>
 {
-    public MethodVisitor(RuntimeBase vm, KScrParser parser, CompilerContext ctx) : base(vm, parser, ctx)
+    public MethodVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 }
 public class ConstructorVisitor : ClassMemberVisitor<Method>
 {
-    public ConstructorVisitor(RuntimeBase vm, KScrParser parser, CompilerContext ctx) : base(vm, parser, ctx)
+    public ConstructorVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 }
 public class InitializerVisitor : ClassMemberVisitor<Method>
 {
-    public InitializerVisitor(RuntimeBase vm, KScrParser parser, CompilerContext ctx) : base(vm, parser, ctx)
+    public InitializerVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 }
 public class PropertyVisitor : ClassMemberVisitor<Property>
 {
-    public PropertyVisitor(RuntimeBase vm, KScrParser parser, CompilerContext ctx) : base(vm, parser, ctx)
+    public PropertyVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 }

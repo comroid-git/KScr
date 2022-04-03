@@ -32,17 +32,22 @@ classType
     | AT INTERFACE  #ctAnnotation
     ;
 
-genericTypeUses: LESSER (NUMLIT | type) (COMMA type)* GREATER;
+genericTypeUses: LESSER (n=NUMLIT | first=type) (COMMA type)* GREATER;
 
 type
-    : id                                                #qualifiedTypeName
-    | idPart                                            #importedTypeName
+    : idPart                                            #importedTypeName
     | rawType genericTypeUses?                          #normalTypeUse
     | rawType genericTypeUses? (LSQUAR RSQUAR)          #arrayTypeUse
     ;
 
-genericTypeDef: ID type (EXTENDS type | SUPER type)?;
-genericTypeDefs: LESSER (NUMLIT | genericTypeDef) (COMMA genericTypeDef ELIPSES?)* GREATER;
+rawType
+    : primitiveLit
+    //| inferType
+    | id
+    ;
+
+genericTypeDef: idPart elp=ELIPSES? (EXTENDS ext=type | SUPER sup=type)? (ASSIGN (defN=NUMLIT | def=type))?;
+genericTypeDefs: LESSER (NUMLIT | genericTypeDef) (COMMA genericTypeDef)* GREATER;
 
 objectExtends: EXTENDS type (COMMA type)*;
 objectImplements: IMPLEMENTS type (COMMA type)*;
@@ -83,12 +88,6 @@ member
 classDecl: annotation* modifiers classType idPart genericTypeDefs? objectExtends? objectImplements? (LBRACE member* RBRACE | SEMICOLON);
 
 file: packageDecl imports classDecl* EOF;
-
-rawType
-    : primitiveLit
-    //| inferType
-    | id
-    ;
 
 inferType: VOID | VAR;
 

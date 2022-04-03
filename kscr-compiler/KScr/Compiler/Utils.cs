@@ -9,9 +9,11 @@ namespace KScr.Compiler;
 
 public static class Utils
 {
-    public static SourcefilePosition ToSrcPos(Parser parser, ParserRuleContext context) => new()
+    public static SourcefilePosition ToSrcPos(ParserRuleContext context) => new()
     {
-        SourcefilePath = context.ToInfoString(parser)
+        SourcefilePath = context.Start.TokenSource.SourceName,
+        SourcefileLine = context.Start.Line,
+        SourcefileCursor = context.Start.TokenIndex
     };
 }
 

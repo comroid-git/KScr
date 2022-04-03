@@ -8,7 +8,7 @@ namespace KScr.Compiler.Class;
 
 public class SourcefileVisitor : AbstractVisitor<CompilerContext>
 {
-    public SourcefileVisitor(RuntimeBase vm, KScrParser parser, CompilerContext ctx) : base(vm, parser, ctx)
+    public SourcefileVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 
@@ -24,7 +24,7 @@ public class SourcefileVisitor : AbstractVisitor<CompilerContext>
         {
             var info = VisitClassInfo(classDecl);
             var clsctx = new CompilerContext() { Parent = subctx, Class = info };
-            new ClassVisitor(vm, parser, clsctx).Visit(classDecl);
+            new ClassVisitor(vm, clsctx).Visit(classDecl);
         }
         return subctx;
     }
@@ -32,7 +32,7 @@ public class SourcefileVisitor : AbstractVisitor<CompilerContext>
 
 public class ClassInfoVisitor : AbstractVisitor<ClassInfo>
 {
-    public ClassInfoVisitor(RuntimeBase vm, KScrParser parser, CompilerContext ctx) : base(vm, parser, ctx)
+    public ClassInfoVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 

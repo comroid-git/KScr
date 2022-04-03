@@ -28,6 +28,24 @@ namespace KScr.Core.Model
         string CanonicalName { get; }
         string FullDetailedName { get; }
         string DetailedName { get; }
+
+        Class AsClass(RuntimeBase vm)
+        {
+            if (this is Class cls)
+                return cls;
+            if (this is Class.Instance inst)
+                return inst.BaseClass;
+            return vm.FindType(this.CanonicalName)!.BaseClass;
+        }
+
+        IClassInstance AsClassInstance(RuntimeBase vm)
+        {
+            if (this is Class cls)
+                return cls.DefaultInstance;
+            if (this is Class.Instance inst)
+                return inst;
+            return vm.FindType(this.CanonicalName)!;
+        }
     }
 
     public struct TypeInfo : ITypeInfo
@@ -46,15 +64,6 @@ namespace KScr.Core.Model
         ClassType ClassType { get; }
         bool Primitive { get; }
         bool CanHold(IClass? type);
-
-        Class AsClass(RuntimeBase vm)
-        {
-            if (this is Class cls)
-                return cls;
-            if (this is Class.Instance inst)
-                return inst.BaseClass;
-            return vm.FindType(this.CanonicalName)!.BaseClass;
-        }
     }
 
     public interface IClass : IClassInfo, IClassMember, IPackageMember

@@ -10,7 +10,7 @@ namespace KScr.Compiler.Class;
 
 public class ClassVisitor : AbstractVisitor<Core.Bytecode.Class>
 {
-    public ClassVisitor(RuntimeBase vm, KScrParser parser, CompilerContext ctx) : base(vm, parser, ctx)
+    public ClassVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 
@@ -21,10 +21,14 @@ public class ClassVisitor : AbstractVisitor<Core.Bytecode.Class>
         var type = new ClassTypeVisitor().Visit(context.classType());
         var cls = new Core.Bytecode.Class(ctx.Package, name, false, modifier, type);
 
-        foreach (var extendsType in context.objectExtends().type())
+        foreach (var genTypeDef in context.genericTypeDefs().genericTypeDef())
         {
-            cls._superclasses.Add(FindType(extendsType.GetText()) ?? throw new CompilerException(ToSrcPos(extendsType), ));
+            cls.TypeParameters.Add(VisitTypeParameter(genTypeDef));
         }
+        foreach (var extendsType in context.objectExtends().type())
+            cls._superclasses.Add(VisitType(extendsType).AsClassInstance(vm));
+        foreach (var implementsType in context.objectImplements().type())
+            cls._interfaces.Add(VisitType(implementsType).AsClassInstance(vm));
 
         return cls;
     }
