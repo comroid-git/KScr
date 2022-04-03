@@ -252,16 +252,16 @@ namespace KScr.Core.Bytecode
                     break;
                 case (StatementComponentType.Code, BytecodeType.Return):
                     // return
-                    if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
+                    if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException("Invalid return statement; no Expression found");
-                    SubStatement.Evaluate(vm, stack.Output()).Copy(output: Alp | Omg);
+                    SubComponent.Evaluate(vm, stack.Output()).Copy(output: Alp | Omg);
                     stack.State = State.Return;
                     break;
                 case (StatementComponentType.Code, BytecodeType.Throw):
-                    if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
+                    if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException(
                             "Invalid throw statement; no Exception found");
-                    SubStatement.Evaluate(vm, stack.Output()).Copy(output: Alp | Omg);
+                    SubComponent.Evaluate(vm, stack.Output()).Copy(output: Alp | Omg);
                     stack.State = State.Throw;
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtIf):
