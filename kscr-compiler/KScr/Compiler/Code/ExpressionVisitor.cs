@@ -201,12 +201,20 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         CodeType = BytecodeType.Null
     };
 
-    public override StatementComponent VisitIdPart(KScrParser.IdPartContext context) => new()
-    {
-        Type = StatementComponentType.Provider,
-        CodeType = BytecodeType.ExpressionVariable,
-        Arg = context.GetText()
-    };
+    public override StatementComponent VisitIdPart(KScrParser.IdPartContext context) =>
+        FindType(context.GetText()) is { } imported
+            ? new()
+            {
+                Type = StatementComponentType.Expression,
+                CodeType = BytecodeType.TypeExpression,
+                Arg = imported.CanonicalName
+            }
+            : new()
+            {
+                Type = StatementComponentType.Provider,
+                CodeType = BytecodeType.ExpressionVariable,
+                Arg = context.GetText()
+            };
 
     public override StatementComponent VisitRangeInvoc(KScrParser.RangeInvocContext context) => new()
     {
