@@ -336,9 +336,13 @@ namespace KScr.Core.Bytecode
                     var bak = a;
 
                     if (unaryPrefix || unaryPostfix)
-                        a![vm, stack, 0].Invoke(vm, stack.Output(), "op" + op).Copy();
+                        if (a![vm, stack, 0] is Numeric numA)
+                            stack[Default] = numA.Operator(vm, op);
+                        else a![vm, stack, 0].Invoke(vm, stack.Output(), "op" + op).Copy();
                     else if (binary)
-                        a![vm, stack, 0].Invoke(vm, stack.Output(), "op" + op, b![vm, stack, 0]).Copy();
+                        if (a![vm, stack, 0] is Numeric numA && b![vm, stack, 0] is Numeric numB)
+                            stack[Default] = numA.Operator(vm, op, numB);
+                        else a![vm, stack, 0].Invoke(vm, stack.Output(), "op" + op, b![vm, stack, 0]).Copy();
                     if (compound)
                         bak![vm, stack, 0] = stack[Default]![vm, stack, 0];
                     break;
