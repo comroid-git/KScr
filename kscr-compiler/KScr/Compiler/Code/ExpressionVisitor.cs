@@ -191,7 +191,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         {
             Type = StatementComponentType.Expression,
             CodeType = BytecodeType.LiteralString,
-            Arg = txt.Substring(txt.IndexOf('"') + 1, txt.LastIndexOf('"'))
+            Arg = txt.Substring(txt.IndexOf('"') + 1, txt.LastIndexOf('"') - 1)
         };
     }
 
