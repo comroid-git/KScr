@@ -5,9 +5,10 @@
         <RootNamespace>KScr.Compiler</RootNamespace>
         <Nullable>enable</Nullable>
         <Company>comroid</Company>
-        <AssemblyVersion>0.2.1</AssemblyVersion>
+        <AssemblyVersion>0.2.2</AssemblyVersion>
         <PackageVersion>0.2.1</PackageVersion>
         <LangVersion>latest</LangVersion>
+        <FileVersion>10</FileVersion>
     </PropertyGroup>
 
     <ItemGroup>

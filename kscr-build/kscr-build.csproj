@@ -8,8 +8,9 @@
         <Nullable>enable</Nullable>
         <AssemblyName>kbuild</AssemblyName>
         <Product>kbuild</Product>
-        <AssemblyVersion>0.2.1</AssemblyVersion>
+        <AssemblyVersion>0.2.2</AssemblyVersion>
         <Company>comroid</Company>
+        <FileVersion>10</FileVersion>
     </PropertyGroup>
 
     <ItemGroup>
