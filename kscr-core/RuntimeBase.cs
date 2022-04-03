@@ -85,6 +85,7 @@ namespace KScr.Core
             Class.NumericType.Initialize(this);
             Class.NumericByteType.Initialize(this);
             Class.NumericShortType.Initialize(this);
+            Class.IntType.Initialize(this);
             Class.NumericIntType.Initialize(this);
             Class.NumericLongType.Initialize(this);
             Class.NumericFloatType.Initialize(this);
@@ -104,6 +105,7 @@ namespace KScr.Core
             Class.IterableType.LateInitialize(this, MainStack);
             Class.IteratorType.LateInitialize(this, MainStack);
             Class.ThrowableType.LateInitialize(this, MainStack);
+            Class.IntType.LateInitialize(this, MainStack);
             Class.NumericType.LateInitialize(this, MainStack);
 
             StdioRef = new StandardIORef();
