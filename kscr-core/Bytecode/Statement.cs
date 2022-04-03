@@ -29,8 +29,17 @@ namespace KScr.Core.Bytecode
             {
                 foreach (var component in Main)
                 {
-                    switch (component.Type)
+                    switch (component.Type, component.CodeType)
                     {
+                        case (StatementComponentType.Code, BytecodeType.ParameterExpression):
+                            stack[Default] = new ObjectRef(Class.VoidType.DefaultInstance, Main.Count);
+                            for (var i = 0; i < Main.Count; i++)
+                            {
+                                Main[i].Evaluate(vm, stack.Output()).Copy(output: Bet);
+                                stack[Default]![vm, stack, i] = stack.Bet?[vm,stack,0] ?? IObject.Null;
+                            }
+
+                            break;
                         default:
                             component.Evaluate(vm, stack);
                             break;
@@ -149,7 +158,7 @@ namespace KScr.Core.Bytecode
                     stack[Default] = vm.ConstantVoid;
                     break;
                 case (StatementComponentType.Expression, BytecodeType.Parentheses):
-                    SubStatement!.Evaluate(vm, stack.Output()).Copy();
+                    SubComponent!.Evaluate(vm, stack.Output()).Copy();
                     break;
                 case (StatementComponentType.Expression, BytecodeType.TypeExpression):
                     stack[Default] = vm.FindType(Arg).SelfRef;
@@ -178,7 +187,7 @@ namespace KScr.Core.Bytecode
                             var param = mtd.Parameters;
                             var output = stack.Output(Del);
                             output[Del] = new ObjectRef(Class.VoidType.DefaultInstance, mtd.Parameters.Count);
-                            SubComponent!.Evaluate(vm, output).Copy(Del);
+                            SubStatement!.Evaluate(vm, output).Copy(Del);
                             if (mtd.IsNative() && !mtd.Parent.IsNative())
                                 if (vm.NativeRunner == null)
                                     throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
@@ -250,17 +259,6 @@ namespace KScr.Core.Bytecode
                     SubStatement.Evaluate(vm, stack.Output()).Copy(output: Alp | Omg);
                     stack.State = State.Throw;
                     break;
-                case (StatementComponentType.Code, BytecodeType.ParameterExpression):
-                    if (InnerCode == null)
-                        break;
-                    stack[Default] = new ObjectRef(Class.VoidType.DefaultInstance, InnerCode!.Main.Count);
-                    for (var i = 0; i < InnerCode!.Main.Count; i++)
-                    {
-                        InnerCode!.Main[i].Evaluate(vm, stack.Output()).Copy(output: Bet);
-                        stack[Default][vm, stack, i] = stack.Bet?.Value ?? IObject.Null;
-                    }
-
-                    break;
                 case (StatementComponentType.Code, BytecodeType.StmtIf):
                     stack.StepInside(vm, SourcefilePosition, "if", stack =>
                     {
@@ -324,86 +322,25 @@ namespace KScr.Core.Bytecode
                     break;
                 case (StatementComponentType.Operator, _):
                     var op = (Operator)ByteArg;
-                    switch (op)
-                    {
-                        // prefix operator: logical not
-                        case Operator.LogicNot:
-                            if (SubComponent == null ||
-                                (SubComponent.Type & StatementComponentType.Expression) == 0)
-                                throw new FatalException(
-                                    "Invalid unary operator; missing right operand");
-                            SubComponent.Evaluate(vm, stack.Output(copyRefs: true));
-                            stack[Default] = stack[Default].LogicalNot(vm);
-                            break;
-                        // prefix operators
-                        case Operator.IncrementRead:
-                        case Operator.DecrementRead:
-                        case Operator.ArithmeticNot:
-                        case Operator.Minus when stack[Default].Value.Type.BaseClass.Name != "num":
-                            if (op == Operator.Minus) op = Operator.ArithmeticNot;
-                            if (SubComponent == null ||
-                                (SubComponent.Type & StatementComponentType.Expression) == 0)
-                                throw new FatalException("Invalid unary operator; missing right numeric operand");
-                            SubComponent.Evaluate(vm, stack.Output(copyRefs: true));
-                            if (stack[Default].Value is not Numeric right2)
-                                throw new FatalException("Invalid unary operator; missing right numeric operand");
-                            stack[Default] = right2.Operator(vm, op);
-                            break;
-                        // postfix operators
-                        case Operator.ReadIncrement:
-                        case Operator.ReadDecrement:
-                            if (stack[Default].Value is not Numeric left2)
-                                throw new FatalException("Invalid unary operator; missing left numeric operand");
-                            stack[Default] = left2.Operator(vm, op);
-                            break;
-                        // binary operator: equals
-                        case Operator.Equals:
-                        case Operator.NotEquals:
-                            if (stack[Default] == null)
-                                throw new FatalException("Invalid binary operator; missing left operand");
-                            if (SubComponent == null ||
-                                (SubComponent.Type & StatementComponentType.Expression) == 0)
-                                throw new FatalException("Invalid binary operator; missing right operand");
-                            SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                            stack[Default].Value!.Invoke(vm, stack.Output(), "equals", stack.Bet.Value).Copy(Alp, Alp | Phi);
-                            if (op == Operator.NotEquals)
-                                stack[Default] = stack[Default].LogicalNot(vm);
-                            break;
-                        // binary operators
-                        default:
-                            if (SubComponent == null ||
-                                (SubComponent.Type & StatementComponentType.Expression) == 0)
-                                throw new FatalException("Invalid binary operator; missing right numeric operand");
-                            var bak = stack[Default];
-                            SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                            // try to use overrides
-                            if ((op & Operator.Plus) == Operator.Plus
-                                && stack[Default]?.Value?.Type.Name is "str" or "void"
-                                || (stack[Default]?.Value?.Type.BaseClass as IClass).ClassMembers.Any(x => x.Name == "op" + op))
-                            {
-                                if (stack[Default]?.Value?.Type.Name == "void")
-                                {
-                                    stack[Default] = String.Instance(vm, "null");
-                                }
+                    bool compound = (op & Operator.Compound) == Operator.Compound;
+                    bool unaryPrefix = (op & Operator.UnaryPrefix) == Operator.UnaryPrefix;
+                    bool unaryPostfix = (op & Operator.UnaryPostfix) == Operator.UnaryPostfix;
+                    bool binary = (op & Operator.Binary) == Operator.Binary;
+                    if (compound) op ^= Operator.Compound;
+                    if (unaryPrefix) op ^= Operator.UnaryPrefix;
+                    if (unaryPostfix) op ^= Operator.UnaryPostfix;
+                    if (binary) op ^= Operator.Binary;
 
-                                var opMtdName = "op" + ((op & Operator.Compound) == Operator.Compound ? op ^ Operator.Compound : op);
-                                stack[Default].Value!.Invoke(vm, stack.Output(Bet), opMtdName, stack.Bet.Value).Copy(Bet, Default);
-                            }
-                            else
-                            {
-                                // else try numeric operation
-                                if (stack[Default].Value is not Numeric left3)
-                                    throw new FatalException(
-                                        "Invalid binary operator; missing left numeric operand");
-                                stack[Default] = left3.Operator(vm, op, (stack.Bet.Value as Numeric)!);
-                            }
+                    var a = SubComponent!.Evaluate(vm, stack.Output()).Copy(output: Alp);
+                    var b = AltComponent?.Evaluate(vm, stack.Output()).Copy(output: Bet);
+                    var bak = a;
 
-                            if ((op & Operator.Compound) == Operator.Compound)
-                                bak.Value = stack[Default].Value;
-
-                            break;
-                    }
-
+                    if (unaryPrefix || unaryPostfix)
+                        a![vm, stack, 0].Invoke(vm, stack.Output(), "op" + op).Copy();
+                    else if (binary)
+                        a![vm, stack, 0].Invoke(vm, stack.Output(), "op" + op, b![vm, stack, 0]).Copy();
+                    if (compound)
+                        bak![vm, stack, 0] = stack[Default]![vm, stack, 0];
                     break;
                 case (StatementComponentType.Provider, BytecodeType.LiteralRange):
                     SubComponent!.Evaluate(vm, stack.Output()).Copy(Alp, Bet);

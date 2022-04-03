@@ -125,7 +125,7 @@ namespace KScr.Core.Core
                 case "getType":
                     stack[StackOutput.Default] = Type.SelfRef;
                     break;
-                default: throw new NotImplementedException();
+                default: throw new NotImplementedException(member);
             }
 
             return stack;

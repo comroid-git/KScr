@@ -62,7 +62,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
     {
         Type = StatementComponentType.Operator,
         CodeType = BytecodeType.Operator,
-        ByteArg = (ulong)new OperatorVisitor().Visit(context.prefixop()),
+        ByteArg = (ulong)(new OperatorVisitor().Visit(context.prefixop()) | Operator.UnaryPrefix),
         SubComponent = VisitExpression(context.expr())
     };
 
@@ -70,7 +70,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
     {
         Type = StatementComponentType.Operator,
         CodeType = BytecodeType.Operator,
-        ByteArg = (ulong)new OperatorVisitor().Visit(context.binaryop()),
+        ByteArg = (ulong)(new OperatorVisitor().Visit(context.binaryop()) | Operator.Binary),
         SubComponent = VisitExpression(context.left),
         AltComponent = VisitExpression(context.right),
     };
@@ -79,7 +79,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
     {
         Type = StatementComponentType.Operator,
         CodeType = BytecodeType.Operator,
-        ByteArg = (ulong)new OperatorVisitor().Visit(context.postfixop()),
+        ByteArg = (ulong)(new OperatorVisitor().Visit(context.postfixop()) | Operator.UnaryPostfix),
         SubComponent = VisitExpression(context.expr())
     };
 

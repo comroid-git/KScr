@@ -55,37 +55,41 @@ namespace KScr.Core.Model
         Unknown = 0,
 
         // unary operators
-        IncrementRead = 0x0000_0001, // ++x
-        ReadIncrement = 0x0000_0002, // x++
-        DecrementRead = 0x0000_0004, // --x
-        ReadDecrement = 0x0000_0008, // x--
-        LogicNot = 0x0000_000F, // !x
-        ArithmeticNot = 0x0000_0010, // -x
+        IncrementRead = 1<<1, // ++x
+        DecrementRead = 1<<2, // --x
+        ReadIncrement = 1<<3, // x++
+        ReadDecrement = 1<<4, // x--
+        LogicNot      = 1<<5, // !x
+        ArithmeticNot = 1<<6, // -x
 
         // binary operators
-        Plus = 0x0000_0020, // +
-        Minus = 0x0000_0040, // -
-        Multiply = 0x0000_0080, // *
-        Divide = 0x0000_00F0, // /
-        Modulus = 0x0000_0100, // %
-        Pow = 0x0000_0200, // ^
-        Equals = 0x0000_0400, // ==
-        NotEquals = 0x0000_0800, // !=
-        Greater = 0x0000_0F00, // >
-        GreaterEq = 0x0000_1000, // >=
-        Lesser = 0x0000_2000, // <
-        LesserEq = 0x0000_4000, // <=
+        Plus          = 1<<7, // +
+        Minus         = 1<<8, // -
+        Multiply      = 1<<9, // *
+        Divide        = 1<<10, // /
+        Modulus       = 1<<11, // %
+        Pow           = 1<<12, // ^
+        Equals        = 1<<13, // ==
+        NotEquals     = 1<<14, // !=
+        Greater       = 1<<15, // >
+        GreaterEq     = 1<<16, // >=
+        Lesser        = 1<<17, // <
+        LesserEq      = 1<<18, // <=
         
-        BitAnd = 0x0001_0000,
-        BitOr = 0x0002_0000,
-        LogicAnd = 0x0004_0000,
-        LogicOr = 0x0008_0000,
+        BitAnd        = 1<<19, // &
+        BitOr         = 1<<20, // |
+        LogicAnd      = 1<<21, // &&
+        LogicOr       = 1<<22, // ||
         
-        LShift = 0x0010_0000,
-        RShift = 0x0020_0000,
-        ULShift = 0x0040_0000,
-        URShift = 0x0080_0000,
-
-        Compound = 0xF_0000
+        LShift        = 1<<23, // <<
+        RShift        = 1<<24, // >>
+        ULShift       = 1<<25, // <<<
+        URShift       = 1<<26, // >>>
+        
+        // flags
+        UnaryPrefix  = 1<<27,
+        UnaryPostfix = 1<<28,
+        Binary       = 1<<29,
+        Compound     = 1<<30
     }
 }
