@@ -5,6 +5,8 @@ using KScr.Core.Bytecode;
 using KScr.Core.Core;
 using KScr.Core.Exception;
 using KScr.Core.Model;
+using static KScr.Core.Store.StackOutput;
+
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 
 namespace KScr.Core.Store
@@ -94,7 +96,7 @@ namespace KScr.Core.Store
             _parent = parent;
             _blob = parent._blob;
             KeyGen = CreateKeys;
-            this[StackOutput.Tri] = parent.This;
+            this[Tri] = parent.This;
         }
 
         private Stack(Stack parent, CtxBlob blob)
@@ -114,9 +116,9 @@ namespace KScr.Core.Store
         private readonly IObjectRef?[] _refs = new IObjectRef[7];
         public IObjectRef? this[StackOutput adr]
         {
-            get => (adr == StackOutput.Default ? _output : adr) switch {
-                StackOutput.Default => throw new System.Exception("Invalid State"),
-                StackOutput.None => This,
+            get => (adr == Default ? _output : adr) switch {
+                Default => throw new System.Exception("Invalid State"),
+                None => This,
                 StackOutput.Alp => _refs[0] ?? _parent?[StackOutput.Alp],
                 StackOutput.Bet => _refs[1] ?? _parent?[StackOutput.Bet],
                 StackOutput.Del => _refs[2] ?? _parent?[StackOutput.Del],
@@ -128,7 +130,7 @@ namespace KScr.Core.Store
             };
             set
             {
-                var x = adr == StackOutput.Default ? _output : adr;
+                var x = adr == Default ? _output : adr;
                 if ((x & StackOutput.Alp) == StackOutput.Alp)
                     _refs[0] = value;
                 if ((x & StackOutput.Bet) == StackOutput.Bet)
@@ -189,7 +191,7 @@ namespace KScr.Core.Store
             return stack;
         }
 
-        public void StepInside(RuntimeBase vm, SourcefilePosition srcPos, string sub, Action<Stack> exec, StackOutput maintain = StackOutput.None)
+        public void StepInside(RuntimeBase vm, SourcefilePosition srcPos, string sub, Action<Stack> exec, StackOutput maintain = None)
         {
             new Stack(this, new CtxBlob(new CallLocation
             {
@@ -205,7 +207,7 @@ namespace KScr.Core.Store
         }
 
         // put focus into static class
-        public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IClassMember local, Action<Stack> exec, StackOutput maintain = StackOutput.None)
+        public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IClassMember local, Action<Stack> exec, StackOutput maintain = None)
         {
             IClass cls = local.Parent;
             string localStr = cls.FullName + '.' + local.Name + (local is IMethod mtd
@@ -225,7 +227,7 @@ namespace KScr.Core.Store
         }
 
         // put focus into object instance
-        public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IObjectRef? into, IClassMember local, Action<Stack> exec, StackOutput maintain = StackOutput.None)
+        public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IObjectRef? into, IClassMember local, Action<Stack> exec, StackOutput maintain = None)
         {
             into ??= vm.ConstantVoid;
             var cls = into.Value as IClassInstance ?? into.Value.Type;
@@ -282,7 +284,7 @@ namespace KScr.Core.Store
             {
                 if (State == State.Return)
                 {
-                    this[StackOutput.Default] = Omg ?? vm.ConstantVoid;
+                    this[Default] = Omg ?? vm.ConstantVoid;
                 }
                 else if (State == State.Throw)
                 {
@@ -297,13 +299,13 @@ namespace KScr.Core.Store
                             || Omg.Value is not { } throwable)
                             throw new FatalException(
                                 "Value is not instanceof Throwable: " + Omg.Value.ToString(0));
-                        RuntimeBase.ExitCode = (throwable.Invoke(vm, Output(), "ExitCode").Alp!.Value as Numeric)!.IntValue;
-                        RuntimeBase.ExitMessage = throwable.Invoke(vm, Output(StackOutput.Bet), "Message").Alp!.Value.ToString(0);
+                        RuntimeBase.ExitCode = (throwable.Invoke(vm, Output(), "ExitCode").Copy(output: StackOutput.Alp)![vm,this,0] as Numeric)!.IntValue;
+                        RuntimeBase.ExitMessage = throwable.Invoke(vm, Output(), "Message").Copy(output: StackOutput.Bet)![vm,this,0].ToString(0);
                         throw new InternalException($"{throwable.Type.Name}: {RuntimeBase.ExitMessage} ({RuntimeBase.ExitCode})");
                     }
                 }
                 
-                maintain = (maintain == StackOutput.Default ? _output : maintain) | StackOutput.Omg;
+                maintain = (maintain == Default ? _output : maintain) | StackOutput.Omg;
                 if ((maintain & StackOutput.Alp) == StackOutput.Alp)
                     _parent[StackOutput.Alp] = Alp;
                 if ((maintain & StackOutput.Bet) == StackOutput.Bet)
@@ -332,10 +334,10 @@ namespace KScr.Core.Store
 
         public IObjectRef? Copy(StackOutput passthrough) => Copy(passthrough, passthrough);
 
-        public IObjectRef? Copy(StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
+        public IObjectRef? Copy(StackOutput channel = StackOutput.Alp, StackOutput output = Default)
             => Copy(_parent, channel, output);
 
-        public IObjectRef? Copy(Stack target, StackOutput channel = StackOutput.Alp, StackOutput output = StackOutput.Default)
+        public IObjectRef? Copy(Stack target, StackOutput channel = StackOutput.Alp, StackOutput output = Default)
         {
             CopyState();
             return target[output] = this[channel];
