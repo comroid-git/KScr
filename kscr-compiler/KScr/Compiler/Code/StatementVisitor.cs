@@ -59,6 +59,24 @@ public class StatementVisitor : AbstractVisitor<Statement> {
         }
     };
 
+    public override Statement VisitStmtCallMember(KScrParser.StmtCallMemberContext context)
+    {
+        var expr = VisitExpression(context.expr());
+        expr.PostComponent = new()
+        {
+            Type = StatementComponentType.Expression,
+            CodeType = BytecodeType.Call,
+            Arg = context.idPart().GetText(),
+            SubStatement = VisitArguments(context.arguments())
+        };
+        return new Statement()
+        {
+            Type = StatementComponentType.Expression,
+            CodeType = BytecodeType.Call,
+            Main = { expr }
+        };
+    }
+
     public override Statement VisitStmtThrow(KScrParser.StmtThrowContext context) => new()
     {
         Type = StatementComponentType.Code,

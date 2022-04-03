@@ -110,6 +110,7 @@ newListedArray: NEW type indexer LBRACE (expr (COMMA expr)*)? RBRACE;
 statement
     : declaration SEMICOLON                                 #stmtDeclare
     | left=expr mutation SEMICOLON                          #stmtAssign
+    | left=expr DOT idPart arguments?                       #stmtCallMember
     | returnStatement SEMICOLON                             #stmtReturn
     | throwStatement SEMICOLON                              #stmtThrow
     | pipeStatement SEMICOLON                               #stmtPipe
@@ -126,11 +127,12 @@ statement
     | SEMICOLON                                             #stmtEmpty
     ;
 expr
-    : expr INSTANCEOF type                                  #checkInstanceof
+    : idPart                                                #varValue
+    | expr INSTANCEOF type                                  #checkInstanceof
     | arr=expr LSQUAR index=expr RSQUAR                     #readArray
     //| declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
     | left=expr mutation                                    #varAssign // can't use varAssignment due to recursive rules
-    | left=expr DOT idPart arguments?                       #callMember
+    | left=expr DOT idPart arguments?                       #exprCallMember
     | LPAREN expr RPAREN                                    #parens
     | ctorCall                                              #callCtor
     | nullable=expr QUESTION QUESTION fallback=expr         #exprNullFallback
@@ -141,7 +143,6 @@ expr
     | newListedArray                                        #newListedArrayValue
     | primitiveLit                                          #nativeLitValue
     | type                                                  #typeValue
-    | idPart                                                #varValue
     | left=expr TILDE right=expr                            #rangeInvoc
     | prefixop expr                                         #opPrefix
     | left=expr binaryop right=expr                         #opBinary

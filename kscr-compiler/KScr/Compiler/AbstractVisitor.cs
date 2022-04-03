@@ -57,10 +57,23 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         KScrParser.RULE_classDecl => new ClassVisitor(vm, ctx).Visit(member.classDecl()),
         _ => throw new ArgumentOutOfRangeException(nameof(member.RuleIndex), member.RuleIndex, "Invalid Rule for member: " + member)
     };
-    protected ExecutableCode VisitCode(ParserRuleContext code) => new CodeblockVisitor(vm, ctx).Visit(code);
+    protected ExecutableCode VisitCode(ParserRuleContext? code) => code == null ? new ExecutableCode() : new CodeblockVisitor(vm, ctx).Visit(code);
     protected ExecutableCode VisitMemberCode(ParserRuleContext member) => new CodeblockVisitor(vm, ctx).Visit(member);
     protected Statement VisitStatement(KScrParser.StatementContext stmt) => new StatementVisitor(vm, ctx).Visit(stmt);
     protected StatementComponent VisitExpression(ParserRuleContext expr) => new ExpressionVisitor(vm, ctx).Visit(expr);
+
+    protected new Statement VisitArguments(KScrParser.ArgumentsContext context)
+    {
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+        if (context == null)
+            return new Statement()
+                { Type = StatementComponentType.Code, CodeType = BytecodeType.ParameterExpression};
+        var param = new Statement()
+            { Type = StatementComponentType.Code, CodeType = BytecodeType.ParameterExpression};
+        foreach (var expr in context.expr()) 
+            param.Main.Add(VisitExpression(expr));
+        return param;
+    }
 
     public IClassInstance? FindType(string name)
     {

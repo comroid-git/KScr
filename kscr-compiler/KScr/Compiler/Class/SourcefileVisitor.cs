@@ -23,7 +23,8 @@ public class SourcefileVisitor : AbstractVisitor<CompilerContext>
         foreach (var classDecl in context.classDecl())
         {
             var info = VisitClassInfo(classDecl);
-            var clsctx = new CompilerContext() { Parent = subctx, Class = info };
+            var cls = pkg.GetOrCreateClass(vm, info.Name, info.Modifier, info.ClassType);
+            var clsctx = new CompilerContext() { Parent = subctx, Class = cls };
             new ClassVisitor(vm, clsctx).Visit(classDecl);
         }
         return subctx;

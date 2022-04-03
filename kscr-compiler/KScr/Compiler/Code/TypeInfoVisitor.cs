@@ -57,6 +57,7 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
     }
 
     public override ITypeInfo VisitTypeLitObject(KScrParser.TypeLitObjectContext context) => Core.Bytecode.Class.ObjectType;
+    public override ITypeInfo VisitTypeLitVoid(KScrParser.TypeLitVoidContext context) => Core.Bytecode.Class.VoidType;
 
     public override ITypeInfo VisitTypeLitArray(KScrParser.TypeLitArrayContext context) => Core.Bytecode.Class.ArrayType;
 
@@ -67,19 +68,21 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
         var args = new List<ITypeInfo>();
 
         bool intN = context.Start.Type == KScrLexer.INT;
-        if (context.genericTypeUses().n is {} n)
+        if (context.genericTypeUses() is { n: {} n })
         {
             if (intN)
                 args.Add(new TypeInfo() { Name = n.Text });
             else throw new CompilerException(ToSrcPos(context.genericTypeUses()), UnexpectedToken,
                     ctx.Class?.FullName, n.Text, "Int Literal expected");
-        } else if (context.genericTypeUses().first is { } t)
+        } else if (context.genericTypeUses()is { first:{}t})
         {
             args.Add(new TypeInfo() { Name = "1" });
             args.Add(Visit(t));
         }
-        foreach (var t in context.genericTypeUses().type()) 
-            args.Add(Visit(t));
+        else if (intN) args.Add(new TypeInfo() { Name = "32" });
+        if (context.genericTypeUses()is{}genUse)
+            foreach (var t in genUse.type())
+                args.Add(Visit(t));
 
         if (intN)
         { // is int<n> type

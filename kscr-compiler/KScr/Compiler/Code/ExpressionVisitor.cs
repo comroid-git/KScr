@@ -92,10 +92,10 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         Type = StatementComponentType.Expression,
         CodeType = BytecodeType.ConstructorCall,
         Arg = FindTypeInfo(context.type())!.FullDetailedName,
-        SubComponent = VisitArguments(context.arguments())
+        SubStatement = VisitArguments(context.arguments())
     };
 
-    public override StatementComponent VisitCallMember(KScrParser.CallMemberContext context)
+    public override StatementComponent VisitExprCallMember(KScrParser.ExprCallMemberContext context)
     {
         var expr = VisitExpression(context.expr());
         expr.PostComponent = new()
@@ -103,7 +103,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             Type = StatementComponentType.Expression,
             CodeType = BytecodeType.Call,
             Arg = context.idPart().GetText(),
-            SubComponent = VisitArguments(context.arguments())
+            SubStatement = VisitArguments(context.arguments())
         };
         return expr;
     }
@@ -218,11 +218,6 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         SubComponent = VisitExpression(context.left),
         AltComponent = VisitExpression(context.right),
     };
-
-    public override StatementComponent VisitArguments(KScrParser.ArgumentsContext context)
-    {
-        throw new NotImplementedException("Compiling of expression " + context + " is not supported");
-    }
 }
 
 public class OperatorVisitor : KScrParserBaseVisitor<Operator>
