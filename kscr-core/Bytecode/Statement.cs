@@ -406,8 +406,9 @@ namespace KScr.Core.Bytecode
 
                     break;
                 case (StatementComponentType.Provider, BytecodeType.LiteralRange):
-                    SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
-                    stack[Default] = Range.Instance(vm, (stack[Default].Value as Numeric)!.IntValue, (stack.Bet.Value as Numeric)!.IntValue);
+                    SubComponent!.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
+                    AltComponent!.Evaluate(vm, stack.Output()).Copy(Alp, Del);
+                    stack[Default] = Range.Instance(vm, (stack.Bet.Value as Numeric)!.IntValue, (stack.Del.Value as Numeric)!.IntValue);
                     break;
                 case (StatementComponentType.Provider, BytecodeType.ExpressionVariable):
                     if (stack[Default]?.Value is { } obj1
