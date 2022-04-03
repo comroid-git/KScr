@@ -42,13 +42,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             CodeType = BytecodeType.Assignment,
             ByteArg = (ulong)(VisitOperator(op) | Operator.Compound),
             SubComponent = VisitExpression(context.expr())
-        }
-        : new StatementComponent()
-        {
-            Type = StatementComponentType.Code,
-            CodeType = BytecodeType.Assignment,
-            SubComponent = VisitExpression(context.expr())
-        };
+        } : VisitExpression(context.expr());
 
     public override StatementComponent VisitVarAssign(KScrParser.VarAssignContext context) => new()
     {

@@ -88,15 +88,13 @@ namespace KScr.Core.Store
             KeyGen = CreateKeys;
         }
         
-        private Stack(Stack parent, StackOutput output, bool copyRefs)
+        private Stack(Stack parent, StackOutput output)
         {
             _output = output;
             _parent = parent;
-            if (copyRefs)
-                _refs = _parent._refs;
-            else this[StackOutput.Tri] = parent.This;
             _blob = parent._blob;
             KeyGen = CreateKeys;
+            this[StackOutput.Tri] = parent.This;
         }
 
         private Stack(Stack parent, CtxBlob blob)
@@ -181,12 +179,12 @@ namespace KScr.Core.Store
             return arr;
         }
 
-        public Stack Output(StackOutput outputMode = StackOutput.Alp, bool copyRefs = false) 
-            => new(this, outputMode, copyRefs);
+        public Stack Output(StackOutput outputMode = StackOutput.Alp) 
+            => new(this, outputMode);
 
-        public Stack Channel(StackOutput channel, StackOutput outputMode = StackOutput.Alp, bool copyRefs = false)
+        public Stack Channel(StackOutput channel, StackOutput outputMode = StackOutput.Alp)
         {
-            var stack = new Stack(this, outputMode, false);
+            var stack = new Stack(this, outputMode);
             stack[outputMode | channel] = this[channel];
             return stack;
         }

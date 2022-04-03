@@ -10,6 +10,7 @@ using static KScr.Core.Store.StackOutput;
 using Array = System.Array;
 using Range = KScr.Core.Core.Range;
 using String = KScr.Core.Core.String;
+// ReSharper disable VariableHidesOuterVariable
 
 namespace KScr.Core.Bytecode
 {
@@ -140,6 +141,7 @@ namespace KScr.Core.Bytecode
 
         public virtual Stack Evaluate(RuntimeBase vm, Stack stack)
         {
+            IObjectRef? bak;
             switch (Type, CodeType)
             {
                 case (StatementComponentType.Expression, BytecodeType.LiteralNumeric):
@@ -164,20 +166,21 @@ namespace KScr.Core.Bytecode
                     stack[Default] = vm.FindType(Arg).SelfRef;
                     break;
                 case (StatementComponentType.Expression, BytecodeType.ConstructorCall):
-                    if (SubComponent?.CodeType != BytecodeType.ParameterExpression)
+                    if (SubStatement?.CodeType != BytecodeType.ParameterExpression)
                         throw new FatalException(
                             "Invalid constructor call; missing parameter expression");
                     var type = vm.FindType(Arg)!;
                     var ctor = (type.ClassMembers.First(x => x.Name == Method.ConstructorName) as IMethod)!;
                     var obj = new CodeObject(vm, type);
-                    stack[Default] = vm.PutObject(stack, VariableContext.Absolute, obj);
+                    bak = stack[Default] = vm.PutObject(stack, VariableContext.Absolute, obj);
                     stack.StepInto(vm, SourcefilePosition, stack[Default], ctor, stack =>
                     {
-                        SubComponent.Evaluate(vm, stack.Output()).Copy(output: Bet);
+                        SubStatement.Evaluate(vm, stack.Output()).Copy(output: Bet);
                         for (var i = 0; i < ctor.Parameters.Count; i++)
                             vm.PutLocal(stack, ctor.Parameters[i].Name, stack.Bet[vm, stack, i]);
                         ctor.Evaluate(vm, stack.Output());
                     });
+                    stack[Default] = bak;
                     break;
                 case (StatementComponentType.Expression, BytecodeType.Call):
                     // invoke member
@@ -222,6 +225,9 @@ namespace KScr.Core.Bytecode
                 case (StatementComponentType.Expression, BytecodeType.StdioExpression):
                     stack[Default] = vm.StdioRef;
                     break;
+                case (StatementComponentType.Expression, BytecodeType.Undefined):
+                    stack[Default] = stack.This;
+                    break;
                 case (StatementComponentType.Declaration, _):
                     // variable declaration
                     var split = Arg.Split(';');
@@ -236,13 +242,12 @@ namespace KScr.Core.Bytecode
                     throw new NotImplementedException();
                 case (StatementComponentType.Code, BytecodeType.Assignment):
                     // assignment
-                    if (stack[Default] == null)
-                        throw new FatalException(
-                            "Invalid assignment; missing variable name");
                     if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
-                        throw new FatalException(
-                            "Invalid assignment; no Expression found");
-                    SubComponent.Evaluate(vm, stack.Output()).Copy(output: Bet);
+                        throw new FatalException("Invalid assignment; no target found");
+                    if (AltComponent == null || (AltComponent.Type & StatementComponentType.Expression) == 0)
+                        throw new FatalException("Invalid assignment; no expression found");
+                    SubComponent.Evaluate(vm, stack.Output()).Copy();
+                    AltComponent.Evaluate(vm, stack.Output()).Copy(output: Bet);
                     stack[Default]![vm, stack, 0] = stack.Bet![vm, stack, 0];
                     break;
                 case (StatementComponentType.Code, BytecodeType.Return):
@@ -262,11 +267,10 @@ namespace KScr.Core.Bytecode
                 case (StatementComponentType.Code, BytecodeType.StmtIf):
                     stack.StepInside(vm, SourcefilePosition, "if", stack =>
                     {
-                        SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Phi);
-                        if (stack.Phi.ToBool())
+                        if (SubComponent!.Evaluate(vm, stack.Output()).Copy(output: Phi)!.ToBool())
                             InnerCode!.Evaluate(vm, stack.Output()).CopyState();
-                        else if (SubComponent?.CodeType == BytecodeType.StmtElse)
-                            SubComponent!.InnerCode!.Evaluate(vm, stack.Output()).CopyState();
+                        else if (AltComponent?.CodeType == BytecodeType.StmtElse)
+                            AltComponent!.InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                     });
                     break;
                 case (StatementComponentType.Code, BytecodeType.StmtFor):
@@ -274,14 +278,14 @@ namespace KScr.Core.Bytecode
                     {
                         
                         for (SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Del);
-                             SubComponent!.Evaluate(vm, stack.Channel(Del, Phi)).Copy(Phi).ToBool();
-                             )
+                             SubComponent!.Evaluate(vm, stack.Channel(Del, Phi)).Copy(Phi)!.ToBool();
+                             /* no accumulator :( */)
                         {
                             InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                             var delStack = stack.Channel(Del, Del);
                             // accumulate
-                            AltStatement!.Evaluate(vm, delStack);
-                            var val = stack[Del].Value = delStack[Del].Value;
+                            AltComponent!.Evaluate(vm, delStack);
+                            var val = stack[Del]![vm,stack,0] = delStack[Del]![vm,stack,0];
                             if (val == null || val.ObjectId == 0)
                                 throw new NullReferenceException();
                         }
@@ -290,16 +294,16 @@ namespace KScr.Core.Bytecode
                 case (StatementComponentType.Code, BytecodeType.StmtForEach):
                     stack.StepInside(vm, SourcefilePosition, "foreach", stack =>
                     {
-                        SubStatement!.Evaluate(vm, stack.Output()).Copy(Alp);
-                        var iterable = stack.Alp.Value!;
+                        SubComponent!.Evaluate(vm, stack.Output()).Copy(Alp);
+                        var iterable = stack[Alp]![vm,stack,0];
                         iterable.Invoke(vm, stack.Output(Eps), "iterator").Copy(Eps);
-                        var iterator = stack.Eps.Value;
+                        var iterator = stack[Eps]![vm,stack,0];
                         vm[stack, VariableContext.Local, Arg] = stack[Del]
                             = new ObjectRef(iterator.Type.TypeParameterInstances[0].ResolveType(vm, iterator.Type));
-                        while (iterator.Invoke(vm, stack.Channel(Eps, Phi), "hasNext").Copy(Phi).ToBool())
+                        while (iterator.Invoke(vm, stack.Channel(Eps, Phi), "hasNext").Copy(Phi)!.ToBool())
                         {
                             iterator.Invoke(vm, stack.Channel(Eps, Bet), "next").Copy(Bet);
-                            var val = stack[Del].Value = stack[Bet].Value;
+                            var val = stack[Del]![vm,stack,0] = stack[Bet]![vm,stack,0];
                             if (val == null || val.ObjectId == 0)
                                 throw new NullReferenceException();
                             InnerCode!.Evaluate(vm, stack.Output()).CopyState();
@@ -309,7 +313,7 @@ namespace KScr.Core.Bytecode
                 case (StatementComponentType.Code, BytecodeType.StmtWhile):
                     stack.StepInside(vm, SourcefilePosition, "while", stack =>
                     {
-                        while (SubStatement.Evaluate(vm, stack.Output(Phi)).Copy(Phi).ToBool())
+                        while (SubComponent.Evaluate(vm, stack.Output(Phi)).Copy(Phi).ToBool())
                             InnerCode.Evaluate(vm, stack.Output()).CopyState();
                     });
                     break;
@@ -317,7 +321,7 @@ namespace KScr.Core.Bytecode
                     stack.StepInside(vm, SourcefilePosition, "do-while", stack =>
                     {
                         do InnerCode.Evaluate(vm, stack.Output()).CopyState();
-                        while (SubStatement.Evaluate(vm, stack.Output(Phi)).Copy( Phi).ToBool());
+                        while (SubComponent.Evaluate(vm, stack.Output(Phi)).Copy( Phi).ToBool());
                     });
                     break;
                 case (StatementComponentType.Operator, _):
@@ -333,7 +337,7 @@ namespace KScr.Core.Bytecode
 
                     var a = SubComponent!.Evaluate(vm, stack.Output()).Copy(output: Alp);
                     var b = AltComponent?.Evaluate(vm, stack.Output()).Copy(output: Bet);
-                    var bak = a;
+                    bak = a;
 
                     if (unaryPrefix || unaryPostfix)
                         if (a![vm, stack, 0] is Numeric numA)
