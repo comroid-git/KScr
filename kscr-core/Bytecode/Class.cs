@@ -131,6 +131,7 @@ namespace KScr.Core.Bytecode
         {
             return Name == "void"
                    || type?.BaseClass.Name == "void"
+                   || (Name == "int" && (type?.DetailedName.StartsWith("num<int") ?? false))
                    || type?.BaseClass == BaseClass
                    || ((type?.BaseClass as IClass)?.Inheritors
                        .Where(x => x != null)
