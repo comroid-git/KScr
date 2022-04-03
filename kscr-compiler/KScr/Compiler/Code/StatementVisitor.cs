@@ -15,16 +15,9 @@ public class StatementVisitor : AbstractVisitor<Statement> {
     {
         Type = StatementComponentType.Declaration,
         CodeType = BytecodeType.Declaration,
-        TargetType = VisitTypeInfo(context.type()).AsClassInstance(vm),
         Main =
         {
-            new StatementComponent
-            {
-                Type = StatementComponentType.Declaration,
-                CodeType = BytecodeType.Assignment,
-                Arg = context.idPart().GetText(),
-                SubComponent = VisitExpression(context.expr())
-            }
+            VisitExpression(context)
         }
     };
 

@@ -71,15 +71,15 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
         if (context.genericTypeUses() is { n: {} n })
         {
             if (intN)
-                args.Add(new TypeInfo() { Name = n.Text });
+                args.Add(new TypeInfo() { Name = "n", DetailedName = n.Text });
             else throw new CompilerException(ToSrcPos(context.genericTypeUses()), UnexpectedToken,
                     ctx.Class?.FullName, n.Text, "Int Literal expected");
         } else if (context.genericTypeUses()is { first:{}t})
         {
-            args.Add(new TypeInfo() { Name = "1" });
+            args.Add(new TypeInfo() { Name = "n", DetailedName = "1" });
             args.Add(Visit(t));
         }
-        else if (intN) args.Add(new TypeInfo() { Name = "32" });
+        else if (intN) args.Add(new TypeInfo() { Name = "n", DetailedName = "32" });
         if (context.genericTypeUses()is{}genUse)
             foreach (var t in genUse.type())
                 args.Add(Visit(t));

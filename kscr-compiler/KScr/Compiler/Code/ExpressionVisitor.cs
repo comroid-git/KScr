@@ -27,10 +27,13 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         throw new NotImplementedException("Compiling of expression " + context + " is not supported");
     }
 
-    public override StatementComponent VisitDeclaration(KScrParser.DeclarationContext context)
+    public override StatementComponent VisitDeclaration(KScrParser.DeclarationContext context) => new()
     {
-        throw new NotImplementedException("Compiling of expression " + context + " is not supported");
-    }
+        Type = StatementComponentType.Declaration,
+        CodeType = context.expr() != null ? BytecodeType.Assignment : BytecodeType.Declaration,
+        Arg = VisitTypeInfo(context.type()).FullDetailedName + ';' + context.idPart().GetText(),
+        SubComponent = context.expr() is {} expr ? VisitExpression(expr) : null
+    };
 
     public override StatementComponent VisitMutation(KScrParser.MutationContext context) => context.binaryop() is { } op
         ? new StatementComponent()

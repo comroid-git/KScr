@@ -215,7 +215,13 @@ namespace KScr.Core.Bytecode
                     break;
                 case (StatementComponentType.Declaration, _):
                     // variable declaration
-                    stack[Default] = vm[stack, VariableContext, Arg] = new ObjectRef(Statement.TargetType);
+                    var split = Arg.Split(';');
+                    stack[Default] = vm[stack, VariableContext, split[1]] = new ObjectRef(vm.FindType(split[0])!);
+                    if (CodeType == BytecodeType.Assignment)
+                    {
+                        SubComponent!.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
+                        stack[Default]![vm, stack, 0] = stack.Bet![vm, stack, 0];
+                    }
                     break;
                 case (StatementComponentType.Pipe, _):
                     throw new NotImplementedException();
@@ -227,8 +233,8 @@ namespace KScr.Core.Bytecode
                     if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException(
                             "Invalid assignment; no Expression found");
-                    SubComponent.Evaluate(vm, stack.Output()).Copy(output: Del);
-                    stack[Default].Value = stack.Del?.Value;
+                    SubComponent.Evaluate(vm, stack.Output()).Copy(output: Bet);
+                    stack[Default]![vm, stack, 0] = stack.Bet![vm, stack, 0];
                     break;
                 case (StatementComponentType.Code, BytecodeType.Return):
                     // return
@@ -436,19 +442,19 @@ namespace KScr.Core.Bytecode
                     stack[Default].Value = stack.Bet.Value;
                     break;
                 case (StatementComponentType.Emitter, _):
-                    if (SubStatement == null || (SubStatement.Type & StatementComponentType.Expression) == 0)
+                    if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                         throw new FatalException("Invalid emitter; no Expression found");
                     if (!stack[Default].IsPipe)
                         throw new FatalException("Cannot emit value into non-pipe accessor");
-                    SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
+                    SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
                     stack[Default].WriteValue(vm, stack.Channel(Bet), stack.Bet?.Value ?? IObject.Null);
                     break;
                 case (StatementComponentType.Consumer, _):
-                    if (SubStatement == null || (SubStatement.Type & StatementComponentType.Declaration) == 0)
+                    if (SubComponent == null || (SubComponent.Type & StatementComponentType.Declaration) == 0)
                         throw new FatalException("Invalid consumer; no declaration found");
                     if (!stack[Default].IsPipe)
                         throw new FatalException("Cannot consume value from non-pipe accessor");
-                    SubStatement.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
+                    SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
                     stack[Default].ReadValue(vm, stack.Channel(Bet), stack.Bet?.Value ?? IObject.Null);
                     break;
                 default:

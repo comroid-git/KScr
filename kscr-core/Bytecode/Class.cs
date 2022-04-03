@@ -620,7 +620,7 @@ namespace KScr.Core.Bytecode
             public ClassMemberType MemberType { get; }
             public SourcefilePosition SourceLocation { get; }
             public string CanonicalName => BaseClass.CanonicalName;
-            public string FullDetailedName => BaseClass.Parent?.FullName + '.' + DetailedName;
+            public string FullDetailedName => BaseClass.Package?.FullName + '.' + DetailedName;
             public string DetailedName
             {
                 get
@@ -629,7 +629,7 @@ namespace KScr.Core.Bytecode
                     return BaseClass.Name.Substring(0, indexOf == -1 ? BaseClass.Name.Length : indexOf)
                            + (TypeParameters.Count == 0
                                ? string.Empty
-                               : '<' + string.Join(", ", TypeParameterInstances.Select(t => t.TargetType.FullName)) + '>');
+                               : '<' + string.Join(", ", TypeParameterInstances.Select(t => t.TargetType.DetailedName)) + '>');
                 }
             }
             public IDictionary<string, IClassMember> DeclaredMembers => BaseClass.DeclaredMembers;
