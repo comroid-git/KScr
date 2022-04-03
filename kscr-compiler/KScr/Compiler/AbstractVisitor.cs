@@ -38,12 +38,12 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             : gtd.elp != null ? TypeParameterSpecializationType.List
             : gtd.ext != null ? TypeParameterSpecializationType.Extends
             : gtd.sup != null ? TypeParameterSpecializationType.Super
-            : throw new ArgumentException("Invalid GenericTypeDef: " + gtd);
+            : TypeParameterSpecializationType.Extends;
         var target = spec switch
         {
             TypeParameterSpecializationType.List => Core.Bytecode.Class.IterableType.CreateInstance(vm, Core.Bytecode.Class.IterableType, Core.Bytecode.Class.ObjectType),
             TypeParameterSpecializationType.N => Core.Bytecode.Class.NumericIntType,
-            TypeParameterSpecializationType.Extends => VisitTypeInfo(gtd.ext!),
+            TypeParameterSpecializationType.Extends => gtd.ext == null ? Core.Bytecode.Class.ObjectType.DefaultInstance : VisitTypeInfo(gtd.ext!),
             TypeParameterSpecializationType.Super => VisitTypeInfo(gtd.sup!),
             _ => throw new ArgumentOutOfRangeException()
         };

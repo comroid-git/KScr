@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using KScr.Antlr;
 using KScr.Core;
+using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using static KScr.Core.Exception.CompilerError;
@@ -21,8 +22,7 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
 
     public override ITypeInfo VisitIdPart(KScrParser.IdPartContext context)
     {
-        return FindType(context.GetText())
-               ?? throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.GetText());
+        return (ITypeInfo?) FindType(context.GetText()) ?? new TypeParameter(context.GetText());
     }
 
     public override ITypeInfo VisitNormalTypeUse(KScrParser.NormalTypeUseContext context)
@@ -68,6 +68,8 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
         var args = new List<ITypeInfo>();
 
         bool intN = context.Start.Type == KScrLexer.INT;
+        if (context.Start.Type == KScrLexer.NUMIDENT && context.genericTypeUses() == null)
+            return Core.Bytecode.Class.NumericType;
         if (context.genericTypeUses() is { n: {} n })
         {
             if (intN)

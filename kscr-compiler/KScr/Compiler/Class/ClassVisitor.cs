@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Design;
+using System.Linq;
 using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
@@ -20,7 +21,8 @@ public class ClassVisitor : AbstractVisitor<Core.Bytecode.Class>
     {
         if (context.genericTypeDefs() is { } defs)
             foreach (var genTypeDef in defs.genericTypeDef())
-                cls.TypeParameters.Add(VisitTypeParameter(genTypeDef));
+                if (cls.TypeParameters.All(x => x.Name != genTypeDef.idPart().GetText())) 
+                    cls.TypeParameters.Add(VisitTypeParameter(genTypeDef));
         if (context.objectExtends() is { } ext)
             foreach (var extendsType in ext.type())
                 cls._superclasses.Add(VisitTypeInfo(extendsType).AsClassInstance(vm));

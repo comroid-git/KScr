@@ -29,7 +29,7 @@ classType
     : CLASS         #ctClass
     | INTERFACE     #ctInterface
     | ENUM          #ctEnum
-    | AT INTERFACE  #ctAnnotation
+    | ANNOTATION    #ctAnnotation
     ;
 
 genericTypeUses: LESSER (n=NUMLIT | first=type) (COMMA type)* GREATER;

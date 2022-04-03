@@ -1,0 +1,5 @@
+package org.comroid.kscr.annotations;
+
+public annotation Experimental;
+public annotation Internal;
+public annotation Deprecated;
