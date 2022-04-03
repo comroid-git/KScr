@@ -37,7 +37,7 @@ genericTypeUses: LESSER (n=NUMLIT | first=type) (COMMA type)* GREATER;
 type
     : idPart                                            #importedTypeName
     | rawType genericTypeUses?                          #normalTypeUse
-    | rawType genericTypeUses? (LSQUAR RSQUAR)          #arrayTypeUse
+    | rawType genericTypeUses? (indexer | ELIPSES)?     #arrayTypeUse
     ;
 
 rawType
@@ -51,7 +51,7 @@ genericTypeDefs: LESSER (NUMLIT | genericTypeDef) (COMMA genericTypeDef)* GREATE
 objectExtends: EXTENDS type (COMMA type)*;
 objectImplements: IMPLEMENTS type (COMMA type)*;
 
-parameter: FINAL? type (indexer | ELIPSES)? idPart (ASSIGN expr)?;
+parameter: FINAL? type idPart (ASSIGN expr)?;
 parameters: LPAREN (parameter (COMMA parameter)*)? RPAREN;
 arguments: LPAREN (expr (COMMA expr)*)? RPAREN;
 

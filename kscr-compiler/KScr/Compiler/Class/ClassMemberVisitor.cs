@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using KScr.Antlr;
 using KScr.Compiler.Code;
 using KScr.Core;
@@ -18,16 +19,24 @@ public class ClassMemberVisitor : AbstractVisitor<IClassMember>
         var name = context.idPart().GetText();
         var type = VisitTypeInfo(context.type());
         var mod = VisitModifiers(context.modifiers());
-        return new Method(ToSrcPos(context), ctx.Class!.AsClass(vm), name, type, mod) 
+        var mtd = new Method(ToSrcPos(context), ctx.Class!.AsClass(vm), name, type, mod) 
             { Body = VisitMemberCode(context.memberBlock()) };
+        foreach (var param in context.parameters().parameter())
+            mtd.Parameters.Add(new MethodParameter()
+                { Name = param.idPart().GetText(), Type = VisitTypeInfo(param.type()) });
+        return mtd;
     }
 
     public override IClassMember VisitConstructorDecl(KScrParser.ConstructorDeclContext context)
     {
         var cls = ctx.Class!.AsClass(vm);
         var mod = VisitModifiers(context.modifiers());
-        return new Method(ToSrcPos(context), cls, Method.ConstructorName, cls, mod)
+        var ctor = new Method(ToSrcPos(context), cls, Method.ConstructorName, cls, mod)
             { Body = VisitMemberCode(context.memberBlock()) };
+        foreach (var param in context.parameters().parameter())
+            ctor.Parameters.Add(new MethodParameter()
+                { Name = param.idPart().GetText(), Type = VisitTypeInfo(param.type()) });
+        return ctor;
     }
 
     public override IClassMember VisitInitDecl(KScrParser.InitDeclContext context)
