@@ -27,6 +27,8 @@ namespace KScr.Core.Model
         ExpressionVariable = 0x0000_0F00 | Expression,
         
         NullFallback = 0x0000_1000 | Expression,
+        StmtMark = 0x0000_2000 | Statement,
+        StmtJump = 0x0000_4000 | Statement,
 
         StmtIf = 0x0011_0000 | Statement,
         StmtCond = 0x0012_0000 | Statement,

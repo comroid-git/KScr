@@ -77,6 +77,7 @@ THIS: 'this';
 SUPER: 'super';
 GET: 'get';
 SET: 'set';
+INIT: 'init';
 
 // logistic symbols
 LPAREN: '(';

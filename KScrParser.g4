@@ -55,26 +55,34 @@ parameter: FINAL? type (indexer | ELIPSES)? idPart (ASSIGN expr)?;
 parameters: LPAREN (parameter (COMMA parameter)*)? RPAREN;
 arguments: LPAREN (expr (COMMA expr)*)? RPAREN;
 
+noBlock: SEMICOLON;
+normalBlock: LBRACE statement* RBRACE;
 memberBlock
-    : LBRACE statement* RBRACE  #memberBodyBlock
+    : normalBlock               #memberNormalBlock
     | REQARROW expr SEMICOLON   #memberExprBlock
-    | SEMICOLON                 #memberNoBlock
+    | noBlock                   #memberNoBlock
     ;
 codeBlock
-    : LBRACE statement* RBRACE  #codeBodyBlock
+    : normalBlock               #codeNormalBlock
     | statement                 #codeStmtBlock
-    | SEMICOLON                 #codeNoBlock
+    | noBlock                   #codeNoBlock
     ;
 
-initDecl: STATIC codeBlock;
+initDecl: STATIC memberBlock;
 subConstructorCall: type arguments;
 subConstructorCalls: COLON subConstructorCall (COMMA subConstructorCall)*?;
-constructorDecl: annotation* modifiers type parameters subConstructorCalls? codeBlock;
-methodDecl: annotation* modifiers genericTypeDefs? type idPart parameters codeBlock;
+constructorDecl: annotation* modifiers type parameters subConstructorCalls? memberBlock;
+methodDecl: annotation* modifiers genericTypeDefs? type idPart parameters memberBlock;
 
 propGetter: GET memberBlock;
 propSetter: SET memberBlock;
-propertyDecl: annotation* modifiers type idPart ((ASSIGN expr SEMICOLON) | memberBlock | (LBRACE propGetter propSetter? RBRACE) | SEMICOLON);
+propInit: INIT memberBlock;
+propBlock
+    : memberBlock                                       #propComputed
+    | LBRACE propGetter propSetter? propInit? RBRACE    #propAccessors
+    | (ASSIGN expr)? SEMICOLON                          #propFieldStyle
+    ;
+propertyDecl: annotation* modifiers type idPart propBlock;
 
 member
     : initDecl
@@ -92,7 +100,8 @@ inferType: VOID | VAR;
 
 indexer: LSQUAR RSQUAR;
 cast: LPAREN type COLON expr RPAREN;
-declaration: type idPart binaryop? ASSIGN expr;
+declaration: type idPart ASSIGN expr;
+mutation: binaryop? ASSIGN expr;
 call: idPart arguments;
 ctorCall: NEW type arguments;
 newArray: NEW type LSQUAR NUMLIT RSQUAR;
@@ -100,10 +109,9 @@ newListedArray: NEW type indexer LBRACE (expr (COMMA expr)*)? RBRACE;
 
 statement
     : declaration SEMICOLON                                 #stmtDeclare
-    | left=expr binaryop? ASSIGN right=expr SEMICOLON       #stmtAssign
+    | left=expr mutation SEMICOLON                          #stmtAssign
     | returnStatement SEMICOLON                             #stmtReturn
     | throwStatement SEMICOLON                              #stmtThrow
-    | ctorCall SEMICOLON                                    #stmtCtor
     | pipeStatement SEMICOLON                               #stmtPipe
     | tryCatchStatement finallyBlock?                       #stmtTryCatch
     | tryWithResourcesStatement finallyBlock?               #stmtTryWithRes
@@ -121,7 +129,7 @@ expr
     : expr INSTANCEOF type                                  #checkInstanceof
     | arr=expr LSQUAR index=expr RSQUAR                     #readArray
     //| declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
-    | left=expr binaryop? ASSIGN right=expr                 #varAssign // can't use varAssignment due to recursive rules
+    | left=expr mutation                                    #varAssign // can't use varAssignment due to recursive rules
     | left=expr DOT idPart arguments?                       #callMember
     | LPAREN expr RPAREN                                    #parens
     | ctorCall                                              #callCtor
@@ -154,12 +162,12 @@ ifStatement: IF LPAREN expr RPAREN codeBlock elseStatement?;
 elseStatement: ELSE codeBlock;
 
 whileStatement: WHILE LPAREN expr RPAREN codeBlock;
-forStatement: FOR LPAREN init=statement cond=expr SEMICOLON acc=expr RPAREN action=codeBlock;
+forStatement: FOR LPAREN init=statement cond=expr SEMICOLON acc=expr RPAREN codeBlock;
 foreachStatement: FOREACH LPAREN idPart COLON expr RPAREN codeBlock;
 doWhile: DO codeBlock WHILE LPAREN expr RPAREN SEMICOLON;
 
-pipeStatement: pipeReadStatement*? expr pipeWriteStatement*?;
-pipeReadStatement: expr rPipeOp;
+pipeStatement: expr (pipeReadStatement | pipeWriteStatement)+;
+pipeReadStatement: rPipeOp expr;
 pipeWriteStatement: lPipeOp expr;
 lPipeOp
     : LLDASHARROW   #opPipeLLD

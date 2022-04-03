@@ -16,6 +16,8 @@ namespace KScr.Core.Bytecode
         public ExecutableCode? Getter;
         public bool Settable;
         public ExecutableCode? Setter;
+        public bool Inittable;
+        public ExecutableCode? Initter;
 
         public Property(SourcefilePosition sourceLocation, Class parent, string name, ITypeInfo returnType, MemberModifier modifier) : base(sourceLocation, parent, name, modifier)
         {
@@ -84,7 +86,7 @@ namespace KScr.Core.Bytecode
         public bool IsPipe => false; // todo
         public Stack ReadValue(RuntimeBase vm, Stack stack, IObject from)
         { // evaluate property with object
-            if (Gettable && ReadAccessor == null)
+            if (Gettable)
             { // is auto-property
                 if (vm[stack, VariableContext.Property, CreateKey(@from)] == null)
                     stack[StackOutput.Alp | StackOutput.Omg] = vm[stack, VariableContext.Property, CreateKey(@from)] 
@@ -102,7 +104,7 @@ namespace KScr.Core.Bytecode
 
         public Stack WriteValue(RuntimeBase vm, Stack stack, IObject to)
         { // evaluate property with object
-            if (Settable && WriteAccessor == null)
+            if (Settable)
             { // is auto-property
                 vm[stack, VariableContext.Absolute, CreateKey(to)] = stack[StackOutput.Default];
                 return stack;

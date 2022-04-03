@@ -32,18 +32,28 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         throw new NotImplementedException("Compiling of expression " + context + " is not supported");
     }
 
-    public override StatementComponent VisitVarAssign(KScrParser.VarAssignContext context)
-    {
-        var binaryop = context.binaryop();
-        return new()
+    public override StatementComponent VisitMutation(KScrParser.MutationContext context) => context.binaryop() is { } op
+        ? new StatementComponent()
         {
-            Type = binaryop != null ? StatementComponentType.Operator : StatementComponentType.Code,
+            Type = StatementComponentType.Operator,
             CodeType = BytecodeType.Assignment,
-            ByteArg = binaryop != null ? (ulong)(new OperatorVisitor().Visit(binaryop) | Operator.Compound) : 0,
-            SubComponent = VisitExpression(context.left),
-            AltComponent = VisitExpression(context.right)
+            ByteArg = (ulong)(VisitOperator(op) | Operator.Compound),
+            SubComponent = VisitExpression(context.expr())
+        }
+        : new StatementComponent()
+        {
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.Assignment,
+            SubComponent = VisitExpression(context.expr())
         };
-    }
+
+    public override StatementComponent VisitVarAssign(KScrParser.VarAssignContext context) => new()
+    {
+        Type = StatementComponentType.Code,
+        CodeType = BytecodeType.Assignment,
+        SubComponent = VisitExpression(context.left),
+        AltComponent = VisitExpression(context.mutation())
+    };
 
     public override StatementComponent VisitOpPrefix(KScrParser.OpPrefixContext context) => new()
     {
@@ -213,8 +223,6 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
     {
         throw new NotImplementedException("Compiling of expression " + context + " is not supported");
     }
-
-    protected override StatementComponent VisitExpression(KScrParser.ExprContext expr) => Visit(expr);
 }
 
 public class OperatorVisitor : KScrParserBaseVisitor<Operator>

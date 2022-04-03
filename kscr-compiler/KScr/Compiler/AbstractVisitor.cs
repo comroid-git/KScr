@@ -23,11 +23,12 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         this.ctx = ctx;
     }
 
-    protected virtual Core.Bytecode.Class VisitClass(KScrParser.ClassDeclContext cls) => new ClassVisitor(vm, ctx).Visit(cls);
-    protected virtual ClassInfo VisitClassInfo(KScrParser.ClassDeclContext cls) => new ClassInfoVisitor(vm, ctx).Visit(cls);
-    protected virtual ITypeInfo VisitTypeInfo(KScrParser.TypeContext type) => new TypeInfoVisitor(vm, ctx).Visit(type);
-
-    protected virtual TypeParameter VisitTypeParameter(KScrParser.GenericTypeDefContext gtd)
+    protected Core.Bytecode.Class VisitClass(KScrParser.ClassDeclContext cls) => new ClassVisitor(vm, ctx).Visit(cls);
+    protected ClassInfo VisitClassInfo(KScrParser.ClassDeclContext cls) => new ClassInfoVisitor(vm, ctx).Visit(cls);
+    protected ITypeInfo VisitTypeInfo(KScrParser.TypeContext type) => new TypeInfoVisitor(vm, ctx).Visit(type);
+    protected new MemberModifier VisitModifiers(KScrParser.ModifiersContext mods) => new ModifierVisitor().Visit(mods);
+    protected Operator VisitOperator(ParserRuleContext op) => new OperatorVisitor().Visit(op);
+    protected TypeParameter VisitTypeParameter(KScrParser.GenericTypeDefContext gtd)
     {
         var name = gtd.idPart().GetText();
         var spec = name == "n" ? TypeParameterSpecializationType.N
@@ -48,7 +49,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             : null;
         return new TypeParameter(name, spec, target.AsClassInstance(vm)) { DefaultValue = def };
     }
-    protected virtual IClassMember VisitClassMember(KScrParser.MemberContext member) => member.RuleIndex switch
+    protected IClassMember VisitClassMember(KScrParser.MemberContext member) => member.RuleIndex switch
     {
         KScrParser.RULE_methodDecl or KScrParser.RULE_constructorDecl or KScrParser.RULE_initDecl
             or KScrParser.RULE_propertyDecl or KScrParser.RULE_member
@@ -56,9 +57,10 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         KScrParser.RULE_classDecl => new ClassVisitor(vm, ctx).Visit(member.classDecl()),
         _ => throw new ArgumentOutOfRangeException(nameof(member.RuleIndex), member.RuleIndex, "Invalid Rule for member: " + member)
     };
-    protected virtual ExecutableCode VisitCode(KScrParser.CodeBlockContext code) => new CodeblockVisitor(vm, ctx).Visit(code);
-    protected virtual Statement VisitStatement(KScrParser.StatementContext stmt) => new StatementVisitor(vm, ctx).Visit(stmt);
-    protected virtual StatementComponent VisitExpression(KScrParser.ExprContext expr) => new ExpressionVisitor(vm, ctx).Visit(expr);
+    protected ExecutableCode VisitCode(ParserRuleContext code) => new CodeblockVisitor(vm, ctx).Visit(code);
+    protected ExecutableCode VisitMemberCode(ParserRuleContext member) => new CodeblockVisitor(vm, ctx).Visit(member);
+    protected Statement VisitStatement(KScrParser.StatementContext stmt) => new StatementVisitor(vm, ctx).Visit(stmt);
+    protected StatementComponent VisitExpression(ParserRuleContext expr) => new ExpressionVisitor(vm, ctx).Visit(expr);
 
     public IClassInstance? FindType(string name)
     {
