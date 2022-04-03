@@ -53,7 +53,7 @@ objectImplements: IMPLEMENTS type (COMMA type)*;
 
 parameter: FINAL? type (indexer | ELIPSES)? idPart (ASSIGN expr)?;
 parameters: LPAREN (parameter (COMMA parameter)*)? RPAREN;
-arguments: LPAREN (expr (COMMA expr)*) RPAREN;
+arguments: LPAREN (expr (COMMA expr)*)? RPAREN;
 
 memberBlock
     : LBRACE statement* RBRACE  #memberBodyBlock
@@ -122,12 +122,9 @@ expr
     | arr=expr LSQUAR index=expr RSQUAR                     #readArray
     //| declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
     | left=expr binaryop? ASSIGN right=expr                 #varAssign // can't use varAssignment due to recursive rules
-    | prefixop expr                                         #opPrefix
-    | left=expr binaryop right=expr                         #opBinary
-    | expr postfixop                                        #opPostfix
+    | left=expr DOT idPart arguments?                       #callMember
     | LPAREN expr RPAREN                                    #parens
     | ctorCall                                              #callCtor
-    | expr DOT idPart arguments?                            #callMember
     | nullable=expr QUESTION QUESTION fallback=expr         #exprNullFallback
     | throwStatement                                        #exprThrow
     | switchStatement                                       #exprSwitch
@@ -138,6 +135,9 @@ expr
     | type                                                  #typeValue
     | idPart                                                #varValue
     | left=expr TILDE right=expr                            #rangeInvoc
+    | prefixop expr                                         #opPrefix
+    | left=expr binaryop right=expr                         #opBinary
+    | expr postfixop                                        #opPostfix
     ;
 
 returnStatement: RETURN expr?;
@@ -154,13 +154,13 @@ ifStatement: IF LPAREN expr RPAREN codeBlock elseStatement?;
 elseStatement: ELSE codeBlock;
 
 whileStatement: WHILE LPAREN expr RPAREN codeBlock;
-forStatement: FOR LPAREN start=statement? SEMICOLON cond=expr? SEMICOLON end=statement? RPAREN action=codeBlock;
+forStatement: FOR LPAREN init=statement cond=expr SEMICOLON acc=expr RPAREN action=codeBlock;
 foreachStatement: FOREACH LPAREN idPart COLON expr RPAREN codeBlock;
 doWhile: DO codeBlock WHILE LPAREN expr RPAREN SEMICOLON;
 
-pipeStatement: pipeWriteStatement*? expr pipeReadStatement*?;
-pipeWriteStatement: expr rPipeOp;
-pipeReadStatement: lPipeOp expr;
+pipeStatement: pipeReadStatement*? expr pipeWriteStatement*?;
+pipeReadStatement: expr rPipeOp;
+pipeWriteStatement: lPipeOp expr;
 lPipeOp
     : LLDASHARROW   #opPipeLLD
     | LLEQARROW     #opPipeLLE
@@ -238,6 +238,7 @@ primitiveTypeLit
     | num           #typeLitNum
     | TYPE          #typeLitType
     | ENUM          #typeLitEnum
+    | VOID          #typeLitVoid
     ;
 primitiveLit
     : THIS          #varThis

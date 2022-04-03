@@ -80,7 +80,7 @@ namespace KScr.Compiler
         {
             var yields = new List<string>();
             foreach (var importDecl in ctx.importDecl())
-                yields.Add(importDecl.id().ToString());
+                yields.Add(importDecl.id().GetText());
             return yields;
         }
 

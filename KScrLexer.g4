@@ -147,6 +147,6 @@ DIGIT: [0-9];
 LETTER: [a-zA-Z_$£#];
 
 SING_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN);
-WS: [ \n\r\t] -> channel(HIDDEN);
+WS: [\n\r\t] -> channel(HIDDEN);
 
 UNMATCHED: . ; //Should make an error
