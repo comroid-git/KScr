@@ -35,22 +35,36 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         SubComponent = context.expr() is {} expr ? VisitExpression(expr) : null
     };
 
-    public override StatementComponent VisitMutation(KScrParser.MutationContext context) => context.binaryop() is { } op
-        ? new StatementComponent()
-        {
-            Type = StatementComponentType.Operator,
-            CodeType = BytecodeType.Assignment,
-            ByteArg = (ulong)(VisitOperator(op) | Operator.Compound),
-            SubComponent = VisitExpression(context.expr())
-        } : VisitExpression(context.expr());
-
-    public override StatementComponent VisitVarAssign(KScrParser.VarAssignContext context) => new()
+    public override StatementComponent VisitMutation(KScrParser.MutationContext context)
     {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.Assignment,
-        SubComponent = VisitExpression(context.left),
-        AltComponent = VisitExpression(context.mutation())
-    };
+        if (context.binaryop() is { } op)
+            return new StatementComponent()
+            {
+                Type = StatementComponentType.Operator,
+                CodeType = BytecodeType.Assignment,
+                ByteArg = (ulong)(VisitOperator(op) | Operator.Compound),
+                SubComponent = VisitExpression(context.expr())
+            };
+        else return VisitExpression(context.expr());
+    }
+
+    public override StatementComponent VisitVarAssign(KScrParser.VarAssignContext context) =>
+        context.mutation().binaryop() is { } op
+            ? new StatementComponent()
+            {
+                Type = StatementComponentType.Operator,
+                CodeType = BytecodeType.Assignment,
+                ByteArg = (ulong)(VisitOperator(op) | Operator.Compound | Operator.Binary),
+                SubComponent = VisitExpression(context.left),
+                AltComponent = VisitExpression(context.mutation().expr())
+            }
+            : new StatementComponent()
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.Assignment,
+                SubComponent = VisitExpression(context.left),
+                AltComponent = VisitExpression(context.mutation())
+            };
 
     public override StatementComponent VisitOpPrefix(KScrParser.OpPrefixContext context) => new()
     {

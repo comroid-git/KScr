@@ -27,13 +27,22 @@ public class StatementVisitor : AbstractVisitor<Statement> {
         CodeType = BytecodeType.Assignment,
         Main =
         {
-            new StatementComponent()
-            {
-                Type = StatementComponentType.Code,
-                CodeType = BytecodeType.Assignment,
-                SubComponent = VisitExpression(context.left),
-                AltComponent = VisitExpression(context.mutation())
-            }
+            context.mutation().binaryop() is { } op
+                ? new StatementComponent()
+                {
+                    Type = StatementComponentType.Operator,
+                    CodeType = BytecodeType.Assignment,
+                    ByteArg = (ulong)(VisitOperator(op) | Operator.Compound | Operator.Binary),
+                    SubComponent = VisitExpression(context.left),
+                    AltComponent = VisitExpression(context.mutation().expr())
+                }
+                : new StatementComponent()
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.Assignment,
+                    SubComponent = VisitExpression(context.left),
+                    AltComponent = VisitExpression(context.mutation())
+                }
         }
     };
 

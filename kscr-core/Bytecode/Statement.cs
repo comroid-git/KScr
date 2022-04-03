@@ -337,7 +337,6 @@ namespace KScr.Core.Bytecode
 
                     var a = SubComponent!.Evaluate(vm, stack.Output()).Copy(output: Alp);
                     var b = AltComponent?.Evaluate(vm, stack.Output()).Copy(output: Bet);
-                    bak = a;
 
                     if (unaryPrefix || unaryPostfix)
                         if (a![vm, stack, 0] is Numeric numA)
@@ -348,7 +347,7 @@ namespace KScr.Core.Bytecode
                             stack[Default] = numA.Operator(vm, op, numB);
                         else a![vm, stack, 0].Invoke(vm, stack.Output(), "op" + op, b![vm, stack, 0]).Copy();
                     if (compound)
-                        bak![vm, stack, 0] = stack[Default]![vm, stack, 0];
+                        a![vm, stack, 0] = stack[Default]![vm, stack, 0];
                     break;
                 case (StatementComponentType.Provider, BytecodeType.LiteralRange):
                     SubComponent!.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
