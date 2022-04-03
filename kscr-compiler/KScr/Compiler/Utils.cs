@@ -16,8 +16,3 @@ public static class Utils
         SourcefileCursor = context.Start.TokenIndex
     };
 }
-
-public class PackageDeclVisitor : KScrParserBaseVisitor<string>
-{
-    public override string VisitPackageDecl(KScrParser.PackageDeclContext context) => context.id().ToString();
-}

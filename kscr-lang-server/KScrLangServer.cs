@@ -2,10 +2,10 @@
 
 namespace KScr.LangServer;
 
-public class KScrLangServer
+public static class KScrLangServer
 {
     public static void Main(string[] args)
     {
-        LanguageServer.Create(options => options.)
+        throw new NotImplementedException("Language Server is not implemented");
     }
 }

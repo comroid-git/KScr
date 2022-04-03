@@ -148,6 +148,9 @@ namespace KScr.Runtime
 
         private static void StdIoMode()
         {
+            throw new NotImplementedException("StdIoMode currently not supported");
+            
+            /*
             Console.WriteLine("Entering StdIoMode - Only Expressions are allowed");
             VM.StdIoMode = true;
 
@@ -185,6 +188,7 @@ namespace KScr.Runtime
 
                 HandleResult(State.Return, output.Value, compileTime, executeTime);
             }
+            */
         }
 
         private static void WriteClasses(DirectoryInfo output, IEnumerable<FileInfo> sources)

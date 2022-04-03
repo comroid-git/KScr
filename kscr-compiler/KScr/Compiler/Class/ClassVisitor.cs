@@ -14,21 +14,25 @@ public class ClassVisitor : AbstractVisitor<Core.Bytecode.Class>
     {
     }
 
+    private Core.Bytecode.Class cls => ctx.Class!.AsClass(vm);
+
     public override Core.Bytecode.Class VisitClassDecl(KScrParser.ClassDeclContext context)
     {
-        var name = context.idPart().GetText();
-        var modifier = new ModifierVisitor().Visit(context.modifiers());
-        var type = new ClassTypeVisitor().Visit(context.classType());
-        var cls = new Core.Bytecode.Class(ctx.Package, name, false, modifier, type);
-
-        foreach (var genTypeDef in context.genericTypeDefs().genericTypeDef())
+        if (context.genericTypeDefs() is { } defs)
+            foreach (var genTypeDef in defs.genericTypeDef())
+                cls.TypeParameters.Add(VisitTypeParameter(genTypeDef));
+        if (context.objectExtends() is { } ext)
+            foreach (var extendsType in ext.type())
+                cls._superclasses.Add(VisitTypeInfo(extendsType).AsClassInstance(vm));
+        if (context.objectImplements() is { } impl)
+            foreach (var implementsType in impl.type())
+                cls._interfaces.Add(VisitTypeInfo(implementsType).AsClassInstance(vm));
+        
+        foreach (var each in context.member())
         {
-            cls.TypeParameters.Add(VisitTypeParameter(genTypeDef));
+            var member = VisitClassMember(each);
+            cls.DeclaredMembers[member.Name] = member;
         }
-        foreach (var extendsType in context.objectExtends().type())
-            cls._superclasses.Add(VisitType(extendsType).AsClassInstance(vm));
-        foreach (var implementsType in context.objectImplements().type())
-            cls._interfaces.Add(VisitType(implementsType).AsClassInstance(vm));
 
         return cls;
     }

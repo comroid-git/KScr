@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Net.Mime;
 using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
@@ -11,7 +13,7 @@ namespace KScr.Compiler.Code;
 
 public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 {
-    public ExpressionVisitor(RuntimeBase vm, KScrParser parser, CompilerContext ctx) : base(vm, ctx)
+    public ExpressionVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 
@@ -131,87 +133,11 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         throw new NotImplementedException("Compiling of expression " + context + " is not supported");
     }
 
-    public override StatementComponent VisitTypeLitObject(KScrParser.TypeLitObjectContext context) => new()
+    public override StatementComponent VisitTypeValue(KScrParser.TypeValueContext context) => new()
     {
         Type = StatementComponentType.Expression,
         CodeType = BytecodeType.TypeExpression,
-        Arg = Core.Bytecode.Class.ObjectType.CanonicalName
-    };
-
-    public override StatementComponent VisitTypeLitArray(KScrParser.TypeLitArrayContext context) => new()
-    {
-        Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.TypeExpression,
-        Arg = FindTypeInfo(context.array()).CanonicalName
-    };
-
-    public override StatementComponent VisitTypeLitTuple(KScrParser.TypeLitTupleContext context) => new()
-    {
-        Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.TypeExpression,
-        Arg = FindTypeInfo(context.tuple()).CanonicalName
-    };
-
-    public override StatementComponent VisitNumTypeLitTuple(KScrParser.NumTypeLitTupleContext context) {}
-
-    public override StatementComponent VisitNumTypeLitByte(KScrParser.NumTypeLitByteContext context) => new()
-    {
-        Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.TypeExpression,
-        Arg = Core.Bytecode.Class.NumericByteType.CanonicalName
-    };
-
-    public override StatementComponent VisitNumTypeLitShort(KScrParser.NumTypeLitShortContext context) => new()
-    {
-        Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.TypeExpression,
-        Arg = Core.Bytecode.Class.NumericShortType.CanonicalName
-    };
-
-    public override StatementComponent VisitType(KScrParser.TypeContext context)
-    {
-    }
-
-    public override StatementComponent VisitNumTypeLitInt(KScrParser.NumTypeLitIntContext context) => new()
-    {
-        Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.TypeExpression,
-        Arg = Core.Bytecode.Class.NumericIntType.CanonicalName
-    };
-
-    public override StatementComponent VisitNumTypeLitLong(KScrParser.NumTypeLitLongContext context) => new()
-    {
-        Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.TypeExpression,
-        Arg = Core.Bytecode.Class.NumericLongType.CanonicalName
-    };
-
-    public override StatementComponent VisitNumTypeLitFloat(KScrParser.NumTypeLitFloatContext context) => new()
-    {
-        Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.TypeExpression,
-        Arg = Core.Bytecode.Class.NumericFloatType.CanonicalName
-    };
-
-    public override StatementComponent VisitNumTypeLitDouble(KScrParser.NumTypeLitDoubleContext context) => new()
-    {
-        Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.TypeExpression,
-        Arg = Core.Bytecode.Class.NumericDoubleType.CanonicalName
-    };
-
-    public override StatementComponent VisitTypeLitType(KScrParser.TypeLitTypeContext context) => new()
-    {
-        Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.TypeExpression,
-        Arg = Core.Bytecode.Class.TypeType.CanonicalName
-    };
-
-    public override StatementComponent VisitTypeLitEnum(KScrParser.TypeLitEnumContext context) => new()
-    {
-        Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.TypeExpression,
-        Arg = Core.Bytecode.Class.EnumType.CanonicalName
+        Arg = VisitTypeInfo(context.type()).FullDetailedName
     };
 
     public override StatementComponent VisitVarThis(KScrParser.VarThisContext context) => new()

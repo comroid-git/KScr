@@ -22,6 +22,8 @@ namespace KScr.Core
 
     public abstract class RuntimeBase
     {
+        public const string SourceFileType = ".kscr";
+        public const string BinaryFileType = ".kbin";
         public static Encoding Encoding = Encoding.ASCII;
 
         public static readonly DummyMethod MainInvoc = new(Class.ObjectType, "main", MemberModifier.Public | MemberModifier.Final | MemberModifier.Static, Class.NumericIntType);
@@ -90,19 +92,19 @@ namespace KScr.Core
 
             Class.InitializePrimitives(this);
 
-            Class.VoidType.LateInitialization(this, MainStack);
-            Class.ObjectType.LateInitialization(this, MainStack);
-            Class.TypeType.LateInitialization(this, MainStack);
-            Class.EnumType.LateInitialization(this, MainStack);
-            Class.PipeType.LateInitialization(this, MainStack);
-            Class.ArrayType.LateInitialization(this, MainStack);
-            Class.TupleType.LateInitialization(this, MainStack);
-            Class.StringType.LateInitialization(this, MainStack);
-            Class.RangeType.LateInitialization(this, MainStack);
-            Class.IterableType.LateInitialization(this, MainStack);
-            Class.IteratorType.LateInitialization(this, MainStack);
-            Class.ThrowableType.LateInitialization(this, MainStack);
-            Class.NumericType.LateInitialization(this, MainStack);
+            Class.VoidType.LateInitialize(this, MainStack);
+            Class.ObjectType.LateInitialize(this, MainStack);
+            Class.TypeType.LateInitialize(this, MainStack);
+            Class.EnumType.LateInitialize(this, MainStack);
+            Class.PipeType.LateInitialize(this, MainStack);
+            Class.ArrayType.LateInitialize(this, MainStack);
+            Class.TupleType.LateInitialize(this, MainStack);
+            Class.StringType.LateInitialize(this, MainStack);
+            Class.RangeType.LateInitialize(this, MainStack);
+            Class.IterableType.LateInitialize(this, MainStack);
+            Class.IteratorType.LateInitialize(this, MainStack);
+            Class.ThrowableType.LateInitialize(this, MainStack);
+            Class.NumericType.LateInitialize(this, MainStack);
 
             StdioRef = new StandardIORef();
             
@@ -260,9 +262,6 @@ namespace KScr.Core
             return inClass.TypeParameters.FirstOrDefault(tp => tp.FullName == identifier)
                        .ResolveType(inClass.DefaultInstance) ?? FindType(identifier, inPackage)!;
         }
-
-        public abstract void CompilePackage(DirectoryInfo dir, ref CompilerContext context,
-            AbstractCompiler abstractCompiler);
 
         public sealed class StandardIORef : ObjectRef
         {

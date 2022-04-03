@@ -1,36 +1,33 @@
-﻿using KScr.Antlr;
+﻿using System;
+using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
 
 namespace KScr.Compiler.Class;
 
-public abstract class ClassMemberVisitor<T> : AbstractVisitor<T> where T : IClassMember
+public class ClassMemberVisitor : AbstractVisitor<IClassMember>
 {
-    protected ClassMemberVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+    public ClassMemberVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
-}
-public class MethodVisitor : ClassMemberVisitor<Method>
-{
-    public MethodVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+
+    public override IClassMember VisitMethodDecl(KScrParser.MethodDeclContext context)
     {
+        throw new NotImplementedException();
     }
-}
-public class ConstructorVisitor : ClassMemberVisitor<Method>
-{
-    public ConstructorVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+
+    public override IClassMember VisitConstructorDecl(KScrParser.ConstructorDeclContext context)
     {
+        throw new NotImplementedException();
     }
-}
-public class InitializerVisitor : ClassMemberVisitor<Method>
-{
-    public InitializerVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+
+    public override IClassMember VisitInitDecl(KScrParser.InitDeclContext context)
     {
+        throw new NotImplementedException();
     }
-}
-public class PropertyVisitor : ClassMemberVisitor<Property>
-{
-    public PropertyVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+
+    public override IClassMember VisitPropertyDecl(KScrParser.PropertyDeclContext context)
     {
+        throw new NotImplementedException();
     }
 }

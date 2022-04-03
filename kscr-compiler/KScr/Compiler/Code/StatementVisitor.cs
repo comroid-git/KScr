@@ -6,7 +6,7 @@ using KScr.Core.Bytecode;
 namespace KScr.Compiler.Code;
 
 public class StatementVisitor : AbstractVisitor<Statement> {
-    public StatementVisitor(RuntimeBase vm, KScrParser parser, CompilerContext ctx) : base(vm, ctx)
+    public StatementVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 

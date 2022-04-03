@@ -20,14 +20,21 @@ namespace KScr.Compiler
 
         public void CompileFiles(IEnumerable<FileInfo> sources)
         {
-            var files = sources.GetEnumerator();
-            while (files.MoveNext())
-                CompileClass(files.Current);
+            IEnumerator<FileInfo> files = null!;
+            try
+            {
+                files = sources.GetEnumerator();
+                while (files.MoveNext())
+                    CompileClass(files.Current);
+            } finally
+            {
+                files?.Dispose();
+            }
         }
 
         public void CompileClass(FileInfo file)
         {
-            string clsName = file.Name.Substring(0, file.Name.Length - AbstractCompiler.FileAppendix.Length);
+            string clsName = file.Name.Substring(0, file.Name.Length - SourceFileType.Length);
             CompileClass(clsName, file.FullName);
         }
 
@@ -36,36 +43,29 @@ namespace KScr.Compiler
             var fileDecl = MakeFileDecl(source != null ? new AntlrInputStream(source) : new AntlrFileStream(filePath, Encoding));
 
             // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
-            var pkg = AbstractCompiler.ResolvePackage(Package.RootPackage, 
-                new PackageDeclVisitor().VisitPackageDecl(fileDecl.packageDecl()).Split("."));
+            var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
             var imports = FindClassImports(fileDecl.imports());
             var news = new Dictionary<string, Core.Bytecode.Class>();
+            var ctx = new CompilerContext
+            {
+                Package = pkg,
+                Imports = imports
+            };
             
             foreach (var classDecl in fileDecl.classDecl())
             {
-                var classInfo = new ClassInfoVisitor().Visit(classDecl);
-                var cls = pkg.GetOrCreateClass(this, clsName, classInfo.Modifier, classInfo.ClassType);
-                if (cls == null) throw new FatalException("invalid state");
-                new ClassVisitor(cls).Visit(classDecl);
-                cls.LateInitialization(this, MainStack);
+                var classInfo = new ClassInfoVisitor(this, ctx).Visit(classDecl);
+                var subctx = new CompilerContext
+                {
+                    Parent = ctx,
+                    Class = pkg.GetOrCreateClass(this, classInfo.Name, classInfo.Modifier, classInfo.ClassType)
+                };
+                var cls = new ClassVisitor(this, subctx).Visit(classDecl);
+                cls.Initialize(this);
+                cls.LateInitialize(this, MainStack);
                 news[cls.Name] = cls;
             }
             return news[clsName];
-        }
-
-        public override void CompilePackage(DirectoryInfo dir, ref CompilerContext context,
-            AbstractCompiler abstractCompiler)
-        {
-            foreach (var subDir in dir.EnumerateDirectories())
-            {
-                var pkg = new Package(context.Package, subDir.Name);
-                var prev = context;
-                context = new CompilerContext(context, pkg);
-                CompilePackage(subDir, ref context, abstractCompiler);
-                context = prev;
-            }
-
-            foreach (var subFile in dir.EnumerateFiles('*' + AbstractCompiler.FileAppendix)) CompileClass(subFile);
         }
 
         public KScrParser.FileContext MakeFileDecl(BaseInputCharStream input)
@@ -76,7 +76,7 @@ namespace KScr.Compiler
             return parser.file();
         }
 
-        private IList<string> FindClassImports(KScrParser.ImportsContext ctx)
+        private List<string> FindClassImports(KScrParser.ImportsContext ctx)
         {
             var yields = new List<string>();
             foreach (var importDecl in ctx.importDecl())
@@ -87,7 +87,7 @@ namespace KScr.Compiler
         public ClassInfo FindClassInfo(FileInfo file)
         {
             var fileDecl = MakeFileDecl(new AntlrFileStream(file.FullName));
-            return new SourceInfoVisitor().Visit(fileDecl.classDecl(0));
+            return new ClassInfoVisitor(this, new CompilerContext()).Visit(fileDecl.classDecl(0));
         }
     }
 }

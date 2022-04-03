@@ -176,7 +176,7 @@ namespace KScr.Core.Bytecode
             _initialized = true;
         }
 
-        public void LateInitialization(RuntimeBase vm, Stack stack)
+        public void LateInitialize(RuntimeBase vm, Stack stack)
         {
             if (_lateInitialized) return;
             Evaluate(vm, stack);
@@ -334,7 +334,7 @@ namespace KScr.Core.Bytecode
                 index += NewLineBytes.Length;
             }
 
-            LateInitialization(vm, RuntimeBase.MainStack);
+            LateInitialize(vm, RuntimeBase.MainStack);
         }
 
         public override string ToString()

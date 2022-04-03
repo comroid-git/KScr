@@ -41,8 +41,7 @@ type
     ;
 
 rawType
-    : primitiveLit
-    //| inferType
+    : primitiveTypeLit
     | id
     ;
 
@@ -135,7 +134,8 @@ expr
     | cast                                                  #exprCast
     | newArray                                              #newArrayValue
     | newListedArray                                        #newListedArrayValue
-    | primitiveLit                                          #thisValue
+    | primitiveLit                                          #nativeLitValue
+    | type                                                  #typeValue
     | idPart                                                #varValue
     | left=expr TILDE right=expr                            #rangeInvoc
     ;
@@ -231,14 +231,16 @@ num: (NUMIDENT | INT) genericTypeUses?  #numTypeLitTuple
     | FLOAT                             #numTypeLitFloat
     | DOUBLE                            #numTypeLitDouble
     ;
-primitiveLit:
-      OBJECT        #typeLitObject
+primitiveTypeLit 
+    : OBJECT        #typeLitObject
     | array         #typeLitArray
     | tuple         #typeLitTuple
     | num           #typeLitNum
     | TYPE          #typeLitType
     | ENUM          #typeLitEnum
-    | THIS          #varThis
+    ;
+primitiveLit
+    : THIS          #varThis
     | SUPER         #varSuper
     | NUMLIT        #varLitNum
     | TRUE          #varLitTrue
