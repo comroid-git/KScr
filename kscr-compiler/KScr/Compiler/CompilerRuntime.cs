@@ -87,7 +87,8 @@ namespace KScr.Compiler
         public ClassInfo FindClassInfo(FileInfo file)
         {
             var fileDecl = MakeFileDecl(new AntlrFileStream(file.FullName));
-            return new ClassInfoVisitor(this, new CompilerContext()).Visit(fileDecl.classDecl(0));
+            var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
+            return new ClassInfoVisitor(this, new CompilerContext(){Package = pkg}).Visit(fileDecl.classDecl(0));
         }
     }
 }
