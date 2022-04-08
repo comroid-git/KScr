@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -31,12 +32,18 @@ namespace KScr.Core
         public static readonly SourcefilePosition SystemSrcPos = new() { SourcefilePath = MainInvoc.FullName + " <native>" };
         public static readonly DirectoryInfo SdkHome = GetSdkHome();
         public static readonly Stack MainStack = new();
+        public static readonly Version RuntimeVersion;
+        public static readonly int BytecodeVersion;
         public static bool Initialized;
 
         static RuntimeBase()
         {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+
+            var assembly = typeof(RuntimeBase).Assembly;
+            RuntimeVersion = assembly.GetName().Version!;
+            BytecodeVersion = FileVersionInfo.GetVersionInfo(assembly.Location).FileMajorPart;
         }
 
         public abstract INativeRunner? NativeRunner { get; }
