@@ -69,5 +69,7 @@ Global
 		File = Compile System Package.run.xml
 		File = Test Compile.run.xml
 		File = Test Execute.run.xml
+		File = Build std & Execute.run.xml
+		File = Compile & Run.run.xml
 	EndGlobalSection
 EndGlobal
