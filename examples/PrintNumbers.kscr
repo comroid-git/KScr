@@ -45,7 +45,7 @@ public class PrintNumbers implements Throwable {
         
         stdio <<- "length of ABC is " + "ABC".length();
         //todo: static methods NEED the class definition currently 
-        PrintNumbers.printSomething("StackSize: "+PrintNumbers.StackSize+"; range was = " + seq + " -- int:", 6345);
+        PrintNumbers.printSomething("StackSize: " + PrintNumbers.StackSize + "; range was = " + seq + " -- int:", 6345);
         
         // forever print something to test for loop robustness
         // todo: this does not compile. find solution for empty statements
