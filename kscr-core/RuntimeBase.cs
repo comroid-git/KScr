@@ -9,6 +9,7 @@ using KScr.Core.Core;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
+using KScr.Core.Util;
 using String = KScr.Core.Core.String;
 
 namespace KScr.Core
@@ -120,24 +121,7 @@ namespace KScr.Core
 
         public long NextObjId(string name)
         {
-            return CombineHash(NextObjId(), name);
-        }
-
-        public static long GetHashCode64(string input)
-        {
-            // inspired by https://stackoverflow.com/questions/8820399/c-sharp-4-0-how-to-get-64-bit-hash-code-of-given-string
-            return CombineHash((uint)input.Substring(0, input.Length / 2).GetHashCode(),
-                input.Substring(input.Length / 2));
-        }
-
-        public static long CombineHash(uint objId, string name)
-        {
-            return CombineHash(objId, name.GetHashCode());
-        }
-
-        public static long CombineHash(uint objId, int hash)
-        {
-            return ((long)hash << 0x20) | objId;
+            return StringCache.CombineHash(NextObjId(), name);
         }
 
         public static long UnixTime()
