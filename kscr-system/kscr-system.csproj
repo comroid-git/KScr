@@ -8,6 +8,7 @@
         <AssemblyVersion>0.2.2</AssemblyVersion>
         <Company>comroid</Company>
         <FileVersion>10</FileVersion>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>

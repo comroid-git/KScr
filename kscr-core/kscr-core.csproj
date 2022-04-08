@@ -5,11 +5,20 @@
         <RootNamespace>KScr.Core</RootNamespace>
         <Nullable>enable</Nullable>
         <Company>comroid</Company>
-        <AssemblyVersion>0.2.2</AssemblyVersion>
-        <PackageVersion>0.2.1</PackageVersion>
+        <AssemblyVersion>0.3.0</AssemblyVersion>
+        <PackageVersion>0.3.0</PackageVersion>
         <LangVersion>latest</LangVersion>
         <FileVersion>10</FileVersion>
-        <IsPackable>false</IsPackable>
+        <IsPackable>true</IsPackable>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Title>KScr Runtime - Core</Title>
+        <Authors>comroid</Authors>
+        <Description>Core Library for the KScr Runtime</Description>
+        <PackageProjectUrl>https://comroid.org/kscr</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/comroid-git/KScr/blob/master/LICENSE</PackageLicenseUrl>
+        <PackageIconUrl>https://cdn.comroid.org/img/icon-kscr.ico</PackageIconUrl>
+        <RepositoryUrl>https://github.com/comroid-git/KScr</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
 </Project>

@@ -5,13 +5,20 @@
         <RootNamespace>KScr.Native</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <AssemblyVersion>0.2.2</AssemblyVersion>
+        <AssemblyVersion>0.1.0</AssemblyVersion>
         <Company>comroid</Company>
         <FileVersion>10</FileVersion>
         <LangVersion>latest</LangVersion>
         <PackageVersion>0.1.0</PackageVersion>
-        <Title>KScr Native Interface</Title>
+        <Title>KScr Runtime - Native Interface</Title>
         <Authors>comroid</Authors>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Native Interface base Library for the KScr Runtime</Description>
+        <PackageProjectUrl>https://comroid.org/kscr</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/comroid-git/KScr/blob/master/LICENSE</PackageLicenseUrl>
+        <PackageIconUrl>https://cdn.comroid.org/img/icon-kscr.ico</PackageIconUrl>
+        <RepositoryUrl>https://github.com/comroid-git/KScr</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
     <ItemGroup>

@@ -3,15 +3,10 @@
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>KScr.Test</RootNamespace>
-
         <IsPackable>false</IsPackable>
-
         <LangVersion>latest</LangVersion>
-
         <Nullable>enable</Nullable>
-
         <AssemblyVersion>0.2.2</AssemblyVersion>
-
         <FileVersion>10</FileVersion>
     </PropertyGroup>
 

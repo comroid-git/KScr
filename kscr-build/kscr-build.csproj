@@ -8,7 +8,7 @@
         <Nullable>enable</Nullable>
         <AssemblyName>kbuild</AssemblyName>
         <Product>kbuild</Product>
-        <AssemblyVersion>0.2.2</AssemblyVersion>
+        <AssemblyVersion>0.0.1</AssemblyVersion>
         <Company>comroid</Company>
         <FileVersion>10</FileVersion>
         <LangVersion>latest</LangVersion>
@@ -16,7 +16,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj" />
+      <ProjectReference Include="..\kscr-runtime\kscr-runtime.csproj" />
     </ItemGroup>
 
     <ItemGroup>

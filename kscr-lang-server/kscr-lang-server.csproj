@@ -9,7 +9,8 @@
         <LangVersion>latest</LangVersion>
         <IsPackable>false</IsPackable>
         <Company>comroid</Company>
-        <AssemblyVersion>0.2.1</AssemblyVersion>
+        <AssemblyVersion>0.0.1</AssemblyVersion>
+        <FileVersion>10</FileVersion>
     </PropertyGroup>
 
     <ItemGroup>
