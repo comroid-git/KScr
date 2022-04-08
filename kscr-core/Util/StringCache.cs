@@ -72,6 +72,7 @@ public sealed class StringCache
         var stream = new FileStream(file.FullName, FileMode.Create);
         
         stream.Write(BitConverter.GetBytes(_dict.Count));
+        stream.Write(NewLineBytes);
         stream.Flush();
         
         foreach (var pair in _dict)
@@ -101,6 +102,7 @@ public sealed class StringCache
             byte[] buf;
 
             i += stream.Read(buf = new byte[4]);
+            i += stream.Read(buf = new byte[NewLineBytes.Length]);
             c = BitConverter.ToInt32(buf);
             while (c-- > 0)
             {
