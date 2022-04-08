@@ -6,6 +6,7 @@ using KScr.Core.Core;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
+using KScr.Core.Util;
 using static KScr.Core.Store.StackOutput;
 using Array = System.Array;
 using Range = KScr.Core.Core.Range;
@@ -14,6 +15,18 @@ using String = KScr.Core.Core.String;
 
 namespace KScr.Core.Bytecode
 {
+    [Flags]
+    public enum ComponentMember : byte
+    {
+        None = 0x0,
+        SubStatement = 0x01,
+        AltStatement = 0x02,
+        SubComponent = 0x04,
+        AltComponent = 0x08,
+        PostComponent = 0x10,
+        InnerCode = 0x20
+    }
+
     public class Statement : AbstractBytecode, IStatement<StatementComponent>
     {
         protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main;
@@ -58,21 +71,19 @@ namespace KScr.Core.Bytecode
             return stack;
         }
 
-        public override void Write(Stream stream)
+        public override void Write(StringCache strings, Stream stream)
         {
             stream.Write(BitConverter.GetBytes((uint)Type));
             stream.Write(BitConverter.GetBytes((uint)CodeType));
-            byte[] buf = RuntimeBase.Encoding.GetBytes(TargetType.FullName);
-            stream.Write(BitConverter.GetBytes(buf.Length));
-            stream.Write(buf);
+            stream.Write(BitConverter.GetBytes(strings[TargetType.FullDetailedName]));
             stream.Write(BitConverter.GetBytes(Main.Count));
             foreach (var component in Main)
-                component.Write(stream);
+                component.Write(strings, stream);
             stream.Write(BitConverter.GetBytes(Finally != null));
-            Finally?.Write(stream);
+            Finally?.Write(strings, stream);
         }
 
-        public override void Load(RuntimeBase vm, byte[] data, ref int index)
+        public override void Load(RuntimeBase vm, StringCache strings, byte[] data, ref int index)
         {
             Main.Clear();
 
@@ -80,24 +91,21 @@ namespace KScr.Core.Bytecode
             index += 4;
             CodeType = (BytecodeType)BitConverter.ToUInt32(data, index);
             index += 4;
-            var len = BitConverter.ToInt32(data, index);
-            index += 4;
-            TargetType = vm.FindType(RuntimeBase.Encoding.GetString(data, index, len))!;
-            index += len;
-            len = BitConverter.ToInt32(data, index);
+            TargetType = vm.FindType(strings.Find(data, ref index))!;
+            int len = BitConverter.ToInt32(data, index);
             index += 4;
             StatementComponent stmt;
             for (var i = 0; i < len; i++)
             {
                 stmt = new StatementComponent { Statement = this };
-                stmt.Load(vm, data, ref index);
+                stmt.Load(vm, strings, data, ref index);
                 Main.Add(stmt);
             }
 
             if (BitConverter.ToBoolean(data, index++))
             {
                 Finally = new ExecutableCode();
-                Finally.Load(vm, data, ref index);
+                Finally.Load(vm, strings, data, ref index);
             }
         }
 
@@ -105,18 +113,6 @@ namespace KScr.Core.Bytecode
         {
             Main.Clear();
         }
-    }
-
-    [Flags]
-    public enum ComponentMember : byte
-    {
-        None = 0x0,
-        SubStatement = 0x01,
-        AltStatement = 0x02,
-        SubComponent = 0x04,
-        AltComponent = 0x08,
-        PostComponent = 0x10,
-        InnerCode = 0x20
     }
 
     public class StatementComponent : AbstractBytecode, IStatementComponent
@@ -412,7 +408,7 @@ namespace KScr.Core.Bytecode
             return stack;
         }
 
-        public override void Write(Stream stream)
+        public override void Write(StringCache strings, Stream stream)
         {
             stream.Write(BitConverter.GetBytes((uint)Type));
             stream.Write(BitConverter.GetBytes((uint)CodeType));
@@ -421,7 +417,7 @@ namespace KScr.Core.Bytecode
             byte[] buf = RuntimeBase.Encoding.GetBytes(Arg);
             stream.Write(BitConverter.GetBytes(buf.Length));
             stream.Write(buf);
-            SourcefilePosition.Write(stream);
+            SourcefilePosition.Write(strings, stream);
             var memberState = ComponentMember.None;
             if (SubStatement != null)
                 memberState |= ComponentMember.SubStatement;
@@ -437,22 +433,34 @@ namespace KScr.Core.Bytecode
                 memberState |= ComponentMember.InnerCode;
             stream.Write(new[] { (byte)memberState });
             if ((memberState & ComponentMember.SubStatement) != 0)
-                SubStatement!.Write(stream);
+                SubStatement!.Write(strings, stream);
             if ((memberState & ComponentMember.AltStatement) != 0)
-                AltStatement!.Write(stream);
+                AltStatement!.Write(strings, stream);
             if ((memberState & ComponentMember.SubComponent) != 0)
-                SubComponent!.Write(stream);
+                SubComponent!.Write(strings, stream);
             if ((memberState & ComponentMember.AltComponent) != 0)
-                AltComponent!.Write(stream);
+                AltComponent!.Write(strings, stream);
             if ((memberState & ComponentMember.PostComponent) != 0)
-                PostComponent!.Write(stream);
+                PostComponent!.Write(strings, stream);
             if ((memberState & ComponentMember.InnerCode) != 0)
-                InnerCode!.Write(stream);
+                InnerCode!.Write(strings, stream);
         }
 
-        public override void Load(RuntimeBase vm, byte[] data, ref int index)
+        public override void Load(RuntimeBase vm, StringCache strings, byte[] data, ref int index)
         {
-            _Load(vm, data, ref index, out var sct, out var vct, out var bty, out ulong byteArg, out string arg, out var srcPos, out var subStmt, out var altStmt, out var subComp, out var altComp, out var postComp, out var innerCode);
+            _Load(vm, strings, data, ref index, 
+                out var sct, 
+                out var vct, 
+                out var bty, 
+                out ulong byteArg, 
+                out string arg,
+                out var srcPos, 
+                out var subStmt, 
+                out var altStmt, 
+                out var subComp, 
+                out var altComp, 
+                out var postComp, 
+                out var innerCode);
             Type = sct;
             VariableContext = vct;
             CodeType = bty;
@@ -467,7 +475,7 @@ namespace KScr.Core.Bytecode
             InnerCode = innerCode;
         }
 
-        private static void _Load(RuntimeBase vm, byte[] data, ref int index,
+        private static void _Load(RuntimeBase vm, StringCache strings, byte[] data, ref int index,
             out StatementComponentType sct,
             out VariableContext vct,
             out BytecodeType bty,
@@ -489,17 +497,14 @@ namespace KScr.Core.Bytecode
             index += 1;
             bya = BitConverter.ToUInt64(data, index);
             index += 8;
-            var len = BitConverter.ToInt32(data, index);
-            index += 4;
-            arg = RuntimeBase.Encoding.GetString(data, index, len);
-            index += len;
-            srcPos = SourcefilePosition.Read(vm, data, ref index);
+            arg = strings.Find(data, ref index);
+            srcPos = SourcefilePosition.Read(vm, strings, data, ref index);
             var memberState = (ComponentMember)data[index];
             index += 1;
             if ((memberState & ComponentMember.SubStatement) == ComponentMember.SubStatement)
             {
                 subStmt = new Statement();
-                subStmt.Load(vm, data, ref index);
+                subStmt.Load(vm, strings, data, ref index);
             }
             else
             {
@@ -509,7 +514,7 @@ namespace KScr.Core.Bytecode
             if ((memberState & ComponentMember.AltStatement) == ComponentMember.AltStatement)
             {
                 altStmt = new Statement();
-                altStmt.Load(vm, data, ref index);
+                altStmt.Load(vm, strings, data, ref index);
             }
             else
             {
@@ -519,7 +524,7 @@ namespace KScr.Core.Bytecode
             if ((memberState & ComponentMember.SubComponent) == ComponentMember.SubComponent)
             {
                 subComp = new StatementComponent();
-                subComp.Load(vm, data, ref index);
+                subComp.Load(vm, strings, data, ref index);
             }
             else
             {
@@ -529,7 +534,7 @@ namespace KScr.Core.Bytecode
             if ((memberState & ComponentMember.AltComponent) == ComponentMember.AltComponent)
             {
                 altComp = new StatementComponent();
-                altComp.Load(vm, data, ref index);
+                altComp.Load(vm, strings, data, ref index);
             }
             else
             {
@@ -539,7 +544,7 @@ namespace KScr.Core.Bytecode
             if ((memberState & ComponentMember.PostComponent) == ComponentMember.PostComponent)
             {
                 postComp = new StatementComponent();
-                postComp.Load(vm, data, ref index);
+                postComp.Load(vm, strings, data, ref index);
             }
             else
             {
@@ -549,7 +554,7 @@ namespace KScr.Core.Bytecode
             if ((memberState & ComponentMember.InnerCode) == ComponentMember.InnerCode)
             {
                 innerCode = new ExecutableCode();
-                innerCode.Load(vm, data, ref index);
+                innerCode.Load(vm, strings, data, ref index);
             }
             else
             {
@@ -557,10 +562,10 @@ namespace KScr.Core.Bytecode
             }
         }
 
-        private static StatementComponent Read(RuntimeBase vm, Stack stack, byte[] data, int index)
+        private static StatementComponent Read(RuntimeBase vm, StringCache strings, byte[] data, int index)
         {
             var comp = new StatementComponent();
-            comp.Load(vm, data, ref index);
+            comp.Load(vm, strings, data, ref index);
             return comp;
         }
     }

@@ -7,6 +7,7 @@ using KScr.Core.Core;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
+using KScr.Core.Util;
 using Array = System.Array;
 using String = System.String;
 
@@ -207,77 +208,64 @@ namespace KScr.Core.Bytecode
             };
         }
 
-        public void Write(FileInfo file)
+        public void Write(StringCache strings, FileInfo file)
         {
             var write = file.OpenWrite();
-            Write(write);
+            Write(strings, write);
             write.Close();
         }
 
-        public override void Write(Stream stream)
+        public override void Write(StringCache strings, Stream stream)
         {
-            byte[] buf = RuntimeBase.Encoding.GetBytes(Name);
-            stream.Write(BitConverter.GetBytes(buf.Length));
-            stream.Write(buf);
+            stream.Write(BitConverter.GetBytes(strings[Name]));
             stream.Write(new[] { (byte)ClassType });
             stream.Write(BitConverter.GetBytes((uint)Modifier));
 
             // imports
-            stream.Write(NewLineBytes);
+            stream.Write(StringCache.NewLineBytes);
             stream.Write(BitConverter.GetBytes(Imports.Count));
-            foreach (string clsName in Imports)
-            {
-                buf = RuntimeBase.Encoding.GetBytes(clsName);
-                stream.Write(BitConverter.GetBytes(buf.Length));
-                stream.Write(buf);
-            }
+            foreach (string clsName in Imports) 
+                stream.Write(BitConverter.GetBytes(strings[clsName]));
 
             // superclasses
-            stream.Write(NewLineBytes);
+            stream.Write(StringCache.NewLineBytes);
             stream.Write(BitConverter.GetBytes(Superclasses.Count(x => x.Name != "object")));
             foreach (var superclass in Superclasses)
             {
                 if  (superclass.Name == "object")
                     continue;
-                buf = RuntimeBase.Encoding.GetBytes(superclass.FullName);
-                stream.Write(BitConverter.GetBytes(buf.Length));
-                stream.Write(buf);
+                stream.Write(BitConverter.GetBytes(strings[superclass.FullDetailedName]));
             }
 
             // interfaces
-            stream.Write(NewLineBytes);
+            stream.Write(StringCache.NewLineBytes);
             stream.Write(BitConverter.GetBytes(Interfaces.Count(x => x.Name != "void")));
             foreach (var iface in Interfaces)
             {
                 if  (iface.Name == "void")
                     continue;
-                buf = RuntimeBase.Encoding.GetBytes(iface.FullName);
-                stream.Write(BitConverter.GetBytes(buf.Length));
-                stream.Write(buf);
+                stream.Write(BitConverter.GetBytes(strings[iface.FullDetailedName]));
             }
 
             // members
-            stream.Write(NewLineBytes);
+            stream.Write(StringCache.NewLineBytes);
             stream.Write(BitConverter.GetBytes(BytecodeMembers.Count()));
             stream.Flush();
             foreach (var member in BytecodeMembers)
             {
-                stream.Write(NewLineBytes);
-                member.Write(stream);
-                stream.Write(NewLineBytes);
+                stream.Write(StringCache.NewLineBytes);
+                member.Write(strings, stream);
+                stream.Write(StringCache.NewLineBytes);
                 stream.Flush();
             }
         }
 
-        public override void Load(RuntimeBase vm, byte[] data, ref int index)
+        public override void Load(RuntimeBase vm, StringCache strings, byte[] data, ref int index)
         {
             DeclaredMembers.Clear();
 
             int len;
-            len = BitConverter.ToInt32(data, index);
-            index += 4;
-            _name = RuntimeBase.Encoding.GetString(data, index, len);
-            index += len;
+            _name = strings.Find(data, ref index);
             ClassType = (ClassType)data[index];
             index += 1;
             Modifier = (MemberModifier)BitConverter.ToUInt32(data, index);
@@ -286,53 +274,38 @@ namespace KScr.Core.Bytecode
             Initialize(vm);
 
             // imports
-            index += NewLineBytes.Length;
+            index += StringCache.NewLineBytes.Length;
             len = BitConverter.ToInt32(data, index);
             index += 4;
-            for (; len > 0; len--)
-            {
-                var len2 = BitConverter.ToInt32(data, index);
-                index += 4;
-                Imports.Add(RuntimeBase.Encoding.GetString(data, index, len2));
-                index += len2;
-            }
-            
+            for (; len > 0; len--) 
+                Imports.Add(strings.Find(data, ref index));
+
             // todo: load imported classes first
 
             // superclasses
-            index += NewLineBytes.Length;
+            index += StringCache.NewLineBytes.Length;
             len = BitConverter.ToInt32(data, index);
             index += 4;
-            for (; len > 0; len--)
-            {
-                var len2 = BitConverter.ToInt32(data, index);
-                index += 4;
-                _superclasses.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2), owner: this)!);
-                index += len2;
-            }
+            for (; len > 0; len--) 
+                _superclasses.Add(vm.FindType(strings.Find(data, ref index), owner: this)!);
 
             // interfaces
-            index += NewLineBytes.Length;
+            index += StringCache.NewLineBytes.Length;
             len = BitConverter.ToInt32(data, index);
             index += 4;
-            for (; len > 0; len--)
-            {
-                var len2 = BitConverter.ToInt32(data, index);
-                index += 4;
-                _interfaces.Add(vm.FindType(RuntimeBase.Encoding.GetString(data, index, len2), owner: this)!);
-                index += len2;
-            }
+            for (; len > 0; len--) 
+                _interfaces.Add(vm.FindType(strings.Find(data, ref index), owner: this)!);
 
             // members
-            index += NewLineBytes.Length;
+            index += StringCache.NewLineBytes.Length;
             len = BitConverter.ToInt32(data, index);
             index += 4;
             for (; len > 0; len--)
             {
-                index += NewLineBytes.Length;
-                var member = AbstractClassMember.Read(vm, this, data, ref index);
+                index += StringCache.NewLineBytes.Length;
+                var member = AbstractClassMember.Read(vm, strings, this, data, ref index);
                 DeclaredMembers[member.Name] = member;
-                index += NewLineBytes.Length;
+                index += StringCache.NewLineBytes.Length;
             }
 
             LateInitialize(vm, RuntimeBase.MainStack);
@@ -343,11 +316,11 @@ namespace KScr.Core.Bytecode
             return FullName;
         }
 
-        public static Class Read(RuntimeBase vm, FileInfo file, Package package)
+        public static Class Read(RuntimeBase vm, StringCache strings, FileInfo file, Package package)
         {
             var cls = new Class(package, file.Name.Substring(0, file.Name.IndexOf(".kbin", StringComparison.Ordinal)),
                 false);
-            cls.Load(vm, File.ReadAllBytes(file.FullName));
+            cls.Load(vm, strings, File.ReadAllBytes(file.FullName));
             return cls;
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using KScr.Core.Model;
 using KScr.Core.Store;
+using KScr.Core.Util;
 
 namespace KScr.Core.Bytecode
 {
@@ -33,14 +34,14 @@ namespace KScr.Core.Bytecode
                 Main.AddRange(bc.Main);
         }
 
-        public override void Write(Stream stream)
+        public override void Write(StringCache strings, Stream stream)
         {
             stream.Write(BitConverter.GetBytes(Main.Count));
             foreach (var abstractBytecode in Main)
-                abstractBytecode.Write(stream);
+                abstractBytecode.Write(strings, stream);
         }
 
-        public override void Load(RuntimeBase vm, byte[] data, ref int index)
+        public override void Load(RuntimeBase vm, StringCache strings, byte[] data, ref int index)
         {
             Main.Clear();
 
@@ -50,7 +51,7 @@ namespace KScr.Core.Bytecode
             for (; len > 0; len--)
             {
                 stmt = new Statement();
-                stmt.Load(vm, data, ref index);
+                stmt.Load(vm, strings, data, ref index);
                 Main.Add(stmt);
             }
         }

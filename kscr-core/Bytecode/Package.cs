@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using KScr.Core.Model;
+using KScr.Core.Util;
 
 namespace KScr.Core.Bytecode
 {
@@ -30,9 +31,10 @@ namespace KScr.Core.Bytecode
                 .First(it => it.IsStatic());
         }
 
-        public void Write(DirectoryInfo dir, ClassInfo[]? names = null)
+        public void Write(DirectoryInfo dir, ClassInfo[]? names = null, StringCache? strings = null, bool rec = false)
         {
             names ??= Array.Empty<ClassInfo>();
+            strings ??= new StringCache();
             foreach (var member in PackageMembers.Values)
                 if (!names.Any(name => name.FullName.StartsWith(member.FullName.Contains("<")
                         ? member.FullName.Substring(0, member.FullName.IndexOf('<'))
@@ -40,39 +42,42 @@ namespace KScr.Core.Bytecode
                     // ReSharper disable once RedundantJumpStatement
                     continue;
                 else if (member is Package pkg)
-                    pkg.Write(dir.CreateSubdirectory(member.Name), names);
+                    pkg.Write(dir.CreateSubdirectory(member.Name), names, strings, true);
                 else if (member is Class cls)
-                    cls.Write(new FileInfo(Path.Combine(dir.FullName, (member.Name.Contains("<")
+                    cls.Write(strings, new FileInfo(Path.Combine(dir.FullName, (member.Name.Contains("<")
                         ? member.Name.Substring(0, member.Name.IndexOf("<", StringComparison.Ordinal))
                         : member.Name) + ".kbin")));
                 else throw new NotSupportedException("Member is of unsupported type: " + member.GetType());
+            if (!rec)
+                strings.Write(dir);
         }
 
-        public override void Write(Stream stream)
+        public override void Write(StringCache strings, Stream stream)
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("Please use method Write(DirectoryInfo, ClassInfo[]?, StringCache?)");
         }
 
-        public static void ReadAll(RuntimeBase vm, DirectoryInfo dir)
+        public static void ReadAll(RuntimeBase vm, DirectoryInfo dir, StringCache? strings = null)
         {
+            strings ??= StringCache.Read(dir);
             foreach (var sub in dir.EnumerateDirectories())
-                Read(vm, sub);
+                Read(vm, strings, sub);
         }
 
-        public static Package Read(RuntimeBase vm, DirectoryInfo dir, Package? parent = null)
+        public static Package Read(RuntimeBase vm, StringCache strings, DirectoryInfo dir, Package? parent = null)
         {
             if (!dir.Exists)
                 throw new DirectoryNotFoundException(dir.FullName);
             var it = new Package(parent ?? RootPackage, dir.Name);
             foreach (var sub in dir.EnumerateDirectories())
             {
-                var pkg = Read(vm, sub, it);
+                var pkg = Read(vm, strings, sub, it);
                 //it.Members[pkg.Name] = pkg;
             }
 
             foreach (var cls in dir.EnumerateFiles("*.kbin"))
             {
-                var kls = Class.Read(vm, cls, it);
+                var kls = Class.Read(vm, strings, cls, it);
                 //it.Members[kls.Name] = kls;
             }
 

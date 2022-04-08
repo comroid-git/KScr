@@ -37,7 +37,7 @@ namespace KScr.Runtime
     [Verb("compile", HelpText = "Compile and Write one or more .kscr Files to .kbin Files")]
     public sealed class CmdCompile : IOutputCmd, IClasspathCmd, ISourcesCmd
     {
-        [Option(HelpText = "Whether this operation is compiling the system package")]
+        [Option(Hidden = true)]
         public bool System { get; set; }
 
         public IEnumerable<DirectoryInfo> Classpath { get; set; }

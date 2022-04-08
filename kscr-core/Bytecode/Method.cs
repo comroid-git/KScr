@@ -5,44 +5,10 @@ using System.Linq;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
+using KScr.Core.Util;
 
 namespace KScr.Core.Bytecode
 {
-    public class MethodParameter : IBytecode
-    {
-        public ITypeInfo Type { get; set; }
-        public string Name { get; set; }
-
-        public void Write(Stream stream)
-        {
-            byte[] buf = RuntimeBase.Encoding.GetBytes(Name);
-            stream.Write(BitConverter.GetBytes(buf.Length));
-            stream.Write(buf);
-            buf = RuntimeBase.Encoding.GetBytes(Type.FullName);
-            stream.Write(BitConverter.GetBytes(buf.Length));
-            stream.Write(buf);
-        }
-
-        public void Load(RuntimeBase vm, byte[] data, ref int index)
-        {
-            var len = BitConverter.ToInt32(data, index);
-            index += 4;
-            Name = RuntimeBase.Encoding.GetString(data, index, len);
-            index += len;
-            len = BitConverter.ToInt32(data, index);
-            index += 4;
-            Type = vm.FindType(RuntimeBase.Encoding.GetString(data, index, len))!;
-            index += len;
-        }
-
-        public static MethodParameter Read(RuntimeBase vm, byte[] data, ref int i)
-        {
-            var param = new MethodParameter();
-            param.Load(vm, data, ref i);
-            return param;
-        }
-    }
-
     public interface IMethod : IClassMember
     {
         List<MethodParameter> Parameters { get; }
@@ -115,40 +81,60 @@ namespace KScr.Core.Bytecode
             return stack;
         }
 
-        public override void Write(Stream stream)
+        public override void Write(StringCache strings, Stream stream)
         {
-            base.Write(stream);
-            byte[] buf = RuntimeBase.Encoding.GetBytes(ReturnType.FullName);
-            stream.Write(BitConverter.GetBytes(buf.Length));
-            stream.Write(buf);
+            base.Write(strings, stream);
+            stream.Write(BitConverter.GetBytes(strings[ReturnType.FullDetailedName]));
             stream.Write(BitConverter.GetBytes(Parameters.Count));
             foreach (var parameter in Parameters)
-                parameter.Write(stream);
+                parameter.Write(strings, stream);
             if (!this.IsAbstract() && !this.IsNative() && Parent.ClassType is not ClassType.Interface or ClassType.Annotation)
-                Body.Write(stream);
+                Body.Write(strings, stream);
         }
 
-        public override void Load(RuntimeBase vm, byte[] data, ref int i)
+        public override void Load(RuntimeBase vm, StringCache strings, byte[] data, ref int i)
         {
-            var len = BitConverter.ToInt32(data, i);
-            i += 4;
-            ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len), Parent.Package)!;
-            i += len;
-            len = BitConverter.ToInt32(data, i);
+            ReturnType = vm.FindType(strings.Find(data, ref i), Parent.Package)!;
+            int len = BitConverter.ToInt32(data, i);
             i += 4;
             Parameters.Clear();
             for (; len > 0; len--)
-                Parameters.Add(MethodParameter.Read(vm, data, ref i));
+                Parameters.Add(MethodParameter.Read(vm, strings, data, ref i));
             if (!this.IsAbstract() && !this.IsNative() && Parent.ClassType is not ClassType.Interface or ClassType.Annotation)
             {
                 Body = new ExecutableCode();
-                Body.Load(vm, data, ref i);
+                Body.Load(vm, strings, data, ref i);
             }
         }
 
-        public new static Method Read(RuntimeBase vm, Class parent, byte[] data, ref int i)
+        public new static Method Read(RuntimeBase vm, StringCache strings, Class parent, byte[] data, ref int i)
         {
-            return (AbstractClassMember.Read(vm, parent, data, ref i) as Method)!;
+            return (AbstractClassMember.Read(vm, strings, parent, data, ref i) as Method)!;
+        }
+    }
+
+    public class MethodParameter : IBytecode
+    {
+        public ITypeInfo Type { get; set; }
+        public string Name { get; set; }
+
+        public void Write(StringCache strings, Stream stream)
+        {
+            stream.Write(BitConverter.GetBytes(strings[Name]));
+            stream.Write(BitConverter.GetBytes(strings[Type.FullDetailedName]));
+        }
+
+        public void Load(RuntimeBase vm, StringCache strings, byte[] data, ref int index)
+        {
+            Name = strings.Find(data, ref index);
+            Type = vm.FindType(strings.Find(data, ref index))!;
+        }
+
+        public static MethodParameter Read(RuntimeBase vm, StringCache strings, byte[] data, ref int i)
+        {
+            var param = new MethodParameter();
+            param.Load(vm, strings, data, ref i);
+            return param;
         }
     }
 }

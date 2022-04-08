@@ -26,15 +26,12 @@ namespace KScr.Core
         public const string SourceFileType = ".kscr";
         public const string BinaryFileType = ".kbin";
         public static Encoding Encoding = Encoding.ASCII;
-
+        
         public static readonly DummyMethod MainInvoc = new(Class.ObjectType, "main", MemberModifier.Public | MemberModifier.Final | MemberModifier.Static, Class.NumericIntType);
         public static readonly SourcefilePosition SystemSrcPos = new() { SourcefilePath = MainInvoc.FullName + " <native>" };
         public static readonly DirectoryInfo SdkHome = GetSdkHome();
-        public static bool Initialized;
         public static readonly Stack MainStack = new();
-        public abstract INativeRunner? NativeRunner { get; }
-
-        private uint _lastObjId = 0xF;
+        public static bool Initialized;
 
         static RuntimeBase()
         {
@@ -42,6 +39,8 @@ namespace KScr.Core
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
         }
 
+        public abstract INativeRunner? NativeRunner { get; }
+        private uint _lastObjId = 0xF;
         public abstract ObjectStore ObjectStore { get; }
         public abstract ClassStore ClassStore { get; }
 
@@ -65,6 +64,7 @@ namespace KScr.Core
         public bool StdIoMode { get; set; } = false;
         public static bool ConfirmExit { get; set; }
         public static bool DebugMode { get; set; }
+        public static bool CompileSystem { get; set; }
         public static int ExitCode { get; set; } = int.MinValue;
         public static string? ExitMessage { get; set; } = null;
 

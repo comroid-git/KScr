@@ -7,6 +7,7 @@ using KScr.Core.Core;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
+using KScr.Core.Util;
 
 namespace KScr.Core.Bytecode
 {
@@ -39,27 +40,22 @@ namespace KScr.Core.Bytecode
             return $"property-{ownerKey}.{Name}";
         }
 
-        public override void Write(Stream stream)
+        public override void Write(StringCache strings, Stream stream)
         {
-            base.Write(stream);
-            byte[] buf = RuntimeBase.Encoding.GetBytes(ReturnType.FullName);
-            stream.Write(BitConverter.GetBytes(buf.Length));
-            stream.Write(buf);
+            base.Write(strings, stream);
+            stream.Write(BitConverter.GetBytes(strings[ReturnType.FullDetailedName]));
             stream.Write(new[] {(byte) ((Gettable ? 0b0001 : 0)
                                         | (Settable ? 0b0010 : 0) 
                                         | (Getter != null ? 0b0100 : 0)
                                         | (Setter != null ? 0b1000 : 0))});
-            Getter?.Write(stream);
-            Setter?.Write(stream);
+            Getter?.Write(strings, stream);
+            Setter?.Write(strings, stream);
         }
 
-        public override void Load(RuntimeBase vm, byte[] data, ref int i)
+        public override void Load(RuntimeBase vm, StringCache strings, byte[] data, ref int i)
         {
-            base.Load(vm, data, ref i);
-            var len = BitConverter.ToInt32(data, i);
-            i += 4;
-            ReturnType = vm.FindType(RuntimeBase.Encoding.GetString(data, i, len), owner: Parent)!;
-            i += len;
+            base.Load(vm, strings, data, ref i);
+            ReturnType = vm.FindType(strings.Find(data, ref i), owner: Parent)!;
             Gettable = (data[i] & 0b0001) != 0; 
             Settable = (data[i] & 0b0010) != 0; 
             var getter = (data[i] & 0b0100) != 0; 
@@ -68,18 +64,18 @@ namespace KScr.Core.Bytecode
             if (getter)
             {
                 Getter = new ExecutableCode();
-                Getter.Load(vm, data, ref i);
+                Getter.Load(vm, strings, data, ref i);
             }
             if (setter)
             {
                 Setter = new ExecutableCode();
-                Setter.Load(vm, data, ref i);
+                Setter.Load(vm, strings, data, ref i);
             }
         }
 
-        public new static Property Read(RuntimeBase vm, Class parent, byte[] data, ref int i)
+        public new static Property Read(RuntimeBase vm, StringCache strings, Class parent, byte[] data, ref int i)
         {
-            return (AbstractClassMember.Read(vm, parent, data, ref i) as Property)!;
+            return (AbstractClassMember.Read(vm, strings, parent, data, ref i) as Property)!;
         }
 
         public int Length => 1;

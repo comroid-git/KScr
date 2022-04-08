@@ -40,8 +40,11 @@ namespace KScr.Runtime
                 .WithParsed<CmdCompile>(cmd =>
                 {
                     CopyProps(cmd);
-                    LoadStdPackage();
-                    LoadClasspath(cmd);
+                    if (!cmd.System)
+                    {
+                        LoadStdPackage();
+                        LoadClasspath(cmd);
+                    }
 
                     compileTime = CompileFiles(cmd);
                     ioTime = WriteClasses(cmd);
