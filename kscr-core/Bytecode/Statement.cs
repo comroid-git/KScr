@@ -30,7 +30,7 @@ namespace KScr.Core.Bytecode
             {
                 foreach (var component in Main)
                 {
-                    switch (component.Type, component.CodeType)
+                    switch (Type, CodeType)
                     {
                         case (StatementComponentType.Code, BytecodeType.ParameterExpression):
                             stack[Default] = new ObjectRef(Class.VoidType.DefaultInstance, Main.Count);
