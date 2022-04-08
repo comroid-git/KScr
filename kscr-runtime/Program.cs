@@ -64,8 +64,8 @@ namespace KScr.Runtime
                 {
                     CopyProps(cmd);
                     LoadStdPackage();
-                    ioTime = LoadClasspath(cmd);
                     
+                    ioTime = LoadClasspath(cmd);
                     executeTime = Execute(out stack);
                 })
                 .WithNotParsed(errors =>
