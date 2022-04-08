@@ -1,6 +1,6 @@
-﻿using KScr.Lib;
-using KScr.Lib.Core;
-using KScr.Lib.Store;
+﻿using KScr.Core;
+using KScr.Core.Core;
+using KScr.Core.Store;
 
 // ReSharper disable InconsistentNaming
 

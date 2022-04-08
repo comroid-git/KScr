@@ -1,67 +1,105 @@
 lexer grammar KScrLexer;
 
-TRY: 'try';
-CATCH: 'catch';
-FINALLY: 'finally';
+// file modifiers
+PACKAGE: 'package';
+IMPORT: 'import';
 
+// accessibility modifier
 PUBLIC: 'public';
 INTERNAL: 'internal';
 PROTECTED: 'protected';
 PRIVATE: 'private';
 
-SYNCHRONIZED: 'synchronized';
-ABSTRACT: 'abstract';
-NATIVE: 'native';
+// common modifiers
 STATIC: 'static';
 FINAL: 'final';
+ABSTRACT: 'abstract';
+NATIVE: 'native';
+SYNCHRONIZED: 'synchronized';
 
-STRICTFP: 'strictfp';
-VOLATILE: 'volatile';
-
-INSTANCEOF: 'instanceof';
-RETURN: 'return';
-ASSERT: 'assert';
-NEW: 'new';
-THROW: 'throw';
-GET: 'get';
-SET: 'set';
-
+// class types
 CLASS: 'class';
 INTERFACE: 'interface';
 ENUM: 'enum';
-RECORD: 'record';
-SINGLE: 'single';
 ANNOTATION: 'annotation';
 
-IMPORT: 'import';
-PACKAGE: 'package';
+// class footprint modifiers
 EXTENDS: 'extends';
 IMPLEMENTS: 'implements';
 
-THIS: 'this';
-SUPER: 'super';
+// common statements
+RETURN: 'return';
+THROW: 'throw';
+NEW: 'new';
+INSTANCEOF: 'instanceof';
 
-SEALED: 'sealed';
-PERMITS: 'permits';
-NONSEALED: 'non-sealed';
-
-DEFAULT: 'default';
-SWITCH: 'switch';
-WHILE: 'while';
-YIELD: 'yield';
-CASE: 'case';
-ELSE: 'else';
-FOREACH: 'foreach';
-FOR: 'for';
-DO: 'do';
+// complex statements
+MARK: 'mark';
+JUMP: 'jump';
 IF: 'if';
+ELSE: 'else';
+FOR: 'for';
+FOREACH: 'foreach';
+DO: 'do';
+WHILE: 'while';
+SWITCH: 'switch';
+CASE: 'case';
+DEFAULT: 'default';
+TRY: 'try';
+CATCH: 'catch';
+FINALLY: 'finally';
 
-NUMLIT: MINUS? DIGIT+ ((DOT DIGIT+ ('f'? | 'd'))? | ('l' | 'i' | 's' | 'b')?);
+// primitive types
+OBJECT: 'object';
+ARRAYIDENT: 'array';
+TUPLEIDENT: 'tuple';
+TYPE: 'type';
+NUMIDENT: 'num';
+BYTE: 'byte';
+SHORT: 'short';
+INT: 'int';
+LONG: 'long';
+FLOAT: 'float';
+DOUBLE: 'double';
+VOID: 'void';
+VAR: 'var';
+
+// literals
+NUMLIT: MINUS? DIGIT+ ((DOT DIGIT+ ('f'? | 'd'))? | ('l' | 'i' | 's' | 'b')?) | 'n';
 STRLIT: QUOTE (ESCAPE_QUOTE | (~[\r\n"]))*? (QUOTE);
-BOOLLIT: TRUE | FALSE;
 STDIOLIT: 'stdio';
 NULL: 'null';
+TRUE: 'true';
+FALSE: 'false';
 
+// common expressions
+THIS: 'this';
+SUPER: 'super';
+GET: 'get';
+SET: 'set';
+INIT: 'init';
+
+// logistic symbols
+LPAREN: '(';
+RPAREN: ')';
+LBRACE: '{';
+RBRACE: '}';
+LSQUAR: '[';
+RSQUAR: ']';
+
+COLON: ':';
+SEMICOLON: ';';
+DOT: '.';
+COMMA: ',';
+EXCLAMATION: '!';
+QUESTION: '?';
+ELIPSES: '...';
+TILDE: '~';
+
+ESCAPE_QUOTE: '\\"';
+QUOTE: '"';
+
+// operators
 AND: '&&';
 OR: '||';
 PLUSPLUS: '++';
@@ -92,57 +130,22 @@ LESSER: '<';
 
 ASSIGN: '=';
 
-LBRACE: '{';
-RBRACE: '}';
-LPAREN: '(';
-RPAREN: ')';
-LSQUAR: '[';
-RSQUAR: ']';
-
-COLON: ':';
-SEMICOLON: ';';
-DOT: '.';
-COMMA: ',';
-EXCLAMATION: '!';
-QUESTION: '?';
-ELIPSES: '...';
-TILDE: '~';
-
-ESCAPE_QUOTE: '\\"';
-QUOTE: '"';
-
 LDASHARROW: '<-';
+LLDASHARROW: '<<-';
 RDASHARROW: '->';
-DDASHARROW: '<->';
+RRDASHARROW: '->>';
 REQARROW: '=>';
-DEQARROW: '<=>';
+LLEQARROW: '<<=';
+RREQARROW: '=>>';
+LPULLARROW: '=<<';
+RPULLARROW: '>>=';
 LBOXARROW: '<|';
 RBOXARROW: '|>';
 DBOXARROW: '<|>';
-LENDARROW: '-|';
-RENDARROW: '|-';
 
-OBJECT: 'object';
-ARRAYIDENT: 'array';
-TUPLEIDENT: 'tuple';
-TYPE: 'type';
-NUMIDENT: 'num';
-BYTE: 'byte';
-SHORT: 'short';
-INT: 'int';
-LONG: 'long';
-FLOAT: 'float';
-DOUBLE: 'double';
-VOID: 'void';
-
-VAR: 'var';
-
-TRUE: 'true';
-FALSE: 'false';
-
-ID: NONDIGIT (DIGIT | NONDIGIT)*;
+ID: LETTER (DIGIT | LETTER)*;
 DIGIT: [0-9];
-NONDIGIT: [a-zA-Z_$£#];
+LETTER: [a-zA-Z_$£#];
 
 SING_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN);
 WS: [ \n\r\t] -> channel(HIDDEN);

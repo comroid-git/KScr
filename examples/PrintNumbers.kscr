@@ -6,11 +6,12 @@ import org.comroid.kscr.core.Iterable;
 public class PrintNumbers implements Throwable {
     public static int StackSize => 64;
     public int StackValue => 48;
+    // we can add a setter implementation here
     public str Message { get; set; }
     public int ExitCode => 3;
     
     static {
-        stdio << "this is a static initializer";
+        stdio <<- "this is a static initializer";
     }
     
     public PrintNumbers() {
@@ -23,36 +24,36 @@ public class PrintNumbers implements Throwable {
         int end = 12;
         Iterable seq = start~end; 
         
-        stdio << "print numbers " + seq.start() + " to (exclusive) " + (seq.end() - 1 + 1) + ":";
+        stdio <<- "print numbers " + seq.start() + " to (exclusive) " + (seq.end() - 1 + 1) + ":";
         foreach (i : seq)
-            stdio << i;
-        //stdio << "i is now " + i; // should error (it did last time)
+            stdio <<- i;
+        //stdio <<- "i is now " + i; // should error (it did last time)
         
-        stdio << "and now backwards bcs we're cool:";
+        stdio <<- "and now backwards bcs we're cool:";
         for (int i = end; i; --i) {
-            stdio << i;
+            stdio <<- i;
         }
         
-        stdio << "and one last time:";
+        stdio <<- "and one last time:";
         do {
-            stdio << "number: " + end;
+            stdio <<- "number: " + end;
         } while (end--);
-        stdio << "end is now " + end; // should be -1
+        stdio <<- "end is now " + end; // should be -1
             
         PrintNumbers obj = new PrintNumbers();
         obj.throingMethod(false);
         
-        stdio << "length of ABC is " + "ABC".length();
+        stdio <<- "length of ABC is " + "ABC".length();
         //todo: static methods NEED the class definition currently 
-        PrintNumbers.printSomething("StackSize: "+PrintNumbers.StackSize+"; range was = " + seq + " -- int:", 6345);
+        PrintNumbers.printSomething("StackSize: " + PrintNumbers.StackSize + "; range was = " + seq + " -- int:", 6345);
         
         // forever print something to test for loop robustness
         // todo: this does not compile. find solution for empty statements
-        //for (;;) stdio << "abc";
+        //for (;;) stdio <<- "abc";
         obj.Message += " & world2";
         
-        stdio << "look at my cool object: " + obj.toString(0);
-        stdio << "and of course i can access it this way too: " + obj.StackValue;
+        stdio <<- "look at my cool object: " + obj.toString(0);
+        stdio <<- "and of course i can access it this way too: " + obj.StackValue;
         
         obj.callThroingMethod();
     }
@@ -65,17 +66,17 @@ public class PrintNumbers implements Throwable {
         this.throingMethod(true);
     }
     public void throingMethod(byte thr) {
-        stdio << "This is another method. Will it throw? " + thr;
+        stdio <<- "This is another method. Will it throw? " + thr;
         
         if (true) { // any 'multipart' statement
             if (thr)
                 throw this;
-            stdio << "This only is printed when it does not throw";
-        } finally stdio << "This sums up the throingMethod";
+            stdio <<- "This only is printed when it does not throw";
+        } finally stdio <<- "This sums up the throingMethod";
     }
     
     public static void printSomething(str textToPrint, int andAnInteger) {
-        stdio << "Print this: " + textToPrint + andAnInteger
-                << "and also print another line";
+        stdio <<- "Print this: " + textToPrint + andAnInteger
+                <<- "and also print another line";
     }
 }

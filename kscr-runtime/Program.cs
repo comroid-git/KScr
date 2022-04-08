@@ -6,11 +6,11 @@ using System.Text;
 using CommandLine;
 using KScr.Compiler;
 using KScr.Compiler.Code;
-using KScr.Lib;
-using KScr.Lib.Bytecode;
-using KScr.Lib.Core;
-using KScr.Lib.Model;
-using KScr.Lib.Store;
+using KScr.Core;
+using KScr.Core.Bytecode;
+using KScr.Core.Core;
+using KScr.Core.Model;
+using KScr.Core.Store;
 
 namespace KScr.Runtime
 {
@@ -148,6 +148,9 @@ namespace KScr.Runtime
 
         private static void StdIoMode()
         {
+            throw new NotImplementedException("StdIoMode currently not supported");
+            
+            /*
             Console.WriteLine("Entering StdIoMode - Only Expressions are allowed");
             VM.StdIoMode = true;
 
@@ -185,14 +188,14 @@ namespace KScr.Runtime
 
                 HandleResult(State.Return, output.Value, compileTime, executeTime);
             }
+            */
         }
 
         private static void WriteClasses(DirectoryInfo output, IEnumerable<FileInfo> sources)
         {
             if (output.Exists)
                 output.Delete(true);
-            Package.RootPackage.Write(output,
-                sources.Select(f => AbstractCompiler.FindClassInfo(f, new Tokenizer())).ToArray());
+            Package.RootPackage.Write(output, sources.Select(f => VM.FindClassInfo(f)).ToArray());
         }
 
         private static void HandleResult(State state, IObject? result, long compileTime, long executeTime)

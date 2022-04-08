@@ -6,15 +6,15 @@ public class FileIO {
     public static void main() {
         File file = new File("file.txt");
 
-        stdio << "Enter text to be written to the file: ";
-        stdio >> str text;
+        stdio <<- "Enter text to be written to the file: ";
+        stdio ->> str text;
 
-        file << text;
+        file <<- text;
         text = "";
-        stdio << "\nText written; buffer cleared";
+        stdio <<- "\nText written; buffer cleared";
 
-        file >> text;
-        stdio << "\nText read: " << text;
+        file ->> text;
+        stdio <<- "\nText read: " <<- text;
 
         file.delete();
     }

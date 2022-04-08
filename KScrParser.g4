@@ -2,186 +2,224 @@ parser grammar KScrParser;
 
 options { tokenVocab = KScrLexer; }
 
-file: packageDecl imports classDecl* EOF;
-
+// file-related
 packageDecl: PACKAGE id SEMICOLON;
 
 imports: importDecl*;
 importDecl: IMPORT STATIC? id (DOT STAR)? SEMICOLON;
 
-classDecl: annotation* modifiers classType idPart genericTypeDefs? objectExtends? objectImplements? (LBRACE member* RBRACE | SEMICOLON);
+// class-related
+annotationArg: idPart ASSIGN expr;
+annotation: AT id (LPAREN (annotationArg (COMMA annotationArg)* | expr)? RPAREN)?;
+
+modifier
+    : PUBLIC        #modPublic
+    | INTERNAL      #modInternal
+    | PROTECTED     #modProtected
+    | PRIVATE       #modPrivate
+    | STATIC        #modStatic
+    | FINAL         #modFinal
+    | ABSTRACT      #modAbstract
+    | SYNCHRONIZED  #modSyncronized
+    | NATIVE        #modNative
+    ;
+modifiers: modifier*;
+
+classType
+    : CLASS         #ctClass
+    | INTERFACE     #ctInterface
+    | ENUM          #ctEnum
+    | ANNOTATION    #ctAnnotation
+    ;
+
+genericTypeUses: LESSER (n=NUMLIT | first=type) (COMMA type)* GREATER;
+
+type
+    : idPart                                            #importedTypeName
+    | rawType genericTypeUses?                          #normalTypeUse
+    | rawType genericTypeUses? (indexer | ELIPSES)?     #arrayTypeUse
+    ;
+
+rawType
+    : primitiveTypeLit
+    | id
+    ;
+
+genericTypeDef: idPart elp=ELIPSES? (EXTENDS ext=type | SUPER sup=type)? (ASSIGN (defN=NUMLIT | def=type))?;
+genericTypeDefs: LESSER (NUMLIT | genericTypeDef) (COMMA genericTypeDef)* GREATER;
 
 objectExtends: EXTENDS type (COMMA type)*;
 objectImplements: IMPLEMENTS type (COMMA type)*;
 
-genericTypeDefs: LESSER (NUMLIT | genericTypeDef) (COMMA genericTypeDef ELIPSES?)* GREATER;
-genericTypeDef: ID type (EXTENDS type | SUPER type)?;
+parameter: FINAL? type idPart (ASSIGN expr)?;
+parameters: LPAREN (parameter (COMMA parameter)*)? RPAREN;
+arguments: LPAREN (expr (COMMA expr)*)? RPAREN;
 
-classType
-    : CLASS
-    | INTERFACE
-    | ENUM
-    | AT INTERFACE
+noBlock: SEMICOLON;
+normalBlock: LBRACE statement* RBRACE;
+memberBlock
+    : normalBlock               #memberNormalBlock
+    | REQARROW expr SEMICOLON   #memberExprBlock
+    | noBlock                   #memberNoBlock
     ;
+codeBlock
+    : normalBlock               #codeNormalBlock
+    | statement                 #codeStmtBlock
+    | noBlock                   #codeNoBlock
+    ;
+
+initDecl: STATIC memberBlock;
+subConstructorCall: type arguments;
+subConstructorCalls: COLON subConstructorCall (COMMA subConstructorCall)*?;
+constructorDecl: annotation* modifiers type parameters subConstructorCalls? memberBlock;
+methodDecl: annotation* modifiers genericTypeDefs? type idPart parameters memberBlock;
+
+propGetter: GET memberBlock;
+propSetter: SET memberBlock;
+propInit: INIT memberBlock;
+propBlock
+    : memberBlock                                       #propComputed
+    | LBRACE propGetter propSetter? propInit? RBRACE    #propAccessors
+    | (ASSIGN expr)? SEMICOLON                          #propFieldStyle
+    ;
+propertyDecl: annotation* modifiers type idPart propBlock;
 
 member
-    : methodDecl
-    | constructorDecl
+    : initDecl
     | propertyDecl
+    | constructorDecl
+    | methodDecl
     | classDecl
-    | initDecl
-    | SEMICOLON
     ;
 
-initDecl: STATIC block;
-constructorDecl: annotation* modifiers type parameters subConstructorCalls? (block | SEMICOLON);
-subConstructorCalls: COLON subConstructorCall (COMMA subConstructorCall)*?;
-subConstructorCall: type arguments;
-methodDecl: annotation* modifiers genericTypeDefs? type idPart parameters (block | SEMICOLON);
+classDecl: annotation* modifiers classType idPart genericTypeDefs? objectExtends? objectImplements? (LBRACE member* RBRACE | SEMICOLON);
 
-propGetter: GET block;
-propSetter: SET block;
-propertyDecl: annotation* modifiers type idPart ((ASSIGN expr SEMICOLON) | (block) | (LBRACE propGetter propSetter? RBRACE) | SEMICOLON);
-parameter: FINAL? type (indexer | ELIPSES)? idPart (ASSIGN expr)?;
-parameters: LPAREN (parameter (COMMA parameter)*)? RPAREN;
-
-block: (LBRACE statement* RBRACE | REQARROW expr SEMICOLON | statement) | SEMICOLON;
-
-annotation: AT id (LPAREN (annotationArg (COMMA annotationArg)* | expr)? RPAREN)?;
-annotationArg: idPart ASSIGN expr;
-
-type
-    : rawType genericTypeUses?
-    | idPart
-    | type genericTypeUses? (LSQUAR RSQUAR)
-    | genericTypeUses? (LSQUAR RSQUAR)?
-    ;
-
-genericTypeUses: LESSER genericTypeUse (COMMA genericTypeUse)* GREATER;
-genericTypeUse: (QUESTION (EXTENDS | SUPER))? type;
-
-rawType
-    : primitiveLit
-    | inferType
-    | id
-    ;
+file: packageDecl imports classDecl* EOF;
 
 inferType: VOID | VAR;
 
-modifiers: modifier*;
-
-expr
-    : expr INSTANCEOF type                                                         #instanceCheckValue
-    | arr=expr LSQUAR index=expr RSQUAR                                            #arrayIndexValue
-    | prefixop expr                                                                #prefixOpValue
-    | typ=type left=idPart ASSIGN right=expr                                       #inlineDeclareValue // can't use varDeclaration due to recursive rules
-    | left=expr binaryop? ASSIGN right=expr                                        #inlineAssignValue // can't use varAssignment due to recursive rules
-    | left=expr binaryop right=expr                                                #binaryOpValue
-    | expr postfixop                                                               #postfixOpValue
-    | LPAREN expr RPAREN                                                           #parenValue
-    | initialisation                                                               #initialisationValue
-    | switchStatement                                                              #switchValue
-    | left=expr DOT call                                                            #callMethod
-    | left=expr DOT idPart                                                          #callProperty
-    | cast                                                                           #castValue
-    | newArray                                                                       #newArrayValue
-    | newListedArray                                                                 #newListedArrayValue
-    | primitiveLit                                                                   #thisValue
-    | idPart                                                                         #varValue
-    ;
-
-initialisation: NEW type arguments;
-cast: LPAREN type RPAREN expr;
-varDeclaration: type idPart ASSIGN expr;
-varAssignment: expr binaryop? ASSIGN expr;
-call: idPart arguments;
-innerCtorCall: (THIS | SUPER) arguments;
-newArray: NEW type LSQUAR expr RSQUAR;
-newListedArray: NEW type indexer LBRACE (expr (COMMA expr)*)? RBRACE;
 indexer: LSQUAR RSQUAR;
-
-arguments: LPAREN (expr (COMMA expr)*) RPAREN;
+cast: LPAREN type COLON expr RPAREN;
+declaration: type idPart ASSIGN expr;
+mutation: binaryop? ASSIGN expr;
+call: idPart arguments;
+ctorCall: NEW type arguments;
+newArray: NEW type LSQUAR NUMLIT RSQUAR;
+newListedArray: NEW type indexer LBRACE (expr (COMMA expr)*)? RBRACE;
 
 statement
-    : innerCtorCall SEMICOLON
-    | varDeclaration SEMICOLON
-    | varAssignment SEMICOLON
-    | returnStatement SEMICOLON
-    | throwStatement SEMICOLON
-    | initialisation SEMICOLON
-    | pipeStatement SEMICOLON
-    | tryCatchStatement finallyBlock?
-    | tryWithResourcesStatement finallyBlock?
-    | ifStatement finallyBlock?
-    | whileStatement finallyBlock?
-    | doWhile finallyBlock?
-    | forStatement finallyBlock?
-    | foreachStatement finallyBlock?
-    | switchStatement finallyBlock?
-    | SEMICOLON
+    : declaration SEMICOLON                                 #stmtDeclare
+    | left=expr mutation SEMICOLON                          #stmtAssign
+    | left=expr DOT idPart arguments?                       #stmtCallMember
+    | returnStatement SEMICOLON                             #stmtReturn
+    | throwStatement SEMICOLON                              #stmtThrow
+    | pipeStatement SEMICOLON                               #stmtPipe
+    | tryCatchStatement finallyBlock?                       #stmtTryCatch
+    | tryWithResourcesStatement finallyBlock?               #stmtTryWithRes
+    | markStatement                                         #stmtMark
+    | jumpStatement                                         #stmtJump
+    | ifStatement finallyBlock?                             #stmtIf
+    | whileStatement finallyBlock?                          #stmtWhile
+    | doWhile finallyBlock?                                 #stmtDoWhile
+    | forStatement finallyBlock?                            #stmtFor
+    | foreachStatement finallyBlock?                        #stmtForeach
+    | switchStatement finallyBlock?                         #stmtSwitch
+    | SEMICOLON                                             #stmtEmpty
+    ;
+expr
+    : idPart                                                #varValue
+    | expr INSTANCEOF type                                  #checkInstanceof
+    | arr=expr LSQUAR index=expr RSQUAR                     #readArray
+    | declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
+    | left=expr mutation                                    #varAssign // can't use varAssignment due to recursive rules
+    | left=expr DOT idPart arguments?                       #exprCallMember
+    | LPAREN expr RPAREN                                    #parens
+    | ctorCall                                              #callCtor
+    | nullable=expr QUESTION QUESTION fallback=expr         #exprNullFallback
+    | throwStatement                                        #exprThrow
+    | switchStatement                                       #exprSwitch
+    | cast                                                  #exprCast
+    | newArray                                              #newArrayValue
+    | newListedArray                                        #newListedArrayValue
+    | primitiveLit                                          #nativeLitValue
+    | type                                                  #typeValue
+    | left=expr TILDE right=expr                            #rangeInvoc
+    | prefixop expr                                         #opPrefix
+    | left=expr binaryop right=expr                         #opBinary
+    | expr postfixop                                        #opPostfix
     ;
 
 returnStatement: RETURN expr?;
 throwStatement: THROW expr;
 
-pipeStatement: pipeWriteStatement*? expr pipeReadStatement*?;
-pipeWriteStatement: expr (RBOXARROW | URSHIFT | RSHIFT);
-pipeReadStatement: (LSHIFT | ULSHIFT | LBOXARROW) expr;
+markStatement: MARK idPart SEMICOLON;
+jumpStatement: JUMP idPart SEMICOLON;
 
-tryCatchStatement: TRY block CATCH block;
-tryWithResourcesStatement: TRY LPAREN varDeclaration (COMMA varDeclaration)* RPAREN block CATCH block;
-finallyBlock: FINALLY block;
+tryCatchStatement: TRY codeBlock CATCH codeBlock;
+tryWithResourcesStatement: TRY LPAREN declaration (COMMA declaration)* RPAREN codeBlock CATCH codeBlock;
+finallyBlock: FINALLY codeBlock;
 
-ifStatement: IF LPAREN expr RPAREN block elseStatement?;
-elseStatement: ELSE block;
+ifStatement: IF LPAREN expr RPAREN codeBlock elseStatement?;
+elseStatement: ELSE codeBlock;
 
-whileStatement: WHILE LPAREN expr RPAREN block;
-forStatement: FOR LPAREN start=statement? SEMICOLON cond=expr? SEMICOLON end=statement? RPAREN action=block;
-foreachStatement: FOREACH LPAREN idPart COLON expr RPAREN block;
-doWhile: DO block WHILE LPAREN expr RPAREN SEMICOLON;
+whileStatement: WHILE LPAREN expr RPAREN codeBlock;
+forStatement: FOR LPAREN init=statement cond=expr SEMICOLON acc=expr RPAREN codeBlock;
+foreachStatement: FOREACH LPAREN idPart COLON expr RPAREN codeBlock;
+doWhile: DO codeBlock WHILE LPAREN expr RPAREN SEMICOLON;
+
+pipeStatement: expr (pipeReadStatement | pipeWriteStatement)+;
+pipeReadStatement: rPipeOp expr;
+pipeWriteStatement: lPipeOp expr;
+lPipeOp
+    : LLDASHARROW   #opPipeLLD
+    | LLEQARROW     #opPipeLLE
+    | LPULLARROW    #opPipeLPL
+    | LBOXARROW     #opPipeLBX
+    ;
+rPipeOp
+    : RRDASHARROW   #opPipeRRD
+    | RREQARROW     #opPipeRRE
+    | RPULLARROW    #opPipeRPL
+    | RBOXARROW     #opPipeRBX
+    ;
 
 switchStatement: SWITCH LPAREN expr RPAREN LBRACE caseClause* defaultClause? RBRACE;
-caseClause: CASE expr (COLON statement | RDASHARROW expr SEMICOLON);
-defaultClause: DEFAULT (COLON statement | RDASHARROW expr SEMICOLON);
+caseClause: CASE expr codeBlock;
+defaultClause: DEFAULT codeBlock;
 
 binaryop
-    : SLASH
-    | STAR
-    | PLUS
-    | MINUS
-    | PERCENT
-    | BITAND
-    | BITOR
-    | AND
-    | OR
-    | UP
-    | EQUAL
-    | INEQUAL
-    | GREATEREQ
-    | LESSEREQ
-    | GREATER
-    | LESSER
-    | LSHIFT
-    | RSHIFT
-    | ULSHIFT
-    | URSHIFT
-    | LBOXARROW
-    | RBOXARROW
-    | TILDE
+    : PLUS          #opPlus
+    | MINUS         #opMinus
+    | STAR          #opMultiply
+    | SLASH         #opDivide
+    | PERCENT       #opModulus
+    | BITAND        #opBitAnd
+    | BITOR         #opBitOr
+    | AND           #opLogicAnd
+    | OR            #opLogicOr
+    | UP            #opPow
+    | EQUAL         #opEqual
+    | INEQUAL       #opInequal
+    | GREATEREQ     #opGreaterEq
+    | LESSEREQ      #opLesserEq
+    | GREATER       #opGreater
+    | LESSER        #opLesser
+    | LSHIFT        #opLShift
+    | RSHIFT        #opRShift
+    | ULSHIFT       #opULShift
+    | URSHIFT       #opURShift
     ;
 
 prefixop
-    : PLUS
-    | MINUS
-    | EXCLAMATION
-    | PLUSPLUS
-    | MINUSMINUS
+    : MINUS         #opArithNot
+    | EXCLAMATION   #opLogicNot
+    | PLUSPLUS      #opIncrRead
+    | MINUSMINUS    #opDecrRead
     ;
 
 postfixop
-    : PLUSPLUS
-    | MINUSMINUS
-    | UP DIGIT+
+    : PLUSPLUS      #opReadIncr
+    | MINUSMINUS    #opReadDecr
     ;
 
 id: idPart (DOT idPart)*;
@@ -189,44 +227,35 @@ id: idPart (DOT idPart)*;
 idPart
     : ID
     | ANNOTATION
-    | SEALED
-    | PERMITS
     ;
 
-modifier
-    : PUBLIC
-    | INTERNAL
-    | PROTECTED
-    | PRIVATE
-    | STATIC
-    | FINAL
-    | ABSTRACT
-    | SYNCHRONIZED
-    | NATIVE
-    ;
 
 array: ARRAYIDENT genericTypeUses?;
 tuple: TUPLEIDENT genericTypeUses?;
-num: (NUMIDENT | INT) genericTypeUses? 
-    | BYTE
-    | SHORT
-    | INT
-    | LONG
-    | FLOAT
-    | DOUBLE
+num: (NUMIDENT | INT) genericTypeUses?  #numTypeLitTuple
+    | BYTE                              #numTypeLitByte
+    | SHORT                             #numTypeLitShort
+    | INT                               #numTypeLitInt
+    | LONG                              #numTypeLitLong
+    | FLOAT                             #numTypeLitFloat
+    | DOUBLE                            #numTypeLitDouble
     ;
-primitiveLit:
-      OBJECT 
-    | array 
-    | tuple
-    | num
-    | THIS
-    | SUPER
-    | TYPE
-    | ENUM
-    | NUMLIT
-    | BOOLLIT
-    | STRLIT
-    | STDIOLIT
-    | NULL
+primitiveTypeLit 
+    : OBJECT        #typeLitObject
+    | array         #typeLitArray
+    | tuple         #typeLitTuple
+    | num           #typeLitNum
+    | TYPE          #typeLitType
+    | ENUM          #typeLitEnum
+    | VOID          #typeLitVoid
+    ;
+primitiveLit
+    : THIS          #varThis
+    | SUPER         #varSuper
+    | NUMLIT        #varLitNum
+    | TRUE          #varLitTrue
+    | FALSE         #varLitFalse
+    | STRLIT        #varLitStr
+    | STDIOLIT      #varLitStdio
+    | NULL          #varLitNull
     ;

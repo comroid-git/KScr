@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.31424.327
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "kscr-runtime", "kscr-runtime\kscr-runtime.csproj", "{9606D274-2D07-434C-88BE-F725F018B277}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "kscr-lib", "kscr-lib\kscr-lib.csproj", "{A6218D05-C633-4950-A29F-BACCF941FADB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "kscr-core", "kscr-core\kscr-core.csproj", "{A6218D05-C633-4950-A29F-BACCF941FADB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kscr-compiler", "kscr-compiler\kscr-compiler.csproj", "{3F673941-7FC3-41FE-9377-0FF1B9275848}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kscr-system", "kscr-system\kscr-system.csproj", "{577D83CA-1BE1-413A-B952-882DE3E64755}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kscr-build", "kscr-build\kscr-build.csproj", "{0BF0C0BB-B3A7-4013-BBB6-3689920B3305}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kscr-lang-server", "kscr-lang-server\kscr-lang-server.csproj", "{8F75C3E7-3788-47DA-8313-4C7051D5D342}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{0BF0C0BB-B3A7-4013-BBB6-3689920B3305}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0BF0C0BB-B3A7-4013-BBB6-3689920B3305}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0BF0C0BB-B3A7-4013-BBB6-3689920B3305}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F75C3E7-3788-47DA-8313-4C7051D5D342}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F75C3E7-3788-47DA-8313-4C7051D5D342}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F75C3E7-3788-47DA-8313-4C7051D5D342}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F75C3E7-3788-47DA-8313-4C7051D5D342}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

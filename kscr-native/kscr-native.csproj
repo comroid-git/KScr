@@ -8,10 +8,14 @@
         <AssemblyVersion>0.2.2</AssemblyVersion>
         <Company>comroid</Company>
         <FileVersion>10</FileVersion>
+        <LangVersion>latest</LangVersion>
+        <PackageVersion>0.1.0</PackageVersion>
+        <Title>KScr Native Interface</Title>
+        <Authors>comroid</Authors>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\kscr-lib\kscr-lib.csproj" />
+      <ProjectReference Include="..\kscr-core\kscr-core.csproj" />
     </ItemGroup>
 
 </Project>

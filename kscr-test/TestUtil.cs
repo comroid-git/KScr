@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
-using KScr.Lib;
-using KScr.Lib.Bytecode;
-using KScr.Lib.Model;
-using KScr.Lib.Store;
+using KScr.Core;
+using KScr.Core.Bytecode;
+using KScr.Core.Model;
+using KScr.Core.Store;
 using KScr.Runtime;
 
 namespace KScr.Test
@@ -24,7 +24,7 @@ namespace KScr.Test
             if (!code.Contains("main()"))
                 code = "public static void main() { " + code + " }";
             code = "package org.comroid.kscr.test; public class " + testName + " { " + code + " }";
-            var cls = vm.CompileClass(testName, code);
+            var cls = vm.CompileClass(testName, source: code);
             var method = (cls.DeclaredMembers["main"] as Method)!;
             IObjectRef? yield = null;
             RuntimeBase.MainStack.StepInto(vm, new SourcefilePosition(), method, stack =>

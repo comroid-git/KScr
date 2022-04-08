@@ -2,23 +2,23 @@ package org.comroid.kscr.test;
 
 public class MathFromIO {
     public static void main() {
-        stdio << "Operation: (A + B) * C";
+        stdio <<- "Operation: (A + B) * C";
 
-        stdio << "Enter number A: ";
-        stdio >> num a;
+        stdio <<- "Enter number A: ";
+        stdio ->> num a;
         
         if (a > 5) {
-            stdio << "A is too large, was trimmed to 5";
+            stdio <<- "A is too large, was trimmed to 5";
             a = 5;
-        } else stdio << "Value of A is okay";
+        } else stdio <<- "Value of A is okay";
 
-        stdio << "Enter number B: ";
-        stdio >> num b;
+        stdio <<- "Enter number B: ";
+        stdio ->> num b;
 
-        stdio << "Enter integer factor C: ";
-        stdio >> int c;
+        stdio <<- "Enter integer factor C: ";
+        stdio ->> int c;
 
-        stdio << "Result of (" + a + " + " + b + ") * " + c;
-        stdio << (a + b) * c;
+        stdio <<- "Result of (" + a + " + " + b + ") * " + c;
+        stdio <<- (a + b) * c;
     }
 }

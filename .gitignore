@@ -824,6 +824,8 @@ sysinfo.txt
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,rider,csharp,dotnetcore,c++,clion,unity
 
+gen/
+
 !**.sln
 !**.csproj
 .antlr/
@@ -831,5 +833,5 @@ kscr-compiler/KScr/Antlr/
 gen/
 .vscode/
 
-// ignore kscr build directory
+# ignore kscr build directory
 build/
