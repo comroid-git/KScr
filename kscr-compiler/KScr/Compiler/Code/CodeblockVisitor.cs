@@ -14,7 +14,7 @@ public class CodeblockVisitor : AbstractVisitor<ExecutableCode>
     public override ExecutableCode VisitNormalBlock(KScrParser.NormalBlockContext context)
     {
         var code = new ExecutableCode();
-        foreach (var stmt in context.statement()) 
+        foreach (var stmt in context.statement())
             code.Main.Add(VisitStatement(stmt));
         return code;
     }
@@ -39,5 +39,8 @@ public class CodeblockVisitor : AbstractVisitor<ExecutableCode>
         return code;
     }
 
-    public override ExecutableCode VisitNoBlock(KScrParser.NoBlockContext context) => new();
+    public override ExecutableCode VisitNoBlock(KScrParser.NoBlockContext context)
+    {
+        return new ExecutableCode();
+    }
 }

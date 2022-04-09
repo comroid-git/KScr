@@ -6,72 +6,82 @@ using KScr.Core.Model;
 
 namespace KScr.Compiler.Code;
 
-public class StatementVisitor : AbstractVisitor<Statement> {
+public class StatementVisitor : AbstractVisitor<Statement>
+{
     public StatementVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 
-    public override Statement VisitDeclaration(KScrParser.DeclarationContext context) => new()
+    public override Statement VisitDeclaration(KScrParser.DeclarationContext context)
     {
-        Type = StatementComponentType.Declaration,
-        CodeType = BytecodeType.Declaration,
-        Main =
+        return new Statement
         {
-            VisitExpression(context)
-        }
-    };
+            Type = StatementComponentType.Declaration,
+            CodeType = BytecodeType.Declaration,
+            Main =
+            {
+                VisitExpression(context)
+            }
+        };
+    }
 
-    public override Statement VisitStmtAssign(KScrParser.StmtAssignContext context) => new()
+    public override Statement VisitStmtAssign(KScrParser.StmtAssignContext context)
     {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.Assignment,
-        Main =
+        return new Statement
         {
-            context.mutation().binaryop() is { } op
-                ? new StatementComponent()
-                {
-                    Type = StatementComponentType.Operator,
-                    CodeType = BytecodeType.Assignment,
-                    ByteArg = (ulong)(VisitOperator(op) | Operator.Compound | Operator.Binary),
-                    SubComponent = VisitExpression(context.left),
-                    AltComponent = VisitExpression(context.mutation().expr())
-                }
-                : new StatementComponent()
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.Assignment,
+            Main =
+            {
+                context.mutation().binaryop() is { } op
+                    ? new StatementComponent
+                    {
+                        Type = StatementComponentType.Operator,
+                        CodeType = BytecodeType.Assignment,
+                        ByteArg = (ulong)(VisitOperator(op) | Operator.Compound | Operator.Binary),
+                        SubComponent = VisitExpression(context.left),
+                        AltComponent = VisitExpression(context.mutation().expr())
+                    }
+                    : new StatementComponent
+                    {
+                        Type = StatementComponentType.Code,
+                        CodeType = BytecodeType.Assignment,
+                        SubComponent = VisitExpression(context.left),
+                        AltComponent = VisitExpression(context.mutation())
+                    }
+            }
+        };
+    }
+
+    public override Statement VisitReturnStatement(KScrParser.ReturnStatementContext context)
+    {
+        return new Statement
+        {
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.Return,
+            Main =
+            {
+                new StatementComponent
                 {
                     Type = StatementComponentType.Code,
-                    CodeType = BytecodeType.Assignment,
-                    SubComponent = VisitExpression(context.left),
-                    AltComponent = VisitExpression(context.mutation())
+                    CodeType = BytecodeType.Return,
+                    SubComponent = VisitExpression(context.expr())
                 }
-        }
-    };
-
-    public override Statement VisitReturnStatement(KScrParser.ReturnStatementContext context) => new()
-    {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.Return,
-        Main =
-        {
-            new StatementComponent
-            {
-                Type = StatementComponentType.Code,
-                CodeType = BytecodeType.Return,
-                SubComponent = VisitExpression(context.expr()),
             }
-        }
-    };
+        };
+    }
 
     public override Statement VisitStmtCallMember(KScrParser.StmtCallMemberContext context)
     {
         var expr = VisitExpression(context.expr());
-        expr.PostComponent = new()
+        expr.PostComponent = new StatementComponent
         {
             Type = StatementComponentType.Expression,
             CodeType = BytecodeType.Call,
             Arg = context.idPart().GetText(),
             SubStatement = VisitArguments(context.arguments())
         };
-        return new Statement()
+        return new Statement
         {
             Type = StatementComponentType.Expression,
             CodeType = BytecodeType.Call,
@@ -79,15 +89,18 @@ public class StatementVisitor : AbstractVisitor<Statement> {
         };
     }
 
-    public override Statement VisitStmtThrow(KScrParser.StmtThrowContext context) => new()
+    public override Statement VisitStmtThrow(KScrParser.StmtThrowContext context)
     {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.Throw,
-        Main =
+        return new Statement
         {
-            VisitExpression(context.throwStatement())
-        }
-    };
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.Throw,
+            Main =
+            {
+                VisitExpression(context.throwStatement())
+            }
+        };
+    }
 
     public override Statement VisitPipeStatement(KScrParser.PipeStatementContext context)
     {
@@ -123,138 +136,160 @@ public class StatementVisitor : AbstractVisitor<Statement> {
         throw new NotImplementedException("Compiling of statement " + context + " is not supported");
     }
 
-    public override Statement VisitMarkStatement(KScrParser.MarkStatementContext context) => new()
+    public override Statement VisitMarkStatement(KScrParser.MarkStatementContext context)
     {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.StmtMark,
-        Main =
+        return new Statement
         {
-            new StatementComponent
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtMark,
+            Main =
             {
-                
-                Type = StatementComponentType.Code,
-                CodeType = BytecodeType.StmtMark,
-                Arg = context.idPart().GetText()
+                new StatementComponent
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.StmtMark,
+                    Arg = context.idPart().GetText()
+                }
             }
-        }
-    };
+        };
+    }
 
-    public override Statement VisitJumpStatement(KScrParser.JumpStatementContext context) => new()
+    public override Statement VisitJumpStatement(KScrParser.JumpStatementContext context)
     {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.StmtJump,
-        Main =
+        return new Statement
         {
-            new StatementComponent
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtJump,
+            Main =
             {
-                
-                Type = StatementComponentType.Code,
-                CodeType = BytecodeType.StmtJump,
-                Arg = context.idPart().GetText()
+                new StatementComponent
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.StmtJump,
+                    Arg = context.idPart().GetText()
+                }
             }
-        }
-    };
+        };
+    }
 
-    public override Statement VisitStmtIf(KScrParser.StmtIfContext context) => new()
+    public override Statement VisitStmtIf(KScrParser.StmtIfContext context)
     {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.StmtIf,
-        Main =
+        return new Statement
         {
-            new StatementComponent
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtIf,
+            Main =
             {
-                Type = StatementComponentType.Code,
-                CodeType = BytecodeType.StmtIf,
-                SubComponent = VisitExpression(context.ifStatement().expr()),
-                InnerCode = VisitCode(context.ifStatement().codeBlock()),
-                AltComponent = context.ifStatement().elseStatement() is { } elseStmt
-                    ? new StatementComponent
-                    {
-                        Type = StatementComponentType.Code,
-                        CodeType = BytecodeType.StmtElse,
-                        InnerCode = VisitCode(elseStmt.codeBlock())
-                    }
-                    : null
-            }
-        },
-        Finally = VisitCode(context.finallyBlock())
-    };
+                new StatementComponent
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.StmtIf,
+                    SubComponent = VisitExpression(context.ifStatement().expr()),
+                    InnerCode = VisitCode(context.ifStatement().codeBlock()),
+                    AltComponent = context.ifStatement().elseStatement() is { } elseStmt
+                        ? new StatementComponent
+                        {
+                            Type = StatementComponentType.Code,
+                            CodeType = BytecodeType.StmtElse,
+                            InnerCode = VisitCode(elseStmt.codeBlock())
+                        }
+                        : null
+                }
+            },
+            Finally = VisitCode(context.finallyBlock())
+        };
+    }
 
-    public override Statement VisitStmtWhile(KScrParser.StmtWhileContext context) => new()
+    public override Statement VisitStmtWhile(KScrParser.StmtWhileContext context)
     {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.StmtWhile,
-        Main =
+        return new Statement
         {
-            new StatementComponent
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtWhile,
+            Main =
             {
-                Type = StatementComponentType.Code,
-                CodeType = BytecodeType.StmtWhile,
-                SubComponent = VisitExpression(context.whileStatement().expr()),
-                InnerCode = VisitCode(context.whileStatement().codeBlock())
-            }
-        },
-        Finally = VisitCode(context.finallyBlock())
-    };
+                new StatementComponent
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.StmtWhile,
+                    SubComponent = VisitExpression(context.whileStatement().expr()),
+                    InnerCode = VisitCode(context.whileStatement().codeBlock())
+                }
+            },
+            Finally = VisitCode(context.finallyBlock())
+        };
+    }
 
-    public override Statement VisitStmtDoWhile(KScrParser.StmtDoWhileContext context) => new()
+    public override Statement VisitStmtDoWhile(KScrParser.StmtDoWhileContext context)
     {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.StmtDo,
-        Main =
+        return new Statement
         {
-            new StatementComponent
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtDo,
+            Main =
             {
-                Type = StatementComponentType.Code,
-                CodeType = BytecodeType.StmtDo,
-                SubComponent = VisitExpression(context.doWhile().expr()),
-                InnerCode = VisitCode(context.doWhile().codeBlock())
-            }
-        },
-        Finally = VisitCode(context.finallyBlock())
-    };
+                new StatementComponent
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.StmtDo,
+                    SubComponent = VisitExpression(context.doWhile().expr()),
+                    InnerCode = VisitCode(context.doWhile().codeBlock())
+                }
+            },
+            Finally = VisitCode(context.finallyBlock())
+        };
+    }
 
-    public override Statement VisitStmtFor(KScrParser.StmtForContext context) => new()
+    public override Statement VisitStmtFor(KScrParser.StmtForContext context)
     {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.StmtFor,
-        Main =
+        return new Statement
         {
-            new StatementComponent
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtFor,
+            Main =
             {
-                Type = StatementComponentType.Code,
-                CodeType = BytecodeType.StmtFor,
-                SubStatement = VisitStatement(context.forStatement().init),
-                SubComponent = VisitExpression(context.forStatement().cond),
-                AltComponent = VisitExpression(context.forStatement().acc),
-                InnerCode = VisitCode(context.forStatement().codeBlock())
-            }
-        },
-        Finally = VisitCode(context.finallyBlock())
-    };
+                new StatementComponent
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.StmtFor,
+                    SubStatement = VisitStatement(context.forStatement().init),
+                    SubComponent = VisitExpression(context.forStatement().cond),
+                    AltComponent = VisitExpression(context.forStatement().acc),
+                    InnerCode = VisitCode(context.forStatement().codeBlock())
+                }
+            },
+            Finally = VisitCode(context.finallyBlock())
+        };
+    }
 
-    public override Statement VisitStmtForeach(KScrParser.StmtForeachContext context) => new()
+    public override Statement VisitStmtForeach(KScrParser.StmtForeachContext context)
     {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.StmtForEach,
-        Main =
+        return new Statement
         {
-            new StatementComponent
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtForEach,
+            Main =
             {
-                Type = StatementComponentType.Code,
-                CodeType = BytecodeType.StmtForEach,
-                Arg = context.foreachStatement().idPart().GetText(),
-                SubComponent = VisitExpression(context.foreachStatement().expr()),
-                InnerCode = VisitCode(context.foreachStatement().codeBlock())
-            }
-        },
-        Finally = VisitCode(context.finallyBlock())
-    };
+                new StatementComponent
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.StmtForEach,
+                    Arg = context.foreachStatement().idPart().GetText(),
+                    SubComponent = VisitExpression(context.foreachStatement().expr()),
+                    InnerCode = VisitCode(context.foreachStatement().codeBlock())
+                }
+            },
+            Finally = VisitCode(context.finallyBlock())
+        };
+    }
 
     public override Statement VisitStmtSwitch(KScrParser.StmtSwitchContext context)
     {
         throw new NotImplementedException("Compiling of statement " + context + " is not supported");
     }
 
-    public override Statement VisitStmtEmpty(KScrParser.StmtEmptyContext context) => new();
+    public override Statement VisitStmtEmpty(KScrParser.StmtEmptyContext context)
+    {
+        return new Statement();
+    }
 }

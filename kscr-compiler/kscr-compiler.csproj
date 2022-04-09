@@ -12,11 +12,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\kscr-core\kscr-core.csproj" />
+        <ProjectReference Include="..\kscr-bytecode\kscr-bytecode.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.3" />
+        <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.3"/>
     </ItemGroup>
 
 </Project>

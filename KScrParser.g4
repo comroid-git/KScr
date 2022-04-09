@@ -195,6 +195,7 @@ binaryop
     | PERCENT       #opModulus
     | BITAND        #opBitAnd
     | BITOR         #opBitOr
+    | EXCLAMATION   #opBitNot
     | AND           #opLogicAnd
     | OR            #opLogicOr
     | UP            #opPow

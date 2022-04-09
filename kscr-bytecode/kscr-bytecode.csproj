@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>KScr.Bytecode</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+        <Company>comroid</Company>
+        <AssemblyVersion>0.3.0</AssemblyVersion>
+        <FileVersion>10</FileVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\kscr-core\kscr-core.csproj"/>
+    </ItemGroup>
+
+</Project>
