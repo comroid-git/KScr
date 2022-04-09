@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using KScr.Core.Model;
 using KScr.Core.Util;
+using Microsoft.VisualBasic;
 
 namespace KScr.Core.Bytecode
 {
@@ -47,7 +49,7 @@ namespace KScr.Core.Bytecode
                     var file = new FileInfo(Path.Combine(dir.FullName, (member.Name.Contains("<")
                         ? member.Name.Substring(0, member.Name.IndexOf("<", StringComparison.Ordinal))
                         : member.Name) + ".kbin"));
-                    vm.Write(strings, new FileStream(file.FullName, FileMode.Create), cls);
+                    vm.Write(strings, FStream(vm, file, FileMode.Create), cls);
                 }
                 else throw new NotSupportedException("Member is of unsupported type: " + member.GetType());
             if (!rec)
@@ -74,12 +76,21 @@ namespace KScr.Core.Bytecode
 
             foreach (var cls in dir.EnumerateFiles("*.kbin"))
             {
-                var kls = vm.Load<Class>(vm, strings, new FileStream(cls.FullName, FileMode.Open), it, null); //Class.Read(vm, strings, cls, it);
+                var kls = vm.Load<Class>(vm, strings, FStream(vm, cls, FileMode.Open), it, null); //Class.Read(vm, strings, cls, it);
                 //it.Members[kls.Name] = kls;
             }
 
             return it;
         }
+
+        private static Stream FStream(RuntimeBase vm, FileInfo file, FileMode mode, bool rec = false) => !rec
+            ? vm.WrapStream(FStream(vm, file, mode, true), mode switch
+            {
+                FileMode.Create => CompressionMode.Compress,
+                FileMode.Open => CompressionMode.Decompress,
+                _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "invalid state")
+            })
+            : new FileStream(file.FullName, mode);
 
         public override string ToString()
         {

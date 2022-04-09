@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using CommandLine;
+using KScr.Core;
 
 namespace KScr.Runtime
 {
@@ -20,6 +22,11 @@ namespace KScr.Runtime
     {
         [Option(HelpText = "The path of the output directory. Defaults to ./build/compile")]
         public DirectoryInfo? Output { get; set; }
+
+        [Option(HelpText = "The compression method to use. Defaults to 'none'; options are 'None', 'GZip' and 'ZLib'", Default = CompressionType.None)]
+        public CompressionType Compression { get; set; }
+        [Option(HelpText = "The compression level to use. Defaults to 'optimal'", Default = CompressionLevel.Optimal)]
+        public CompressionLevel CompressionLevel { get; set; }
     }
 
     public interface IClasspathCmd : IGenericCmd
@@ -43,6 +50,8 @@ namespace KScr.Runtime
         public IEnumerable<DirectoryInfo> Classpath { get; set; }
 
         public DirectoryInfo? Output { get; set; }
+        public CompressionType Compression { get; set; }
+        public CompressionLevel CompressionLevel { get; set; }
         public string? Encoding { get; set; }
         public bool Confirm { get; set; }
         public bool Debug { get; set; }
@@ -57,6 +66,8 @@ namespace KScr.Runtime
         public bool Confirm { get; set; }
         public bool Debug { get; set; }
         public DirectoryInfo? Output { get; set; }
+        public CompressionType Compression { get; set; }
+        public CompressionLevel CompressionLevel { get; set; }
         public IEnumerable<string> Sources { get; set; }
     }
 

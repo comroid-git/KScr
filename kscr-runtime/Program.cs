@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using CommandLine;
@@ -81,6 +82,11 @@ namespace KScr.Runtime
             RuntimeBase.Encoding = Encoding.GetEncoding(cmd.Encoding ?? "ASCII");
             RuntimeBase.ConfirmExit = cmd.Confirm;
             RuntimeBase.DebugMode = cmd.Debug;
+            if (cmd is IOutputCmd output)
+            {
+                VM.CompressionType = output.Compression;
+                VM.CompressionLevel = output.CompressionLevel;
+            }
         }
 
         private static void LoadStdPackage()

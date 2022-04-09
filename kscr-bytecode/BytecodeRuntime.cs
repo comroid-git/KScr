@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.IO.Compression;
 using KScr.Bytecode.Port;
 using KScr.Core;
 using KScr.Core.Model;
@@ -14,7 +13,4 @@ public abstract class BytecodeRuntime : RuntimeBase
         {
             [V_0_10] = new BytecodePortV0_10()
         };
-
-    public override Stream WrapStreamCompress(Stream stream) => new GZipStream(stream, CompressionLevel.Optimal);
-    public override Stream WrapStreamDecompress(Stream stream) => new GZipStream(stream, CompressionMode.Decompress);
 }

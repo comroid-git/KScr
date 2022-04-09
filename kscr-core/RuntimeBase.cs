@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using KScr.Core.Bytecode;
@@ -15,6 +16,13 @@ using String = KScr.Core.String;
 
 namespace KScr.Core
 {
+    public enum CompressionType
+    {
+        None,
+        GZip,
+        ZLib
+    }
+    
     public enum State : uint
     {
         Normal = 0,
@@ -45,8 +53,15 @@ namespace KScr.Core
         public abstract ClassStore ClassStore { get; }
         public abstract INativeRunner? NativeRunner { get; }
         public abstract IDictionary<Version, IBytecodePort> BytecodePorts { get; }
-        public abstract Stream WrapStreamCompress(Stream stream);
-        public abstract Stream WrapStreamDecompress(Stream stream);
+        public Stream WrapStream(Stream stream, CompressionMode mode, CompressionLevel? level = null) => (CompressionType, mode) switch
+        {
+            (CompressionType.None, _) => stream,
+            (CompressionType.GZip, CompressionMode.Compress) => new GZipStream(stream, level ?? CompressionLevel),
+            (CompressionType.GZip, CompressionMode.Decompress) => new GZipStream(stream, CompressionMode.Decompress),
+            (CompressionType.ZLib, CompressionMode.Compress) => new ZLibStream(stream, level ?? CompressionLevel),
+            (CompressionType.ZLib, CompressionMode.Decompress) => new ZLibStream(stream, CompressionMode.Decompress),
+            _ => throw new ArgumentOutOfRangeException(nameof(CompressionType), CompressionType, "Invalid CompressionType")
+        };
         public Version Version => BytecodeVersion.Current;
         public void Write(StringCache strings, Stream stream, IBytecode bytecode)
             => BytecodePorts[Version].Write(strings, stream, bytecode);
@@ -75,7 +90,9 @@ namespace KScr.Core
         public static bool ConfirmExit { get; set; }
         public static bool DebugMode { get; set; }
         public static bool CompileSystem { get; set; }
-        public static int ExitCode { get; set; } = int.MinValue;
+        public CompressionType CompressionType { get; set; } = CompressionType.None;
+        public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
+        public static int ExitCode { get; set; } = 0;
         public static string? ExitMessage { get; set; } = null;
 
         public void Initialize()
