@@ -2,94 +2,94 @@
 using System.IO;
 using Antlr4.Runtime;
 using KScr.Antlr;
-using KScr.Antlr;
 using KScr.Bytecode;
 using KScr.Compiler.Class;
-using KScr.Core;
 using KScr.Core.Bytecode;
-using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
 
-namespace KScr.Compiler
+namespace KScr.Compiler;
+
+public class CompilerRuntime : BytecodeRuntime
 {
-    public class CompilerRuntime : BytecodeRuntime
+    public override INativeRunner? NativeRunner => null;
+    public override ObjectStore ObjectStore => null!;
+    public override ClassStore ClassStore { get; } = new();
+
+    public void CompileFiles(IEnumerable<FileInfo> sources)
     {
-        public override INativeRunner? NativeRunner => null;
-        public override ObjectStore ObjectStore => null!;
-        public override ClassStore ClassStore { get; } = new();
-
-        public void CompileFiles(IEnumerable<FileInfo> sources)
+        IEnumerator<FileInfo> files = null!;
+        try
         {
-            IEnumerator<FileInfo> files = null!;
-            try
-            {
-                files = sources.GetEnumerator();
-                while (files.MoveNext())
-                    CompileClass(files.Current);
-            } finally
-            {
-                files?.Dispose();
-            }
+            files = sources.GetEnumerator();
+            while (files.MoveNext())
+                CompileClass(files.Current);
         }
-
-        public void CompileClass(FileInfo file)
+        finally
         {
-            string clsName = file.Name.Substring(0, file.Name.Length - SourceFileType.Length);
-            CompileClass(clsName, file.FullName);
+            files?.Dispose();
         }
+    }
 
-        public Core.Class CompileClass(string clsName, string filePath = "org/comroid/kscr/core/System.kscr", string? source = null)
+    public void CompileClass(FileInfo file)
+    {
+        var clsName = file.Name.Substring(0, file.Name.Length - SourceFileType.Length);
+        CompileClass(clsName, file.FullName);
+    }
+
+    public Core.Class CompileClass(string clsName, string filePath = "org/comroid/kscr/core/System.kscr",
+        string? source = null)
+    {
+        var fileDecl =
+            MakeFileDecl(source != null ? new AntlrInputStream(source) : new AntlrFileStream(filePath, Encoding));
+
+        // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
+        var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
+        var imports = FindClassImports(fileDecl.imports());
+        var news = new Dictionary<string, Core.Class>();
+        var ctx = new CompilerContext
         {
-            var fileDecl = MakeFileDecl(source != null ? new AntlrInputStream(source) : new AntlrFileStream(filePath, Encoding));
+            Package = pkg,
+            Imports = imports
+        };
 
-            // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
-            var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
-            var imports = FindClassImports(fileDecl.imports());
-            var news = new Dictionary<string, Core.Class>();
-            var ctx = new CompilerContext
+        foreach (var classDecl in fileDecl.classDecl())
+        {
+            var classInfo = new ClassInfoVisitor(this, ctx).Visit(classDecl);
+            var subctx = new CompilerContext
             {
-                Package = pkg,
-                Imports = imports
+                Parent = ctx,
+                Class = pkg.GetOrCreateClass(this, classInfo.Name, classInfo.Modifier, classInfo.ClassType)
             };
-            
-            foreach (var classDecl in fileDecl.classDecl())
-            {
-                var classInfo = new ClassInfoVisitor(this, ctx).Visit(classDecl);
-                var subctx = new CompilerContext
-                {
-                    Parent = ctx,
-                    Class = pkg.GetOrCreateClass(this, classInfo.Name, classInfo.Modifier, classInfo.ClassType)
-                };
-                var cls = new ClassVisitor(this, subctx).Visit(classDecl);
-                cls.Initialize(this);
-                cls.LateInitialize(this, MainStack);
-                news[cls.Name] = cls;
-            }
-            return news[clsName];
+            var cls = new ClassVisitor(this, subctx).Visit(classDecl);
+            cls.Initialize(this);
+            cls.LateInitialize(this, MainStack);
+            news[cls.Name] = cls;
         }
 
-        public KScrParser.FileContext MakeFileDecl(BaseInputCharStream input)
-        {
-            var lexer = new KScrLexer(input);
-            var tokens = new CommonTokenStream(lexer);
-            var parser = new KScrParser(tokens);
-            return parser.file();
-        }
+        return news[clsName];
+    }
 
-        private List<string> FindClassImports(KScrParser.ImportsContext ctx)
-        {
-            var yields = new List<string>();
-            foreach (var importDecl in ctx.importDecl())
-                yields.Add(importDecl.id().GetText());
-            return yields;
-        }
+    public KScrParser.FileContext MakeFileDecl(BaseInputCharStream input)
+    {
+        var lexer = new KScrLexer(input);
+        var tokens = new CommonTokenStream(lexer);
+        var parser = new KScrParser(tokens);
+        return parser.file();
+    }
 
-        public ClassInfo FindClassInfo(FileInfo file)
-        {
-            var fileDecl = MakeFileDecl(new AntlrFileStream(file.FullName));
-            var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
-            return new ClassInfoVisitor(this, new CompilerContext(){Package = pkg}).Visit(fileDecl.classDecl(0));
-        }
+    private List<string> FindClassImports(KScrParser.ImportsContext ctx)
+    {
+        var yields = new List<string>();
+        foreach (var importDecl in ctx.importDecl())
+            yields.Add(importDecl.id().GetText());
+        return yields;
+    }
+
+    public ClassInfo FindClassInfo(FileInfo file)
+    {
+        var fileDecl = MakeFileDecl(new AntlrFileStream(file.FullName));
+        var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
+        return new ClassInfoVisitor(this, new CompilerContext { Package = pkg }).Visit(fileDecl.classDecl(0));
     }
 }

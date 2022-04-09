@@ -12,7 +12,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\kscr-core\kscr-core.csproj" />
+        <ProjectReference Include="..\kscr-core\kscr-core.csproj"/>
     </ItemGroup>
 
 </Project>

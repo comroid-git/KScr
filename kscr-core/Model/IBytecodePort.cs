@@ -13,13 +13,13 @@ public enum BytecodeElementType : byte
     UInt32,
     UInt64,
     String,
-    
+
     Class,
     Method,
     MethodParameter,
     Property,
     SourcePosition,
-    
+
     CodeBlock,
     Statement,
     Component
@@ -28,18 +28,35 @@ public enum BytecodeElementType : byte
 public interface IBytecode
 {
     BytecodeElementType ElementType { get; }
-    
-    static LiteralBytecode<byte> Byte(byte b) => new(BytecodeElementType.Byte, b);
-    static LiteralBytecode<int> Int(int i) => new(BytecodeElementType.Int32, i);
-    static LiteralBytecode<uint> UInt(uint i) => new(BytecodeElementType.UInt32, i);
-    static LiteralBytecode<ulong> ULong(ulong l) => new(BytecodeElementType.UInt64, l);
-    static LiteralBytecode<string> String(string str) => new(BytecodeElementType.String, str);
+
+    static LiteralBytecode<byte> Byte(byte b)
+    {
+        return new(BytecodeElementType.Byte, b);
+    }
+
+    static LiteralBytecode<int> Int(int i)
+    {
+        return new(BytecodeElementType.Int32, i);
+    }
+
+    static LiteralBytecode<uint> UInt(uint i)
+    {
+        return new(BytecodeElementType.UInt32, i);
+    }
+
+    static LiteralBytecode<ulong> ULong(ulong l)
+    {
+        return new(BytecodeElementType.UInt64, l);
+    }
+
+    static LiteralBytecode<string> String(string str)
+    {
+        return new(BytecodeElementType.String, str);
+    }
 }
 
 public sealed class LiteralBytecode<T> : IBytecode
 {
-    public BytecodeElementType ElementType { get; }
-    public IEnumerable<IBytecode> Components => ArraySegment<IBytecode>.Empty;
     public T Value;
 
     public LiteralBytecode(BytecodeElementType elementType, T value)
@@ -48,7 +65,10 @@ public sealed class LiteralBytecode<T> : IBytecode
         Value = value;
     }
 
+    public IEnumerable<IBytecode> Components => ArraySegment<IBytecode>.Empty;
+
     public IEnumerable<IBytecode> Header { get; } = Array.Empty<IBytecode>();
+    public BytecodeElementType ElementType { get; }
 }
 
 public interface IBytecodePort

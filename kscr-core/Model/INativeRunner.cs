@@ -1,5 +1,4 @@
 ﻿using KScr.Core.Bytecode;
-using KScr.Core;
 using KScr.Core.Store;
 
 namespace KScr.Core.Model;

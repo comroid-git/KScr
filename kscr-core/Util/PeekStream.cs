@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace KScr.Core.Util;
 
@@ -14,6 +13,17 @@ public class PeekStream : Stream
     {
         _stream = stream;
         _writer = writer;
+    }
+
+    public override bool CanRead => _stream.CanRead;
+    public override bool CanSeek => _stream.CanSeek;
+    public override bool CanWrite => _stream.CanWrite;
+    public override long Length => _stream.Length;
+
+    public override long Position
+    {
+        get => _stream.Position;
+        set => _stream.Position = value;
     }
 
     public override void Flush()
@@ -44,15 +54,9 @@ public class PeekStream : Stream
         _writer.WriteLine(MakeText(buffer, offset, count, "Write()"));
     }
 
-    public override bool CanRead => _stream.CanRead;
-    public override bool CanSeek => _stream.CanSeek;
-    public override bool CanWrite => _stream.CanWrite;
-    public override long Length => _stream.Length;
-    public override long Position { get => _stream.Position; set => _stream.Position = value; }
-
     private ReadOnlySpan<char> MakeText(byte[] buffer, int offset, int len, string msg)
     {
-        byte[] txt = new byte[len];
+        var txt = new byte[len];
         Array.Copy(buffer, offset, txt, 0, len);
         msg += ": 0x" + string.Join(" 0x", txt.Select(x => x.ToString("X")));
         return msg;

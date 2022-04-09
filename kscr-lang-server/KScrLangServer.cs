@@ -1,6 +1,4 @@
-﻿using OmniSharp.Extensions.LanguageServer.Server;
-
-namespace KScr.LangServer;
+﻿namespace KScr.LangServer;
 
 public static class KScrLangServer
 {

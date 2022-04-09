@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using KScr.Core.Bytecode;
 using KScr.Core.Util;
 
 namespace KScr.Core.Model;

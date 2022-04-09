@@ -16,5 +16,6 @@ public abstract class AbstractBytecodePort : IBytecodePort
 
     public abstract void Write(StringCache strings, Stream stream,
         IBytecode bytecode);
+
     public abstract T Load<T>(RuntimeBase vm, StringCache strings, Stream stream, Package pkg, Class? cls);
 }

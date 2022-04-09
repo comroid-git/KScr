@@ -22,11 +22,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Core" />
+        <Folder Include="Core"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="System.IO.Compression" Version="4.3.0" />
+        <PackageReference Include="System.IO.Compression" Version="4.3.0"/>
     </ItemGroup>
 
 </Project>

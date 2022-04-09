@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using KScr.Core.Bytecode;
 
 namespace KScr.Core.Util;
 
 public sealed class StringCache
 {
     public const string FileName = "strings" + RuntimeBase.BinaryFileType;
+
+    public static readonly byte[] NewLineBytes = RuntimeBase.Encoding.GetBytes("\n");
     private readonly IList<string> _strings = new List<string>();
     private int _index = -1;
 
@@ -22,7 +21,7 @@ public sealed class StringCache
                 throw new NullReferenceException();
             if (_strings.IndexOf(str) is var i && i != -1)
                 return i;
-            int id = ++_index;
+            var id = ++_index;
             _strings.Add(str);
             if (_strings[id] != str)
                 throw new System.Exception("invalid state");
@@ -32,7 +31,10 @@ public sealed class StringCache
 
     public string? this[int id] => _strings[id];
 
-    public void Write(DirectoryInfo dir) => Write(MakeFile(dir));
+    public void Write(DirectoryInfo dir)
+    {
+        Write(MakeFile(dir));
+    }
 
     public void Write(FileInfo file)
     {
@@ -41,7 +43,7 @@ public sealed class StringCache
         stream.Write(BitConverter.GetBytes(_strings.Count));
         stream.Write(NewLineBytes);
         stream.Flush();
-        
+
         foreach (var str in _strings)
         {
             var buf = RuntimeBase.Encoding.GetBytes(str);
@@ -50,14 +52,16 @@ public sealed class StringCache
             stream.Write(NewLineBytes);
             stream.Flush();
         }
-        
+
         stream.Close();
     }
 
     public void Load(FileInfo file)
     {
         if (!file.Exists)
+        {
             Debug.WriteLine("[StringCache] Warning: Empty StringCache loaded");
+        }
         else
         {
             Stream stream = new FileStream(file.FullName, FileMode.Open);
@@ -72,9 +76,9 @@ public sealed class StringCache
             while (c-- > 0)
             {
                 i += stream.Read(buf = new byte[4]);
-                int l = BitConverter.ToInt32(buf);
+                var l = BitConverter.ToInt32(buf);
                 i += stream.Read(buf = new byte[l]);
-                string value = RuntimeBase.Encoding.GetString(buf);
+                var value = RuntimeBase.Encoding.GetString(buf);
                 i += stream.Read(buf = new byte[NewLineBytes.Length]);
 
                 _strings.Add(value);
@@ -84,7 +88,10 @@ public sealed class StringCache
         }
     }
 
-    public static StringCache Read(DirectoryInfo dir) => Read(MakeFile(dir));
+    public static StringCache Read(DirectoryInfo dir)
+    {
+        return Read(MakeFile(dir));
+    }
 
     public static StringCache Read(FileInfo file)
     {
@@ -97,6 +104,4 @@ public sealed class StringCache
     {
         return new FileInfo(Path.Combine(dir.FullName, FileName));
     }
-
-    public static readonly byte[] NewLineBytes = RuntimeBase.Encoding.GetBytes("\n");
 }

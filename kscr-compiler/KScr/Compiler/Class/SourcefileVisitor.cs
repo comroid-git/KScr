@@ -17,16 +17,17 @@ public class SourcefileVisitor : AbstractVisitor<CompilerContext>
         var pkgName = context.packageDecl().id().GetText();
         var pkg = Package.RootPackage.GetOrCreatePackage(pkgName);
         var imports = new List<string>();
-        foreach (var import in context.imports().importDecl()) 
+        foreach (var import in context.imports().importDecl())
             imports.Add(import.id().GetText());
-        var subctx = new CompilerContext() { Package = pkg, Imports = imports };
+        var subctx = new CompilerContext { Package = pkg, Imports = imports };
         foreach (var classDecl in context.classDecl())
         {
             var info = VisitClassInfo(classDecl);
             var cls = pkg.GetOrCreateClass(vm, info.Name, info.Modifier, info.ClassType);
-            var clsctx = new CompilerContext() { Parent = subctx, Class = cls };
+            var clsctx = new CompilerContext { Parent = subctx, Class = cls };
             new ClassVisitor(vm, clsctx).Visit(classDecl);
         }
+
         return subctx;
     }
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using KScr.Antlr;
-using KScr.Core;
+﻿using System.Collections.Generic;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
 
@@ -11,11 +6,12 @@ namespace KScr.Compiler;
 
 public class CompilerContext
 {
-    private readonly Package? _package;
     private readonly IClassInfo? _class;
     private readonly List<string>? _imports;
+    private readonly Package? _package;
 
     internal CompilerContext? Parent { get; init; }
+
     public Package Package
     {
         get => _package ?? Parent?.Package ?? Package.RootPackage;
@@ -33,6 +29,4 @@ public class CompilerContext
         get => _class ?? Parent?.Class;
         init => _class = value;
     }
-
-    public CompilerContext() {}
 }

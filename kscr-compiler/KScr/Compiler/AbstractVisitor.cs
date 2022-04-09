@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using KScr.Antlr;
@@ -15,22 +13,45 @@ namespace KScr.Compiler;
 
 public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
 {
-    protected override bool ShouldVisitNextChild(IRuleNode node, T currentResult) => currentResult == null;
-
-    protected RuntimeBase vm { get; }
-    protected CompilerContext ctx { get; }
-
     protected AbstractVisitor(RuntimeBase vm, CompilerContext ctx)
     {
         this.vm = vm;
         this.ctx = ctx;
     }
 
-    protected Core.Class VisitClass(KScrParser.ClassDeclContext cls) => new ClassVisitor(vm, ctx).Visit(cls);
-    protected ClassInfo VisitClassInfo(KScrParser.ClassDeclContext cls) => new ClassInfoVisitor(vm, ctx).Visit(cls);
-    protected ITypeInfo VisitTypeInfo(KScrParser.TypeContext type) => new TypeInfoVisitor(vm, ctx).Visit(type);
-    protected new MemberModifier VisitModifiers(KScrParser.ModifiersContext mods) => new ModifierVisitor().Visit(mods);
-    protected Operator VisitOperator(ParserRuleContext op) => new OperatorVisitor().Visit(op);
+    protected RuntimeBase vm { get; }
+    protected CompilerContext ctx { get; }
+
+    protected override bool ShouldVisitNextChild(IRuleNode node, T currentResult)
+    {
+        return currentResult == null;
+    }
+
+    protected Core.Class VisitClass(KScrParser.ClassDeclContext cls)
+    {
+        return new ClassVisitor(vm, ctx).Visit(cls);
+    }
+
+    protected ClassInfo VisitClassInfo(KScrParser.ClassDeclContext cls)
+    {
+        return new ClassInfoVisitor(vm, ctx).Visit(cls);
+    }
+
+    protected ITypeInfo VisitTypeInfo(KScrParser.TypeContext type)
+    {
+        return new TypeInfoVisitor(vm, ctx).Visit(type);
+    }
+
+    protected new MemberModifier VisitModifiers(KScrParser.ModifiersContext mods)
+    {
+        return new ModifierVisitor().Visit(mods);
+    }
+
+    protected Operator VisitOperator(ParserRuleContext op)
+    {
+        return new OperatorVisitor().Visit(op);
+    }
+
     protected TypeParameter VisitTypeParameter(KScrParser.GenericTypeDefContext gtd)
     {
         var name = gtd.idPart().GetText();
@@ -41,9 +62,12 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             : TypeParameterSpecializationType.Extends;
         var target = spec switch
         {
-            TypeParameterSpecializationType.List => Core.Class.IterableType.CreateInstance(vm, Core.Class.IterableType, Core.Class.ObjectType),
+            TypeParameterSpecializationType.List => Core.Class.IterableType.CreateInstance(vm, Core.Class.IterableType,
+                Core.Class.ObjectType),
             TypeParameterSpecializationType.N => Core.Class.NumericIntType,
-            TypeParameterSpecializationType.Extends => gtd.ext == null ? Core.Class.ObjectType.DefaultInstance : VisitTypeInfo(gtd.ext!),
+            TypeParameterSpecializationType.Extends => gtd.ext == null
+                ? Core.Class.ObjectType.DefaultInstance
+                : VisitTypeInfo(gtd.ext!),
             TypeParameterSpecializationType.Super => VisitTypeInfo(gtd.sup!),
             _ => throw new ArgumentOutOfRangeException()
         };
@@ -52,28 +76,47 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             : null;
         return new TypeParameter(name, spec, target.AsClassInstance(vm)) { DefaultValue = def };
     }
-    protected IClassMember VisitClassMember(KScrParser.MemberContext member) => member.RuleIndex switch
+
+    protected IClassMember VisitClassMember(KScrParser.MemberContext member)
     {
-        KScrParser.RULE_methodDecl or KScrParser.RULE_constructorDecl or KScrParser.RULE_initDecl
-            or KScrParser.RULE_propertyDecl or KScrParser.RULE_member
-            => new ClassMemberVisitor(vm, ctx).Visit(member),
-        KScrParser.RULE_classDecl => new ClassVisitor(vm, ctx).Visit(member.classDecl()),
-        _ => throw new ArgumentOutOfRangeException(nameof(member.RuleIndex), member.RuleIndex, "Invalid Rule for member: " + member)
-    };
-    protected ExecutableCode VisitCode(ParserRuleContext? code) => code == null ? new ExecutableCode() : new CodeblockVisitor(vm, ctx).Visit(code);
-    protected ExecutableCode VisitMemberCode(ParserRuleContext member) => new CodeblockVisitor(vm, ctx).Visit(member);
-    protected Statement VisitStatement(KScrParser.StatementContext stmt) => new StatementVisitor(vm, ctx).Visit(stmt);
-    protected StatementComponent VisitExpression(ParserRuleContext expr) => new ExpressionVisitor(vm, ctx).Visit(expr);
+        return member.RuleIndex switch
+        {
+            KScrParser.RULE_methodDecl or KScrParser.RULE_constructorDecl or KScrParser.RULE_initDecl
+                or KScrParser.RULE_propertyDecl or KScrParser.RULE_member
+                => new ClassMemberVisitor(vm, ctx).Visit(member),
+            KScrParser.RULE_classDecl => new ClassVisitor(vm, ctx).Visit(member.classDecl()),
+            _ => throw new ArgumentOutOfRangeException(nameof(member.RuleIndex), member.RuleIndex,
+                "Invalid Rule for member: " + member)
+        };
+    }
+
+    protected ExecutableCode VisitCode(ParserRuleContext? code)
+    {
+        return code == null ? new ExecutableCode() : new CodeblockVisitor(vm, ctx).Visit(code);
+    }
+
+    protected ExecutableCode VisitMemberCode(ParserRuleContext member)
+    {
+        return new CodeblockVisitor(vm, ctx).Visit(member);
+    }
+
+    protected Statement VisitStatement(KScrParser.StatementContext stmt)
+    {
+        return new StatementVisitor(vm, ctx).Visit(stmt);
+    }
+
+    protected StatementComponent VisitExpression(ParserRuleContext expr)
+    {
+        return new ExpressionVisitor(vm, ctx).Visit(expr);
+    }
 
     protected new Statement VisitArguments(KScrParser.ArgumentsContext context)
     {
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         if (context == null)
-            return new Statement()
-                { Type = StatementComponentType.Code, CodeType = BytecodeType.ParameterExpression};
-        var param = new Statement()
-            { Type = StatementComponentType.Code, CodeType = BytecodeType.ParameterExpression};
-        foreach (var expr in context.expr()) 
+            return new Statement { Type = StatementComponentType.Code, CodeType = BytecodeType.ParameterExpression };
+        var param = new Statement { Type = StatementComponentType.Code, CodeType = BytecodeType.ParameterExpression };
+        foreach (var expr in context.expr())
             param.Main.Add(VisitExpression(expr));
         return param;
     }
@@ -85,7 +128,13 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         return vm.FindType(name, ctx.Package);
     }
 
-    public ITypeInfo? FindTypeInfo(KScrParser.TypeContext context) => VisitTypeInfo(context);
+    public ITypeInfo? FindTypeInfo(KScrParser.TypeContext context)
+    {
+        return VisitTypeInfo(context);
+    }
 
-    public SourcefilePosition ToSrcPos(ParserRuleContext context) => Utils.ToSrcPos(context);
+    public SourcefilePosition ToSrcPos(ParserRuleContext context)
+    {
+        return Utils.ToSrcPos(context);
+    }
 }

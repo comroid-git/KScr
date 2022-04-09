@@ -13,6 +13,7 @@ public static class Math
             throw new ArgumentException("Invalid Argument; expected num");
         return num.Sqrt(vm);
     }
+
     [NativeImpl]
     public static IObjectRef sin(RuntimeBase vm, Stack stack, IObject target, params IObject[] args)
     {
@@ -20,6 +21,7 @@ public static class Math
             throw new ArgumentException("Invalid Argument; expected num");
         return num.Sin(vm);
     }
+
     [NativeImpl]
     public static IObjectRef cos(RuntimeBase vm, Stack stack, IObject target, params IObject[] args)
     {
@@ -27,6 +29,7 @@ public static class Math
             throw new ArgumentException("Invalid Argument; expected num");
         return num.Cos(vm);
     }
+
     [NativeImpl]
     public static IObjectRef tan(RuntimeBase vm, Stack stack, IObject target, params IObject[] args)
     {

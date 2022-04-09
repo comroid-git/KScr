@@ -16,21 +16,46 @@ public class BytecodePortV0_10 : AbstractBytecodePort
     {
         if (bytecode == null)
             throw new NullReferenceException();
-        
+
         void WriteElementType()
         {
             WriteByte((byte)bytecode.ElementType);
         }
-        void WriteByte(byte b) => stream!.Write(new[]{b});
-        void WriteInt(int i) => stream!.Write(BitConverter.GetBytes(i));
-        void WriteUInt(uint ui) => stream!.Write(BitConverter.GetBytes(ui));
-        void WriteULong(ulong ul) => stream!.Write(BitConverter.GetBytes(ul));
-        void WriteString(string str) => WriteInt(strings[str]);
-        void WriteNewline() => stream!.Write(StringCache.NewLineBytes);
-        void WriteArray<T>(T[] list) where T : IBytecode
+
+        void WriteByte(byte b)
         {
-            stream.Write(BitConverter.GetBytes(list.Length));
-            foreach (var node in list)
+            stream!.Write(new[] { b });
+        }
+
+        void WriteInt(int i)
+        {
+            stream!.Write(BitConverter.GetBytes(i));
+        }
+
+        void WriteUInt(uint ui)
+        {
+            stream!.Write(BitConverter.GetBytes(ui));
+        }
+
+        void WriteULong(ulong ul)
+        {
+            stream!.Write(BitConverter.GetBytes(ul));
+        }
+
+        void WriteString(string str)
+        {
+            WriteInt(strings[str]);
+        }
+
+        void WriteNewline()
+        {
+            stream!.Write(StringCache.NewLineBytes);
+        }
+
+        void WriteArray<T>(T[] arr) where T : IBytecode
+        {
+            stream.Write(BitConverter.GetBytes(arr.Length));
+            foreach (var node in arr)
                 Write(strings, stream, node);
         }
 
@@ -55,11 +80,11 @@ public class BytecodePortV0_10 : AbstractBytecodePort
             WriteString(prop.ReturnType.FullDetailedName);
             Write(strings, stream, prop.SourceLocation);
             WriteByte((byte)
-                ((prop.Gettable        ? 0b000_001 : 0) |
-                 (prop.Settable        ? 0b000_010 : 0) |
-                 (prop.Inittable       ? 0b000_100 : 0) |
-                 (prop.Getter != null  ? 0b001_000 : 0) |
-                 (prop.Setter != null  ? 0b010_000 : 0) |
+                ((prop.Gettable ? 0b000_001 : 0) |
+                 (prop.Settable ? 0b000_010 : 0) |
+                 (prop.Inittable ? 0b000_100 : 0) |
+                 (prop.Getter != null ? 0b001_000 : 0) |
+                 (prop.Setter != null ? 0b010_000 : 0) |
                  (prop.Initter != null ? 0b100_000 : 0))
             );
             if (prop.Getter != null)
@@ -101,7 +126,7 @@ public class BytecodePortV0_10 : AbstractBytecodePort
             WriteString(stmt.TargetType.FullDetailedName);
             WriteArray(stmt.Main.ToArray());
             WriteByte((byte)(stmt.Finally != null ? 1 : 0));
-            if (stmt.Finally != null) 
+            if (stmt.Finally != null)
                 Write(strings, stream, stmt.Finally!);
         }
         else if (bytecode is StatementComponent comp)
@@ -128,62 +153,82 @@ public class BytecodePortV0_10 : AbstractBytecodePort
                 Write(strings, stream, comp.InnerCode!);
         }
         else if (bytecode is LiteralBytecode<byte> litB)
+        {
             WriteByte(litB.Value);
+        }
         else if (bytecode is LiteralBytecode<int> litI)
+        {
             WriteInt(litI.Value);
+        }
         else if (bytecode is LiteralBytecode<uint> litUI)
+        {
             WriteUInt(litUI.Value);
+        }
         else if (bytecode is LiteralBytecode<ulong> litUL)
+        {
             WriteULong(litUL.Value);
+        }
         else if (bytecode is LiteralBytecode<string> litS)
+        {
             WriteString(litS.Value);
-        else throw new NotSupportedException("Bytecode not supported: " + bytecode);
-        
+        }
+        else
+        {
+            throw new NotSupportedException("Bytecode not supported: " + bytecode);
+        }
+
         stream.Flush();
     }
 
     public override T Load<T>(RuntimeBase vm, StringCache strings, Stream stream, Package pkg, Class? cls)
     {
         byte[] buf;
-        
+
         BytecodeElementType ReadElementType()
         {
             return (BytecodeElementType)ReadByte();
         }
+
         byte ReadByte()
         {
             stream.Read(buf = new byte[1], 0, 1);
             return buf[0];
         }
+
         int ReadInt()
         {
             stream!.Read(buf = new byte[4], 0, 4);
             return BitConverter.ToInt32(buf);
         }
+
         uint ReadUInt()
         {
             stream!.Read(buf = new byte[4], 0, 4);
             return BitConverter.ToUInt32(buf);
         }
+
         ulong ReadULong()
         {
             stream!.Read(buf = new byte[8], 0, 8);
             return BitConverter.ToUInt64(buf);
         }
+
         string ReadString()
         {
             var id = ReadInt();
             return strings[id] ?? throw new NotSupportedException("Missing string with id " + id);
         }
+
         void ReadNewline()
         {
             stream!.Read(buf = new byte[StringCache.NewLineBytes.Length], 0, StringCache.NewLineBytes.Length);
         }
+
         T2[] ReadArray<T2>()
         {
-            int l = ReadInt();
-            T2[] yields = new T2[l];
-            for (int i = 0; i < l; i++)
+            var l = ReadInt();
+            var yields = new T2[l];
+            for (var i = 0; i < l; i++)
                 yields[i] = Load<T2>(vm, strings, stream, pkg, cls);
             return yields;
         }
@@ -236,7 +281,7 @@ public class BytecodePortV0_10 : AbstractBytecodePort
                     getter = Load<ExecutableCode>(vm, strings, stream, pkg, cls);
                 else if ((propState & 0b010_000) != 0)
                     setter = Load<ExecutableCode>(vm, strings, stream, pkg, cls);
-                else if ((propState & 0b100_000) != 0) 
+                else if ((propState & 0b100_000) != 0)
                     initter = Load<ExecutableCode>(vm, strings, stream, pkg, cls);
                 return (T)(object)new Property(srcPos, cls!, name, returnType, mod)
                 {
@@ -261,9 +306,9 @@ public class BytecodePortV0_10 : AbstractBytecodePort
             case BytecodeElementType.MethodParameter:
                 returnType = vm.FindType(ReadString());
                 name = ReadString();
-                return (T)(object)new MethodParameter() { Name = name, Type = returnType };
+                return (T)(object)new MethodParameter { Name = name, Type = returnType };
             case BytecodeElementType.SourcePosition:
-                return (T)(object)new SourcefilePosition()
+                return (T)(object)new SourcefilePosition
                 {
                     SourcefileLine = ReadInt(),
                     SourcefileCursor = ReadInt()
@@ -281,7 +326,7 @@ public class BytecodePortV0_10 : AbstractBytecodePort
                 var comps = ReadArray<StatementComponent>();
                 ExecutableCode? finallyBlock = null;
                 if (ReadByte() == 1) finallyBlock = Load<ExecutableCode>(vm, strings, stream, pkg, cls);
-                var stmt = new Statement()
+                var stmt = new Statement
                 {
                     Type = sType,
                     CodeType = codeType,
@@ -314,7 +359,7 @@ public class BytecodePortV0_10 : AbstractBytecodePort
                     postComp = Load<StatementComponent>(vm, strings, stream, pkg, cls);
                 if ((memberState & ComponentMember.InnerCode) != 0)
                     innerCode = Load<ExecutableCode>(vm, strings, stream, pkg, cls);
-                return (T)(object)new StatementComponent()
+                return (T)(object)new StatementComponent
                 {
                     Type = sType,
                     CodeType = codeType,
@@ -330,6 +375,7 @@ public class BytecodePortV0_10 : AbstractBytecodePort
                     SourcefilePosition = srcPos
                 };
         }
+
         throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid ElementType");
     }
 }

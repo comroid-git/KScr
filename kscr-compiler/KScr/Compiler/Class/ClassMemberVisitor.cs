@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using KScr.Antlr;
-using KScr.Compiler.Code;
+﻿using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
@@ -19,10 +16,10 @@ public class ClassMemberVisitor : AbstractVisitor<IClassMember>
         var name = context.idPart().GetText();
         var type = VisitTypeInfo(context.type());
         var mod = VisitModifiers(context.modifiers());
-        var mtd = new Method(ToSrcPos(context), ctx.Class!.AsClass(vm), name, type, mod) 
+        var mtd = new Method(ToSrcPos(context), ctx.Class!.AsClass(vm), name, type, mod)
             { Body = VisitMemberCode(context.memberBlock()) };
         foreach (var param in context.parameters().parameter())
-            mtd.Parameters.Add(new MethodParameter()
+            mtd.Parameters.Add(new MethodParameter
                 { Name = param.idPart().GetText(), Type = VisitTypeInfo(param.type()) });
         return mtd;
     }
@@ -34,7 +31,7 @@ public class ClassMemberVisitor : AbstractVisitor<IClassMember>
         var ctor = new Method(ToSrcPos(context), cls, Method.ConstructorName, cls, mod)
             { Body = VisitMemberCode(context.memberBlock()) };
         foreach (var param in context.parameters().parameter())
-            ctor.Parameters.Add(new MethodParameter()
+            ctor.Parameters.Add(new MethodParameter
                 { Name = param.idPart().GetText(), Type = VisitTypeInfo(param.type()) });
         return ctor;
     }
@@ -42,7 +39,7 @@ public class ClassMemberVisitor : AbstractVisitor<IClassMember>
     public override IClassMember VisitInitDecl(KScrParser.InitDeclContext context)
     {
         return new Method(ToSrcPos(context), ctx.Class!.AsClass(vm), Method.StaticInitializerName,
-                Core.Class.VoidType, MemberModifier.Private | MemberModifier.Static) 
+                Core.Class.VoidType, MemberModifier.Private | MemberModifier.Static)
             { Body = VisitMemberCode(context.memberBlock()) };
     }
 
@@ -88,15 +85,16 @@ public class ClassMemberVisitor : AbstractVisitor<IClassMember>
             if (context.Start.Type == KScrLexer.ASSIGN && context.expr() is { } expr)
             {
                 var initter = new ExecutableCode();
-                var stmt = new Statement()
+                var stmt = new Statement
                 {
-                    Type =StatementComponentType.Expression,
+                    Type = StatementComponentType.Expression,
                     CodeType = BytecodeType.Expression
                 };
                 stmt.Main.Add(_parent.VisitExpression(expr));
                 initter.Main.Add(stmt);
                 _prop.Inittable = (_prop.Initter = initter) != null;
             }
+
             _prop.Gettable = _prop.Settable = true;
             return _prop;
         }
