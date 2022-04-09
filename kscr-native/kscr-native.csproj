@@ -21,6 +21,10 @@
         <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <OutputPath>bin\</OutputPath>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\kscr-core\kscr-core.csproj"/>
     </ItemGroup>

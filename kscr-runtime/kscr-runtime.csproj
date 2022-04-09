@@ -18,6 +18,10 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <OutputPath>bin\</OutputPath>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj" />
         <ProjectReference Include="..\kscr-system\kscr-system.csproj" />

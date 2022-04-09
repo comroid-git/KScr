@@ -11,6 +11,10 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <OutputPath>bin\</OutputPath>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\kscr-native\kscr-native.csproj"/>
     </ItemGroup>

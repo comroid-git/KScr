@@ -11,6 +11,10 @@
         <FileVersion>10</FileVersion>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <OutputPath>bin\</OutputPath>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\kscr-core\kscr-core.csproj"/>
     </ItemGroup>
