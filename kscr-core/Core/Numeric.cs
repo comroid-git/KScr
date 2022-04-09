@@ -74,7 +74,7 @@ namespace KScr.Core.Core
         public bool Primitive => true;
         public bool ImplicitlyFalse => FloatValue <= 0;
 
-        public long ObjectId => StringCache.CombineHash(_objId, CreateKey(StringValue));
+        public long ObjectId => RuntimeBase.CombineHash(_objId, CreateKey(StringValue));
         public IClassInstance Type => Class._NumericType(Mode);
 
         public string ToString(short variant)
