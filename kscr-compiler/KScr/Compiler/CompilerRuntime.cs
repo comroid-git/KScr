@@ -33,7 +33,7 @@ public class CompilerRuntime : BytecodeRuntime
 
     public void CompileClass(FileInfo file)
     {
-        var clsName = file.Name.Substring(0, file.Name.Length - SourceFileType.Length);
+        var clsName = file.Name.Substring(0, file.Name.Length - SourceFileExt.Length);
         CompileClass(clsName, file.FullName);
     }
 

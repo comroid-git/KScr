@@ -43,6 +43,12 @@ public interface ISourcesCmd : IGenericCmd
     public IEnumerable<string> Sources { get; set; }
 }
 
+public interface IConfigCmd
+{
+    [Option(HelpText = "Whether to add the executable to the PATH environment variable")]
+    public bool Install { get; set; }
+}
+
 [Verb("compile", HelpText = "Compile and Write one or more .kscr Files to .kbin Files")]
 public sealed class CmdCompile : IOutputCmd, IClasspathCmd, ISourcesCmd
 {
@@ -79,4 +85,10 @@ public sealed class CmdRun : IClasspathCmd
     public string? Encoding { get; set; }
     public bool Confirm { get; set; }
     public bool Debug { get; set; }
+}
+
+[Verb("config", HelpText = "Configure your KScr Installation")]
+public sealed class CmdConfig : IConfigCmd
+{
+    public bool Install { get; set; }
 }

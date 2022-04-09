@@ -19,16 +19,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj"/>
-        <ProjectReference Include="..\kscr-system\kscr-system.csproj"/>
+        <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj" />
+        <ProjectReference Include="..\kscr-system\kscr-system.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="CommandLineParser" Version="2.9.0-preview1"/>
+        <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Exec Command="mkdir $(TargetDir)\std" ContinueOnError="true"/>
+        <Exec Command="mkdir $(TargetDir)\std" ContinueOnError="true" />
     </Target>
 
 </Project>

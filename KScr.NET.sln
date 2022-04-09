@@ -77,5 +77,6 @@ Global
 		File = Test Execute.run.xml
 		File = Build std & Execute.run.xml
 		File = Compile & Run.run.xml
+		File = Test Install.run.xml
 	EndGlobalSection
 EndGlobal

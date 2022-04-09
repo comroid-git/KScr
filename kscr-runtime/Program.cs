@@ -34,7 +34,7 @@ public class Program
         var stack = RuntimeBase.MainStack;
         long compileTime = -1, executeTime = -1, ioTime = -1;
 
-        Parser.Default.ParseArguments<CmdCompile, CmdExecute, CmdRun>(args)
+        Parser.Default.ParseArguments<CmdCompile, CmdExecute, CmdRun, CmdConfig>(args)
             .WithParsed<CmdCompile>(cmd =>
             {
                 CopyProps(cmd);
@@ -65,6 +65,11 @@ public class Program
 
                 ioTime = LoadClasspath(cmd);
                 executeTime = Execute(out stack);
+            })
+            .WithParsed<CmdConfig>(cmd =>
+            {
+                if (cmd.Install)
+                    Installer.CheckInstallation();
             });
 
         return HandleExit(stack.State, stack.Omg?.Value, compileTime, executeTime, ioTime, RuntimeBase.ConfirmExit);

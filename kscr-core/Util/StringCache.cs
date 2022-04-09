@@ -7,7 +7,7 @@ namespace KScr.Core.Util;
 
 public sealed class StringCache
 {
-    public const string FileName = "strings" + RuntimeBase.BinaryFileType;
+    public const string FileName = "strings" + RuntimeBase.BinaryFileExt;
 
     public static readonly byte[] NewLineBytes = RuntimeBase.Encoding.GetBytes("\n");
     private readonly IList<string> _strings = new List<string>();

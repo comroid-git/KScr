@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
@@ -31,18 +32,19 @@ public enum State : uint
 
 public abstract class RuntimeBase : IBytecodePort
 {
-    public const string SourceFileType = ".kscr";
-    public const string BinaryFileType = ".kbin";
+    public const string SourceFileExt = ".kscr";
+    public const string BinaryFileExt = ".kbin";
+    public const string ModuleFileExt = ".kmod";
     public static Encoding Encoding = Encoding.ASCII;
 
     public static readonly DummyMethod MainInvoc = new(Class.ObjectType, "main",
         MemberModifier.Public | MemberModifier.Final | MemberModifier.Static, Class.NumericIntType);
-
     public static readonly SourcefilePosition
         SystemSrcPos = new() { SourcefilePath = MainInvoc.FullName + " <native>" };
 
     public static readonly DirectoryInfo SdkHome = GetSdkHome();
     public static readonly Stack MainStack = new();
+    public static readonly Assembly Assembly;
     public static bool Initialized;
 
     private uint _lastObjId = 0xF;
@@ -51,6 +53,8 @@ public abstract class RuntimeBase : IBytecodePort
     {
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+
+        Assembly = typeof(RuntimeBase).Assembly;
     }
 
     public abstract ObjectStore ObjectStore { get; }
