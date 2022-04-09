@@ -54,8 +54,6 @@ public sealed class StringCache
         stream.Close();
     }
 
-    public void Load(DirectoryInfo dir) => Load(MakeFile(dir));
-
     public void Load(FileInfo file)
     {
         if (!file.Exists)
