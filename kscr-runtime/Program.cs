@@ -7,6 +7,7 @@ using CommandLine;
 using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
+using KScr.Core.Std;
 using KScr.Core.Store;
 using KScr.Core.Util;
 

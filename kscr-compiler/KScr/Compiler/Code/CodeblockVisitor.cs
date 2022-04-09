@@ -41,6 +41,6 @@ public class CodeblockVisitor : AbstractVisitor<ExecutableCode>
 
     public override ExecutableCode VisitNoBlock(KScrParser.NoBlockContext context)
     {
-        return new();
+        return new ExecutableCode();
     }
 }

@@ -22,10 +22,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Folder Include="Core"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="System.IO.Compression" Version="4.3.0"/>
     </ItemGroup>
 

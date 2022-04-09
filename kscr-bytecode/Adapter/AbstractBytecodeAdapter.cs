@@ -1,13 +1,14 @@
 ﻿using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
+using KScr.Core.Std;
 using KScr.Core.Util;
 
-namespace KScr.Bytecode.Port;
+namespace KScr.Bytecode.Adapter;
 
-public abstract class AbstractBytecodePort : IBytecodePort
+public abstract class AbstractBytecodeAdapter : IBytecodePort
 {
-    protected AbstractBytecodePort(BytecodeVersion version)
+    protected AbstractBytecodeAdapter(BytecodeVersion version)
     {
         BytecodeVersion = version;
     }

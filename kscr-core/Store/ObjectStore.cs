@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using KScr.Core.Exception;
 using KScr.Core.Model;
+using KScr.Core.Std;
 
 namespace KScr.Core.Store;
 

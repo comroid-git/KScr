@@ -8,8 +8,10 @@ using System.Text;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
+using KScr.Core.Std;
 using KScr.Core.Store;
 using KScr.Core.Util;
+using String = KScr.Core.Std.String;
 
 namespace KScr.Core;
 

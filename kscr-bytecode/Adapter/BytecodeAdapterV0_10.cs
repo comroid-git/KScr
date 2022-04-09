@@ -1,14 +1,15 @@
 ﻿using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
+using KScr.Core.Std;
 using KScr.Core.Store;
 using KScr.Core.Util;
 
-namespace KScr.Bytecode.Port;
+namespace KScr.Bytecode.Adapter;
 
-public class BytecodePortV0_10 : AbstractBytecodePort
+public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
 {
-    public BytecodePortV0_10() : base(BytecodeVersion.V_0_10)
+    public BytecodeAdapterV0_10() : base(BytecodeVersion.V_0_10)
     {
     }
 

@@ -14,7 +14,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitDeclaration(KScrParser.DeclarationContext context)
     {
-        return new()
+        return new Statement
         {
             Type = StatementComponentType.Declaration,
             CodeType = BytecodeType.Declaration,
@@ -27,7 +27,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitStmtAssign(KScrParser.StmtAssignContext context)
     {
-        return new()
+        return new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.Assignment,
@@ -55,7 +55,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitReturnStatement(KScrParser.ReturnStatementContext context)
     {
-        return new()
+        return new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.Return,
@@ -91,7 +91,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitStmtThrow(KScrParser.StmtThrowContext context)
     {
-        return new()
+        return new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.Throw,
@@ -138,7 +138,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitMarkStatement(KScrParser.MarkStatementContext context)
     {
-        return new()
+        return new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtMark,
@@ -156,7 +156,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitJumpStatement(KScrParser.JumpStatementContext context)
     {
-        return new()
+        return new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtJump,
@@ -174,7 +174,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitStmtIf(KScrParser.StmtIfContext context)
     {
-        return new()
+        return new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtIf,
@@ -202,7 +202,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitStmtWhile(KScrParser.StmtWhileContext context)
     {
-        return new()
+        return new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtWhile,
@@ -222,7 +222,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitStmtDoWhile(KScrParser.StmtDoWhileContext context)
     {
-        return new()
+        return new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtDo,
@@ -242,7 +242,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitStmtFor(KScrParser.StmtForContext context)
     {
-        return new()
+        return new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtFor,
@@ -264,7 +264,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitStmtForeach(KScrParser.StmtForeachContext context)
     {
-        return new()
+        return new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtForEach,
@@ -290,6 +290,6 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitStmtEmpty(KScrParser.StmtEmptyContext context)
     {
-        return new();
+        return new Statement();
     }
 }

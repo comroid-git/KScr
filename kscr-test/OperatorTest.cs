@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
-using KScr.Core;
+using KScr.Core.Std;
 using NUnit.Framework;
 using static KScr.Test.TestUtil;
 

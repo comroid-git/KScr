@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using KScr.Core.Bytecode;
+using KScr.Core.Std;
 using KScr.Core.Util;
 
 namespace KScr.Core.Model;
@@ -31,27 +32,27 @@ public interface IBytecode
 
     static LiteralBytecode<byte> Byte(byte b)
     {
-        return new(BytecodeElementType.Byte, b);
+        return new LiteralBytecode<byte>(BytecodeElementType.Byte, b);
     }
 
     static LiteralBytecode<int> Int(int i)
     {
-        return new(BytecodeElementType.Int32, i);
+        return new LiteralBytecode<int>(BytecodeElementType.Int32, i);
     }
 
     static LiteralBytecode<uint> UInt(uint i)
     {
-        return new(BytecodeElementType.UInt32, i);
+        return new LiteralBytecode<uint>(BytecodeElementType.UInt32, i);
     }
 
     static LiteralBytecode<ulong> ULong(ulong l)
     {
-        return new(BytecodeElementType.UInt64, l);
+        return new LiteralBytecode<ulong>(BytecodeElementType.UInt64, l);
     }
 
     static LiteralBytecode<string> String(string str)
     {
-        return new(BytecodeElementType.String, str);
+        return new LiteralBytecode<string>(BytecodeElementType.String, str);
     }
 }
 

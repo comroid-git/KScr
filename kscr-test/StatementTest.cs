@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using KScr.Core;
 using KScr.Core.Exception;
+using KScr.Core.Std;
 using NUnit.Framework;
 using static KScr.Test.TestUtil;
 

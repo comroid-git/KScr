@@ -8,6 +8,7 @@ using KScr.Compiler.Code;
 using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
+using KScr.Core.Std;
 
 namespace KScr.Compiler;
 
@@ -27,7 +28,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         return currentResult == null;
     }
 
-    protected Core.Class VisitClass(KScrParser.ClassDeclContext cls)
+    protected Core.Std.Class VisitClass(KScrParser.ClassDeclContext cls)
     {
         return new ClassVisitor(vm, ctx).Visit(cls);
     }
@@ -62,11 +63,12 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             : TypeParameterSpecializationType.Extends;
         var target = spec switch
         {
-            TypeParameterSpecializationType.List => Core.Class.IterableType.CreateInstance(vm, Core.Class.IterableType,
-                Core.Class.ObjectType),
-            TypeParameterSpecializationType.N => Core.Class.NumericIntType,
+            TypeParameterSpecializationType.List => Core.Std.Class.IterableType.CreateInstance(vm,
+                Core.Std.Class.IterableType,
+                Core.Std.Class.ObjectType),
+            TypeParameterSpecializationType.N => Core.Std.Class.NumericIntType,
             TypeParameterSpecializationType.Extends => gtd.ext == null
-                ? Core.Class.ObjectType.DefaultInstance
+                ? Core.Std.Class.ObjectType.DefaultInstance
                 : VisitTypeInfo(gtd.ext!),
             TypeParameterSpecializationType.Super => VisitTypeInfo(gtd.sup!),
             _ => throw new ArgumentOutOfRangeException()

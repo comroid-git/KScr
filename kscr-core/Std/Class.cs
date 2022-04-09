@@ -7,7 +7,7 @@ using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
 
-namespace KScr.Core;
+namespace KScr.Core.Std;
 
 public sealed class Class : AbstractPackageMember, IClass
 {

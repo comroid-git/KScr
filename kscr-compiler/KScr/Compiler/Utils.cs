@@ -7,7 +7,7 @@ public static class Utils
 {
     public static SourcefilePosition ToSrcPos(ParserRuleContext context)
     {
-        return new()
+        return new SourcefilePosition
         {
             SourcefilePath = context.Start.TokenSource.SourceName,
             SourcefileLine = context.Start.Line,

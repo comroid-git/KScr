@@ -3,6 +3,7 @@ using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
+using KScr.Core.Std;
 using KScr.Core.Store;
 
 namespace KScr.Compiler.Code;

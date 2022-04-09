@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using KScr.Core.Model;
+using KScr.Core.Std;
 using KScr.Core.Util;
 
 namespace KScr.Core.Bytecode;

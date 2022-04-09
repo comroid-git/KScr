@@ -4,6 +4,7 @@ using System.Linq;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
+using KScr.Core.Std;
 using static KScr.Core.Store.StackOutput;
 
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
@@ -187,7 +188,7 @@ public sealed class Stack
 
     public Stack Output(StackOutput outputMode = StackOutput.Alp)
     {
-        return new(this, outputMode);
+        return new Stack(this, outputMode);
     }
 
     public Stack Channel(StackOutput channel, StackOutput outputMode = StackOutput.Alp)
@@ -303,7 +304,7 @@ public sealed class Stack
                     throw new InternalException("No Message Provided");
                 }
 
-                if (!Core.Class.ThrowableType.CanHold(Omg.Value.Type)
+                if (!Std.Class.ThrowableType.CanHold(Omg.Value.Type)
                     || Omg.Value is not { } throwable)
                     throw new FatalException(
                         "Value is not instanceof Throwable: " + Omg.Value.ToString(0));

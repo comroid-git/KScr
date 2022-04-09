@@ -2,7 +2,7 @@
 using KScr.Core.Model;
 using KScr.Core.Store;
 
-namespace KScr.Core;
+namespace KScr.Core.Std;
 
 public interface IObject
 {

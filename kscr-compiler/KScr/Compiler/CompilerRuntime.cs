@@ -37,7 +37,7 @@ public class CompilerRuntime : BytecodeRuntime
         CompileClass(clsName, file.FullName);
     }
 
-    public Core.Class CompileClass(string clsName, string filePath = "org/comroid/kscr/core/System.kscr",
+    public Core.Std.Class CompileClass(string clsName, string filePath = "org/comroid/kscr/core/System.kscr",
         string? source = null)
     {
         var fileDecl =
@@ -46,7 +46,7 @@ public class CompilerRuntime : BytecodeRuntime
         // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
         var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
         var imports = FindClassImports(fileDecl.imports());
-        var news = new Dictionary<string, Core.Class>();
+        var news = new Dictionary<string, Core.Std.Class>();
         var ctx = new CompilerContext
         {
             Package = pkg,
