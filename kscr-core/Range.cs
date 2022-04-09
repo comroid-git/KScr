@@ -3,7 +3,7 @@ using KScr.Core.Bytecode;
 using KScr.Core.Model;
 using KScr.Core.Store;
 
-namespace KScr.Core.Core
+namespace KScr.Core
 {
     public sealed class Range : IObject
     {

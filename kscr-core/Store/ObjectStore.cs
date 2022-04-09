@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using KScr.Core.Bytecode;
-using KScr.Core.Core;
+using KScr.Core;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using IEvaluable = KScr.Core.Model.IEvaluable;

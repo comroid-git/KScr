@@ -9,15 +9,15 @@ using KScr.Core.Model;
 
 namespace KScr.Compiler.Class;
 
-public class ClassVisitor : AbstractVisitor<Core.Bytecode.Class>
+public class ClassVisitor : AbstractVisitor<Core.Class>
 {
     public ClassVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 
-    private Core.Bytecode.Class cls => ctx.Class!.AsClass(vm);
+    private Core.Class cls => ctx.Class!.AsClass(vm);
 
-    public override Core.Bytecode.Class VisitClassDecl(KScrParser.ClassDeclContext context)
+    public override Core.Class VisitClassDecl(KScrParser.ClassDeclContext context)
     {
         if (context.genericTypeDefs() is { } defs)
             foreach (var genTypeDef in defs.genericTypeDef())

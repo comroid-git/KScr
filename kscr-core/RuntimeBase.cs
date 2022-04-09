@@ -6,12 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using KScr.Core.Bytecode;
-using KScr.Core.Core;
+using KScr.Core;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
 using KScr.Core.Util;
-using String = KScr.Core.Core.String;
+using String = KScr.Core.String;
 
 namespace KScr.Core
 {
@@ -22,7 +22,7 @@ namespace KScr.Core
         Throw = 2
     }
 
-    public abstract class RuntimeBase
+    public abstract class RuntimeBase : IBytecodePort
     {
         public const string SourceFileType = ".kscr";
         public const string BinaryFileType = ".kbin";
@@ -32,24 +32,27 @@ namespace KScr.Core
         public static readonly SourcefilePosition SystemSrcPos = new() { SourcefilePath = MainInvoc.FullName + " <native>" };
         public static readonly DirectoryInfo SdkHome = GetSdkHome();
         public static readonly Stack MainStack = new();
-        public static readonly Version RuntimeVersion;
-        public static readonly int BytecodeVersion;
         public static bool Initialized;
 
         static RuntimeBase()
         {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-
-            var assembly = typeof(RuntimeBase).Assembly;
-            RuntimeVersion = assembly.GetName().Version!;
-            BytecodeVersion = FileVersionInfo.GetVersionInfo(assembly.Location).FileMajorPart;
         }
 
-        public abstract INativeRunner? NativeRunner { get; }
         private uint _lastObjId = 0xF;
         public abstract ObjectStore ObjectStore { get; }
         public abstract ClassStore ClassStore { get; }
+        public abstract INativeRunner? NativeRunner { get; }
+        public abstract IDictionary<Version, IBytecodePort> BytecodePorts { get; }
+        public abstract Stream WrapStreamCompress(Stream stream);
+        public abstract Stream WrapStreamDecompress(Stream stream);
+        public Version Version => BytecodeVersion.Current;
+        public void Write(StringCache strings, Stream stream, IBytecode bytecode)
+            => BytecodePorts[Version].Write(strings, stream, bytecode);
+
+        public T Load<T>(RuntimeBase vm, StringCache strings, Stream stream, Package pkg, Class? cls)
+            => BytecodePorts[Version].Load<T>(vm, strings, stream, pkg, cls);
 
         public IObjectRef? this[Stack stack, VariableContext varctx, string name]
         {

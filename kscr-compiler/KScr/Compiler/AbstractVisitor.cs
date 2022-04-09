@@ -26,7 +26,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         this.ctx = ctx;
     }
 
-    protected Core.Bytecode.Class VisitClass(KScrParser.ClassDeclContext cls) => new ClassVisitor(vm, ctx).Visit(cls);
+    protected Core.Class VisitClass(KScrParser.ClassDeclContext cls) => new ClassVisitor(vm, ctx).Visit(cls);
     protected ClassInfo VisitClassInfo(KScrParser.ClassDeclContext cls) => new ClassInfoVisitor(vm, ctx).Visit(cls);
     protected ITypeInfo VisitTypeInfo(KScrParser.TypeContext type) => new TypeInfoVisitor(vm, ctx).Visit(type);
     protected new MemberModifier VisitModifiers(KScrParser.ModifiersContext mods) => new ModifierVisitor().Visit(mods);
@@ -41,9 +41,9 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             : TypeParameterSpecializationType.Extends;
         var target = spec switch
         {
-            TypeParameterSpecializationType.List => Core.Bytecode.Class.IterableType.CreateInstance(vm, Core.Bytecode.Class.IterableType, Core.Bytecode.Class.ObjectType),
-            TypeParameterSpecializationType.N => Core.Bytecode.Class.NumericIntType,
-            TypeParameterSpecializationType.Extends => gtd.ext == null ? Core.Bytecode.Class.ObjectType.DefaultInstance : VisitTypeInfo(gtd.ext!),
+            TypeParameterSpecializationType.List => Core.Class.IterableType.CreateInstance(vm, Core.Class.IterableType, Core.Class.ObjectType),
+            TypeParameterSpecializationType.N => Core.Class.NumericIntType,
+            TypeParameterSpecializationType.Extends => gtd.ext == null ? Core.Class.ObjectType.DefaultInstance : VisitTypeInfo(gtd.ext!),
             TypeParameterSpecializationType.Super => VisitTypeInfo(gtd.sup!),
             _ => throw new ArgumentOutOfRangeException()
         };

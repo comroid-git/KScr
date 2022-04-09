@@ -37,4 +37,6 @@ public struct SourcefilePosition : IBytecode
         srcPos.Load(vm, strings, data, ref i);
         return srcPos;
     }
+
+    public BytecodeElementType ElementType => BytecodeElementType.SourcePosition;
 }

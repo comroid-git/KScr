@@ -4,7 +4,7 @@ using KScr.Core.Bytecode;
 using KScr.Core.Model;
 using KScr.Core.Store;
 
-namespace KScr.Core.Core
+namespace KScr.Core
 {
     [Obsolete]
     public sealed class Tuple : IObject

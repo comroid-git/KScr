@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using KScr.Core.Bytecode;
-using KScr.Core.Core;
+using KScr.Core;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using static KScr.Core.Store.StackOutput;
@@ -295,7 +295,7 @@ namespace KScr.Core.Store
                     }
                     else
                     {
-                        if (!Bytecode.Class.ThrowableType.CanHold(Omg.Value.Type)
+                        if (!Core.Class.ThrowableType.CanHold(Omg.Value.Type)
                             || Omg.Value is not { } throwable)
                             throw new FatalException(
                                 "Value is not instanceof Throwable: " + Omg.Value.ToString(0));

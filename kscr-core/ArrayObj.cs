@@ -4,16 +4,16 @@ using KScr.Core.Bytecode;
 using KScr.Core.Model;
 using KScr.Core.Store;
 
-namespace KScr.Core.Core
+namespace KScr.Core
 {
     [Obsolete]
-    public sealed class Array : IObject
+    public sealed class ArrayObj : IObject
     {
-        public Array(RuntimeBase vm, int len) : this(vm, new ObjectRef[len])
+        public ArrayObj(RuntimeBase vm, int len) : this(vm, new ObjectRef[len])
         {
         }
 
-        public Array(RuntimeBase vm, ObjectRef[] arr)
+        public ArrayObj(RuntimeBase vm, ObjectRef[] arr)
         {
             Arr = arr;
             ObjectId = vm.NextObjId(GetKey());

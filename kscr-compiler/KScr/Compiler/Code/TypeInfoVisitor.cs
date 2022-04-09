@@ -35,7 +35,7 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
         var args = new List<ITypeInfo>();
         foreach (var type in context.genericTypeUses().type()) 
             args.Add(Visit(type));
-        if (raw is Core.Bytecode.Class cls || raw is IClassInstance inst && (cls = inst.BaseClass) != null)
+        if (raw is Core.Class cls || raw is IClassInstance inst && (cls = inst.BaseClass) != null)
             return cls.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
         throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.rawType().GetText());
     }
@@ -46,22 +46,22 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
         if (raw == null)
             throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.rawType().GetText());
         if (context.genericTypeUses() == null)
-            return Core.Bytecode.Class.ArrayType.CreateInstance(vm, ctx.Class!.AsClass(vm), raw);
+            return Core.Class.ArrayType.CreateInstance(vm, ctx.Class!.AsClass(vm), raw);
         var args = new List<ITypeInfo>();
         foreach (var type in context.genericTypeUses().type()) 
             args.Add(Visit(type));
-        if (raw is Core.Bytecode.Class cls || raw is IClassInstance inst && (cls = inst.BaseClass) != null) 
-            return Core.Bytecode.Class.ArrayType.CreateInstance(vm, ctx.Class!.AsClass(vm), 
+        if (raw is Core.Class cls || raw is IClassInstance inst && (cls = inst.BaseClass) != null) 
+            return Core.Class.ArrayType.CreateInstance(vm, ctx.Class!.AsClass(vm), 
                 cls.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray()));
         throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.rawType().GetText());
     }
 
-    public override ITypeInfo VisitTypeLitObject(KScrParser.TypeLitObjectContext context) => Core.Bytecode.Class.ObjectType;
-    public override ITypeInfo VisitTypeLitVoid(KScrParser.TypeLitVoidContext context) => Core.Bytecode.Class.VoidType;
+    public override ITypeInfo VisitTypeLitObject(KScrParser.TypeLitObjectContext context) => Core.Class.ObjectType;
+    public override ITypeInfo VisitTypeLitVoid(KScrParser.TypeLitVoidContext context) => Core.Class.VoidType;
 
-    public override ITypeInfo VisitTypeLitArray(KScrParser.TypeLitArrayContext context) => Core.Bytecode.Class.ArrayType;
+    public override ITypeInfo VisitTypeLitArray(KScrParser.TypeLitArrayContext context) => Core.Class.ArrayType;
 
-    public override ITypeInfo VisitTypeLitTuple(KScrParser.TypeLitTupleContext context) => Core.Bytecode.Class.TupleType;
+    public override ITypeInfo VisitTypeLitTuple(KScrParser.TypeLitTupleContext context) => Core.Class.TupleType;
 
     public override ITypeInfo VisitNumTypeLitTuple(KScrParser.NumTypeLitTupleContext context)
     {
@@ -69,7 +69,7 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
 
         bool intN = context.Start.Type == KScrLexer.INT;
         if (context.Start.Type == KScrLexer.NUMIDENT && context.genericTypeUses() == null)
-            return Core.Bytecode.Class.NumericType;
+            return Core.Class.NumericType;
         if (context.genericTypeUses() is { n: {} n })
         {
             if (intN)
@@ -88,22 +88,22 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
 
         if (intN)
         { // is int<n> type
-            return Core.Bytecode.Class.IntType.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
+            return Core.Class.IntType.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
         }
         else
         { // is tuple<num<T>> type
-            return Core.Bytecode.Class.TupleType.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
+            return Core.Class.TupleType.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
         }
     }
 
-    public override ITypeInfo VisitNumTypeLitByte(KScrParser.NumTypeLitByteContext context) => Core.Bytecode.Class.NumericByteType;
-    public override ITypeInfo VisitNumTypeLitShort(KScrParser.NumTypeLitShortContext context) => Core.Bytecode.Class.NumericShortType;
-    public override ITypeInfo VisitNumTypeLitInt(KScrParser.NumTypeLitIntContext context) => Core.Bytecode.Class.NumericIntType;
-    public override ITypeInfo VisitNumTypeLitLong(KScrParser.NumTypeLitLongContext context) => Core.Bytecode.Class.NumericLongType;
-    public override ITypeInfo VisitNumTypeLitFloat(KScrParser.NumTypeLitFloatContext context) => Core.Bytecode.Class.NumericFloatType;
-    public override ITypeInfo VisitNumTypeLitDouble(KScrParser.NumTypeLitDoubleContext context) => Core.Bytecode.Class.NumericDoubleType;
+    public override ITypeInfo VisitNumTypeLitByte(KScrParser.NumTypeLitByteContext context) => Core.Class.NumericByteType;
+    public override ITypeInfo VisitNumTypeLitShort(KScrParser.NumTypeLitShortContext context) => Core.Class.NumericShortType;
+    public override ITypeInfo VisitNumTypeLitInt(KScrParser.NumTypeLitIntContext context) => Core.Class.NumericIntType;
+    public override ITypeInfo VisitNumTypeLitLong(KScrParser.NumTypeLitLongContext context) => Core.Class.NumericLongType;
+    public override ITypeInfo VisitNumTypeLitFloat(KScrParser.NumTypeLitFloatContext context) => Core.Class.NumericFloatType;
+    public override ITypeInfo VisitNumTypeLitDouble(KScrParser.NumTypeLitDoubleContext context) => Core.Class.NumericDoubleType;
 
-    public override ITypeInfo VisitTypeLitType(KScrParser.TypeLitTypeContext context) => Core.Bytecode.Class.TypeType;
+    public override ITypeInfo VisitTypeLitType(KScrParser.TypeLitTypeContext context) => Core.Class.TypeType;
 
-    public override ITypeInfo VisitTypeLitEnum(KScrParser.TypeLitEnumContext context) => Core.Bytecode.Class.EnumType;
+    public override ITypeInfo VisitTypeLitEnum(KScrParser.TypeLitEnumContext context) => Core.Class.EnumType;
 }

@@ -8,7 +8,6 @@ using KScr.Compiler;
 using KScr.Compiler.Code;
 using KScr.Core;
 using KScr.Core.Bytecode;
-using KScr.Core.Core;
 using KScr.Core.Model;
 using KScr.Core.Store;
 using KScr.Core.Util;
@@ -87,6 +86,7 @@ namespace KScr.Runtime
         private static void LoadStdPackage()
         {
             // load std package
+            //VM.Load(StdPackageLocation);
             Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
         }
 
@@ -97,6 +97,7 @@ namespace KScr.Runtime
                 return -1;
             var ioTime = RuntimeBase.UnixTime();
             foreach (var classpath in cmd.Classpath.Where(dir => dir.Exists))
+                //VM.Load(classpath.FullName);
                 Package.ReadAll(VM, classpath);
             ioTime = RuntimeBase.UnixTime() - ioTime;
             return ioTime;
@@ -121,6 +122,13 @@ namespace KScr.Runtime
                     : new[] { new FileInfo(path) }));
             ioTime = RuntimeBase.UnixTime() - ioTime;
             return ioTime;
+        }
+
+        private static void WriteClasses(DirectoryInfo output, IEnumerable<FileInfo> sources)
+        {
+            if (output.Exists)
+                output.Delete(true);
+            Package.RootPackage.Write(VM, output, sources.Select(f => VM.FindClassInfo(f)).ToArray(), new StringCache());
         }
 
         private static long Execute(out Stack stack)
@@ -200,13 +208,6 @@ namespace KScr.Runtime
                 HandleResult(State.Return, output.Value, compileTime, executeTime);
             }
             */
-        }
-
-        private static void WriteClasses(DirectoryInfo output, IEnumerable<FileInfo> sources)
-        {
-            if (output.Exists)
-                output.Delete(true);
-            Package.RootPackage.Write(output, sources.Select(f => VM.FindClassInfo(f)).ToArray(), new StringCache());
         }
 
         private static void HandleResult(State state, IObject? result, long compileTime, long executeTime)

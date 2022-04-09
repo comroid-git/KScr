@@ -1,7 +1,9 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using KScr.Core.Exception;
+using KScr.Core.Model;
 
 namespace KScr.Core.Bytecode
 {
@@ -16,7 +18,7 @@ namespace KScr.Core.Bytecode
         public IPackageMember Add(IPackageMember member);
     }
 
-    public abstract class AbstractPackageMember : AbstractBytecode, IPackageMember
+    public abstract class AbstractPackageMember : IPackageMember
     {
         private protected string _name;
 
@@ -78,5 +80,7 @@ namespace KScr.Core.Bytecode
             return new IPackageMember[] { this }.Concat(PackageMembers.Values
                 .SelectMany(it => (it as AbstractPackageMember)!.All())).Distinct();
         }
+
+        public virtual IEnumerable<IBytecode> Header => ArraySegment<IBytecode>.Empty;
     }
 }

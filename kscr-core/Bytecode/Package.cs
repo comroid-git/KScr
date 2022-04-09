@@ -21,8 +21,6 @@ namespace KScr.Core.Bytecode
         {
         }
 
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers => throw new NotSupportedException();
-
         public Method FindEntrypoint()
         {
             return All().Where(it => it is Class).Cast<Class>()
@@ -31,7 +29,8 @@ namespace KScr.Core.Bytecode
                 .First(it => it.IsStatic());
         }
 
-        public void Write(DirectoryInfo dir, ClassInfo[]? names = null, StringCache? strings = null, bool rec = false)
+        public void Write(RuntimeBase vm, DirectoryInfo dir, ClassInfo[]? names = null, StringCache? strings = null,
+            bool rec = false)
         {
             names ??= Array.Empty<ClassInfo>();
             strings ??= new StringCache();
@@ -42,19 +41,17 @@ namespace KScr.Core.Bytecode
                     // ReSharper disable once RedundantJumpStatement
                     continue;
                 else if (member is Package pkg)
-                    pkg.Write(dir.CreateSubdirectory(member.Name), names, strings, true);
+                    pkg.Write(vm, dir.CreateSubdirectory(member.Name), names, strings, true);
                 else if (member is Class cls)
-                    cls.Write(strings, new FileInfo(Path.Combine(dir.FullName, (member.Name.Contains("<")
+                {
+                    var file = new FileInfo(Path.Combine(dir.FullName, (member.Name.Contains("<")
                         ? member.Name.Substring(0, member.Name.IndexOf("<", StringComparison.Ordinal))
-                        : member.Name) + ".kbin")));
+                        : member.Name) + ".kbin"));
+                    vm.Write(strings, new FileStream(file.FullName, FileMode.Create), cls);
+                }
                 else throw new NotSupportedException("Member is of unsupported type: " + member.GetType());
             if (!rec)
                 strings.Write(dir);
-        }
-
-        public override void Write(StringCache strings, Stream stream)
-        {
-            throw new InvalidOperationException("Please use method Write(DirectoryInfo, ClassInfo[]?, StringCache?)");
         }
 
         public static void ReadAll(RuntimeBase vm, DirectoryInfo dir, StringCache? strings = null)
@@ -77,7 +74,7 @@ namespace KScr.Core.Bytecode
 
             foreach (var cls in dir.EnumerateFiles("*.kbin"))
             {
-                var kls = Class.Read(vm, strings, cls, it);
+                var kls = vm.Load<Class>(vm, strings, new FileStream(cls.FullName, FileMode.Open), it, null); //Class.Read(vm, strings, cls, it);
                 //it.Members[kls.Name] = kls;
             }
 

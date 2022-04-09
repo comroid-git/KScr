@@ -21,4 +21,8 @@
         <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="Core" />
+    </ItemGroup>
+
 </Project>

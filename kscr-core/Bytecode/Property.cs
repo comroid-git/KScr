@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using KScr.Core.Core;
+using KScr.Core;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
@@ -28,10 +28,8 @@ namespace KScr.Core.Bytecode
         public override string FullName => Parent.FullName + '.' + Name + ": " + ReturnType.FullName;
 
         public override ClassMemberType MemberType => ClassMemberType.Property;
+        public override BytecodeElementType ElementType => BytecodeElementType.Property;
         public ITypeInfo ReturnType { get; private set; }
-
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers => new[] { Getter, Setter }
-            .Where(x => x != null).Cast<ExecutableCode>();
 
         public override Stack Evaluate(RuntimeBase vm, Stack stack) => ReadValue(vm, stack, stack.Alp!.Value);
 
@@ -39,45 +37,7 @@ namespace KScr.Core.Bytecode
         {
             return $"property-{ownerKey}.{Name}";
         }
-
-        public override void Write(StringCache strings, Stream stream)
-        {
-            base.Write(strings, stream);
-            strings.Push(stream, ReturnType.FullDetailedName);
-            stream.Write(new[] {(byte) ((Gettable ? 0b0001 : 0)
-                                        | (Settable ? 0b0010 : 0) 
-                                        | (Getter != null ? 0b0100 : 0)
-                                        | (Setter != null ? 0b1000 : 0))});
-            Getter?.Write(strings, stream);
-            Setter?.Write(strings, stream);
-        }
-
-        public override void Load(RuntimeBase vm, StringCache strings, byte[] data, ref int i)
-        {
-            base.Load(vm, strings, data, ref i);
-            ReturnType = vm.FindType(strings.Find(data, ref i), owner: Parent)!;
-            Gettable = (data[i] & 0b0001) != 0; 
-            Settable = (data[i] & 0b0010) != 0; 
-            var getter = (data[i] & 0b0100) != 0; 
-            var setter = (data[i] & 0b1000) != 0; 
-            i += 1;
-            if (getter)
-            {
-                Getter = new ExecutableCode();
-                Getter.Load(vm, strings, data, ref i);
-            }
-            if (setter)
-            {
-                Setter = new ExecutableCode();
-                Setter.Load(vm, strings, data, ref i);
-            }
-        }
-
-        public new static Property Read(RuntimeBase vm, StringCache strings, Class parent, byte[] data, ref int i)
-        {
-            return (AbstractClassMember.Read(vm, strings, parent, data, ref i) as Property)!;
-        }
-
+        
         public int Length => 1;
         public bool IsPipe => false; // todo
         public Stack ReadValue(RuntimeBase vm, Stack stack, IObject from)

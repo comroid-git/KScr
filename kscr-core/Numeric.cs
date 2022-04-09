@@ -8,7 +8,7 @@ using KScr.Core.Model;
 using KScr.Core.Store;
 using KScr.Core.Util;
 
-namespace KScr.Core.Core
+namespace KScr.Core
 {
     public enum NumericMode
     {

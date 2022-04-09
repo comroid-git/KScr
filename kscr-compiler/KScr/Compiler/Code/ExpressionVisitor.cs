@@ -5,7 +5,6 @@ using System.Net.Mime;
 using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
-using KScr.Core.Core;
 using KScr.Core.Model;
 using KScr.Core.Store;
 

@@ -3,17 +3,15 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using KScr.Core.Core;
+using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
 using KScr.Core.Util;
-using Array = System.Array;
-using String = System.String;
 
-namespace KScr.Core.Bytecode
+namespace KScr.Core
 {
-    public sealed class Class : AbstractPackageMember, IClass, IEvaluable
+    public sealed class Class : AbstractPackageMember, IClass
     {
         public static readonly Package LibRootPackage = Package.RootPackage.GetOrCreatePackage("org")
             .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr");
@@ -81,6 +79,19 @@ namespace KScr.Core.Bytecode
         public readonly IList<IClassInstance> _interfaces = new List<IClassInstance>();
         public readonly IList<IClassInstance> _superclasses = new List<IClassInstance>();
 
+        public Class? Parent { get; init; } = null;
+        public ClassMemberType MemberType { get; }
+        public SourcefilePosition SourceLocation { get; init; }
+
+        public BytecodeElementType ElementType => BytecodeElementType.Class;
+
+        public override IEnumerable<IBytecode> Header => new IBytecode[]
+        {
+            IBytecode.Byte((byte)MemberType),
+            IBytecode.UInt((uint)Modifier),
+            IBytecode.String(Name)
+        };
+
         public Class(Package package, string name, bool primitive, MemberModifier modifier = MemberModifier.Protected,
             ClassType type = ClassType.Class) : base(package, name, modifier)
         {
@@ -89,11 +100,6 @@ namespace KScr.Core.Bytecode
         }
 
         public Instance DefaultInstance { get; private set; } = null!;
-
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers => DeclaredMembers
-            .Where(it => it.Value is AbstractBytecode)
-            .Select(x => x.Value)
-            .Cast<AbstractBytecode>();
 
         public IList<string> Imports { get; } =
             new List<string>();
@@ -208,120 +214,9 @@ namespace KScr.Core.Bytecode
             };
         }
 
-        public void Write(StringCache strings, FileInfo file)
-        {
-            var write = file.OpenWrite();
-            Write(strings, write);
-            write.Close();
-        }
-
-        public override void Write(StringCache strings, Stream stream)
-        {
-            strings.Push(stream, Name);
-            stream.Write(new[] { (byte)ClassType });
-            stream.Write(BitConverter.GetBytes((uint)Modifier));
-
-            // imports
-            stream.Write(StringCache.NewLineBytes);
-            stream.Write(BitConverter.GetBytes(Imports.Count));
-            foreach (string clsName in Imports)
-                strings.Push(stream, clsName);
-
-            // superclasses
-            stream.Write(StringCache.NewLineBytes);
-            stream.Write(BitConverter.GetBytes(Superclasses.Count(x => x.Name != "object")));
-            foreach (var superclass in Superclasses)
-            {
-                if  (superclass.Name == "object")
-                    continue;
-                strings.Push(stream, superclass.FullDetailedName);
-            }
-
-            // interfaces
-            stream.Write(StringCache.NewLineBytes);
-            stream.Write(BitConverter.GetBytes(Interfaces.Count(x => x.Name != "void")));
-            foreach (var iface in Interfaces)
-            {
-                if  (iface.Name == "void")
-                    continue;
-                strings.Push(stream, iface.FullDetailedName);
-            }
-
-            // members
-            stream.Write(StringCache.NewLineBytes);
-            stream.Write(BitConverter.GetBytes(BytecodeMembers.Count()));
-            stream.Flush();
-            foreach (var member in BytecodeMembers)
-            {
-                stream.Write(StringCache.NewLineBytes);
-                member.Write(strings, stream);
-                stream.Write(StringCache.NewLineBytes);
-                stream.Flush();
-            }
-        }
-
-        public override void Load(RuntimeBase vm, StringCache strings, byte[] data, ref int index)
-        {
-            DeclaredMembers.Clear();
-
-            int len;
-            _name = strings.Find(data, ref index);
-            ClassType = (ClassType)data[index];
-            index += 1;
-            Modifier = (MemberModifier)BitConverter.ToUInt32(data, index);
-            index += 4;
-
-            Initialize(vm);
-
-            // imports
-            index += StringCache.NewLineBytes.Length;
-            len = BitConverter.ToInt32(data, index);
-            index += 4;
-            for (; len > 0; len--) 
-                Imports.Add(strings.Find(data, ref index));
-
-            // todo: load imported classes first
-
-            // superclasses
-            index += StringCache.NewLineBytes.Length;
-            len = BitConverter.ToInt32(data, index);
-            index += 4;
-            for (; len > 0; len--) 
-                _superclasses.Add(vm.FindType(strings.Find(data, ref index), owner: this)!);
-
-            // interfaces
-            index += StringCache.NewLineBytes.Length;
-            len = BitConverter.ToInt32(data, index);
-            index += 4;
-            for (; len > 0; len--) 
-                _interfaces.Add(vm.FindType(strings.Find(data, ref index), owner: this)!);
-
-            // members
-            index += StringCache.NewLineBytes.Length;
-            len = BitConverter.ToInt32(data, index);
-            index += 4;
-            for (; len > 0; len--)
-            {
-                index += StringCache.NewLineBytes.Length;
-                var member = AbstractClassMember.Read(vm, strings, this, data, ref index);
-                DeclaredMembers[member.Name] = member;
-                index += StringCache.NewLineBytes.Length;
-            }
-
-            LateInitialize(vm, RuntimeBase.MainStack);
-        }
-
         public override string ToString()
         {
             return FullName;
-        }
-
-        public static Class Read(RuntimeBase vm, StringCache strings, FileInfo file, Package package)
-        {
-            var cls = new Class(package, file.Name.Substring(0, file.Name.IndexOf(".kbin", StringComparison.Ordinal)),
-                false);
-            cls.Load(vm, strings, File.ReadAllBytes(file.FullName));
-            return cls;
         }
 
         public static void InitializePrimitives(RuntimeBase vm)
@@ -581,6 +476,8 @@ namespace KScr.Core.Bytecode
             public Package? Package { get; }
             public string Name => BaseClass.Name;
             public string FullName => BaseClass.FullName;
+            public ClassMemberType MemberType => BaseClass.MemberType;
+
             public IPackageMember GetMember(string name)
             {
                 throw new NotImplementedException();
@@ -591,7 +488,6 @@ namespace KScr.Core.Bytecode
                 throw new NotImplementedException();
             }
 
-            public ClassMemberType MemberType { get; }
             public SourcefilePosition SourceLocation { get; }
             public string CanonicalName => BaseClass.CanonicalName;
             public string FullDetailedName => BaseClass.Package?.FullName + '.' + DetailedName;
@@ -677,11 +573,8 @@ namespace KScr.Core.Bytecode
             }
 
             public Stack Evaluate(RuntimeBase vm, Stack stack) => throw new NotSupportedException();
+            public BytecodeElementType ElementType => throw new NotSupportedException();
         }
-
-        public ClassMemberType MemberType => ClassMemberType.Class;
-        public Class? Parent { get; init; } = null;
-        public SourcefilePosition SourceLocation { get; init; }
     }
 
     public sealed class TypeParameter : ITypeParameter

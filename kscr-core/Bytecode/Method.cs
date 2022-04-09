@@ -40,6 +40,7 @@ namespace KScr.Core.Bytecode
         public Class Parent { get; set; }
         public string Name { get; set; }
         public string FullName => Parent.FullName + '.' + Name + ": " + ReturnType.FullName;
+
         public MemberModifier Modifier { get; set; }
         public List<MethodParameter> Parameters { get; set; }
         public ITypeInfo ReturnType { get; set; }
@@ -50,6 +51,8 @@ namespace KScr.Core.Bytecode
         {
             throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
         }
+
+        public BytecodeElementType ElementType => BytecodeElementType.Method;
     }
 
     public sealed class Method : AbstractClassMember, IMethod
@@ -63,8 +66,6 @@ namespace KScr.Core.Bytecode
             ReturnType = returnType;
         }
 
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers => new[] { Body };
-
         public List<MethodParameter> Parameters { get; } = new();
         public ITypeInfo ReturnType { get; private set; }
 
@@ -72,6 +73,7 @@ namespace KScr.Core.Bytecode
             base.FullName + '(' + string.Join(", ", Parameters.Select(it => it.Type)) + ')';
 
         public override ClassMemberType MemberType => ClassMemberType.Method;
+        public override BytecodeElementType ElementType => BytecodeElementType.Method;
 
         public override Stack Evaluate(RuntimeBase vm, Stack stack)
         {
@@ -80,37 +82,6 @@ namespace KScr.Core.Bytecode
                 throw new FatalException("Invalid state after method: " + stack.State);
             return stack;
         }
-
-        public override void Write(StringCache strings, Stream stream)
-        {
-            base.Write(strings, stream);
-            strings.Push(stream, ReturnType.FullDetailedName);
-            stream.Write(BitConverter.GetBytes(Parameters.Count));
-            foreach (var parameter in Parameters)
-                parameter.Write(strings, stream);
-            if (!this.IsAbstract() && !this.IsNative() && Parent.ClassType is not ClassType.Interface or ClassType.Annotation)
-                Body.Write(strings, stream);
-        }
-
-        public override void Load(RuntimeBase vm, StringCache strings, byte[] data, ref int i)
-        {
-            ReturnType = vm.FindType(strings.Find(data, ref i), Parent.Package)!;
-            int len = BitConverter.ToInt32(data, i);
-            i += 4;
-            Parameters.Clear();
-            for (; len > 0; len--)
-                Parameters.Add(MethodParameter.Read(vm, strings, data, ref i));
-            if (!this.IsAbstract() && !this.IsNative() && Parent.ClassType is not ClassType.Interface or ClassType.Annotation)
-            {
-                Body = new ExecutableCode();
-                Body.Load(vm, strings, data, ref i);
-            }
-        }
-
-        public new static Method Read(RuntimeBase vm, StringCache strings, Class parent, byte[] data, ref int i)
-        {
-            return (AbstractClassMember.Read(vm, strings, parent, data, ref i) as Method)!;
-        }
     }
 
     public class MethodParameter : IBytecode
@@ -118,23 +89,6 @@ namespace KScr.Core.Bytecode
         public ITypeInfo Type { get; set; }
         public string Name { get; set; }
 
-        public void Write(StringCache strings, Stream stream)
-        {
-            strings.Push(stream, Name);
-            strings.Push(stream, Type.FullDetailedName);
-        }
-
-        public void Load(RuntimeBase vm, StringCache strings, byte[] data, ref int index)
-        {
-            Name = strings.Find(data, ref index);
-            Type = vm.FindType(strings.Find(data, ref index))!;
-        }
-
-        public static MethodParameter Read(RuntimeBase vm, StringCache strings, byte[] data, ref int i)
-        {
-            var param = new MethodParameter();
-            param.Load(vm, strings, data, ref i);
-            return param;
-        }
+        public BytecodeElementType ElementType => BytecodeElementType.MethodParameter;
     }
 }

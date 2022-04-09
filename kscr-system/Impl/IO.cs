@@ -1,9 +1,8 @@
 ﻿using KScr.Core;
-using KScr.Core.Core;
 using KScr.Core.Exception;
 using KScr.Core.Store;
 using static KScr.Core.Store.StackOutput;
-using String = KScr.Core.Core.String;
+using String = KScr.Core.String;
 // ReSharper disable InconsistentNaming,UnusedMember.Global
 
 namespace KScr.Native.System.Impl;

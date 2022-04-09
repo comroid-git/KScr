@@ -42,7 +42,7 @@ public class ClassMemberVisitor : AbstractVisitor<IClassMember>
     public override IClassMember VisitInitDecl(KScrParser.InitDeclContext context)
     {
         return new Method(ToSrcPos(context), ctx.Class!.AsClass(vm), Method.StaticInitializerName,
-                Core.Bytecode.Class.VoidType, MemberModifier.Private | MemberModifier.Static) 
+                Core.Class.VoidType, MemberModifier.Private | MemberModifier.Static) 
             { Body = VisitMemberCode(context.memberBlock()) };
     }
 

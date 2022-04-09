@@ -7,9 +7,10 @@ using KScr.Core.Util;
 
 namespace KScr.Core.Bytecode
 {
-    public class ExecutableCode : AbstractBytecode, IStatement<Statement>, IEvaluable
+    public class ExecutableCode : IBytecode, IStatement<Statement>, IEvaluable
     {
-        protected override IEnumerable<AbstractBytecode> BytecodeMembers => Main;
+        public BytecodeElementType ElementType => BytecodeElementType.CodeBlock;
+        public IEnumerable<IBytecode> Components => Main;
 
         public Stack Evaluate(RuntimeBase vm, Stack stack)
         {
@@ -33,29 +34,7 @@ namespace KScr.Core.Bytecode
             if (here is ExecutableCode bc)
                 Main.AddRange(bc.Main);
         }
-
-        public override void Write(StringCache strings, Stream stream)
-        {
-            stream.Write(BitConverter.GetBytes(Main.Count));
-            foreach (var abstractBytecode in Main)
-                abstractBytecode.Write(strings, stream);
-        }
-
-        public override void Load(RuntimeBase vm, StringCache strings, byte[] data, ref int index)
-        {
-            Main.Clear();
-
-            var len = BitConverter.ToInt32(data, index);
-            index += 4;
-            Statement stmt;
-            for (; len > 0; len--)
-            {
-                stmt = new Statement();
-                stmt.Load(vm, strings, data, ref index);
-                Main.Add(stmt);
-            }
-        }
-
+        
         public void Clear()
         {
             Main.ForEach(st => st.Clear());

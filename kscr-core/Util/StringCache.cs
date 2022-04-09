@@ -10,15 +10,17 @@ namespace KScr.Core.Util;
 
 public sealed class StringCache
 {
-    public const string FileName = "strings.kbin";
+    public const string FileName = "strings" + RuntimeBase.BinaryFileType;
     private readonly IList<string> _strings = new List<string>();
     private int _index = -1;
 
-    private int this[string str]
+    public int this[string str]
     {
         get
         {
-            if (_strings.IndexOf(str) is { } i && i != -1)
+            if (str == null)
+                throw new NullReferenceException();
+            if (_strings.IndexOf(str) is var i && i != -1)
                 return i;
             int id = ++_index;
             _strings.Add(str);
@@ -28,27 +30,14 @@ public sealed class StringCache
         }
     }
 
-    private string? this[int id] => _strings[id];
-
-    public void Push(Stream write, string str)
-    {
-        write.Write(BitConverter.GetBytes(this[str]));
-    }
-
-    public string Find(byte[] data, ref int index)
-    {
-        int key = BitConverter.ToInt32(data, index);
-        index += 4;
-        return this[key] ?? throw new InvalidOperationException($"String with ID {key} could not be found");
-    }
+    public string? this[int id] => _strings[id];
 
     public void Write(DirectoryInfo dir) => Write(MakeFile(dir));
 
     public void Write(FileInfo file)
     {
         Stream stream = new FileStream(file.FullName, FileMode.Create);
-        //stream = new GZipStream(stream, CompressionLevel.SmallestSize);
-        
+
         stream.Write(BitConverter.GetBytes(_strings.Count));
         stream.Write(NewLineBytes);
         stream.Flush();

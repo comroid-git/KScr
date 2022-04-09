@@ -1,5 +1,4 @@
-﻿using KScr.Core.Core;
-using KScr.Core.Store;
+﻿using KScr.Core.Store;
 
 namespace KScr.Native;
 

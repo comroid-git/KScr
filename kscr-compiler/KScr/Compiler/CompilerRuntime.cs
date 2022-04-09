@@ -3,6 +3,7 @@ using System.IO;
 using Antlr4.Runtime;
 using KScr.Antlr;
 using KScr.Antlr;
+using KScr.Bytecode;
 using KScr.Compiler.Class;
 using KScr.Core;
 using KScr.Core.Bytecode;
@@ -12,7 +13,7 @@ using KScr.Core.Store;
 
 namespace KScr.Compiler
 {
-    public class CompilerRuntime : RuntimeBase
+    public class CompilerRuntime : BytecodeRuntime
     {
         public override INativeRunner? NativeRunner => null;
         public override ObjectStore ObjectStore => null!;
@@ -38,14 +39,14 @@ namespace KScr.Compiler
             CompileClass(clsName, file.FullName);
         }
 
-        public Core.Bytecode.Class CompileClass(string clsName, string filePath = "org/comroid/kscr/core/System.kscr", string? source = null)
+        public Core.Class CompileClass(string clsName, string filePath = "org/comroid/kscr/core/System.kscr", string? source = null)
         {
             var fileDecl = MakeFileDecl(source != null ? new AntlrInputStream(source) : new AntlrFileStream(filePath, Encoding));
 
             // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
             var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
             var imports = FindClassImports(fileDecl.imports());
-            var news = new Dictionary<string, Core.Bytecode.Class>();
+            var news = new Dictionary<string, Core.Class>();
             var ctx = new CompilerContext
             {
                 Package = pkg,

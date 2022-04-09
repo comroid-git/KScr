@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using KScr.Core;
-using KScr.Core.Core;
 using KScr.Core.Exception;
 using KScr.Runtime;
 using NUnit.Framework;
