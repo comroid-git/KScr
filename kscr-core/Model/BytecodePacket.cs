@@ -36,7 +36,9 @@ public enum BytecodeType : uint
     StmtDo = 0x0021_0000 | Statement,
     StmtWhile = 0x0022_0000 | Statement,
     StmtFor = 0x0041_0000 | Statement,
-    StmtForEach = 0x00422_0000 | Statement,
+    StmtForEach = 0x0042_0000 | Statement,
+    StmtSwitch = 0x0080_0000 | Statement,
+    StmtCase = 0x0081_0000 | Statement,
 
     StdioExpression = 0x0200_0000,
     ParameterExpression = 0x0100_0000,
