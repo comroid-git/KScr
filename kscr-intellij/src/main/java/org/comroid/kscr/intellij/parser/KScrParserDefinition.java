@@ -11,22 +11,15 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.IStubFileElementType;
 import com.intellij.psi.tree.TokenSet;
-import org.antlr.v4.runtime.ANTLRFileStream;
-import org.antlr.v4.runtime.ANTLRInputStream;
 import org.comroid.kscr.intellij.KScrLanguage;
 import org.comroid.kscr.intellij.antlr_generated.KScrLexer;
 import org.comroid.kscr.intellij.antlr_generated.KScrParser;
-import org.comroid.kscr.intellij.psi.KScrFile;
-import org.comroid.kscr.intellij.psi.KScrFileStub;
 import org.comroid.kscr.intellij.psi.Tokens;
 import org.comroid.kscr.intellij.psi.ast.statements.*;
 import org.comroid.kscr.intellij.psi.ast.common.*;
-import org.comroid.kscr.intellij.psi.ast.expressions.*;
 import org.comroid.kscr.intellij.psi.ast.types.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 public class KScrParserDefinition implements ParserDefinition {
     public static final IStubFileElementType<KScrFileStub> FILE =

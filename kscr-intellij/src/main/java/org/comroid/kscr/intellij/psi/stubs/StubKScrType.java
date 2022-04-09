@@ -9,7 +9,7 @@ import org.comroid.kscr.intellij.psi.types.KScrKind;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface StubCycType extends StubElement<KScrType> {
+public interface StubKScrType extends StubElement<KScrType> {
 
     @NotNull
     String fullyQualifiedName();
@@ -22,16 +22,16 @@ public interface StubCycType extends StubElement<KScrType> {
 
     @Nullable
     default StubKScrClassList<KScrExtendsClause> extendsList(){
-        return findChildStubByType(StubTypes.CYC_EXTENDS_LIST);
+        return findChildStubByType(StubTypes.KScr_EXTENDS_LIST);
     }
 
     @Nullable
     default StubKScrClassList<KScrImplementsClause> implementsList(){
-        return findChildStubByType(StubTypes.CYC_IMPLEMENTS_LIST);
+        return findChildStubByType(StubTypes.KScr_IMPLEMENTS_LIST);
     }
 
     @Nullable
     default StubKScrClassList<KScrPermitsClause> permitsList(){
-        return findChildStubByType(StubTypes.CYC_PERMITS_LIST);
+        return findChildStubByType(StubTypes.KScr_PERMITS_LIST);
     }
 }

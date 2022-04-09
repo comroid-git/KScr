@@ -6,6 +6,9 @@ import com.intellij.psi.FileViewProvider;
 import org.comroid.kscr.intellij.KScrFileType;
 import org.comroid.kscr.intellij.KScrLanguage;
 import org.comroid.kscr.intellij.KScrSourceFileType;
+import org.comroid.kscr.intellij.psi.ast.KScrImportStatement;
+import org.comroid.kscr.intellij.psi.ast.KScrPackageStatement;
+import org.comroid.kscr.intellij.psi.ast.types.KScrType;
 import org.comroid.kscr.intellij.psi.utils.PsiUtils;
 import org.jetbrains.annotations.NotNull;
 
