@@ -14,14 +14,23 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
     {
     }
 
-    public override StatementComponent VisitCheckInstanceof(KScrParser.CheckInstanceofContext context)
+    public override StatementComponent VisitCheckInstanceof(KScrParser.CheckInstanceofContext context) => new()
     {
-        throw new NotImplementedException("Compiling of expression " + context + " is not supported");
-    }
+        Type = StatementComponentType.Provider,
+        CodeType = BytecodeType.Instanceof,
+        Arg = VisitTypeInfo(context.type()).FullDetailedName,
+        SubComponent = VisitExpression(context.expr())
+    };
 
-    public override StatementComponent VisitReadArray(KScrParser.ReadArrayContext context)
+    public override StatementComponent VisitReadIndexer(KScrParser.ReadIndexerContext context)
     {
-        throw new NotImplementedException("Compiling of expression " + context + " is not supported");
+        return new StatementComponent()
+        {
+            Type = StatementComponentType.Provider,
+            CodeType = BytecodeType.Indexer,
+            SubComponent = VisitExpression(context.target),
+            SubStatement = VisitIndexerUse(context.indexerUse())
+        };
     }
 
     public override StatementComponent VisitDeclaration(KScrParser.DeclarationContext context)
@@ -170,23 +179,80 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 
     public override StatementComponent VisitSwitchStatement(KScrParser.SwitchStatementContext context)
     {
-        throw new NotImplementedException("Compiling of expression " + context + " is not supported");
+        var comp = new StatementComponent
+        {
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtSwitch,
+            // condition
+            SubComponent = VisitExpression(context.tupleExpr()),
+            SubStatement = new Statement
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.StmtSwitch | BytecodeType.StmtCase
+            }
+        };
+        // cases
+        foreach (var cas in context.caseClause())
+            comp.SubStatement.Main.Add(new StatementComponent
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.StmtCase,
+                // case condition
+                SubComponent = VisitExpression(cas.tupleExpr()),
+                // case body
+                InnerCode = VisitCode(cas.caseBlock())
+            });
+        // default case
+        if (context.defaultClause() is { } def)
+            comp.SubStatement.Main.Add(new StatementComponent
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.StmtCase | BytecodeType.StmtElse,
+                // case body
+                InnerCode = VisitCode(def.caseBlock())
+            });
+
+        return comp;
     }
 
-    public override StatementComponent VisitExprCast(KScrParser.ExprCastContext context)
+    public override StatementComponent VisitTupleExpr(KScrParser.TupleExprContext context)
     {
-        throw new NotImplementedException("Compiling of expression " + context + " is not supported");
+        var expr = new StatementComponent()
+        {
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.TupularExpression,
+            SubStatement = new Statement()
+        };
+        foreach (var ctx in context.expr())
+            expr.SubStatement.Main.Add(VisitExpression(ctx));
+        return expr;
     }
 
-    public override StatementComponent VisitNewArrayValue(KScrParser.NewArrayValueContext context)
+    public override StatementComponent VisitCast(KScrParser.CastContext context) => new()
     {
-        throw new NotImplementedException("Compiling of expression " + context + " is not supported");
-    }
+        Type = StatementComponentType.Expression,
+        CodeType = BytecodeType.Cast,
+        Arg = VisitTypeInfo(context.type()).FullDetailedName,
+        SubComponent = VisitExpression(context.expr())
+    };
 
-    public override StatementComponent VisitNewListedArrayValue(KScrParser.NewListedArrayValueContext context)
+    public override StatementComponent VisitNewArray(KScrParser.NewArrayContext context) => new()
     {
-        throw new NotImplementedException("Compiling of expression " + context + " is not supported");
-    }
+        Type = StatementComponentType.Provider,
+        CodeType = BytecodeType.ArrayConstructor,
+        ByteArg = 0,
+        Arg = VisitTypeInfo(context.type()).FullDetailedName,
+        SubStatement = VisitIndexerUse(context.indexerUse())
+    };
+
+    public override StatementComponent VisitNewListedArray(KScrParser.NewListedArrayContext context) => new()
+    {
+        Type = StatementComponentType.Provider,
+        CodeType = BytecodeType.ArrayConstructor,
+        ByteArg = 1,
+        Arg = VisitTypeInfo(context.type()).FullDetailedName,
+        SubStatement = VisitArrayInitializer(context.expr())
+    };
 
     public override StatementComponent VisitTypeValue(KScrParser.TypeValueContext context)
     {

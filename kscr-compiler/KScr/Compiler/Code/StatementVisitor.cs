@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
@@ -283,10 +284,12 @@ public class StatementVisitor : AbstractVisitor<Statement>
         };
     }
 
-    public override Statement VisitStmtSwitch(KScrParser.StmtSwitchContext context)
+    public override Statement VisitSwitchStatement(KScrParser.SwitchStatementContext context) => new()
     {
-        throw new NotImplementedException("Compiling of statement " + context + " is not supported");
-    }
+        Type = StatementComponentType.Code,
+        CodeType = BytecodeType.StmtSwitch,
+        Main = { VisitExpression(context) }
+    };
 
     public override Statement VisitStmtEmpty(KScrParser.StmtEmptyContext context)
     {

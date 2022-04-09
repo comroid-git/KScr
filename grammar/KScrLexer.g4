@@ -46,6 +46,8 @@ WHILE: 'while';
 SWITCH: 'switch';
 CASE: 'case';
 DEFAULT: 'default';
+BREAK: 'break';
+CONTINUE: 'continue';
 TRY: 'try';
 CATCH: 'catch';
 FINALLY: 'finally';

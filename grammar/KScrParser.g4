@@ -55,16 +55,23 @@ parameter: FINAL? type idPart (ASSIGN expr)?;
 parameters: LPAREN (parameter (COMMA parameter)*)? RPAREN;
 arguments: LPAREN (expr (COMMA expr)*)? RPAREN;
 
+statements: statement*;
 noBlock: SEMICOLON;
-normalBlock: LBRACE statement* RBRACE;
+uniformBlock: expr | statement;
+normalBlock: LBRACE statements RBRACE;
+memberExpr: REQARROW uniformBlock;
+caseBlock
+    : COLON statements BREAK SEMICOLON  #caseStmtBlock
+    | memberExpr COMMA                  #caseExprBlock
+    ;
 memberBlock
     : normalBlock               #memberNormalBlock
-    | REQARROW expr SEMICOLON   #memberExprBlock
+    | memberExpr SEMICOLON      #memberExprBlock
     | noBlock                   #memberNoBlock
     ;
 codeBlock
     : normalBlock               #codeNormalBlock
-    | statement                 #codeStmtBlock
+    | statements                #codeStmtBlock
     | noBlock                   #codeNoBlock
     ;
 
@@ -99,17 +106,19 @@ file: packageDecl imports classDecl* EOF;
 inferType: VOID | VAR;
 
 indexer: LSQUAR RSQUAR;
+indexerUse: LSQUAR expr (COMMA expr)* RSQUAR;
 cast: LPAREN type COLON expr RPAREN;
 declaration: type idPart ASSIGN expr;
 mutation: binaryop? ASSIGN expr;
 call: idPart arguments;
 ctorCall: NEW type arguments;
-newArray: NEW type LSQUAR NUMLIT RSQUAR;
+newArray: NEW type indexerUse;
 newListedArray: NEW type indexer LBRACE (expr (COMMA expr)*)? RBRACE;
 
 statement
     : declaration SEMICOLON                                 #stmtDeclare
     | left=expr mutation SEMICOLON                          #stmtAssign
+    | left=tupleExpr ASSIGN right=tupleExpr                 #stmtAssignTuple
     | left=expr DOT idPart arguments?                       #stmtCallMember
     | returnStatement SEMICOLON                             #stmtReturn
     | throwStatement SEMICOLON                              #stmtThrow
@@ -130,7 +139,8 @@ expr
     : idPart                                                #varValue
     | expr INSTANCEOF type                                  #checkInstanceof
     | YIELD expr                                            #yieldExpr
-    | arr=expr LSQUAR index=expr RSQUAR                     #readArray
+    | tupleExpr                                             #exprTuple
+    | target=expr indexerUse                                #readIndexer
     | declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
     | left=expr mutation                                    #varAssign // can't use varAssignment due to recursive rules
     | left=expr DOT idPart arguments?                       #exprCallMember
@@ -150,6 +160,7 @@ expr
     | expr postfixop                                        #opPostfix
 //    | expr (pipeRead | pipeWrite)+                          #exprPipe
     ;
+tupleExpr: LPAREN expr (COMMA expr)* RPAREN;
 
 returnStatement: YIELD? RETURN expr?;
 throwStatement: THROW expr;
@@ -184,9 +195,9 @@ rPipeOp
     | RBOXARROW     #opPipeRBX
     ;
 
-switchStatement: SWITCH LPAREN expr RPAREN LBRACE caseClause* defaultClause? RBRACE;
-caseClause: CASE expr codeBlock;
-defaultClause: DEFAULT codeBlock;
+switchStatement: SWITCH tupleExpr LBRACE caseClause* defaultClause? RBRACE;
+caseClause: CASE tupleExpr caseBlock;
+defaultClause: DEFAULT caseBlock;
 
 binaryop
     : PLUS          #opPlus

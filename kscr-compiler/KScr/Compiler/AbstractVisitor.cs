@@ -122,6 +122,27 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             param.Main.Add(VisitExpression(expr));
         return param;
     }
+    protected new Statement VisitIndexerUse(KScrParser.IndexerUseContext context)
+    {
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+        if (context == null)
+            return new Statement { Type = StatementComponentType.Code, CodeType = BytecodeType.Indexer };
+        var param = new Statement { Type = StatementComponentType.Code, CodeType = BytecodeType.Indexer };
+        foreach (var expr in context.expr())
+            param.Main.Add(VisitExpression(expr));
+        return param;
+    }
+
+    protected Statement VisitArrayInitializer(KScrParser.ExprContext[] context)
+    {
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+        if (context == null)
+            return new Statement { Type = StatementComponentType.Code, CodeType = BytecodeType.ArrayConstructor };
+        var param = new Statement { Type = StatementComponentType.Code, CodeType = BytecodeType.ArrayConstructor };
+        foreach (var expr in context)
+            param.Main.Add(VisitExpression(expr));
+        return param;
+    }
 
     public IClassInstance? FindType(string name)
     {

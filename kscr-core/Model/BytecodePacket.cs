@@ -37,12 +37,18 @@ public enum BytecodeType : uint
     StmtWhile = 0x0022_0000 | Statement,
     StmtFor = 0x0041_0000 | Statement,
     StmtForEach = 0x0042_0000 | Statement,
-    StmtSwitch = 0x0080_0000 | Statement,
-    StmtCase = 0x0081_0000 | Statement,
+    StmtSwitch = 0x0044_0000 | Statement,
+    StmtCase = 0x0048_0000 | Statement,
+    
+    Cast = 0x0080_0000 | Expression,
+    Instanceof = 0x0081_0000 | Expression,
+    Indexer = 0x0082_0000,
+    TupularExpression = 0x0084_0000 | Expression,
+    ArrayConstructor = 0x0088_0000 | Expression,
 
+    ParameterExpression = 0x0100_0000,
     StdioExpression = 0x0200_0000,
     EndlExpression = 0x1200_0000,
-    ParameterExpression = 0x0100_0000,
     TypeExpression = 0x0400_0000,
     ConstructorCall = 0x0800_0000,
 
