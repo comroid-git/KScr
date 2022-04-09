@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kscr-build", "kscr-build\ks
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kscr-lang-server", "kscr-lang-server\kscr-lang-server.csproj", "{8F75C3E7-3788-47DA-8313-4C7051D5D342}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kscr-bytecode", "kscr-bytecode\kscr-bytecode.csproj", "{CAAA6917-1F14-43F3-A1BF-4DAAD6D3B634}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{8F75C3E7-3788-47DA-8313-4C7051D5D342}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F75C3E7-3788-47DA-8313-4C7051D5D342}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F75C3E7-3788-47DA-8313-4C7051D5D342}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAAA6917-1F14-43F3-A1BF-4DAAD6D3B634}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAAA6917-1F14-43F3-A1BF-4DAAD6D3B634}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAAA6917-1F14-43F3-A1BF-4DAAD6D3B634}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAAA6917-1F14-43F3-A1BF-4DAAD6D3B634}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
