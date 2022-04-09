@@ -8,8 +8,8 @@ namespace KScr.Bytecode;
 
 public abstract class BytecodeRuntime : RuntimeBase
 {
-    public override IDictionary<Version, IBytecodePort> BytecodePorts { get; } =
-        new ConcurrentDictionary<Version, IBytecodePort>()
+    public override IDictionary<BytecodeVersion, IBytecodePort> BytecodePorts { get; } =
+        new ConcurrentDictionary<BytecodeVersion, IBytecodePort>()
         {
             [V_0_10] = new BytecodePortV0_10()
         };

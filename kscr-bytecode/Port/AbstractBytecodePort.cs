@@ -7,12 +7,12 @@ namespace KScr.Bytecode.Port;
 
 public abstract class AbstractBytecodePort : IBytecodePort
 {
-    protected AbstractBytecodePort(Version version)
+    protected AbstractBytecodePort(BytecodeVersion version)
     {
-        Version = version;
+        BytecodeVersion = version;
     }
 
-    public Version Version { get; }
+    public BytecodeVersion BytecodeVersion { get; }
 
     public abstract void Write(StringCache strings, Stream stream,
         IBytecode bytecode);

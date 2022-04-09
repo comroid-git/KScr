@@ -52,7 +52,7 @@ namespace KScr.Core
         public abstract ObjectStore ObjectStore { get; }
         public abstract ClassStore ClassStore { get; }
         public abstract INativeRunner? NativeRunner { get; }
-        public abstract IDictionary<Version, IBytecodePort> BytecodePorts { get; }
+        public abstract IDictionary<BytecodeVersion, IBytecodePort> BytecodePorts { get; }
         public Stream WrapStream(Stream stream, CompressionMode mode, CompressionLevel? level = null) => (CompressionType, mode) switch
         {
             (CompressionType.None, _) => stream,
@@ -62,12 +62,24 @@ namespace KScr.Core
             (CompressionType.ZLib, CompressionMode.Decompress) => new ZLibStream(stream, CompressionMode.Decompress),
             _ => throw new ArgumentOutOfRangeException(nameof(CompressionType), CompressionType, "Invalid CompressionType")
         };
-        public Version Version => BytecodeVersion.Current;
+        public BytecodeVersion BytecodeVersion => BytecodeVersion.Current;
         public void Write(StringCache strings, Stream stream, IBytecode bytecode)
-            => BytecodePorts[Version].Write(strings, stream, bytecode);
+        {
+            stream.Write(BitConverter.GetBytes(BytecodeVersion.Version.Major));
+            stream.Write(BitConverter.GetBytes(BytecodeVersion.Version.Minor));
+            BytecodePorts[BytecodeVersion].Write(strings, stream, bytecode);
+        }
 
         public T Load<T>(RuntimeBase vm, StringCache strings, Stream stream, Package pkg, Class? cls)
-            => BytecodePorts[Version].Load<T>(vm, strings, stream, pkg, cls);
+        {
+            byte[] buf;
+            stream.Read(buf = new byte[4], 0, 4);
+            var maj = BitConverter.ToInt32(buf);
+            stream.Read(buf = new byte[4], 0, 4);
+            var min = BitConverter.ToInt32(buf);
+            var ver = BytecodeVersion.Find(maj, min, $"Incompatible BytecodeVersion: {maj}.{min:2}");
+            return BytecodePorts[ver].Load<T>(vm, strings, stream, pkg, cls);
+        }
 
         public IObjectRef? this[Stack stack, VariableContext varctx, string name]
         {

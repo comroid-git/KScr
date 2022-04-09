@@ -53,7 +53,7 @@ public sealed class LiteralBytecode<T> : IBytecode
 
 public interface IBytecodePort
 {
-    Version Version { get; }
+    BytecodeVersion BytecodeVersion { get; }
     void Write(StringCache strings, Stream stream, IBytecode bytecode);
     T Load<T>(RuntimeBase vm, StringCache strings, Stream stream, Package pkg, Class? cls);
 }
