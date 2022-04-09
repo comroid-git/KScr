@@ -7,7 +7,6 @@ import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemHighlightType;
 import org.comroid.kscr.intellij.inspections.fixes.RenameFileToTypeFix;
 import org.comroid.kscr.intellij.inspections.fixes.RenameTypeToFileFix;
-import org.comroid.kscr.intellij.psi.KScrType;
 import org.jetbrains.annotations.NotNull;
 
 public class WrongFileNameForTypeNameInspection extends KScrInspection{

@@ -6,7 +6,6 @@ import com.intellij.lang.jvm.types.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.search.GlobalSearchScope;
-import org.comroid.kscr.intellij.psi.KScrType;
 import org.comroid.kscr.intellij.psi.types.ClassTypeImpl;
 import org.comroid.kscr.intellij.psi.types.JvmKScrClass;
 import org.jetbrains.annotations.NotNull;

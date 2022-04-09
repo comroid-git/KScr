@@ -4,7 +4,6 @@ import com.intellij.lang.jvm.*;
 import com.intellij.lang.jvm.types.JvmReferenceType;
 import com.intellij.lang.jvm.types.JvmType;
 import com.intellij.psi.PsiElement;
-import org.comroid.kscr.intellij.psi.KScrMethod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

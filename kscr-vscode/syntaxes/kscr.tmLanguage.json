@@ -7,6 +7,9 @@
 		},
 		{
 			"include": "#strings"
+		},
+		{
+			"include": "#numerics"
 		}
 	],
 	"repository": {
@@ -14,16 +17,28 @@
 			"patterns": [{
 				"name": "keyword.control.kscr",
 				"match": "\\b(if|while|for|return)\\b"
+			},{
+				"name": "keyword.modifier.kscr",
+				"match": "\\b(public|internal|protected|private|static|final|abstract|native|synchronized)\\b"
 			}]
 		},
 		"strings": {
-			"name": "string.quoted.double.kscr",
+			"name": "string.kscr",
 			"begin": "\"",
 			"end": "\"",
 			"patterns": [
 				{
 					"name": "constant.character.escape.kscr",
 					"match": "\\\\."
+				}
+			]
+		},
+		"numerics": {
+			"name": ".kscr",
+			"patterns": [
+				{
+					"name": "constant.character.escape.kscr",
+					"match": "-?\\d+"
 				}
 			]
 		}
