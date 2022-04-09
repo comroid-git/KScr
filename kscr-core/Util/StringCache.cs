@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using KScr.Core.Bytecode;
 
 namespace KScr.Core.Util;
@@ -10,41 +11,34 @@ namespace KScr.Core.Util;
 public sealed class StringCache
 {
     public const string FileName = "strings.kbin";
-    private readonly IDictionary<long, string> _dict = new ConcurrentDictionary<long, string>();
+    private readonly IList<string> _strings = new List<string>();
+    private int _index = -1;
 
-    public long this[string str]
+    private int this[string str]
     {
         get
         {
-            var id = GetHashCode64(str);
-            string? buf;
-            // create key offset if it already exists
-            if (_dict.ContainsKey(id) && _dict.TryGetValue(id, out buf) && buf != str)
-            {
-                //throw new InvalidOperationException($"Duplicate String hash of strings {str} and {buf}");
-                Debug.WriteLine($"[StringCache] Needs to offset id {id} for string {str}");
-                do id += 1;
-                while (_dict.ContainsKey(id) && _dict.TryGetValue(id, out buf) && buf != str);
-            }
-            // store and return id
-            _dict[id] = str;
+            if (_strings.IndexOf(str) is { } i && i != -1)
+                return i;
+            int id = ++_index;
+            _strings.Add(str);
+            if (_strings[id] != str)
+                throw new System.Exception("invalid state");
             return id;
         }
     }
 
-    public string? this[long id]
+    private string? this[int id] => _strings[id];
+
+    public void Push(Stream write, string str)
     {
-        get
-        {
-            _dict.TryGetValue(id, out string? str);
-            return str;
-        }
+        write.Write(BitConverter.GetBytes(this[str]));
     }
 
     public string Find(byte[] data, ref int index)
     {
-        long key = BitConverter.ToInt64(data, index);
-        index += 8;
+        int key = BitConverter.ToInt32(data, index);
+        index += 4;
         return this[key] ?? throw new InvalidOperationException($"String with ID {key} could not be found");
     }
 
@@ -69,16 +63,16 @@ public sealed class StringCache
 
     public void Write(FileInfo file)
     {
-        var stream = new FileStream(file.FullName, FileMode.Create);
+        Stream stream = new FileStream(file.FullName, FileMode.Create);
+        //stream = new GZipStream(stream, CompressionLevel.SmallestSize);
         
-        stream.Write(BitConverter.GetBytes(_dict.Count));
+        stream.Write(BitConverter.GetBytes(_strings.Count));
         stream.Write(NewLineBytes);
         stream.Flush();
         
-        foreach (var pair in _dict)
+        foreach (var str in _strings)
         {
-            stream.Write(BitConverter.GetBytes(pair.Key));
-            var buf = RuntimeBase.Encoding.GetBytes(pair.Value);
+            var buf = RuntimeBase.Encoding.GetBytes(str);
             stream.Write(BitConverter.GetBytes(buf.Length));
             stream.Write(buf);
             stream.Write(NewLineBytes);
@@ -96,25 +90,24 @@ public sealed class StringCache
             Debug.WriteLine("[StringCache] Warning: Empty StringCache loaded");
         else
         {
-            var stream = new FileStream(file.FullName, FileMode.Open);
+            Stream stream = new FileStream(file.FullName, FileMode.Open);
+            //stream = new GZipStream(stream, CompressionMode.Decompress);
             // ReSharper disable once NotAccessedVariable
             int i = 0, c;
             byte[] buf;
 
             i += stream.Read(buf = new byte[4]);
-            i += stream.Read(buf = new byte[NewLineBytes.Length]);
             c = BitConverter.ToInt32(buf);
+            i += stream.Read(buf = new byte[NewLineBytes.Length]);
             while (c-- > 0)
             {
-                i += stream.Read(buf = new byte[8]);
-                long key = BitConverter.ToInt64(buf);
                 i += stream.Read(buf = new byte[4]);
                 int l = BitConverter.ToInt32(buf);
                 i += stream.Read(buf = new byte[l]);
                 string value = RuntimeBase.Encoding.GetString(buf);
                 i += stream.Read(buf = new byte[NewLineBytes.Length]);
 
-                _dict[key] = value;
+                _strings.Add(value);
             }
 
             stream.Close();

@@ -75,7 +75,7 @@ namespace KScr.Core.Bytecode
         {
             stream.Write(BitConverter.GetBytes((uint)Type));
             stream.Write(BitConverter.GetBytes((uint)CodeType));
-            stream.Write(BitConverter.GetBytes(strings[TargetType.FullDetailedName]));
+            strings.Push(stream, TargetType.FullDetailedName);
             stream.Write(BitConverter.GetBytes(Main.Count));
             foreach (var component in Main)
                 component.Write(strings, stream);

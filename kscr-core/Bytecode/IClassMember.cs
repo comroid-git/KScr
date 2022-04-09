@@ -49,7 +49,7 @@ namespace KScr.Core.Bytecode
         {
             stream.Write(new[] { (byte)MemberType });
             stream.Write(BitConverter.GetBytes((int)Modifier));
-            stream.Write(BitConverter.GetBytes(strings[Name]));
+            strings.Push(stream, Name);
         }
 
         public override void Load(RuntimeBase vm, StringCache strings, byte[] data)

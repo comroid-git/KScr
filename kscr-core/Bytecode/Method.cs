@@ -84,7 +84,7 @@ namespace KScr.Core.Bytecode
         public override void Write(StringCache strings, Stream stream)
         {
             base.Write(strings, stream);
-            stream.Write(BitConverter.GetBytes(strings[ReturnType.FullDetailedName]));
+            strings.Push(stream, ReturnType.FullDetailedName);
             stream.Write(BitConverter.GetBytes(Parameters.Count));
             foreach (var parameter in Parameters)
                 parameter.Write(strings, stream);
@@ -120,8 +120,8 @@ namespace KScr.Core.Bytecode
 
         public void Write(StringCache strings, Stream stream)
         {
-            stream.Write(BitConverter.GetBytes(strings[Name]));
-            stream.Write(BitConverter.GetBytes(strings[Type.FullDetailedName]));
+            strings.Push(stream, Name);
+            strings.Push(stream, Type.FullDetailedName);
         }
 
         public void Load(RuntimeBase vm, StringCache strings, byte[] data, ref int index)

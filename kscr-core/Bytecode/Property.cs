@@ -43,7 +43,7 @@ namespace KScr.Core.Bytecode
         public override void Write(StringCache strings, Stream stream)
         {
             base.Write(strings, stream);
-            stream.Write(BitConverter.GetBytes(strings[ReturnType.FullDetailedName]));
+            strings.Push(stream, ReturnType.FullDetailedName);
             stream.Write(new[] {(byte) ((Gettable ? 0b0001 : 0)
                                         | (Settable ? 0b0010 : 0) 
                                         | (Getter != null ? 0b0100 : 0)

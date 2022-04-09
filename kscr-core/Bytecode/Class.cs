@@ -217,15 +217,15 @@ namespace KScr.Core.Bytecode
 
         public override void Write(StringCache strings, Stream stream)
         {
-            stream.Write(BitConverter.GetBytes(strings[Name]));
+            strings.Push(stream, Name);
             stream.Write(new[] { (byte)ClassType });
             stream.Write(BitConverter.GetBytes((uint)Modifier));
 
             // imports
             stream.Write(StringCache.NewLineBytes);
             stream.Write(BitConverter.GetBytes(Imports.Count));
-            foreach (string clsName in Imports) 
-                stream.Write(BitConverter.GetBytes(strings[clsName]));
+            foreach (string clsName in Imports)
+                strings.Push(stream, clsName);
 
             // superclasses
             stream.Write(StringCache.NewLineBytes);
@@ -234,7 +234,7 @@ namespace KScr.Core.Bytecode
             {
                 if  (superclass.Name == "object")
                     continue;
-                stream.Write(BitConverter.GetBytes(strings[superclass.FullDetailedName]));
+                strings.Push(stream, superclass.FullDetailedName);
             }
 
             // interfaces
@@ -244,7 +244,7 @@ namespace KScr.Core.Bytecode
             {
                 if  (iface.Name == "void")
                     continue;
-                stream.Write(BitConverter.GetBytes(strings[iface.FullDetailedName]));
+                strings.Push(stream, iface.FullDetailedName);
             }
 
             // members
