@@ -29,7 +29,7 @@ public class Statement : IBytecode, IStatement<StatementComponent>
 {
     public BytecodeType CodeType { get; set; } = BytecodeType.Undefined;
     public string? Arg { get; set; }
-    public ExecutableCode? Finally { get; set; }
+    public StatementComponent? CatchFinally { get; set; }
     public BytecodeElementType ElementType => BytecodeElementType.Statement;
     public StatementComponentType Type { get; set; }
     public IClassInstance TargetType { get; set; } = Class.VoidType.DefaultInstance;
@@ -61,10 +61,10 @@ public class Statement : IBytecode, IStatement<StatementComponent>
                     break;
             }
         }
-        finally
+        catch (InternalException codeEx)
         {
-            if (Finally != null)
-                Finally.Evaluate(vm, stack);
+            if (CatchFinally != null)
+                CatchFinally.Evaluate(vm, stack);
         }
 
         return stack;

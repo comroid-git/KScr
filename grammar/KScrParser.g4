@@ -92,11 +92,11 @@ propBlock
 propertyDecl: annotation* modifiers type idPart propBlock;
 
 member
-    : initDecl
-    | propertyDecl
-    | constructorDecl
-    | methodDecl
-    | classDecl
+    : propertyDecl                  #memProp
+    | classDecl                     #memCls
+    | initDecl catchBlocks?         #memInit
+    | constructorDecl catchBlocks?  #memCtor
+    | methodDecl catchBlocks?       #memMtd
     ;
 
 classDecl: annotation* modifiers classType idPart genericTypeDefs? objectExtends? objectImplements? (LBRACE member* RBRACE | SEMICOLON);
@@ -108,7 +108,7 @@ inferType: VOID | VAR;
 indexer: LSQUAR RSQUAR;
 indexerUse: LSQUAR expr (COMMA expr)* RSQUAR;
 cast: LPAREN type COLON expr RPAREN;
-declaration: type idPart ASSIGN expr;
+declaration: type idPart (ASSIGN expr)?;
 mutation: binaryop? ASSIGN expr;
 call: idPart arguments;
 ctorCall: NEW type arguments;
@@ -122,16 +122,16 @@ statement
     | left=expr DOT idPart arguments?                       #stmtCallMember
     | returnStatement SEMICOLON                             #stmtReturn
     | throwStatement SEMICOLON                              #stmtThrow
-    | tryCatchStatement finallyBlock?                       #stmtTryCatch
-    | tryWithResourcesStatement finallyBlock?               #stmtTryWithRes
     | markStatement                                         #stmtMark
     | jumpStatement                                         #stmtJump
-    | ifStatement finallyBlock?                             #stmtIf
-    | whileStatement finallyBlock?                          #stmtWhile
-    | doWhile finallyBlock?                                 #stmtDoWhile
-    | forStatement finallyBlock?                            #stmtFor
-    | foreachStatement finallyBlock?                        #stmtForeach
-    | switchStatement finallyBlock?                         #stmtSwitch
+    | tryCatchStatement catchBlocks?                        #stmtTryCatch
+    | tryWithResourcesStatement catchBlocks?                #stmtTryWithRes
+    | ifStatement catchBlocks?                              #stmtIf
+    | whileStatement catchBlocks?                           #stmtWhile
+    | doWhile catchBlocks?                                  #stmtDoWhile
+    | forStatement catchBlocks?                             #stmtFor
+    | foreachStatement catchBlocks?                         #stmtForeach
+    | switchStatement catchBlocks?                          #stmtSwitch
     | expr (pipeRead | pipeWrite)+ SEMICOLON                #stmtPipe
     | SEMICOLON                                             #stmtEmpty
     ;
@@ -139,7 +139,6 @@ expr
     : idPart                                                #varValue
     | expr INSTANCEOF type                                  #checkInstanceof
     | YIELD expr                                            #yieldExpr
-    | tupleExpr                                             #exprTuple
     | target=expr indexerUse                                #readIndexer
     | declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
     | left=expr mutation                                    #varAssign // can't use varAssignment due to recursive rules
@@ -159,6 +158,7 @@ expr
     | left=expr binaryop right=expr                         #opBinary
     | expr postfixop                                        #opPostfix
 //    | expr (pipeRead | pipeWrite)+                          #exprPipe
+    | tupleExpr                                             #exprTuple
     ;
 tupleExpr: LPAREN expr (COMMA expr)* RPAREN;
 
@@ -168,8 +168,10 @@ throwStatement: THROW expr;
 markStatement: MARK idPart SEMICOLON;
 jumpStatement: JUMP idPart SEMICOLON;
 
-tryCatchStatement: TRY codeBlock CATCH codeBlock;
-tryWithResourcesStatement: TRY LPAREN declaration (COMMA declaration)* RPAREN codeBlock CATCH codeBlock;
+tryCatchStatement: TRY codeBlock;
+tryWithResourcesStatement: TRY LPAREN declaration (COMMA declaration)* RPAREN codeBlock;
+catchBlocks: catchBlock* finallyBlock;
+catchBlock: CATCH (LPAREN type (COMMA type)* idPart RPAREN)? codeBlock;
 finallyBlock: FINALLY codeBlock;
 
 ifStatement: IF LPAREN expr RPAREN codeBlock elseStatement?;

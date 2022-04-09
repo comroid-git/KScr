@@ -9,6 +9,7 @@ using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
 using KScr.Core.Std;
+using String = System.String;
 
 namespace KScr.Compiler;
 
@@ -86,7 +87,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             KScrParser.RULE_methodDecl or KScrParser.RULE_constructorDecl or KScrParser.RULE_initDecl
                 or KScrParser.RULE_propertyDecl or KScrParser.RULE_member
                 => new ClassMemberVisitor(vm, ctx).Visit(member),
-            KScrParser.RULE_classDecl => new ClassVisitor(vm, ctx).Visit(member.classDecl()),
+            KScrParser.RULE_classDecl => new ClassVisitor(vm, ctx).Visit(member),
             _ => throw new ArgumentOutOfRangeException(nameof(member.RuleIndex), member.RuleIndex,
                 "Invalid Rule for member: " + member)
         };
@@ -102,7 +103,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         return new CodeblockVisitor(vm, ctx).Visit(member);
     }
 
-    protected Statement VisitStatement(KScrParser.StatementContext stmt)
+    protected Statement VisitStatement(ParserRuleContext stmt)
     {
         return new StatementVisitor(vm, ctx).Visit(stmt);
     }
@@ -110,6 +111,38 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
     protected StatementComponent VisitExpression(ParserRuleContext expr)
     {
         return new ExpressionVisitor(vm, ctx).Visit(expr);
+    }
+
+    protected new StatementComponent VisitCatchBlocks(KScrParser.CatchBlocksContext context)
+    {
+        var comp = new StatementComponent()
+        {
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtCatch,
+            SubStatement = new Statement() { Type = StatementComponentType.Code, CodeType = BytecodeType.StmtCatch }
+        };
+        // catches
+        foreach (var katchow in context.catchBlock())
+            comp.SubStatement.Main.Add(new StatementComponent()
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.StmtCatch,
+                Arg = katchow.type() == null
+                    ? string.Empty
+                    : string.Join(";", katchow.type()
+                        .Select(x => VisitTypeInfo(x).FullDetailedName)
+                        .Append(katchow.idPart().GetText())),
+                InnerCode = VisitCode(katchow.codeBlock())
+            });
+        if (context.finallyBlock() is { } finalli)
+            comp.AltComponent = new StatementComponent()
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.StmtFinally,
+                InnerCode = VisitCode(finalli.codeBlock())
+
+            };
+        return comp;
     }
 
     protected new Statement VisitArguments(KScrParser.ArgumentsContext context)
