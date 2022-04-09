@@ -31,7 +31,8 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         Type = StatementComponentType.Declaration,
         CodeType = context.expr() != null ? BytecodeType.Assignment : BytecodeType.Declaration,
         Arg = VisitTypeInfo(context.type()).FullDetailedName + ';' + context.idPart().GetText(),
-        SubComponent = context.expr() is {} expr ? VisitExpression(expr) : null
+        SubComponent = context.expr() is {} expr ? VisitExpression(expr) : null,
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitMutation(KScrParser.MutationContext context)
@@ -55,14 +56,16 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
                 CodeType = BytecodeType.Assignment,
                 ByteArg = (ulong)(VisitOperator(op) | Operator.Compound | Operator.Binary),
                 SubComponent = VisitExpression(context.left),
-                AltComponent = VisitExpression(context.mutation().expr())
+                AltComponent = VisitExpression(context.mutation().expr()),
+                SourcefilePosition = ToSrcPos(context)
             }
             : new StatementComponent()
             {
                 Type = StatementComponentType.Code,
                 CodeType = BytecodeType.Assignment,
                 SubComponent = VisitExpression(context.left),
-                AltComponent = VisitExpression(context.mutation())
+                AltComponent = VisitExpression(context.mutation()),
+                SourcefilePosition = ToSrcPos(context)
             };
 
     public override StatementComponent VisitOpPrefix(KScrParser.OpPrefixContext context) => new()
@@ -70,7 +73,8 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         Type = StatementComponentType.Operator,
         CodeType = BytecodeType.Operator,
         ByteArg = (ulong)(new OperatorVisitor().Visit(context.prefixop()) | Operator.UnaryPrefix),
-        SubComponent = VisitExpression(context.expr())
+        SubComponent = VisitExpression(context.expr()),
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitOpBinary(KScrParser.OpBinaryContext context) => new()
@@ -80,6 +84,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         ByteArg = (ulong)(new OperatorVisitor().Visit(context.binaryop()) | Operator.Binary),
         SubComponent = VisitExpression(context.left),
         AltComponent = VisitExpression(context.right),
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitOpPostfix(KScrParser.OpPostfixContext context) => new()
@@ -87,14 +92,16 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         Type = StatementComponentType.Operator,
         CodeType = BytecodeType.Operator,
         ByteArg = (ulong)(new OperatorVisitor().Visit(context.postfixop()) | Operator.UnaryPostfix),
-        SubComponent = VisitExpression(context.expr())
+        SubComponent = VisitExpression(context.expr()),
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitParens(KScrParser.ParensContext context) => new()
     {
         Type = StatementComponentType.Expression,
         CodeType = BytecodeType.Parentheses,
-        SubComponent = VisitExpression(context.expr())
+        SubComponent = VisitExpression(context.expr()),
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitCtorCall(KScrParser.CtorCallContext context) => new()
@@ -102,7 +109,8 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         Type = StatementComponentType.Expression,
         CodeType = BytecodeType.ConstructorCall,
         Arg = FindTypeInfo(context.type())!.FullDetailedName,
-        SubStatement = VisitArguments(context.arguments())
+        SubStatement = VisitArguments(context.arguments()),
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitExprCallMember(KScrParser.ExprCallMemberContext context)
@@ -113,7 +121,8 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             Type = StatementComponentType.Expression,
             CodeType = BytecodeType.Call,
             Arg = context.idPart().GetText(),
-            SubStatement = VisitArguments(context.arguments())
+            SubStatement = VisitArguments(context.arguments()),
+            SourcefilePosition = ToSrcPos(context)
         };
         return expr;
     }
@@ -123,14 +132,16 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         Type = StatementComponentType.Expression,
         CodeType = BytecodeType.NullFallback,
         SubComponent = VisitExpression(context.nullable),
-        AltComponent = VisitExpression(context.fallback)
+        AltComponent = VisitExpression(context.fallback),
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitThrowStatement(KScrParser.ThrowStatementContext context) => new()
     {
         Type = StatementComponentType.Code,
         CodeType = BytecodeType.Throw,
-        SubComponent = VisitExpression(context.expr())
+        SubComponent = VisitExpression(context.expr()),
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitSwitchStatement(KScrParser.SwitchStatementContext context)
@@ -157,38 +168,44 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
     {
         Type = StatementComponentType.Expression,
         CodeType = BytecodeType.TypeExpression,
-        Arg = VisitTypeInfo(context.type()).FullDetailedName
+        Arg = VisitTypeInfo(context.type()).FullDetailedName,
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitVarThis(KScrParser.VarThisContext context) => new()
     {
         Type = StatementComponentType.Expression,
-        VariableContext = VariableContext.This
+        VariableContext = VariableContext.This,
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitVarSuper(KScrParser.VarSuperContext context) => new()
     {
         Type = StatementComponentType.Expression,
-        VariableContext = VariableContext.Super
+        VariableContext = VariableContext.Super,
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitVarLitNum(KScrParser.VarLitNumContext context) => new()
     {
         Type = StatementComponentType.Expression,
         CodeType = BytecodeType.LiteralNumeric,
-        Arg = Numeric.Compile(vm, context.GetText()).Value.ToString(IObject.ToString_LongName)
+        Arg = Numeric.Compile(vm, context.GetText()).Value.ToString(IObject.ToString_LongName),
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitVarLitTrue(KScrParser.VarLitTrueContext context) => new()
     {
         Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.LiteralTrue
+        CodeType = BytecodeType.LiteralTrue,
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitVarLitFalse(KScrParser.VarLitFalseContext context) => new()
     {
         Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.LiteralFalse
+        CodeType = BytecodeType.LiteralFalse,
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitVarLitStr(KScrParser.VarLitStrContext context)
@@ -198,20 +215,23 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         {
             Type = StatementComponentType.Expression,
             CodeType = BytecodeType.LiteralString,
-            Arg = txt.Substring(txt.IndexOf('"') + 1, txt.LastIndexOf('"') - 1)
+            Arg = txt.Substring(txt.IndexOf('"') + 1, txt.LastIndexOf('"') - 1),
+            SourcefilePosition = ToSrcPos(context)
         };
     }
 
     public override StatementComponent VisitVarLitStdio(KScrParser.VarLitStdioContext context) => new()
     {
         Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.StdioExpression
+        CodeType = BytecodeType.StdioExpression,
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitVarLitNull(KScrParser.VarLitNullContext context) => new()
     {
         Type = StatementComponentType.Expression,
-        CodeType = BytecodeType.Null
+        CodeType = BytecodeType.Null,
+        SourcefilePosition = ToSrcPos(context)
     };
 
     public override StatementComponent VisitIdPart(KScrParser.IdPartContext context) =>
@@ -220,13 +240,15 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             {
                 Type = StatementComponentType.Expression,
                 CodeType = BytecodeType.TypeExpression,
-                Arg = imported.CanonicalName
+                Arg = imported.CanonicalName,
+                SourcefilePosition = ToSrcPos(context)
             }
             : new()
             {
                 Type = StatementComponentType.Provider,
                 CodeType = BytecodeType.ExpressionVariable,
-                Arg = context.GetText()
+                Arg = context.GetText(),
+                SourcefilePosition = ToSrcPos(context)
             };
 
     public override StatementComponent VisitRangeInvoc(KScrParser.RangeInvocContext context) => new()
@@ -235,6 +257,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         CodeType = BytecodeType.LiteralRange,
         SubComponent = VisitExpression(context.left),
         AltComponent = VisitExpression(context.right),
+        SourcefilePosition = ToSrcPos(context)
     };
 }
 
