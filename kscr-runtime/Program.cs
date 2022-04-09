@@ -65,12 +65,6 @@ public class Program
 
                 ioTime = LoadClasspath(cmd);
                 executeTime = Execute(out stack);
-            })
-            .WithNotParsed(errors =>
-            {
-                if (!errors.Any())
-                    RuntimeBase.MainStack.StepInto(VM, RuntimeBase.SystemSrcPos, RuntimeBase.MainInvoc,
-                        _ => StdIoMode());
             });
 
         return HandleExit(stack.State, stack.Omg?.Value, compileTime, executeTime, ioTime, RuntimeBase.ConfirmExit);
