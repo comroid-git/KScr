@@ -22,7 +22,8 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
 
     public override ITypeInfo VisitIdPart(KScrParser.IdPartContext context)
     {
-        return (ITypeInfo?)FindType(context.GetText()) ?? new TypeParameter(context.GetText());
+        var name = context.GetText();
+        return ctx.FindType(vm, name) ?? vm.FindType(name) ?? (ITypeInfo)new TypeParameter(name);
     }
 
     public override ITypeInfo VisitNormalTypeUse(KScrParser.NormalTypeUseContext context)

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
 
@@ -28,5 +30,12 @@ public class CompilerContext
     {
         get => _class ?? Parent?.Class;
         init => _class = value;
+    }
+
+    public ITypeInfo? FindType(RuntimeBase vm, string name)
+    {
+        if (_imports?.FirstOrDefault(n => n.EndsWith(name)) is { } imported)
+            return vm.FindType(imported, Package);
+        return null;
     }
 }
