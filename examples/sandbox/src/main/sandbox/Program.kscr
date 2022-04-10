@@ -1,0 +1,10 @@
+package sandbox;
+
+import sandbox.Printer;
+import sandbox.StdIOPrinter;
+
+public class Program {
+    public static void main() {
+        new StdIOPrinter().writeLine("Hello world!");
+    }
+}
