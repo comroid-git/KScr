@@ -53,15 +53,13 @@ public class ClassMemberVisitor : AbstractVisitor<IClassMember>
             //todo Body = VisitMemberCode(context.memberBlock()),
             CatchFinally = memInit.catchBlocks() == null ? null : VisitCatchBlocks(memInit.catchBlocks())
         };
-    }
-
-    public override IClassMember VisitPropertyDecl(KScrParser.PropertyDeclContext context)
-    {
+        /*
         var name = context.idPart().GetText();
         var type = VisitTypeInfo(context.type());
         var mod = VisitModifiers(context.modifiers());
         var prop = new Property(ToSrcPos(context), ctx.Class!.AsClass(vm), name, type, mod);
         return prop;//new PropBlockVisitor(this, prop).Visit(context.propBlock());
+        */
     }
 
     internal sealed class PropBlockVisitor : KScrParserBaseVisitor<Property>

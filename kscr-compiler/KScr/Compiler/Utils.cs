@@ -23,9 +23,9 @@ public static class Utils
     {
         KScrParser.RULE_initDecl => Method.StaticInitializerName,
         KScrParser.RULE_constructorDecl => Method.ConstructorName,
-        KScrParser.RULE_propertyDecl => member.propertyDecl().idPart().GetText(),
-        KScrParser.RULE_methodDecl => member.methodDecl().idPart().GetText(),
-        KScrParser.RULE_classDecl => member.classDecl().idPart().GetText(),
+        KScrParser.RULE_propertyDecl => (member as KScrParser.MemPropContext)!.propertyDecl().idPart().GetText(),
+        KScrParser.RULE_methodDecl => (member as KScrParser.MemMtdContext)!.methodDecl().idPart().GetText(),
+        KScrParser.RULE_classDecl => (member as KScrParser.MemClsContext)!.classDecl().idPart().GetText(),
         _ => throw new ArgumentOutOfRangeException(nameof(member.RuleIndex), member.RuleIndex,
             "Invalid Member ruleIndex")
     };
