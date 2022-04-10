@@ -46,6 +46,9 @@ public class CompilerRuntime : BytecodeRuntime
         // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
         var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
         var imports = FindClassImports(fileDecl.imports());
+        
+        // todo: load imported classes first
+        
         var news = new Dictionary<string, Core.Std.Class>();
         var ctx = new CompilerContext
         {
