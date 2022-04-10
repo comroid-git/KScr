@@ -23,13 +23,14 @@ public sealed class RuntimeVersion : AbstractVersion
     public static readonly RuntimeVersion V_0_2_1 = new("0.2.1");
     public static readonly RuntimeVersion V_0_2_2 = new("0.2.2");
     public static readonly RuntimeVersion V_0_3_0 = new("0.3.0");
+    public static readonly RuntimeVersion V_0_3_1 = new("0.3.1");
 
     private RuntimeVersion(string vStr) : base(vStr)
     {
         _cache.Add(this);
     }
 
-    public static RuntimeVersion Current => V_0_3_0;
+    public static RuntimeVersion Current => V_0_3_1;
 
     public static RuntimeVersion Find(int major, int minor, int build = int.MinValue, string? msg = null)
     {
