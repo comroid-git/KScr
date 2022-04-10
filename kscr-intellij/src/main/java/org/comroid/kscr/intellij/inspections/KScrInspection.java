@@ -5,7 +5,6 @@ import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.psi.PsiFile;
 import org.comroid.kscr.intellij.psi.KScrFile;
-import org.comroid.kscr.intellij.psi.KScrType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

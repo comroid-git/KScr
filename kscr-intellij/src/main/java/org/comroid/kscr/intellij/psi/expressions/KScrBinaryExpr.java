@@ -2,8 +2,6 @@ package org.comroid.kscr.intellij.psi.expressions;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
-import org.comroid.kscr.intellij.psi.KScrBinaryOp;
-import org.comroid.kscr.intellij.psi.KScrExpression;
 import org.comroid.kscr.intellij.psi.utils.PsiUtils;
 import org.jetbrains.annotations.NotNull;
 

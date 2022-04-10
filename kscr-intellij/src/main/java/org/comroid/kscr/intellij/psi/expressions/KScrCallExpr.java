@@ -4,8 +4,6 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.jvm.JvmMethod;
 import com.intellij.lang.jvm.types.JvmType;
 import org.comroid.kscr.intellij.antlr_generated.KScrLangParser;
-import org.comroid.kscr.intellij.psi.KScrCall;
-import org.comroid.kscr.intellij.psi.KScrExpression;
 import org.comroid.kscr.intellij.psi.Tokens;
 import org.comroid.kscr.intellij.psi.utils.PsiUtils;
 import org.jetbrains.annotations.NotNull;

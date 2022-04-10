@@ -1,8 +1,6 @@
 package org.comroid.kscr.intellij.psi.utils;
 
 import com.intellij.psi.PsiElement;
-import org.comroid.kscr.intellij.psi.KScrId;
-import org.comroid.kscr.intellij.psi.KScrModifierList;
 
 import java.util.Optional;
 

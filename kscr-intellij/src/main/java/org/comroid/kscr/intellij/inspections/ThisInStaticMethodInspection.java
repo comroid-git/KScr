@@ -6,7 +6,6 @@ import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.comroid.kscr.intellij.psi.KScrMethod;
 import org.comroid.kscr.intellij.psi.expressions.KScrThisExpr;
 import org.jetbrains.annotations.NotNull;
 

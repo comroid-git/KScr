@@ -3,7 +3,6 @@ package org.comroid.kscr.intellij.psi.types;
 import com.intellij.lang.jvm.*;
 import com.intellij.lang.jvm.types.JvmReferenceType;
 import com.intellij.psi.PsiElement;
-import org.comroid.kscr.intellij.psi.KScrType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

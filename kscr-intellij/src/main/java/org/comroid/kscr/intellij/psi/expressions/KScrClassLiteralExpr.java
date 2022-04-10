@@ -3,7 +3,6 @@ package org.comroid.kscr.intellij.psi.expressions;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jvm.types.JvmType;
 import com.intellij.psi.PsiReference;
-import org.comroid.kscr.intellij.psi.KScrExpression;
 import org.comroid.kscr.intellij.psi.utils.KScrIdHolder;
 import org.comroid.kscr.intellij.psi.utils.KScrTypeReference;
 import org.jetbrains.annotations.NotNull;
