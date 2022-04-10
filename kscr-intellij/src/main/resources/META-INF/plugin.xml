@@ -29,13 +29,16 @@
                   extensions="kbin"
         />
 
+        <moduleType id="kscr.module.type" implementationClass="org.comroid.kscr.intellij.sdk.module.KScrModuleType" />
+        <moduleBuilder id="kscr.module.builder" builderClass="org.comroid.kscr.intellij.sdk.module.KScrModuleBuilder" />
+
         <lang.syntaxHighlighterFactory language="KScr"
                                        implementationClass="org.comroid.kscr.intellij.parser.KScrSyntaxHighlighter"/>
 
         <applicationConfigurable groupId="language"
                                  id="preferences.language.kScr"
                                  displayName="KScr"
-                                 instance="org.comroid.kscr.intellij.sdks.config.KScrLanguageConfiguration"/>
+                                 instance="org.comroid.kscr.intellij.sdk.config.KScrLanguageConfiguration"/>
 
         <lang.parserDefinition language="KScr"
                                implementationClass="org.comroid.kscr.intellij.parser.KScrParserDefinition"/>

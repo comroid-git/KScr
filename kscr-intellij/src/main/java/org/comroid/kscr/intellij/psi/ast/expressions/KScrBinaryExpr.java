@@ -7,7 +7,6 @@ import com.intellij.lang.jvm.types.JvmType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiPrimitiveType;
 import org.comroid.kscr.intellij.psi.ast.KScrBinaryOp;
-import org.comroid.kscr.intellij.psi.utils.JvmClassUtils;
 import org.comroid.kscr.intellij.psi.utils.PsiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

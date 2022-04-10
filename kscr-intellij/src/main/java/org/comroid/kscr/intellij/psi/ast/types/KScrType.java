@@ -28,7 +28,6 @@ import org.comroid.kscr.intellij.psi.stubs.*;
 import org.comroid.kscr.intellij.psi.types.KScrKind;
 import org.comroid.kscr.intellij.psi.types.JvmKScrlicClass;
 import org.comroid.kscr.intellij.psi.types.JvmKScrlicMethod;
-import org.comroid.kscr.intellij.psi.utils.JvmClassUtils;
 import org.comroid.kscr.intellij.psi.utils.KScrModifiersHolder;
 import org.comroid.kscr.intellij.psi.utils.ProjectTypeFinder;
 import org.comroid.kscr.intellij.psi.utils.PsiUtils;

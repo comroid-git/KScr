@@ -21,7 +21,6 @@ import org.comroid.kscr.intellij.psi.ast.expressions.KScrExpression;
 import org.comroid.kscr.intellij.psi.ast.expressions.KScrIdExpr;
 import org.comroid.kscr.intellij.psi.ast.statements.KScrStatement;
 import org.comroid.kscr.intellij.psi.ast.types.KScrType;
-import org.comroid.kscr.intellij.psi.utils.JvmClassUtils;
 import org.comroid.kscr.intellij.psi.utils.MethodUtils;
 import org.comroid.kscr.intellij.psi.utils.PsiUtils;
 import org.jetbrains.annotations.NotNull;

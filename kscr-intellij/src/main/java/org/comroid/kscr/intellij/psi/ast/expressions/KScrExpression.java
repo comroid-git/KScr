@@ -5,7 +5,6 @@ import com.intellij.lang.jvm.types.JvmType;
 import com.intellij.psi.PsiPrimitiveType;
 import com.intellij.psi.impl.source.tree.CompositeElement;
 import org.comroid.kscr.intellij.psi.KScrAstElement;
-import org.comroid.kscr.intellij.psi.utils.JvmClassUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

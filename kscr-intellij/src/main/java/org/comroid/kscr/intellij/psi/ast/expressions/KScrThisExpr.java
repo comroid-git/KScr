@@ -4,7 +4,6 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.jvm.types.JvmType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.comroid.kscr.intellij.psi.KScrCodeHolder;
-import org.comroid.kscr.intellij.psi.utils.JvmClassUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -22,7 +22,6 @@ import org.comroid.kscr.intellij.psi.stubs.StubTypes;
 import org.comroid.kscr.intellij.psi.types.KScrKind;
 import org.comroid.kscr.intellij.psi.types.JvmKScrlicClass;
 import org.comroid.kscr.intellij.psi.types.JvmKScrlicMethod;
-import org.comroid.kscr.intellij.psi.utils.JvmClassUtils;
 import org.comroid.kscr.intellij.psi.utils.PsiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

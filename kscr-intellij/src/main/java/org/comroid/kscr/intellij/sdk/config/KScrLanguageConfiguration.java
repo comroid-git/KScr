@@ -1,6 +1,5 @@
-package org.comroid.kscr.intellij.sdks.config;
+package org.comroid.kscr.intellij.sdk.config;
 
-import com.intellij.execution.target.CustomToolLanguageConfigurable;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.NlsContexts;

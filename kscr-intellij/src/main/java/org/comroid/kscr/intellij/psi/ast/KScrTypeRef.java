@@ -6,7 +6,6 @@ import com.intellij.lang.jvm.types.JvmType;
 import org.comroid.kscr.intellij.psi.KScrAstElement;
 import org.comroid.kscr.intellij.psi.Tokens;
 import org.comroid.kscr.intellij.psi.types.ArrayTypeImpl;
-import org.comroid.kscr.intellij.psi.utils.JvmClassUtils;
 import org.comroid.kscr.intellij.psi.utils.PsiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
