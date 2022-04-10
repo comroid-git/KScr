@@ -26,7 +26,7 @@ public class ClassVisitor : AbstractVisitor<Core.Std.Class>
         if (context.objectImplements() is { } impl)
             foreach (var implementsType in impl.type())
                 cls._interfaces.Add(VisitTypeInfo(implementsType).AsClassInstance(vm));
-
+        
         foreach (var each in context.member())
         {
             var member = VisitClassMember(each);

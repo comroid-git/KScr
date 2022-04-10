@@ -1,4 +1,5 @@
-﻿using KScr.Core;
+﻿using KScr.Bytecode.Model;
+using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
 using KScr.Core.Std;
@@ -62,13 +63,18 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
 
         WriteElementType();
 
-        if (bytecode is Class cls)
+        if (bytecode is WritableClass write)
+        {
+            WriteString(write.MainClass.Package.FullName);
+            WriteArray(write.MainClass.Imports.Select(IBytecode.String).ToArray());
+            WriteArray(write.SubClasses.ToArray());
+        }
+        else if (bytecode is Class cls)
         {
             WriteByte((byte)cls.MemberType);
             WriteByte((byte)cls.ClassType);
             WriteUInt((uint)cls.Modifier);
             WriteString(cls.Name);
-            WriteArray(cls.Imports.Select(IBytecode.String).ToArray());
             WriteArray(cls._superclasses.Select(it => it.FullDetailedName).Select(IBytecode.String).ToArray());
             WriteArray(cls._interfaces.Select(it => it.FullDetailedName).Select(IBytecode.String).ToArray());
             WriteArray(cls.DeclaredMembers.Values.Where(x => x is not DummyMethod).ToArray());
@@ -255,17 +261,21 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
                 return (T)(object)ReadULong();
             case BytecodeElementType.String:
                 return (T)(object)ReadString();
+            case BytecodeElementType.ClassFile:
+                var package = ReadString();
+                var imports = ReadArray<string>();
+                var classes = ReadArray<Class>();
+                foreach (var import in imports) classes[0].Imports.Add(import);
+                return (T)(object)new WritableClass(classes[0], classes);
             case BytecodeElementType.Class:
                 memberType = (ClassMemberType)ReadByte();
                 var classType = (ClassType)ReadByte();
                 mod = (MemberModifier)ReadUInt();
                 name = ReadString();
-                var imports = ReadArray<string>();
                 var superclasses = ReadArray<string>().Select(x => vm.FindType(x));
                 var interfaces = ReadArray<string>().Select(x => vm.FindType(x));
                 var members = ReadArray<IClassMember>();
                 var kls = new Class(pkg, name, false, mod, classType);
-                foreach (var import in imports) kls.Imports.Add(import);
                 foreach (var superclass in superclasses) kls._superclasses.Add(superclass);
                 foreach (var iface in interfaces) kls._interfaces.Add(iface);
                 foreach (var member in members) kls.DeclaredMembers[member.Name] = member;

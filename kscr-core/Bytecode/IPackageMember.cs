@@ -44,7 +44,7 @@ public abstract class AbstractPackageMember : IPackageMember
 
     public bool IsRoot => Name == Package.RootPackageName;
 
-    public Package? Package { get; }
+    public Package Package { get; }
 
     public virtual string Name => _name;
 

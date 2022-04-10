@@ -44,6 +44,8 @@ public interface ISourcesCmd : IGenericCmd
 {
     [Option(HelpText = "The source paths to compile", Required = true)]
     public IEnumerable<string> Sources { get; set; }
+    [Option(HelpText = "The base Package to compile in")]
+    public string BasePackage { get; set; }
 }
 
 public interface IConfigCmd
@@ -67,6 +69,7 @@ public sealed class CmdCompile : IOutputCmd, IClasspathCmd, ISourcesCmd
     public bool Debug { get; set; }
     public IEnumerable<string> Args { get; set; }
     public IEnumerable<string> Sources { get; set; }
+    public string BasePackage { get; set; }
 }
 
 [Verb("execute", HelpText = "Compile and Execute one or more .kscr Files")]
@@ -81,6 +84,7 @@ public sealed class CmdExecute : IClasspathCmd, ISourcesCmd, IOutputCmd
     public CompressionType Compression { get; set; }
     public CompressionLevel CompressionLevel { get; set; }
     public IEnumerable<string> Sources { get; set; }
+    public string BasePackage { get; set; }
 }
 
 [Verb("run", HelpText = "Load and Execute one or more .kbin Files")]

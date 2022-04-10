@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using CommandLine;
@@ -22,6 +24,8 @@ public class Program
 
     private static readonly string
         StdPackageLocation = Path.Combine(RuntimeBase.SdkHome.FullName, "std");
+
+    private static IDictionary<IPackageMember, IBytecode>? compiled;
 
     static Program()
     {
@@ -81,6 +85,10 @@ public class Program
         RuntimeBase.ConfirmExit = cmd.Confirm;
         RuntimeBase.DebugMode = cmd.Debug;
         RuntimeBase.ExtraArgs = cmd.Args.ToArray();
+        if (cmd is CmdCompile compile)
+            RuntimeBase.CompileSystem = compile.System;
+        if (cmd is ISourcesCmd sources)
+            VM.BasePackage = sources.BasePackage;
         if (cmd is IOutputCmd output)
         {
             VM.CompressionType = output.Compression;
@@ -111,29 +119,37 @@ public class Program
     private static long CompileFiles(ISourcesCmd cmd)
     {
         var compileTime = RuntimeBase.UnixTime();
-        VM.CompileFiles(cmd.Sources.SelectMany(path => Directory.Exists(path)
-            ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories)
-            : new[] { new FileInfo(path) }));
+        foreach (var srcDir in cmd.Sources.Select(x => Directory.Exists(x) ? new DirectoryInfo(x) : new FileInfo(x).Directory!))
+            compiled = VM.CompilePackages(srcDir);
         compileTime = RuntimeBase.UnixTime() - compileTime;
         return compileTime;
     }
 
     private static long WriteClasses<TC>(TC cmd) where TC : ISourcesCmd, IOutputCmd
     {
+        if (compiled == null)
+            throw new Exception("No classes were compiled in this session");
+        var output = cmd.Output == null ? new DirectoryInfo(DefaultOutput) : cmd.Output;
+        var strings = new StringCache();
         var ioTime = RuntimeBase.UnixTime();
-        WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput), cmd.Sources.SelectMany(path =>
-            Directory.Exists(path)
-                ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories)
-                : new[] { new FileInfo(path) }));
+        foreach (var (key, value) in compiled)
+        {
+            var names = key.FullName.Split('.');
+            var dir = output.FullName;
+            var pkg = Package.RootPackage;
+            for (int i = 0; i < names.Length - 1; i++)
+            {
+                var name = names[i];
+                dir = Path.Combine(dir, name);
+                pkg = pkg.GetOrCreatePackage(name);
+            }
+
+            var path = Path.Combine(dir, names[^1] + RuntimeBase.BinaryFileExt);
+            VM.Write(strings, VM.WrappedFileStream(new FileInfo(path), FileMode.Create), value);
+        }
+        strings.Write(output);
         ioTime = RuntimeBase.UnixTime() - ioTime;
         return ioTime;
-    }
-
-    private static void WriteClasses(DirectoryInfo output, IEnumerable<FileInfo> sources)
-    {
-        if (output.Exists)
-            output.Delete(true);
-        Package.RootPackage.Write(VM, output, sources.Select(f => VM.FindClassInfo(f)).ToArray(), new StringCache());
     }
 
     private static long Execute(out Stack stack)

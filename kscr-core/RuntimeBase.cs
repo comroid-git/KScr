@@ -77,6 +77,7 @@ public abstract class RuntimeBase : IBytecodePort
 
     public ObjectRef StdioRef { get; private set; }
 
+    public string BasePackage { get; set; }
     public bool StdIoMode { get; set; } = false;
     public static bool ConfirmExit { get; set; }
     public static bool DebugMode { get; set; }
@@ -394,5 +395,17 @@ public abstract class RuntimeBase : IBytecodePort
                 return stack;
             }
         }
+    }
+
+    public Stream WrappedFileStream(FileInfo file, FileMode mode, bool rec = false)
+    {
+        return !rec
+            ? WrapStream(WrappedFileStream(file, mode, true), mode switch
+            {
+                FileMode.Create => CompressionMode.Compress,
+                FileMode.Open => CompressionMode.Decompress,
+                _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "invalid state")
+            })
+            : new FileStream(file.FullName, mode);
     }
 }

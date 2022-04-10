@@ -1,7 +1,7 @@
 ﻿<component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Compile System Package" type="DotNetProject" factoryName=".NET Project">
     <option name="EXE_PATH" value="$PROJECT_DIR$/kscr-runtime/bin/net6.0/kscr.exe" />
-    <option name="PROGRAM_PARAMETERS" value="compile --system --sources kscr-system/src/ --output kscr-runtime/bin/net6.0/std/" />
+    <option name="PROGRAM_PARAMETERS" value="compile --system --sources kscr-system/src/ --output kscr-runtime/bin/net6.0/std/ --basepackage org.comroid.kscr" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/" />
     <option name="PASS_PARENT_ENVS" value="1" />
     <option name="USE_EXTERNAL_CONSOLE" value="0" />

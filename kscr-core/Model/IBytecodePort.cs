@@ -15,6 +15,7 @@ public enum BytecodeElementType : byte
     UInt64,
     String,
 
+    ClassFile,
     Class,
     Method,
     MethodParameter,

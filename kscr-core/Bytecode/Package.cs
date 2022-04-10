@@ -30,39 +30,6 @@ public sealed class Package : AbstractPackageMember
             .First(it => it.IsStatic());
     }
 
-    public void Write(RuntimeBase vm, DirectoryInfo dir, ClassInfo[]? names = null, StringCache? strings = null,
-        bool rec = false)
-    {
-        names ??= Array.Empty<ClassInfo>();
-        strings ??= new StringCache();
-        foreach (var member in PackageMembers.Values)
-            if (!names.Any(name => name.FullName.StartsWith(member.FullName.Contains("<")
-                    ? member.FullName.Substring(0, member.FullName.IndexOf('<'))
-                    : member.FullName)))
-                // ReSharper disable once RedundantJumpStatement
-            {
-                continue;
-            }
-            else if (member is Package pkg)
-            {
-                pkg.Write(vm, dir.CreateSubdirectory(member.Name), names, strings, true);
-            }
-            else if (member is Class cls)
-            {
-                var file = new FileInfo(Path.Combine(dir.FullName, (member.Name.Contains("<")
-                    ? member.Name.Substring(0, member.Name.IndexOf("<", StringComparison.Ordinal))
-                    : member.Name) + ".kbin"));
-                vm.Write(strings, FStream(vm, file, FileMode.Create), cls);
-            }
-            else
-            {
-                throw new NotSupportedException("Member is of unsupported type: " + member.GetType());
-            }
-
-        if (!rec)
-            strings.Write(dir);
-    }
-
     public static void ReadAll(RuntimeBase vm, DirectoryInfo dir, StringCache? strings = null)
     {
         strings ??= StringCache.Read(dir);
@@ -83,24 +50,12 @@ public sealed class Package : AbstractPackageMember
 
         foreach (var cls in dir.EnumerateFiles("*.kbin"))
         {
-            var kls = vm.Load<Class>(vm, strings, FStream(vm, cls, FileMode.Open), it,
+            var kls = vm.Load<Class>(vm, strings, vm.WrappedFileStream(cls, FileMode.Open), it,
                 null); //Class.Read(vm, strings, cls, it);
             //it.Members[kls.Name] = kls;
         }
 
         return it;
-    }
-
-    private static Stream FStream(RuntimeBase vm, FileInfo file, FileMode mode, bool rec = false)
-    {
-        return !rec
-            ? vm.WrapStream(FStream(vm, file, mode, true), mode switch
-            {
-                FileMode.Create => CompressionMode.Compress,
-                FileMode.Open => CompressionMode.Decompress,
-                _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "invalid state")
-            })
-            : new FileStream(file.FullName, mode);
     }
 
     public override string ToString()

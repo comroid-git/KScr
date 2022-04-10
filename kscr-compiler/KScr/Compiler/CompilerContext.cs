@@ -9,7 +9,7 @@ namespace KScr.Compiler;
 public class CompilerContext
 {
     private readonly IClassInfo? _class;
-    private readonly List<string>? _imports;
+    private readonly IList<string>? _imports;
     private readonly Package? _package;
 
     internal CompilerContext? Parent { get; init; }
@@ -20,7 +20,7 @@ public class CompilerContext
         init => _package = value;
     }
 
-    public List<string> Imports
+    public IList<string> Imports
     {
         get => _imports ?? Parent?.Imports ?? new List<string>();
         init => _imports = value;

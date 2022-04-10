@@ -19,7 +19,7 @@ public class ClassMemberVisitor : AbstractVisitor<IClassMember>
         var mod = VisitModifiers(context.modifiers());
         var mtd = new Method(ToSrcPos(context), ctx.Class!.AsClass(vm), name, type, mod)
         {
-            Body = VisitMemberCode(context.memberBlock()),
+            //todo Body = VisitMemberCode(context.memberBlock()),
             CatchFinally = memMtd.catchBlocks() == null ? null : VisitCatchBlocks(memMtd.catchBlocks())
         };
         foreach (var param in context.parameters().parameter())
@@ -35,7 +35,7 @@ public class ClassMemberVisitor : AbstractVisitor<IClassMember>
         var mod = VisitModifiers(context.modifiers()) | MemberModifier.Static;
         var ctor = new Method(ToSrcPos(context), cls, Method.ConstructorName, cls, mod)
         {
-            Body = VisitMemberCode(context.memberBlock()),
+            //todo Body = VisitMemberCode(context.memberBlock()),
             CatchFinally = memCtor.catchBlocks() == null ? null : VisitCatchBlocks(memCtor.catchBlocks())
         };
         foreach (var param in context.parameters().parameter())
@@ -50,7 +50,7 @@ public class ClassMemberVisitor : AbstractVisitor<IClassMember>
         return new Method(ToSrcPos(context), ctx.Class!.AsClass(vm), Method.StaticInitializerName,
             Core.Std.Class.VoidType, MemberModifier.Private | MemberModifier.Static)
         {
-            Body = VisitMemberCode(context.memberBlock()),
+            //todo Body = VisitMemberCode(context.memberBlock()),
             CatchFinally = memInit.catchBlocks() == null ? null : VisitCatchBlocks(memInit.catchBlocks())
         };
     }
@@ -61,10 +61,10 @@ public class ClassMemberVisitor : AbstractVisitor<IClassMember>
         var type = VisitTypeInfo(context.type());
         var mod = VisitModifiers(context.modifiers());
         var prop = new Property(ToSrcPos(context), ctx.Class!.AsClass(vm), name, type, mod);
-        return new PropBlockVisitor(this, prop).Visit(context.propBlock());
+        return prop;//new PropBlockVisitor(this, prop).Visit(context.propBlock());
     }
 
-    private sealed class PropBlockVisitor : KScrParserBaseVisitor<Property>
+    internal sealed class PropBlockVisitor : KScrParserBaseVisitor<Property>
     {
         private readonly ClassMemberVisitor _parent;
         private readonly Property _prop;
