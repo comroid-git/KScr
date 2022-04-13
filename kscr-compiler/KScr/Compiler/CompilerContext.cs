@@ -34,6 +34,8 @@ public class CompilerContext
 
     public ITypeInfo? FindType(RuntimeBase vm, string name)
     {
+        if (name == Class?.Name)
+            return Class;
         if (Imports.FirstOrDefault(n => n.EndsWith(name)) is { } imported)
             return vm.FindType(imported, Package);
         return null;
