@@ -252,11 +252,11 @@ public class Program
         if (result is Numeric num)
         {
             var rtn = num.IntValue;
-            Console.WriteLine("with exit code " + rtn);
+            Console.WriteLine($"with exit code {rtn} (0x{rtn:X8})");
             return rtn;
         }
 
-        Console.Write($"with exit code {RuntimeBase.ExitCode}");
+        Console.Write($"with exit code {RuntimeBase.ExitCode} (0x{RuntimeBase.ExitCode:X8})");
         if (RuntimeBase.ExitMessage != null)
             Console.WriteLine($" and message: {RuntimeBase.ExitMessage}");
         else Console.WriteLine();
