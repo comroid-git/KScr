@@ -85,7 +85,7 @@ public sealed class Numeric : IObject
         };
     }
 
-    public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+    public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
     {
         switch (member)
         {

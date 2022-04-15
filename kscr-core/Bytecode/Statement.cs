@@ -155,7 +155,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                     else // todo having both next to each other is stupid
                         stack.StepInto(vm, SourcefilePosition, stack[Default], mtd, stack =>
                         {
-                            stack[Default].Value!.Invoke(vm, stack.Output(), Arg,
+                            stack[Default].Value!.InvokeNative(vm, stack.Output(), Arg,
                                 (stack.Del as ObjectRef)!.Refs).Copy(Alp);
                         }, Alp);
                 }
@@ -257,13 +257,13 @@ public class StatementComponent : IBytecode, IStatementComponent
                 {
                     SubComponent!.Evaluate(vm, stack.Output()).Copy(Alp);
                     var iterable = stack[Alp]![vm, stack, 0];
-                    iterable.Invoke(vm, stack.Output(Eps), "iterator").Copy(Eps);
+                    iterable.InvokeNative(vm, stack.Output(Eps), "iterator").Copy(Eps);
                     var iterator = stack[Eps]![vm, stack, 0];
                     vm[stack, VariableContext.Local, Arg] = stack[Del]
                         = new ObjectRef(iterator.Type.TypeParameterInstances[0].ResolveType(vm, iterator.Type));
-                    while (iterator.Invoke(vm, stack.Channel(Eps, Phi), "hasNext").Copy(Phi)!.ToBool())
+                    while (iterator.InvokeNative(vm, stack.Channel(Eps, Phi), "hasNext").Copy(Phi)!.ToBool())
                     {
-                        iterator.Invoke(vm, stack.Channel(Eps, Bet), "next").Copy(Bet);
+                        iterator.InvokeNative(vm, stack.Channel(Eps, Bet), "next").Copy(Bet);
                         var val = stack[Del]![vm, stack, 0] = stack[Bet]![vm, stack, 0];
                         if (val == null || val.ObjectId == 0)
                             throw new NullReferenceException();
@@ -304,12 +304,12 @@ public class StatementComponent : IBytecode, IStatementComponent
                 if (unaryPrefix || unaryPostfix)
                     if (a![vm, stack, 0] is Numeric numA)
                         stack[Default] = numA.Operator(vm, op);
-                    else stack[Default] = a![vm, stack, 0].Invoke(vm, stack.Output(), "op" + op).Copy();
+                    else stack[Default] = a![vm, stack, 0].InvokeNative(vm, stack.Output(), "op" + op).Copy();
                 else if (binary)
                     if (a![vm, stack, 0] is Numeric numA && b![vm, stack, 0] is Numeric numB)
                         stack[Default] = numA.Operator(vm, op, numB);
                     else
-                        stack[Default] = a![vm, stack, 0].Invoke(vm, stack.Output(), "op" + op, b![vm, stack, 0])
+                        stack[Default] = a![vm, stack, 0].InvokeNative(vm, stack.Output(), "op" + op, b![vm, stack, 0])
                             .Copy();
                 if (compound)
                     a![vm, stack, 0] = stack[Default]![vm, stack, 0];

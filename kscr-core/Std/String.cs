@@ -29,7 +29,7 @@ public sealed class String : IObject
         };
     }
 
-    public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+    public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
     {
         switch (member)
         {
@@ -44,7 +44,7 @@ public sealed class String : IObject
                 stack[StackOutput.Default] = Type.SelfRef;
                 break;
             case "opPlus":
-                var other2 = args[0]?.Invoke(vm, stack.Output(), "toString").Copy(StackOutput.Alp, StackOutput.Bet);
+                var other2 = args[0]?.InvokeNative(vm, stack.Output(), "toString").Copy(StackOutput.Alp, StackOutput.Bet);
                 stack[StackOutput.Default] = OpPlus(vm, stack, (other2?.Value as String)?.Str ?? "null");
                 break;
             case "length":

@@ -31,7 +31,7 @@ public sealed class Range : IObject
         };
     }
 
-    public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+    public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
     {
         switch (member)
         {
@@ -130,7 +130,7 @@ public sealed class Range : IObject
             return "range-iterator:" + _range;
         }
 
-        public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+        public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {

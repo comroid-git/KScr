@@ -24,8 +24,8 @@ public interface IObject
     IClassInstance Type { get; }
 
     string ToString(short variant);
-
-    public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args);
+    
+    public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args);
 
     public string GetKey();
 }
@@ -40,7 +40,7 @@ internal sealed class VoidValue : IObject
         return "null";
     }
 
-    public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+    public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
     {
         switch (member)
         {

@@ -72,7 +72,7 @@ public interface IClass : IClassInfo, IClassMember, IPackageMember
     new string FullName { get; }
     new MemberModifier Modifier { get; }
     Class BaseClass { get; }
-    IObjectRef SelfRef { get; }
+    ClassRef SelfRef { get; }
     IEnumerable<IClassMember> ClassMembers => DeclaredMembers.Values.Concat(InheritedMembers);
 
     IEnumerable<IClassMember> InheritedMembers =>

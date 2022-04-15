@@ -97,10 +97,8 @@ public sealed class Property : AbstractClassMember, IObjectRef
         set => Value = value;
     }
 
-    public override Stack Evaluate(RuntimeBase vm, Stack stack)
-    {
-        return ReadValue(vm, stack, stack.Alp!.Value);
-    }
+    public override Stack Invoke(RuntimeBase vm, Stack stack, IObjectRef target, params IObject?[] args) =>
+        ReadValue(vm, stack, target[vm, stack, 0] == null ? Parent.SelfRef[vm, stack, 0] : target[vm, stack, 0]);
 
     private string CreateSubKey(string ownerKey)
     {

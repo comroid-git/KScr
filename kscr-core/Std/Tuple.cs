@@ -28,7 +28,7 @@ public sealed class Tuple : IObject
         return string.Join(", ", Arr.Select(it => it.Value?.ToString(variant)));
     }
 
-    public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+    public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
     {
         switch (member)
         {

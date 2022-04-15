@@ -309,10 +309,10 @@ public sealed class Stack
                     throw new FatalException(
                         "Value is not instanceof Throwable: " + Omg.Value.ToString(0));
                 RuntimeBase.ExitCode =
-                    (throwable.Invoke(vm, Output(), "ExitCode").Copy(output: StackOutput.Alp)![vm, this, 0] as Numeric)!
+                    (throwable.InvokeNative(vm, Output(), "ExitCode").Copy(output: StackOutput.Alp)![vm, this, 0] as Numeric)!
                     .IntValue;
                 RuntimeBase.ExitMessage =
-                    throwable.Invoke(vm, Output(), "Message").Copy(output: StackOutput.Bet)![vm, this, 0].ToString(0);
+                    throwable.InvokeNative(vm, Output(), "Message").Copy(output: StackOutput.Bet)![vm, this, 0].ToString(0);
                 throw new InternalException(
                     $"{throwable.Type.Name}: {RuntimeBase.ExitMessage} ({RuntimeBase.ExitCode})");
             }

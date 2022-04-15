@@ -5,10 +5,11 @@ using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
 using KScr.Core.Store;
+using static KScr.Core.Store.StackOutput;
 
 namespace KScr.Core.Bytecode;
 
-public interface IMethod : IClassMember
+public interface IMethod : IClassMember, IEvaluable
 {
     List<MethodParameter> Parameters { get; }
     ITypeInfo ReturnType { get; }
@@ -52,6 +53,11 @@ public sealed class DummyMethod : IMethod
     {
         throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
     }
+
+    public Stack Invoke(RuntimeBase vm, Stack stack, IObjectRef target, params IObject?[] args)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public sealed class Method : AbstractClassMember, IMethod
@@ -74,8 +80,20 @@ public sealed class Method : AbstractClassMember, IMethod
 
     public override ClassMemberType MemberType => ClassMemberType.Method;
     public override BytecodeElementType ElementType => BytecodeElementType.Method;
+    public override Stack Invoke(RuntimeBase vm, Stack stack, IObjectRef target, params IObject?[] args)
+    {
+        if (target != null && !this.IsStatic())
+            throw new FatalException("Missing invocation target for non-static method " + this.Name);
+        stack[Tri] = target[vm, stack, 0] == null ? Parent.SelfRef : target;
+        stack.StepInto(vm, SourceLocation, target, this, stack =>
+        {
+            for (int i = 0; i < Parameters.Count; i++)
+                
+        });
+        return stack;
+    }
 
-    public override Stack Evaluate(RuntimeBase vm, Stack stack)
+    public Stack Evaluate(RuntimeBase vm, Stack stack)
     {
         Body.Evaluate(vm, stack);
         if (stack.State != State.Return && Name != ConstructorName && ReturnType.Name != "void")

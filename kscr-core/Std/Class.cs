@@ -133,7 +133,7 @@ public sealed class Class : AbstractPackageMember, IClass
 
     public Instance DefaultInstance { get; private set; } = null!;
 
-    public IObjectRef SelfRef => DefaultInstance.SelfRef;
+    public ClassRef SelfRef => DefaultInstance.SelfRef;
 
 
     public IDictionary<string, IClassMember> DeclaredMembers { get; } =
@@ -511,7 +511,7 @@ public sealed class Class : AbstractPackageMember, IClass
         }
 
         public Class BaseClass { get; }
-        public IObjectRef SelfRef { get; internal set; } = null!;
+        public ClassRef SelfRef { get; internal set; } = null!;
         public TypeParameter.Instance[] TypeParameterInstances { get; }
         public Class Parent { get; }
         public IDictionary<string, IPackageMember> PackageMembers { get; }
@@ -586,7 +586,7 @@ public sealed class Class : AbstractPackageMember, IClass
             };
         }
 
-        public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+        public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             // try invoke static method
             if (DeclaredMembers.TryGetValue(member, out var icm))

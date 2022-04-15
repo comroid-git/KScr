@@ -24,7 +24,7 @@ public sealed class CodeObject : IObject
         return Type.Name + "#" + ObjectId.ToString("X");
     }
 
-    public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+    public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
     {
         // try use overrides first
         if (Type.ClassMembers.FirstOrDefault(x => x.Name == member) is { } icm
