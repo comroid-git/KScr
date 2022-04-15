@@ -113,7 +113,6 @@ statement
     | left=expr DOT idPart arguments?                       #stmtCallMember
     | returnStatement SEMICOLON                             #stmtReturn
     | throwStatement SEMICOLON                              #stmtThrow
-    | pipeExpr SEMICOLON                                    #stmtPipe
     | tryCatchStatement finallyBlock?                       #stmtTryCatch
     | tryWithResourcesStatement finallyBlock?               #stmtTryWithRes
     | markStatement                                         #stmtMark
@@ -124,12 +123,13 @@ statement
     | forStatement finallyBlock?                            #stmtFor
     | foreachStatement finallyBlock?                        #stmtForeach
     | switchStatement finallyBlock?                         #stmtSwitch
+    | expr (pipeRead | pipeWrite)+ SEMICOLON                #stmtPipe
     | SEMICOLON                                             #stmtEmpty
     ;
 expr
     : idPart                                                #varValue
     | expr INSTANCEOF type                                  #checkInstanceof
-    | YIELD (expr | pipeExpr)                               #yieldExpr
+    | YIELD expr                                            #yieldExpr
     | arr=expr LSQUAR index=expr RSQUAR                     #readArray
     | declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
     | left=expr mutation                                    #varAssign // can't use varAssignment due to recursive rules
@@ -148,6 +148,7 @@ expr
     | prefixop expr                                         #opPrefix
     | left=expr binaryop right=expr                         #opBinary
     | expr postfixop                                        #opPostfix
+//    | expr (pipeRead | pipeWrite)+                          #exprPipe
     ;
 
 returnStatement: YIELD? RETURN expr?;
@@ -168,7 +169,6 @@ forStatement: FOR LPAREN init=statement cond=expr SEMICOLON acc=expr RPAREN code
 foreachStatement: FOREACH LPAREN idPart COLON expr RPAREN codeBlock;
 doWhile: DO codeBlock WHILE LPAREN expr RPAREN SEMICOLON;
 
-pipeExpr: expr (pipeRead | pipeWrite)+;
 pipeRead: rPipeOp expr;
 pipeWrite: lPipeOp expr;
 lPipeOp

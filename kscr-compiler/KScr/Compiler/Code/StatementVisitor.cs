@@ -102,21 +102,21 @@ public class StatementVisitor : AbstractVisitor<Statement>
         };
     }
 
-    public override Statement VisitPipeStatement(KScrParser.PipeStatementContext context)
+    public override Statement VisitStmtPipe(KScrParser.StmtPipeContext context)
     {
         var stmt = new Statement
         {
             Type = StatementComponentType.Pipe,
             Main = { VisitExpression(context.expr()) }
         };
-        if (context.pipeReadStatement() is { Length: > 0 } prs)
+        if (context.pipeRead() is { Length: > 0 } prs)
             foreach (var pr in prs)
                 stmt.Main.Add(new StatementComponent
                 {
                     Type = StatementComponentType.Consumer,
                     SubComponent = VisitExpression(pr.expr())
                 });
-        else if (context.pipeWriteStatement() is { Length: > 0 } pws)
+        else if (context.pipeWrite() is { Length: > 0 } pws)
             foreach (var pw in pws)
                 stmt.Main.Add(new StatementComponent
                 {
