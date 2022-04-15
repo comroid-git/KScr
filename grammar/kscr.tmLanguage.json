@@ -3,16 +3,14 @@
 	"name": "KScr",
 	"patterns": [
 		{
-			"include": "#keywords"
-		},
-		{
-			"include": "#strings"
-		},
-		{
-			"include": "#numerics"
+			"include": "#sourceFile"
 		}
 	],
 	"repository": {
+		"sourceFile": {
+			"name": "kscr.class.file",
+			""
+		},
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.kscr",

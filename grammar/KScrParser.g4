@@ -113,7 +113,7 @@ statement
     | left=expr DOT idPart arguments?                       #stmtCallMember
     | returnStatement SEMICOLON                             #stmtReturn
     | throwStatement SEMICOLON                              #stmtThrow
-    | pipeStatement SEMICOLON                               #stmtPipe
+    | pipeExpr SEMICOLON                                    #stmtPipe
     | tryCatchStatement finallyBlock?                       #stmtTryCatch
     | tryWithResourcesStatement finallyBlock?               #stmtTryWithRes
     | markStatement                                         #stmtMark
@@ -129,6 +129,7 @@ statement
 expr
     : idPart                                                #varValue
     | expr INSTANCEOF type                                  #checkInstanceof
+    | YIELD (expr | pipeExpr)                               #yieldExpr
     | arr=expr LSQUAR index=expr RSQUAR                     #readArray
     | declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
     | left=expr mutation                                    #varAssign // can't use varAssignment due to recursive rules
@@ -149,7 +150,7 @@ expr
     | expr postfixop                                        #opPostfix
     ;
 
-returnStatement: RETURN expr?;
+returnStatement: YIELD? RETURN expr?;
 throwStatement: THROW expr;
 
 markStatement: MARK idPart SEMICOLON;
@@ -167,9 +168,9 @@ forStatement: FOR LPAREN init=statement cond=expr SEMICOLON acc=expr RPAREN code
 foreachStatement: FOREACH LPAREN idPart COLON expr RPAREN codeBlock;
 doWhile: DO codeBlock WHILE LPAREN expr RPAREN SEMICOLON;
 
-pipeStatement: expr (pipeReadStatement | pipeWriteStatement)+;
-pipeReadStatement: rPipeOp expr;
-pipeWriteStatement: lPipeOp expr;
+pipeExpr: expr (pipeRead | pipeWrite)+;
+pipeRead: rPipeOp expr;
+pipeWrite: lPipeOp expr;
 lPipeOp
     : LLDASHARROW   #opPipeLLD
     | LLEQARROW     #opPipeLLE

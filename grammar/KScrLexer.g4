@@ -31,6 +31,7 @@ IMPLEMENTS: 'implements';
 RETURN: 'return';
 THROW: 'throw';
 NEW: 'new';
+YIELD: 'yield';
 INSTANCEOF: 'instanceof';
 
 // complex statements
