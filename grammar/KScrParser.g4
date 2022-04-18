@@ -157,7 +157,7 @@ expr
     | prefixop expr                                         #opPrefix
     | left=expr binaryop right=expr                         #opBinary
     | expr postfixop                                        #opPostfix
-//    | expr (pipeRead | pipeWrite)+                          #exprPipe
+    | expr (pipeRead | pipeWrite)+                          #exprPipe
     | tupleExpr                                             #exprTuple
     ;
 tupleExpr: LPAREN expr (COMMA expr)* RPAREN;
