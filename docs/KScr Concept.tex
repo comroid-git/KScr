@@ -1,0 +1,53 @@
+\documentclass{docs}
+\begin{document}
+    \tableofcontents
+    \pagebreak
+    \section{Source Model}
+    \subsection{Modifiers}
+    \subsubsection{Accessibility Modifiers}
+    \begin{center}
+    \begin{tabular}{c|c}
+        Modifier & Function \\
+        \hline
+        \texttt{public} & Accessible from everywhere \\
+        \texttt{internal} & Accessible during compilation; compiled to \texttt{private} \\
+        \texttt{protected} & Accessible from inheritors \\
+        \texttt{private} & Accessible from inside only
+    \end{tabular}
+    \end{center}
+    \subsubsection{Other Modifiers}
+    \begin{center}
+    \begin{tabular}{c|c}
+        Modifier & Function \\
+        \hline
+        \texttt{static} & Cannot be invoked dynamically \\
+        \texttt{final} & Cannot be overridden or changed \\
+        \texttt{abstract} & Must be implemented in inheritors \\
+        \texttt{synchronized} & Invocations are synchronized \\
+        \texttt{native} & Must be implemented by a native module
+    \end{tabular}
+    \end{center}
+    \subsection{Classes}
+    \subsubsection{Class Types}
+    A source class can be of different types:
+    \paragraph{\texttt{class}-Type}
+    A normal class that can be instantiated.
+    Allowed modifiers are:
+    \begin{center}
+    \begin{tabular}{c|c}
+        Modifier & Function \\
+        \hline
+        \texttt{static} & Cannot be instantiated and behaves like a Singleton \\
+        \texttt{final} & Cannot be inherited by other classes \\
+        \texttt{abstract} & Cannot be instantiated directly and must be inherited by other classes
+    \end{tabular}
+    \end{center}
+    \paragraph{\texttt{enum}-Type}
+    An enumeration of runtime-constants that follow a class-like pattern.
+    This type does not allow modifiers.
+    \paragraph{\texttt{interface}-Type}
+    An interface that declares basic structure requirements for implementing classes.
+    Cannot be instantiated directly.
+    \paragraph{\texttt{annotation}-Type}
+    %todo
+\end{document}

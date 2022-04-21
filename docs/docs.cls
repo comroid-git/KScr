@@ -1,7 +1,6 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{bkbp}[3]
+\ProvidesClass{docs}[3]
 \LoadClass[11pt,a4paper,twoside]{article}
-\usepackage[ngerman]{babel}
 \usepackage{fancyhdr}
 \usepackage{amsmath}
 \usepackage[T1]{fontenc}
@@ -13,6 +12,9 @@
 \usepackage{tocloft}
 \usepackage{makecell}
 \usepackage{hyperref}
+\usepackage{titlesec}
+
+\setcounter{secnumdepth}{4}
 
 % -----------------------------------------------------------------------
 % Page layout
