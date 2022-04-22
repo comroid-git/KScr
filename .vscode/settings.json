@@ -2,6 +2,17 @@
     "latex-workshop.latex.outDir": "%DIR%",
     "latex-workshop.latex.tools": [
         {
+            "name": "pdflatex",
+            "command": "pdflatex",
+            "args": [
+                "--shell-escape", // if you want to have the shell-escape flag
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "%DOC%"
+            ]
+        },
+        {
             "name": "htlatex",
             "command": "htlatex",
             "args": [
@@ -21,11 +32,58 @@
     ],
     "latex-workshop.latex.recipes": [
         {
+            "name": "Build All",
+            "tools": [
+                "pdflatex",
+                "htlatex",
+                "renameHtml"
+            ]
+        },
+        {
+            "name": "pdflatex",
+            "tools": [
+                "pdflatex"
+            ]
+        },
+        {
             "name": "htlatex",
             "tools": [
                 "htlatex",
                 "renameHtml"
             ]
         }
+    ],
+    "latex-workshop.latex.clean.subfolder.enabled": true,
+    "latex-workshop.latex.clean.fileTypes": [
+        "*.aux",
+        "*.bbl",
+        "*.blg",
+        "*.idx",
+        "*.ind",
+        "*.lof",
+        "*.lot",
+        "*.out",
+        "*.toc",
+        "*.acn",
+        "*.acr",
+        "*.alg",
+        "*.glg",
+        "*.glo",
+        "*.gls",
+        "*.fls",
+        "*.log",
+        "*.fdb_latexmk",
+        "*.snm",
+        "*.synctex(busy)",
+        "*.synctex.gz(busy)",
+        "*.nav",
+        "*.vrb",
+        "*.4ct",
+        "*.4tc",
+        "*.dvi",
+        "*.idv",
+        "*.lg",
+        "*.tmp",
+        "*.xref"
     ]
 }
