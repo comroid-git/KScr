@@ -1,0 +1,31 @@
+{
+    "latex-workshop.latex.outDir": "%DIR%",
+    "latex-workshop.latex.tools": [
+        {
+            "name": "htlatex",
+            "command": "htlatex",
+            "args": [
+                "%DOC%",
+                "html",
+                ""
+            ]
+        },
+        {
+            "name": "renameHtml",
+            "command": "move",
+            "args": [
+                "kscr-concept.html",
+                "index.html"
+            ]
+        }
+    ],
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "htlatex",
+            "tools": [
+                "htlatex",
+                "renameHtml"
+            ]
+        }
+    ]
+}
