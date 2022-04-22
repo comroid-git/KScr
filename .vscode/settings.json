@@ -32,14 +32,6 @@
     ],
     "latex-workshop.latex.recipes": [
         {
-            "name": "Build All",
-            "tools": [
-                "pdflatex",
-                "htlatex",
-                "renameHtml"
-            ]
-        },
-        {
             "name": "pdflatex",
             "tools": [
                 "pdflatex"
@@ -48,6 +40,13 @@
         {
             "name": "htlatex",
             "tools": [
+                "htlatex"
+            ]
+        },
+        {
+            "name": "Build All",
+            "tools": [
+                "pdflatex",
                 "htlatex",
                 "renameHtml"
             ]

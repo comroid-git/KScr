@@ -34,9 +34,19 @@
     \end{titlepage}
     \fancyhead[C]{{KScr Language}}
     \tableofcontents
+    
     \pagebreak
     \section{Source Model}
+    KScr expects source files to have the extension \texttt{.kscr}, and outputs binaries with the extension \texttt{.kbin}.
+    \\
+    All source files must start with a package declaration:
+    \begin{verbatim}
+        package org.comroid.kscr;
+    \end{verbatim}
+    Following the package declaration, an optional list of import statements follows; importing either canonical class paths or all static members of a class.
+    
     \subsection{Modifiers}
+    
     \subsubsection{Accessibility Modifiers}
     \begin{center}
     \begin{tabular}{c|c}
@@ -48,6 +58,7 @@
         \texttt{private} & Accessible from inside only
     \end{tabular}
     \end{center}
+    
     \subsubsection{Other Modifiers}
     \begin{center}
     \begin{tabular}{c|c}
@@ -60,9 +71,17 @@
         \texttt{native} & Must be implemented by a native module
     \end{tabular}
     \end{center}
+    
     \subsection{Classes}
+    A class is declared by a class header of the following structure:
+    \begin{verbatim}
+        <accessibility modifiers> [class type] [class name]<type generics> <inherits> <body>
+    \end{verbatim}
+    Note that the class body can be optional when using a semicolon.
+    
     \subsubsection{Class Types}
     A source class can be of different types:
+    
     \paragraph{\texttt{class}-Type}
     A normal class that can be instantiated.
     Allowed modifiers are:
@@ -75,25 +94,81 @@
         \texttt{abstract} & Cannot be instantiated directly and must be inherited by other classes
     \end{tabular}
     \end{center}
+    
     \paragraph{\texttt{enum}-Type}
     An enumeration of runtime-constants that follow a class-like pattern.
     This type does not allow modifiers.
+    
     \paragraph{\texttt{interface}-Type}
     An interface that declares basic structure requirements for implementing classes.
     Cannot be instantiated directly.
+    
     \paragraph{\texttt{annotation}-Type}
+    A marker for most components of code. Used for flow control by enforcing rules at compile time, setting markers or carrying information at runtime.
+    
+    \subsubsection{Class Names}
+    It is suggested that class names start with an upper case letter.
+    
     \subsubsection{Type Generics}
+    Type Generics are initially defined in a classes header, detailing the name with a postfix.
+    They are surrounded by arrow-brackets \texttt{<\dots>}:
+    \begin{verbatim}
+        public class num<T> {}
+    \end{verbatim}
+    There is two special kinds of Type Generics;
+    
+    \paragraph{\texttt{n}-Generic} The \texttt{n}-Generic serves as a type-based declaration for tuple types. \\
+    Its usages must be integers, and their value is available at runtime in a semi-static field \texttt{public final int n}. \\
+    Writing \texttt{string<2>} is the same as writing \texttt{tuple<2, string>}
+    
+    \paragraph{Listing Generic} A listing Generic serves as a varargs-Generic. \\
+    Its instance is an array of types which can be accessed at runtime in a semi-static field.
+    
+    \subsubsection{\texttt{extends} and \texttt{implements} inheritance setters}
+    The \texttt{extends} and \texttt{implements} keywords follow the detailed class name definition and declare what classes or interfaces a class inherits. \\
+    Both the \texttt{extends} and the \texttt{implements} listing can contain multiple members.
+    
     \subsection{Class Members}
+    
     \subsubsection{Static Initializer}
+    The static initializer is declared by including a static member block in the class. \\
+    It is executed after compile-time (or read-time if reading binary) and can modify the members of the containing class.
+    \begin{verbatim}
+        static {
+            // initialize class right before late initialization
+        }
+    \end{verbatim}
+    The static initializer is compile to be a method with the header \texttt{private static final void cctor()}
+    
     \subsubsection{Constructors}
+    The constructor is used to create a dynamic instance of the class. \\
+    If a class \texttt{extends} more than one class, any of which does not support the default constructor, the constructor must declare all superconstructors like this:
+    \begin{verbatim}
+        public class Apple extends Fruit, Projectile implements Digestable {
+            public Apple() : Fruit("Apple"), Projectile()
+        }
+    \end{verbatim}
+    Constructors are compiled as Methods named \texttt{ctor}.
+    
     \subsubsection{Methods}
+    A method is a function of a class that can affect the class, compute a result or print "Hello, world!". \\
+    Methods are distinguished from properties by their parameter definition, which may be empty. \\
+    All methods must have an explicitly defined return type, but they may return \texttt{void}.
+    
     \subsubsection{Properties}
+    Properties are value computation access ports that can either hold a value, or compute it from a returning body. \\
+    If such return bodies contain another property, then the other property is checked for its last update time. If it has been updated before the calling property has been, then computation is skipped and the last returned value is returned again.
+    Setting a property updates it, causing all dependent properties to be computed again on their next access.
+    
     \pagebreak
     \section{The KScr VM}
+    
     \subsection{Built-in Types}
-    \subsubsection{\texttt{interface void}}
+
     \label{typeVoid}
+    \subsubsection{\texttt{interface void}}
     The universal base type. Is implemented by all built-in types and can be implicitly cast to everything.
+    
     \subsubsection{\texttt{class num<T>}}
     The base type of all numerics. Contains numeric subtypes:
     \begin{enumerate}
@@ -105,20 +180,32 @@
         \item \texttt{double}
     \end{enumerate}
     All subtypes can be used directly, or using the Type Generic T, for example: \texttt{int<24> == num<int<24>>}
+    
     \subsubsection{\texttt{class str}}
+    
     \subsubsection{\texttt{class object}}
+    
     \subsubsection{\texttt{class array<T>}}
+    
     \subsubsection{\texttt{class tuple<T...>}}
+    
     \subsubsection{\texttt{class enum<T>}}
+    
     \subsubsection{\texttt{class type<T>}}
+    
     \subsubsection{\texttt{class pipe<T...>}}
+    
     \subsection{Literals}
+    
     \subsubsection{\texttt{null}}
     The \texttt{null}-Literal. Is always of \hyperref[typeVoid]{type \texttt{void}}.
+    
     \subsubsection{\texttt{Numeric Literals}}
+    
     \subsubsection{\texttt{String Literals}}
     A string literal is pre- and superceded by a double-quote \texttt{"} symbol.
     An escaped double-quote \texttt{\textbackslash"} can be contained in the string.
+    
     \paragraph{Planned Behaviour: Interpolation}
     A string supports interpolation using accolades with Formatter-support with the following syntax:
     \begin{verbatim}
@@ -126,11 +213,15 @@
         stdio <<- "hex: {hex:X}"
         // prints "hex: 0x4"
     \end{verbatim}
+    
     \subsubsection{\texttt{Array Literals}}
     Unimplemented.
+    
     \subsubsection{\texttt{Tuple Literals}}
     Unimplemented.
+    
     \subsubsection{\texttt{Other Literals}}
+    
     \paragraph{\texttt{stdio}}
     Constantly represents the program's standard IO stream. \\
     The held value is of type \texttt{pipe<str>}
