@@ -1,0 +1,470 @@
+_______________________________________________________________________________________
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"  
+  "http://www.w3.org/TR/html4/loose.dtd">  
+<html > 
+<head><title></title> 
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+<meta name="generator" content="TeX4ht (https://tug.org/tex4ht/)"> 
+<meta name="originator" content="TeX4ht (https://tug.org/tex4ht/)"> 
+<!-- html,htex4ht --> 
+<meta name="src" content="kscr-concept.tex"> 
+<link rel="stylesheet" type="text/css" href="kscr-concept.css"> 
+</head><body 
+>
+<!--l. 3--><p class="noindent" >
+                                           1                                           
+                                                                                       
+<div class="center" 
+>
+<!--l. 4--><p class="noindent" >
+<!--l. 8--><p class="noindent" ><span 
+class="ecbx-2488">The KScr Language</span>
+<!--l. 12--><p class="noindent" ><span 
+class="ecrm-1728">Definition of the KScr Language</span>
+<!--l. 16--><p class="noindent" ><span 
+class="ecbx-1728">comroid</span>
+<!--l. 20--><p class="noindent" ><img 
+src="../img/kscr-icon.png" alt="PIC"  
+width="182" height="182" >
+<!--l. 24--><p class="noindent" ><span 
+class="ecrm-1728">The KScr Language as defined by this document is a compiled</span>
+<span 
+class="ecrm-1728">high-level language whose goal is to provide runtime</span>
+<span 
+class="ecrm-1728">optimizations from a different approach.</span>
+<!--l. 29--><p class="noindent" ><span class="underline"><span 
+class="ecrm-1440">Team:</span></span><br />
+<span 
+class="ecrm-1440">Kaleidox</span></div>
+                                                                                       
+                                                                                       
+<h3 class="likesectionHead"><a 
+ id="x1-1000"></a>Contents</h3>
+<div class="tableofcontents">
+<span class="sectionToc" >1 <a 
+href="#x1-20001" id="QQ2-1-2">Source Model</a></span>
+<br />&#x00A0;<span class="subsectionToc" >1.1 <a 
+href="#x1-30001" id="QQ2-1-3">Modifiers</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >1.1.1 <a 
+href="#x1-40001" id="QQ2-1-4">Accessibility Modifiers</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >1.1.2 <a 
+href="#x1-50002" id="QQ2-1-5">Other Modifiers</a></span>
+<br />&#x00A0;<span class="subsectionToc" >1.2 <a 
+href="#x1-60002" id="QQ2-1-6">Classes</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >1.2.1 <a 
+href="#x1-70001" id="QQ2-1-7">Class Types</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >1.2.2 <a 
+href="#x1-120002" id="QQ2-1-12">Type Generics</a></span>
+<br />&#x00A0;<span class="subsectionToc" >1.3 <a 
+href="#x1-130003" id="QQ2-1-13">Class Members</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >1.3.1 <a 
+href="#x1-140001" id="QQ2-1-14">Static Initializer</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >1.3.2 <a 
+href="#x1-150002" id="QQ2-1-15">Constructors</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >1.3.3 <a 
+href="#x1-160003" id="QQ2-1-16">Methods</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >1.3.4 <a 
+href="#x1-170004" id="QQ2-1-17">Properties</a></span>
+<br /><span class="sectionToc" >2 <a 
+href="#x1-180002" id="QQ2-1-18">The KScr VM</a></span>
+<br />&#x00A0;<span class="subsectionToc" >2.1 <a 
+href="#x1-190001" id="QQ2-1-19">Built-in Types</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.1.1 <a 
+href="#x1-200001" id="QQ2-1-20"><span 
+class="ectt-1095">interface void</span></a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.1.2 <a 
+href="#x1-210002" id="QQ2-1-21"><span 
+class="ectt-1095">class num&#x003C;T&#x003E;</span></a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.1.3 <a 
+href="#x1-220003" id="QQ2-1-22"><span 
+class="ectt-1095">class str</span></a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.1.4 <a 
+href="#x1-230004" id="QQ2-1-23"><span 
+class="ectt-1095">class object</span></a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.1.5 <a 
+href="#x1-240005" id="QQ2-1-24"><span 
+class="ectt-1095">class array&#x003C;T&#x003E;</span></a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.1.6 <a 
+href="#x1-250006" id="QQ2-1-25"><span 
+class="ectt-1095">class tuple&#x003C;T...&#x003E;</span></a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.1.7 <a 
+href="#x1-260007" id="QQ2-1-26"><span 
+class="ectt-1095">class enum&#x003C;T&#x003E;</span></a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.1.8 <a 
+href="#x1-270008" id="QQ2-1-27"><span 
+class="ectt-1095">class type&#x003C;T&#x003E;</span></a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.1.9 <a 
+href="#x1-280009" id="QQ2-1-28"><span 
+class="ectt-1095">class pipe&#x003C;T...&#x003E;</span></a></span>
+<br />&#x00A0;<span class="subsectionToc" >2.2 <a 
+href="#x1-290002" id="QQ2-1-29">Literals</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.2.1 <a 
+href="#x1-300001" id="QQ2-1-30"><span 
+class="ectt-1095">null</span></a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.2.2 <a 
+href="#x1-310002" id="QQ2-1-31"><span 
+class="ectt-1095">Numeric Literals</span></a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.2.3 <a 
+href="#x1-320003" id="QQ2-1-32"><span 
+class="ectt-1095">String Literals</span></a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.2.4 <a 
+href="#x1-340004" id="QQ2-1-34"><span 
+class="ectt-1095">Array Literals</span></a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.2.5 <a 
+href="#x1-350005" id="QQ2-1-35"><span 
+class="ectt-1095">Tuple Literals</span></a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.2.6 <a 
+href="#x1-360006" id="QQ2-1-36"><span 
+class="ectt-1095">Other Literals</span></a></span>
+</div>
+                                                                                       
+                                                                                       
+<a 
+ id="x1-1001r1"></a>
+<h3 class="sectionHead"><span class="titlemark">1   </span> <a 
+ id="x1-20001"></a>Source Model</h3>
+<a 
+ id="x1-2001r1"></a>
+<h4 class="subsectionHead"><span class="titlemark">1.1   </span> <a 
+ id="x1-30001"></a>Modifiers</h4>
+<a 
+ id="x1-3001r1"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">1.1.1   </span> <a 
+ id="x1-40001"></a>Accessibility Modifiers</h5>
+<div class="center" 
+>
+<!--l. 39--><p class="noindent" >
+<div class="tabular"> <table id="TBL-1" class="tabular" 
+ 
+><colgroup id="TBL-1-1g"><col 
+id="TBL-1-1"></colgroup><colgroup id="TBL-1-2g"><col 
+id="TBL-1-2"></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-1-1-"><td  style="white-space:nowrap; text-align:center;" id="TBL-1-1-1"  
+class="td11">  Modifier   </td><td  style="white-space:nowrap; text-align:center;" id="TBL-1-1-2"  
+class="td11">                   Function                              </td></tr><tr 
+class="hline"><td><hr></td><td><hr></td></tr><tr  
+ style="vertical-align:baseline;" id="TBL-1-2-"><td  style="white-space:nowrap; text-align:center;" id="TBL-1-2-1"  
+class="td11"> <span 
+class="ectt-1095">public </span></td><td  style="white-space:nowrap; text-align:center;" id="TBL-1-2-2"  
+class="td11"> Accessible from everywhere</td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-1-3-"><td  style="white-space:nowrap; text-align:center;" id="TBL-1-3-1"  
+class="td11">  <span 
+class="ectt-1095">internal  </span></td><td  style="white-space:nowrap; text-align:center;" id="TBL-1-3-2"  
+class="td11"> Accessible during compilation; compiled to <span 
+class="ectt-1095">private </span></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-1-4-"><td  style="white-space:nowrap; text-align:center;" id="TBL-1-4-1"  
+class="td11"> <span 
+class="ectt-1095">protected </span></td><td  style="white-space:nowrap; text-align:center;" id="TBL-1-4-2"  
+class="td11">            Accessible from inheritors                   </td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-1-5-"><td  style="white-space:nowrap; text-align:center;" id="TBL-1-5-1"  
+class="td11">  <span 
+class="ectt-1095">private  </span></td><td  style="white-space:nowrap; text-align:center;" id="TBL-1-5-2"  
+class="td11">            Accessible from inside only                  </td>
+</tr></table></div></div>
+<a 
+ id="x1-4001r4"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">1.1.2   </span> <a 
+ id="x1-50002"></a>Other Modifiers</h5>
+<div class="center" 
+>
+<!--l. 50--><p class="noindent" >
+<div class="tabular"> <table id="TBL-2" class="tabular" 
+ 
+><colgroup id="TBL-2-1g"><col 
+id="TBL-2-1"></colgroup><colgroup id="TBL-2-2g"><col 
+id="TBL-2-2"></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-2-1-"><td  style="white-space:nowrap; text-align:center;" id="TBL-2-1-1"  
+class="td11">   Modifier     </td><td  style="white-space:nowrap; text-align:center;" id="TBL-2-1-2"  
+class="td11">               Function                       </td></tr><tr 
+class="hline"><td><hr></td><td><hr></td></tr><tr  
+ style="vertical-align:baseline;" id="TBL-2-2-"><td  style="white-space:nowrap; text-align:center;" id="TBL-2-2-1"  
+class="td11"> <span 
+class="ectt-1095">static </span></td><td  style="white-space:nowrap; text-align:center;" id="TBL-2-2-2"  
+class="td11"> Cannot be invoked dynamically</td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-2-3-"><td  style="white-space:nowrap; text-align:center;" id="TBL-2-3-1"  
+class="td11">     <span 
+class="ectt-1095">final     </span></td><td  style="white-space:nowrap; text-align:center;" id="TBL-2-3-2"  
+class="td11">     Cannot be overridden or changed       </td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-2-4-"><td  style="white-space:nowrap; text-align:center;" id="TBL-2-4-1"  
+class="td11">   <span 
+class="ectt-1095">abstract   </span></td><td  style="white-space:nowrap; text-align:center;" id="TBL-2-4-2"  
+class="td11">    Must be implemented in inheritors      </td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-2-5-"><td  style="white-space:nowrap; text-align:center;" id="TBL-2-5-1"  
+class="td11"> <span 
+class="ectt-1095">synchronized </span></td><td  style="white-space:nowrap; text-align:center;" id="TBL-2-5-2"  
+class="td11">       Invocations are synchronized          </td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-2-6-"><td  style="white-space:nowrap; text-align:center;" id="TBL-2-6-1"  
+class="td11">    <span 
+class="ectt-1095">native    </span></td><td  style="white-space:nowrap; text-align:center;" id="TBL-2-6-2"  
+class="td11"> Must be implemented by a native module  </td>
+</tr></table></div></div>
+<a 
+ id="x1-5001r3"></a>
+<h4 class="subsectionHead"><span class="titlemark">1.2   </span> <a 
+ id="x1-60002"></a>Classes</h4>
+<a 
+ id="x1-6001r5"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">1.2.1   </span> <a 
+ id="x1-70001"></a>Class Types</h5>
+<!--l. 63--><p class="noindent" >A source class can be of different types:
+<a 
+ id="x1-7001r1"></a>
+<!--l. 64--><p class="noindent" ><span class="paragraphHead"><a 
+ id="x1-80001"></a><span 
+class="ectt-1095">class</span><span 
+class="ecbx-1095">-Type</span></span>
+A normal class that can be instantiated. Allowed modifiers are:
+<div class="center" 
+>
+<!--l. 67--><p class="noindent" >
+<div class="tabular"> <table id="TBL-3" class="tabular" 
+ 
+><colgroup id="TBL-3-1g"><col 
+id="TBL-3-1"></colgroup><colgroup id="TBL-3-2g"><col 
+id="TBL-3-2"></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-3-1-"><td  style="white-space:nowrap; text-align:center;" id="TBL-3-1-1"  
+class="td11"> Modifier  </td><td  style="white-space:nowrap; text-align:center;" id="TBL-3-1-2"  
+class="td11">                           Function                                          </td></tr><tr 
+class="hline"><td><hr></td><td><hr></td></tr><tr  
+ style="vertical-align:baseline;" id="TBL-3-2-"><td  style="white-space:nowrap; text-align:center;" id="TBL-3-2-1"  
+class="td11"> <span 
+class="ectt-1095">static </span></td><td  style="white-space:nowrap; text-align:center;" id="TBL-3-2-2"  
+class="td11"> Cannot be instantiated and behaves like a Singleton</td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-3-3-"><td  style="white-space:nowrap; text-align:center;" id="TBL-3-3-1"  
+class="td11">   <span 
+class="ectt-1095">final   </span></td><td  style="white-space:nowrap; text-align:center;" id="TBL-3-3-2"  
+class="td11">               Cannot be inherited by other classes                        </td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-3-4-"><td  style="white-space:nowrap; text-align:center;" id="TBL-3-4-1"  
+class="td11"> <span 
+class="ectt-1095">abstract </span></td><td  style="white-space:nowrap; text-align:center;" id="TBL-3-4-2"  
+class="td11"> Cannot be instantiated directly and must be inherited by other classes  </td>
+</tr></table></div></div>
+<a 
+ id="x1-8001r8"></a>
+                                                                                       
+                                                                                       
+<!--l. 76--><p class="noindent" ><span class="paragraphHead"><a 
+ id="x1-90002"></a><span 
+class="ectt-1095">enum</span><span 
+class="ecbx-1095">-Type</span></span>
+An enumeration of runtime-constants that follow a class-like pattern. This type does not allow
+modifiers.
+<a 
+ id="x1-9001r9"></a>
+<!--l. 79--><p class="noindent" ><span class="paragraphHead"><a 
+ id="x1-100003"></a><span 
+class="ectt-1095">interface</span><span 
+class="ecbx-1095">-Type</span></span>
+An interface that declares basic structure requirements for implementing classes. Cannot be
+instantiated directly.
+<a 
+ id="x1-10001r10"></a>
+<!--l. 82--><p class="noindent" ><span class="paragraphHead"><a 
+ id="x1-110004"></a><span 
+class="ectt-1095">annotation</span><span 
+class="ecbx-1095">-Type</span></span>
+<a 
+ id="x1-11001r7"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">1.2.2   </span> <a 
+ id="x1-120002"></a>Type Generics</h5>
+<a 
+ id="x1-12001r6"></a>
+<h4 class="subsectionHead"><span class="titlemark">1.3   </span> <a 
+ id="x1-130003"></a>Class Members</h4>
+<a 
+ id="x1-13001r12"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">1.3.1   </span> <a 
+ id="x1-140001"></a>Static Initializer</h5>
+<a 
+ id="x1-14001r14"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">1.3.2   </span> <a 
+ id="x1-150002"></a>Constructors</h5>
+<a 
+ id="x1-15001r15"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">1.3.3   </span> <a 
+ id="x1-160003"></a>Methods</h5>
+<a 
+ id="x1-16001r16"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">1.3.4   </span> <a 
+ id="x1-170004"></a>Properties</h5>
+                                                                                       
+                                                                                       
+<a 
+ id="x1-17001r2"></a>
+<h3 class="sectionHead"><span class="titlemark">2   </span> <a 
+ id="x1-180002"></a>The KScr VM</h3>
+<a 
+ id="x1-18001r13"></a>
+<h4 class="subsectionHead"><span class="titlemark">2.1   </span> <a 
+ id="x1-190001"></a>Built-in Types</h4>
+<a 
+ id="x1-19001r17"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.1.1   </span> <a 
+ id="x1-200001"></a><span 
+class="ectt-1095">interface void</span></h5>
+<!--l. 94--><p class="noindent" >The universal base type. Is implemented by all built-in types and can be implicitly cast to
+everything.
+<a 
+ id="x1-20001r20"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.1.2   </span> <a 
+ id="x1-210002"></a><span 
+class="ectt-1095">class num&#x003C;T&#x003E;</span></h5>
+<!--l. 96--><p class="noindent" >The base type of all numerics. Contains numeric subtypes:
+     <ol  class="enumerate1" >
+<li 
+  class="enumerate" id="x1-21002x1">
+     <!--l. 98--><p class="noindent" ><span 
+class="ectt-1095">byte </span>- Type-alias for <span 
+class="ectt-1095">int&#x003C;8&#x003E;</span>
+     </li>
+<li 
+  class="enumerate" id="x1-21004x2">
+     <!--l. 99--><p class="noindent" ><span 
+class="ectt-1095">short </span>- Type-alias for <span 
+class="ectt-1095">int&#x003C;16&#x003E;</span>
+     </li>
+<li 
+  class="enumerate" id="x1-21006x3">
+     <!--l. 100--><p class="noindent" ><span 
+class="ectt-1095">int&#x003C;n = 32&#x003E;</span>
+     </li>
+<li 
+  class="enumerate" id="x1-21008x4">
+     <!--l. 101--><p class="noindent" ><span 
+class="ectt-1095">long </span>- Type-alias for <span 
+class="ectt-1095">int&#x003C;64&#x003E;</span>
+     </li>
+<li 
+  class="enumerate" id="x1-21010x5">
+     <!--l. 102--><p class="noindent" ><span 
+class="ectt-1095">float</span>
+     </li>
+<li 
+  class="enumerate" id="x1-21012x6">
+     <!--l. 103--><p class="noindent" ><span 
+class="ectt-1095">double</span></li></ol>
+<!--l. 105--><p class="noindent" >All subtypes can be used directly, or using the Type Generic T, for example: <span 
+class="ectt-1095">int&#x003C;24&#x003E; ==</span>
+<span 
+class="ectt-1095">num&#x003C;int&#x003C;24»</span>
+<a 
+ id="x1-21013r21"></a>
+                                                                                       
+                                                                                       
+<h5 class="subsubsectionHead"><span class="titlemark">2.1.3   </span> <a 
+ id="x1-220003"></a><span 
+class="ectt-1095">class str</span></h5>
+<a 
+ id="x1-22001r22"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.1.4   </span> <a 
+ id="x1-230004"></a><span 
+class="ectt-1095">class object</span></h5>
+<a 
+ id="x1-23001r23"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.1.5   </span> <a 
+ id="x1-240005"></a><span 
+class="ectt-1095">class array&#x003C;T&#x003E;</span></h5>
+<a 
+ id="x1-24001r24"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.1.6   </span> <a 
+ id="x1-250006"></a><span 
+class="ectt-1095">class tuple&#x003C;T...&#x003E;</span></h5>
+<a 
+ id="x1-25001r25"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.1.7   </span> <a 
+ id="x1-260007"></a><span 
+class="ectt-1095">class enum&#x003C;T&#x003E;</span></h5>
+<a 
+ id="x1-26001r26"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.1.8   </span> <a 
+ id="x1-270008"></a><span 
+class="ectt-1095">class type&#x003C;T&#x003E;</span></h5>
+<a 
+ id="x1-27001r27"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.1.9   </span> <a 
+ id="x1-280009"></a><span 
+class="ectt-1095">class pipe&#x003C;T...&#x003E;</span></h5>
+<a 
+ id="x1-28001r19"></a>
+<h4 class="subsectionHead"><span class="titlemark">2.2   </span> <a 
+ id="x1-290002"></a>Literals</h4>
+<a 
+ id="x1-29001r28"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.2.1   </span> <a 
+ id="x1-300001"></a><span 
+class="ectt-1095">null</span></h5>
+<!--l. 115--><p class="noindent" >The <span 
+class="ectt-1095">null</span>-Literal. Is always of <a 
+href="#x1-200001">type <span 
+class="ectt-1095">void</span></a>.
+<a 
+ id="x1-30001r30"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.2.2   </span> <a 
+ id="x1-310002"></a><span 
+class="ectt-1095">Numeric Literals</span></h5>
+<a 
+ id="x1-31001r31"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.2.3   </span> <a 
+ id="x1-320003"></a><span 
+class="ectt-1095">String Literals</span></h5>
+<!--l. 118--><p class="noindent" >A string literal is pre- and superceded by a double-quote <span 
+class="ectt-1095">" </span>symbol. An escaped double-quote <span 
+class="ectt-1095">\" </span>can be
+contained in the string.
+<a 
+ id="x1-32001r11"></a>
+<!--l. 120--><p class="noindent" ><span class="paragraphHead"><a 
+ id="x1-330001"></a><span 
+class="ecbx-1095">Planned Behaviour: Interpolation</span></span>
+A string supports interpolation using accolades with Formatter-support with the following
+syntax:
+                                                                                       
+                                                                                       
+<pre class="verbatim" id="verbatim-1">
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;int&#x00A0;hex&#x00A0;=&#x00A0;1&#x00A0;&#x003C;&#x003C;&#x00A0;3;
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;stdio&#x00A0;&#x003C;&#x003C;-&#x00A0;"hex:&#x00A0;{hex:X}"
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;//&#x00A0;prints&#x00A0;"hex:&#x00A0;0x4"
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;
+</pre>
+<!--l. 126--><p class="nopar" >
+<a 
+ id="x1-33001r32"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.2.4   </span> <a 
+ id="x1-340004"></a><span 
+class="ectt-1095">Array Literals</span></h5>
+<!--l. 128--><p class="noindent" >Unimplemented.
+<a 
+ id="x1-34001r34"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.2.5   </span> <a 
+ id="x1-350005"></a><span 
+class="ectt-1095">Tuple Literals</span></h5>
+<!--l. 130--><p class="noindent" >Unimplemented.
+<a 
+ id="x1-35001r35"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.2.6   </span> <a 
+ id="x1-360006"></a><span 
+class="ectt-1095">Other Literals</span></h5>
+<a 
+ id="x1-36001r33"></a>
+<!--l. 132--><p class="noindent" ><span class="paragraphHead"><a 
+ id="x1-370001"></a><span 
+class="ectt-1095">stdio</span></span>
+Constantly represents the program&#8217;s standard IO stream. <br 
+class="newline" />The held value is of type <span 
+class="ectt-1095">pipe&#x003C;str&#x003E;</span>
+ 
+</body></html> 
+
+                                                                                       
+
+
