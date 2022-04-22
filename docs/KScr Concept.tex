@@ -1,5 +1,36 @@
 \documentclass{docs}
 \begin{document}
+    \begin{titlepage}
+        \begin{center}
+            \vspace*{1cm}
+            
+            \Huge
+            \textbf{The KScr Language}
+            
+            \vspace{0.5cm}
+            \LARGE
+            Definition of the KScr Language
+            
+            \vspace{1.5cm}
+            
+            \textbf{comroid}
+            
+            \vspace{0.8cm}
+            
+            \includegraphics[width=0.4\textwidth]{../img/kscr-icon.png}
+            
+            \vfill
+            
+            The KScr Language as defined by this document is a compiled high-level language whose goal is to provide runtime optimizations from a different approach.
+            
+            \vspace{1.2cm}
+            
+            \Large
+            \underline{Team:} \\
+            Kaleidox
+        \end{center}
+    \end{titlepage}
+    \fancyhead[C]{{KScr Language}}
     \tableofcontents
     \pagebreak
     \section{Source Model}
@@ -49,5 +80,56 @@
     An interface that declares basic structure requirements for implementing classes.
     Cannot be instantiated directly.
     \paragraph{\texttt{annotation}-Type}
-    %todo
+    \subsubsection{Type Generics}
+    \subsection{Class Members}
+    \subsubsection{Static Initializer}
+    \subsubsection{Constructors}
+    \subsubsection{Methods}
+    \subsubsection{Properties}
+    \pagebreak
+    \section{The KScr VM}
+    \subsection{Built-in Types}
+    \subsubsection{\texttt{interface void}}
+    \label{typeVoid}
+    The universal base type. Is implemented by all built-in types and can be implicitly cast to everything.
+    \subsubsection{\texttt{class num<T>}}
+    The base type of all numerics. Contains numeric subtypes:
+    \begin{enumerate}
+        \item \texttt{byte} - Type-alias for \texttt{int<8>} % todo: this is not true
+        \item \texttt{short} - Type-alias for \texttt{int<16>}
+        \item \texttt{int<n = 32>}
+        \item \texttt{long} - Type-alias for \texttt{int<64>}
+        \item \texttt{float}
+        \item \texttt{double}
+    \end{enumerate}
+    All subtypes can be used directly, or using the Type Generic T, for example: \texttt{int<24> == num<int<24>>}
+    \subsubsection{\texttt{class str}}
+    \subsubsection{\texttt{class object}}
+    \subsubsection{\texttt{class array<T>}}
+    \subsubsection{\texttt{class tuple<T...>}}
+    \subsubsection{\texttt{class enum<T>}}
+    \subsubsection{\texttt{class type<T>}}
+    \subsubsection{\texttt{class pipe<T...>}}
+    \subsection{Literals}
+    \subsubsection{\texttt{null}}
+    The \texttt{null}-Literal. Is always of \hyperref[typeVoid]{type \texttt{void}}.
+    \subsubsection{\texttt{Numeric Literals}}
+    \subsubsection{\texttt{String Literals}}
+    A string literal is pre- and superceded by a double-quote \texttt{"} symbol.
+    An escaped double-quote \texttt{\textbackslash"} can be contained in the string.
+    \paragraph{Planned Behaviour: Interpolation}
+    A string supports interpolation using accolades with Formatter-support with the following syntax:
+    \begin{verbatim}
+        int hex = 1 << 3;
+        stdio <<- "hex: {hex:X}"
+        // prints "hex: 0x4"
+    \end{verbatim}
+    \subsubsection{\texttt{Array Literals}}
+    Unimplemented.
+    \subsubsection{\texttt{Tuple Literals}}
+    Unimplemented.
+    \subsubsection{\texttt{Other Literals}}
+    \paragraph{\texttt{stdio}}
+    Constantly represents the program's standard IO stream. \\
+    The held value is of type \texttt{pipe<str>}
 \end{document}

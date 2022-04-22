@@ -13,6 +13,7 @@
 \usepackage{makecell}
 \usepackage{hyperref}
 \usepackage{titlesec}
+%%\usepackage{listings} does not work for some reason
 
 \setcounter{secnumdepth}{4}
 
