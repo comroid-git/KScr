@@ -264,6 +264,10 @@
     \subsubsection{\texttt{interface pipe<T...>}}
     The type of pipes. The type Generic \texttt{T} defines the type of data that is handled by this pipe.
     
+    \label{typeRange}
+    \subsubsection{\texttt{class range}}
+    The type of ranges. Ranges are invoked with a tilde: \texttt{start~end}
+    
     \subsection{Literals}
     
     \label{litNull}
@@ -318,7 +322,12 @@
     \label{litStdio}
     \paragraph{\texttt{stdio}}
     Constantly represents the program's standard IO stream. \\
-    The held value is of type \texttt{pipe<str>}
+    The held value is of type \hyperref[typePipe]{\texttt{pipe<str>}}.
+
+    \label{litEndl}
+    \paragraph{\texttt{endl}}
+    Constantly represents the environment's standard Line feed style. \\
+    The held value is of type \hyperref[typeStr]{\texttt{str}}.
 
     \subsection{Native Methods}
     KScr supports calls to native C\# members.
