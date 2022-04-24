@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using KScr.Core.Exception;
 using KScr.Core.Model;
@@ -10,10 +13,7 @@ namespace KScr.Core.Std;
 
 public enum NumericMode
 {
-    Byte,
-    Short,
     Int,
-    Long,
     Float,
     Double
 }
@@ -22,9 +22,19 @@ public sealed class Numeric : NativeObj
 {
     public static readonly Regex NumberRegex = new(@"([\d]+(i|l|f|d|s|b)?)([.,]([\d]+)(f|d))?");
 
-    public static Numeric Zero;
+    public static readonly Numeric Zero = new(0)
+    {
+        Mutable = false,
+        Bytes = BitConverter.GetBytes((byte)0),
+        Mode = NumericMode.Int
+    };
 
-    public static Numeric One;
+    public static readonly Numeric One = new(1)
+    {
+        Mutable = false,
+        Bytes = BitConverter.GetBytes((byte)1),
+        Mode = NumericMode.Int
+    };
 
     private static readonly ConcurrentDictionary<decimal, Numeric> Cache = new();
 
@@ -38,12 +48,15 @@ public sealed class Numeric : NativeObj
         _objId = vm.NextObjId();
     }
 
-    public NumericMode Mode { get; internal set; } = NumericMode.Short;
-    public byte[] Bytes { get; internal set; } = BitConverter.GetBytes((short)0);
-    public byte ByteValue => GetAs<byte>();
-    public short ShortValue => GetAs<short>();
-    public int IntValue => GetAs<int>();
-    public long LongValue => GetAs<long>();
+    public bool Mutable
+    {
+        get => !_constant && _mutable;
+        private set => _mutable = value;
+    }
+
+    public NumericMode Mode { get; private set; } = NumericMode.Int;
+    public byte[] Bytes { get; private set; } = BitConverter.GetBytes((short)0);
+    public IntN IntNValue => GetAs<IntN>();
     public float FloatValue => GetAs<float>();
     public double DoubleValue => GetAs<double>();
     public string StringValue => GetAs<string>();
@@ -86,10 +99,7 @@ public sealed class Numeric : NativeObj
                 delta = (Constant(vm, 0.001).Value as Numeric)!;
                 stack[StackOutput.Default] = Mode switch
                 {
-                    NumericMode.Byte => ByteValue == other.ByteValue,
-                    NumericMode.Short => ShortValue == other.ShortValue,
                     NumericMode.Int => IntValue == other.IntValue,
-                    NumericMode.Long => LongValue == other.LongValue,
                     NumericMode.Float => Math.Abs(FloatValue - other.FloatValue) < delta.FloatValue,
                     NumericMode.Double => Math.Abs(DoubleValue - other.DoubleValue) < delta.DoubleValue,
                     _ => throw new ArgumentOutOfRangeException()
@@ -110,10 +120,7 @@ public sealed class Numeric : NativeObj
     {
         return Mode switch
         {
-            NumericMode.Byte => CreateKey(LongValue),
-            NumericMode.Short => CreateKey(LongValue),
             NumericMode.Int => CreateKey(LongValue),
-            NumericMode.Long => CreateKey(LongValue),
             NumericMode.Float => CreateKey(FloatValue),
             NumericMode.Double => CreateKey(DoubleValue),
             _ => throw new ArgumentOutOfRangeException()
@@ -727,5 +734,197 @@ public sealed class Numeric : NativeObj
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+}
+
+public sealed class IntN : IObject
+{
+    public static readonly char[] digits = new[] {
+        '0',
+        '1',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9'
+    };
+    public static readonly char[] chars = new[] {
+        'A',
+        'B',
+        'C',
+        'D',
+        'E',
+        'F',
+        'G',
+        'H',
+        'I',
+        'J',
+        'K',
+        'L',
+        'M',
+        'N',
+        'O',
+        'P',
+        'Q',
+        'R',
+        'S',
+        'T',
+        'U',
+        'V',
+        'W',
+        'X',
+        'Y',
+        'Z',
+        'a',
+        'b',
+        'c',
+        'd',
+        'e',
+        'f',
+        'g',
+        'h',
+        'i',
+        'j',
+        'k',
+        'l',
+        'm',
+        'n',
+        'o',
+        'p',
+        'q',
+        'r',
+        's',
+        't',
+        'u',
+        'v',
+        'w',
+        'x',
+        'y',
+        'z'
+    };
+
+    private static readonly Dictionary<int, IClassInstance> _clsInsts = new();
+    private readonly IClassInstance _clsInst;
+
+    public readonly int N;
+    public readonly byte[] Bytes;
+    
+    private byte[] Bits
+    {
+        get
+        {
+            byte[] bits = new byte[N];
+            for (int i = 0; i < N; i++)
+                bits[i] = (byte)((Bytes[i / 8] & (1 << i % 8 - 1)) != 0 ? 1 : 0);
+            bits = bits.Reverse().ToArray();
+            return bits;
+        }
+    }
+
+    public byte ByteValue
+    {
+        get => Bytes[0];
+        set => Set(new[] { value });
+    }
+
+    public short ShortValue
+    {
+        get => BitConverter.ToInt16(Bytes);
+        set => Set(BitConverter.GetBytes(value));
+    }
+
+    public int IntValue
+    {
+        get => BitConverter.ToInt32(Bytes);
+        set => Set(BitConverter.GetBytes(value));
+    }
+
+    public long LongValue
+    {
+        get => BitConverter.ToInt64(Bytes);
+        set => Set(BitConverter.GetBytes(value));
+    }
+
+    public BigInteger BitIntValue
+    {
+        get => new(Bytes);
+        set => Set(value.ToByteArray());
+    }
+
+    public string StringValue(byte radix)
+    { // todo: inspect
+        string str = string.Empty;
+        if (radix == 1)
+            str = string.Join("", Bits.Select(x => x.ToString()));
+        else
+        {
+            (int div, int mod) divmod(int x, int y) => (x / y, x % y);
+            void add(int[] output, int[] input)
+            {
+                int carry = 0;
+                for (int i = 0; i < input.Length; i++)
+                    (carry, output[i]) = divmod(output[i] + input[i] + carry, radix);
+                for (int i = 0; carry > 0; i++)
+                    (carry, output[i]) = divmod(output[i] + carry, radix);
+            }
+            
+            int[] res = new int[(int)Math.Ceiling(str.Length * Math.Log(2) / Math.Log(10))],
+                s = StringValue(1).Substring(2).Select(x => (int)x).ToArray();
+            foreach (var c in s)
+            {
+                add(res, res);
+                add(res, new[] { c });
+            }
+
+            str = string.Join("", res.Reverse().Select(x => (char)x).ToArray());
+        }
+        return radix switch
+        {
+            1 => "0b" + str,
+            16 => "0x" + str,
+            _ => (radix == 10 ? string.Empty : "0_") + str
+        };
+    }
+
+    public IntN(RuntimeBase vm, int n = 32)
+    {
+        if (n / 8 > chars.Length)
+            throw new FatalException($"n too large: {n} ({n / 8})");
+        N = n;
+        Bytes = new byte[(int)Math.Ceiling((double)n / 8)];
+        ObjectId = vm.NextObjId();
+        _clsInst = GetClsInst(vm, n);
+    }
+
+    private void Set(byte[] bytes)
+    {
+        if (bytes.Length > N)
+            throw new ArgumentOutOfRangeException(nameof(bytes.Length), bytes.Length, "Set value too large");
+        Array.Fill(Bytes, (byte)0);
+        Array.Copy(bytes, 0, Bytes, N - bytes.Length, bytes.Length);
+    }
+
+    public long ObjectId { get; }
+
+    public IClassInstance Type => _clsInst;
+
+    public string ToString(short variant) => StringValue((byte)(variant == 0 ? 10 : variant));
+
+    public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+    {
+        throw new NotImplementedException();
+    }
+
+    public string GetKey() => $"int<{N}>: {StringValue(16)}";
+
+    private IClassInstance GetClsInst(RuntimeBase vm, int n)
+    {
+        if (_clsInsts.ContainsKey(n))
+            return _clsInsts[n];
+        return _clsInsts[n] = Class.IntType.CreateInstance(vm, Class.IntType,
+            new TypeParameter(N.ToString(), TypeParameterSpecializationType.N));
     }
 }
