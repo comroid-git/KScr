@@ -39,12 +39,18 @@
     \section{Source Model}
     KScr expects source files to have the extension \texttt{.kscr}, and outputs binaries with the extension \texttt{.kbin}.
     \\
-    All source files must start with a package declaration:
+    Source files are not allowed in the source root directory.
+    The binary root directory contains a string cache.
+    
+    \subsection{Package Declaration}
+    At the beginning of every source file, KScr expects a package declaration:
     \begin{verbatim}
         package org.comroid.kscr;
     \end{verbatim}
-    Following the package declaration, an optional list of import statements follows; importing either canonical class paths or all static members of a class.
-    
+
+    \subsection{Imports and Static Imports}
+    Following the package declaration, a list of import statements is 
+
     \subsection{Modifiers}
     
     \subsubsection{Accessibility Modifiers}
@@ -121,7 +127,8 @@
     \label{typeGenN}
     \paragraph{\texttt{n}-Generic} The \texttt{n}-Generic serves as a type-based declaration for tuple types. \\
     Its usages must be integers, and their value is available at runtime in a semi-static field \texttt{public final int n}. \\
-    Writing \texttt{string<2>} is the same as writing \texttt{tuple<2, string>}
+    Writing \texttt{string<2>} is the same as writing \texttt{tuple<2, string>} \\
+    If the \texttt{n}-Generic is defined explicitly, then it is not used as a tuple alias.
     
     \label{typeGenList}
     \paragraph{Listing Generic} A listing Generic serves as a varargs-Generic. \\
@@ -213,6 +220,10 @@
         \item \texttt{double}
     \end{enumerate}
     All subtypes can be used directly, or using the Type Generic T, for example: \texttt{int<24> == num<int<24>>}
+    \label{typeInt}
+    \paragraph{\texttt{class int<n = 32>}}
+    The \texttt{int<n>} type defines an integer measured by \texttt{n} bytes. \\
+    The default value of \texttt{n} is 32; as it is for common integers.
     
     \label{typeStr}
     \subsubsection{\texttt{class str}}
@@ -261,13 +272,33 @@
     
     \label{litNum}
     \subsubsection{Numeric Literals}
+    A numeric literal may either be a decimal number, a hexadecimal string or a binary string. \\
+    \paragraph*{Decimals}
+    In case it is an irrational decimal, it may be followed by a letter indicating the number type. Supported types are:
+    \begin{center}
+    \begin{tabular}{c|l}
+        \texttt{0.0f} & \texttt{float} \\
+        \hline
+        \texttt{0.0d} & \texttt{double} (Default)
+    \end{tabular}
+    \end{center}
+    \paragraph*{Hexadecimals}
+    A hexadecimal string must be preceded with \texttt{0x}. Output type will be an \hyperref[typeInt]{\texttt{int<n>}} where \texttt{n} is chosen with a radix of 8.
+    \begin{verbatim}
+        int<8> x = 0x9;
+    \end{verbatim}
+    \paragraph*{Binaries}
+    A binary string must be preceded with \texttt{0b}. Output type will be an \hyperref[typeInt]{\texttt{int<n>}} where \texttt{n} is chosen with a radix of 1.
+    \begin{verbatim}
+        int<5> x = 0b00101;
+    \end{verbatim}
     
     \label{litStr}
     \subsubsection{String Literals}
     A string literal is pre- and superceded by a double-quote \texttt{"} symbol.
     An escaped double-quote \texttt{\textbackslash"} can be contained in the string.
     
-    \paragraph{Planned Behaviour: Interpolation}
+    \paragraph{Interpolation}
     A string supports interpolation using accolades with Formatter-support with the following syntax:
     \begin{verbatim}
         int hex = 1 << 3;
@@ -284,7 +315,6 @@
     Unimplemented.
     
     \subsubsection{Other Literals}
-    
     \label{litStdio}
     \paragraph{\texttt{stdio}}
     Constantly represents the program's standard IO stream. \\

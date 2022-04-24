@@ -15,6 +15,7 @@
 \usepackage{titlesec}
 %%\usepackage{listings} does not work for some reason
 
+\setcounter{tocdepth}{4}
 \setcounter{secnumdepth}{4}
 
 % -----------------------------------------------------------------------
