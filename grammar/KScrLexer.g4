@@ -66,7 +66,10 @@ VOID: 'void';
 VAR: 'var';
 
 // literals
-NUMLIT: MINUS? DIGIT+ ((DOT DIGIT+ ('f'? | 'd'))? | ('l' | 'i' | 's' | 'b')?) | 'n';
+NUMLIT
+    : MINUS? DIGIT+ ((DOT DIGIT+ ('f'? | 'd'))? | ('l' | 'i' | 's' | 'b')?)
+    | '0' ('x' | 'b') (DIGIT | [AaBbCcDdEeFf])+
+    ;
 STRLIT: QUOTE (ESCAPE_QUOTE | (~[\r\n"]))*? (QUOTE);
 STDIOLIT: 'stdio';
 NULL: 'null';
