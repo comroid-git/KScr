@@ -1,14 +1,24 @@
 ﻿using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
+using System;
 
 namespace KScr.Core.Std;
 
 public interface IObject
 {
+    [Obsolete]
     public const int ToString_TypeName = -1;
+    [Obsolete]
     public const int ToString_ShortName = 0;
+    [Obsolete]
     public const int ToString_LongName = 1;
+    public const short ToString_ParseableName = 0;
+    public const short ToString_TypeName = 1;
+    public const short ToString_Name = 2;
+    public const short ToString_FullName = 3;
+    public const short ToString_DetailedName = 4;
+    public const short ToString_FullDetailedName = 5;
     public static readonly IObject Null = new VoidValue();
 
     long ObjectId { get; }
