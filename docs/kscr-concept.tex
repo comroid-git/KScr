@@ -117,10 +117,12 @@
     \end{verbatim}
     There is two special kinds of Type Generics;
     
+    \label{typeGenN}
     \paragraph{\texttt{n}-Generic} The \texttt{n}-Generic serves as a type-based declaration for tuple types. \\
     Its usages must be integers, and their value is available at runtime in a semi-static field \texttt{public final int n}. \\
     Writing \texttt{string<2>} is the same as writing \texttt{tuple<2, string>}
     
+    \label{typeGenList}
     \paragraph{Listing Generic} A listing Generic serves as a varargs-Generic. \\
     Its instance is an array of types which can be accessed at runtime in a semi-static field.
     
@@ -168,6 +170,35 @@
     \label{typeVoid}
     \subsubsection{\texttt{interface void}}
     The universal base type. Is implemented by all built-in types and can be implicitly cast to everything.
+
+    \paragraph{Method \texttt{void\#toString(short alt)}}
+    Used to obtain a string representation of the object.
+    \\
+    The \texttt{toString()} Method that is present in all objects has one optional parameter; a \texttt{short} that defines the alternative of the output string. Its default value is 0.
+    \\
+    The following values must be returned by different alternatives:
+    \begin{center}
+    \begin{tabular}{c|l}
+        Value & Predefined output string \\
+        \hline
+        \texttt{0} & A parseable representation of the object \\
+        \texttt{1} & A name that contains type information \\
+        \texttt{2} & An undetailed name of the object \\
+        \texttt{3} & A full undetailed name of the object \\
+        \texttt{4} & A detailed name of the object \\
+        \texttt{5} & A full detailed name of the object
+    \end{tabular}
+    \end{center}
+
+    \paragraph{Method \texttt{void\#equals(void other)}}
+    Used to test two objects for equality.
+    This method is called by the \begin{math}=\end{math} and \begin{math}\neq\end{math} operators.
+
+    \paragraph{Method \texttt{void\#getType()}}
+    Used to obtain the exact class instance of an object.
+
+    \paragraph{Property \texttt{void\#InternalID}}
+    Used to obtain the internal ID of the object.
     
     \subsubsection{\texttt{class num<T>}}
     The base type of all numerics. Contains numeric subtypes:
@@ -182,18 +213,36 @@
     All subtypes can be used directly, or using the Type Generic T, for example: \texttt{int<24> == num<int<24>>}
     
     \subsubsection{\texttt{class str}}
+    The type of all strings.
+    \\
+    A string represents an array of characters.
     
     \subsubsection{\texttt{class object}}
+    The base type of all non-built-in objects.
+    \\
+    Every foreign class that has no explicit \texttt{extends} definition implements this type implicitly.
     
     \subsubsection{\texttt{class array<T>}}
+    The type of arrays. The type Generic \texttt{T} defines the type of the array.
+    \\
+    Writing \texttt{array<str>} is the same as writing \texttt{str[]}.
     
     \subsubsection{\texttt{class tuple<T...>}}
+    The type of tuples. The type Generic \texttt{T...} defines all types of held values in order.
+    \\
+    If \texttt{T.Size == 1}, the tuple is of a singular type and might have been invoked by the \hyperref[typeGenN]{n-Type-Generic}; \texttt{T<n>}.
+    Size must then be obtained by invoking \texttt{it.Size}.
     
     \subsubsection{\texttt{class enum<T>}}
+    The type of enums. The type Generic \texttt{T} defines the output type of the enum.
+    \\
+    A class \texttt{enum Codes} would be of type \texttt{enum<Codes>} or simply \texttt{Codes}.
     
     \subsubsection{\texttt{class type<T>}}
+    The type of all types. The type Generic \texttt{T} defines the actual type that is defined by this type.
     
     \subsubsection{\texttt{class pipe<T...>}}
+    The type of pipes. The type Generic \texttt{T} defines the type of data that is handled by this pipe.
     
     \subsection{Literals}
     
@@ -225,4 +274,18 @@
     \paragraph{\texttt{stdio}}
     Constantly represents the program's standard IO stream. \\
     The held value is of type \texttt{pipe<str>}
+
+    \pagebreak
+    \section{Core Features}
+
+    \subsection{\texttt{Convert}-Class}
+
+    \subsection{Property Caches}
+
+    \subsection{Pipe Functionality}
+
+    \pagebreak
+    \section{KScr Build System}
+
+    \subsection{Build Files}
 \end{document}
