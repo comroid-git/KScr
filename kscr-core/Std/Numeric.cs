@@ -635,31 +635,6 @@ public sealed class Numeric : IObject
         return rev;
     }
 
-    public override string ToString()
-    {
-        return ToString(0);
-    }
-
-    public static string CreateKey(string num)
-    {
-        return "num:" + num;
-    }
-
-    public static string CreateKey(long num)
-    {
-        return CreateKey(num.ToString());
-    }
-
-    public static string CreateKey(float num)
-    {
-        return CreateKey(num.ToString(CultureInfo.InvariantCulture));
-    }
-
-    public static string CreateKey(double num)
-    {
-        return CreateKey(num.ToString(CultureInfo.InvariantCulture));
-    }
-
     public IObjectRef Sqrt(RuntimeBase vm)
     {
         switch (Mode)
@@ -730,6 +705,31 @@ public sealed class Numeric : IObject
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    public override string ToString()
+    {
+        return ToString(0);
+    }
+
+    public static string CreateKey(string num)
+    {
+        return "num:" + num;
+    }
+
+    public static string CreateKey(long num)
+    {
+        return CreateKey(num.ToString());
+    }
+
+    public static string CreateKey(float num)
+    {
+        return CreateKey(num.ToString(CultureInfo.InvariantCulture));
+    }
+
+    public static string CreateKey(double num)
+    {
+        return CreateKey(num.ToString(CultureInfo.InvariantCulture));
     }
 }
 
