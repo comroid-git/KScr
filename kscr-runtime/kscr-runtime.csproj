@@ -16,7 +16,7 @@
         <LangVersion>latest</LangVersion>
         <FileVersion>10</FileVersion>
         <IsPackable>false</IsPackable>
-        <ApplicationIcon>..\docs\img\kscr-icon.png</ApplicationIcon>
+        <ApplicationIcon>..\docs\img\kscr-icon.ico</ApplicationIcon>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -30,12 +30,6 @@
 
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Include="..\docs\img\kscr-icon.png">
-        <Link>kscr-icon.png</Link>
-      </None>
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
