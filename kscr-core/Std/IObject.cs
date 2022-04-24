@@ -8,11 +8,9 @@ namespace KScr.Core.Std;
 public interface IObject
 {
     [Obsolete]
-    public const int ToString_TypeName = -1;
+    public const int ToString_ShortName = ToString_ParseableName;
     [Obsolete]
-    public const int ToString_ShortName = 0;
-    [Obsolete]
-    public const int ToString_LongName = 1;
+    public const int ToString_LongName = ToString_FullDetailedName;
     public const short ToString_ParseableName = 0;
     public const short ToString_TypeName = 1;
     public const short ToString_Name = 2;
