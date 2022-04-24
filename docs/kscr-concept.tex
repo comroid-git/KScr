@@ -68,6 +68,7 @@
         \texttt{final} & Cannot be overridden or changed \\
         \texttt{abstract} & Must be implemented in inheritors \\
         \texttt{synchronized} & Invocations are synchronized \\
+        \label{modNative}
         \texttt{native} & Must be implemented by a native module
     \end{tabular}
     \end{center}
@@ -140,14 +141,14 @@
             // initialize class right before late initialization
         }
     \end{verbatim}
-    The static initializer is compile to be a method with the header \texttt{private static final void cctor()}
+    The static initializer is compiled to be a method with the header \texttt{private static final void cctor()}
     
     \subsubsection{Constructors}
     The constructor is used to create a dynamic instance of the class. \\
     If a class \texttt{extends} more than one class, any of which does not support the default constructor, the constructor must declare all superconstructors like this:
     \begin{verbatim}
         public class Apple extends Fruit, Projectile implements Digestable {
-            public Apple() : Fruit("Apple"), Projectile()
+            public Apple() : Fruit("Apple"), Projectile();
         }
     \end{verbatim}
     Constructors are compiled as Methods named \texttt{ctor}.
@@ -200,6 +201,7 @@
     \paragraph{Property \texttt{void\#InternalID}}
     Used to obtain the internal ID of the object.
     
+    \label{typeNum}
     \subsubsection{\texttt{class num<T>}}
     The base type of all numerics. Contains numeric subtypes:
     \begin{enumerate}
@@ -212,45 +214,55 @@
     \end{enumerate}
     All subtypes can be used directly, or using the Type Generic T, for example: \texttt{int<24> == num<int<24>>}
     
+    \label{typeStr}
     \subsubsection{\texttt{class str}}
     The type of all strings.
     \\
     A string represents an array of characters.
     
+    \label{typeObject}
     \subsubsection{\texttt{class object}}
     The base type of all non-built-in objects.
     \\
     Every foreign class that has no explicit \texttt{extends} definition implements this type implicitly.
     
+    \label{typeArray}
     \subsubsection{\texttt{class array<T>}}
     The type of arrays. The type Generic \texttt{T} defines the type of the array.
     \\
     Writing \texttt{array<str>} is the same as writing \texttt{str[]}.
     
+    \label{typeTuple}
     \subsubsection{\texttt{class tuple<T...>}}
     The type of tuples. The type Generic \texttt{T...} defines all types of held values in order.
     \\
     If \texttt{T.Size == 1}, the tuple is of a singular type and might have been invoked by the \hyperref[typeGenN]{n-Type-Generic}; \texttt{T<n>}.
     Size must then be obtained by invoking \texttt{it.Size}.
     
+    \label{typeEnum}
     \subsubsection{\texttt{class enum<T>}}
     The type of enums. The type Generic \texttt{T} defines the output type of the enum.
     \\
     A class \texttt{enum Codes} would be of type \texttt{enum<Codes>} or simply \texttt{Codes}.
     
+    \label{typeType}
     \subsubsection{\texttt{class type<T>}}
     The type of all types. The type Generic \texttt{T} defines the actual type that is defined by this type.
-    
-    \subsubsection{\texttt{class pipe<T...>}}
+
+    \label{typePipe}
+    \subsubsection{\texttt{interface pipe<T...>}}
     The type of pipes. The type Generic \texttt{T} defines the type of data that is handled by this pipe.
     
     \subsection{Literals}
     
+    \label{litNull}
     \subsubsection{\texttt{null}}
     The \texttt{null}-Literal. Is always of \hyperref[typeVoid]{type \texttt{void}}.
     
+    \label{litNum}
     \subsubsection{Numeric Literals}
     
+    \label{litStr}
     \subsubsection{String Literals}
     A string literal is pre- and superceded by a double-quote \texttt{"} symbol.
     An escaped double-quote \texttt{\textbackslash"} can be contained in the string.
@@ -263,26 +275,125 @@
         // prints "hex: 0x4"
     \end{verbatim}
     
+    \label{litArray}
     \subsubsection{Array Literals}
     Unimplemented.
     
+    \label{litTuple}
     \subsubsection{Tuple Literals}
     Unimplemented.
     
     \subsubsection{Other Literals}
     
+    \label{litStdio}
     \paragraph{\texttt{stdio}}
     Constantly represents the program's standard IO stream. \\
     The held value is of type \texttt{pipe<str>}
 
-    \pagebreak
-    \section{Core Features}
+    \subsection{Native Methods}
+    KScr supports calls to native C\# members.
+    To use this, it is necessary to mark a method in KScr source code as \hyperref[modNative]{\texttt{native}}, and include a DLL that contains a method attributed with \texttt{[NativeImpl]}.
+    \\
+    At startup, the directory \texttt{include/} at the installation base path is recursively scanned for \texttt{*.dll} assemblies, which are then loaded and scanned for \texttt{[NativeImpl]} attributes.
 
-    \subsection{\texttt{Convert}-Class}
+    \paragraph{Usage Example} Considering the following KScr class:
+    \begin{verbatim}
+        package org.comroid.test;
+
+        public class NativeTest {
+            public static native void callNativeMethod();
+        }
+    \end{verbatim}
+    For successful execution, a C\# class must be present at runtime with the following signature:
+    \begin{verbatim}
+        [NativeImpl(Package = "org.comroid.test", ClassName = "NativeTest")]
+        public class NativeImplementations
+        {
+            [NativeImpl]
+            public static IObjectRef callNativeMethod(RuntimeBase vm,
+                    Stack stack, IObject target, params IObject[] args)
+            {
+                return vm.ConstantNull;
+            }
+        }
+    \end{verbatim}
+
+    \subsection{Implicit Conversions}
+    All built-in types can be implicitly converted to and from each other.
+    For example, trying to assign a \texttt{str} to a variable of type \texttt{int} will first call \texttt{int.parse()} on the string.
+
+    \subsection{Implementing Operators}
+    Implementing an operator is as simple as adding a method named \texttt{op<Operator>} to a class, where for binary operators, the first and only parameter denotes the right operand. \\
+    For example, implementing a division operator for strings would be as simple as adding the following method:
+    \begin{verbatim}
+        public str opDivide(int right)
+    \end{verbatim}
 
     \subsection{Property Caches}
+    Any property contains a value that knows when the property was last updated.
+    If a property has a computed getter, then the getter will only be evaluated if any property used inside the getter has been updated later than the computed property. \\
+    After computation, the result is stored in an internal cache and will be returned if all used properties have not been updated after the computed property.
+
+    \subsection{Lambdas}
+    Every interface that has exactly one abstract method is a functional interface. \\
+    Functional interfaces can be invoked as a lambda instead of an object instance.
+
+    \subsubsection{Anonymous Lambdas}
+    An anonymous lambda consists of a parameter denotation in parentheses, followed by a normal arrow and either an expression or a statement body.
+    An example for an anonymous lambda that implements an integer addition \texttt{Func<int, int, int>} is: \\
+    \begin{verbatim}
+        (x, y) -> x + y;
+
+        // or, using a statement body:
+        (x, y) -> {
+            return x + y;
+        }
+    \end{verbatim}
+    A lambda without parameters is denoted by empty parentheses.
+
+    \subsubsection{Method Reference Lambdas}
+    A method reference lambda may be used if the functional interface notation and the referenced method notation match.
+    If the referenced method is non-static, then the first parameter must be assignable to the invoking target object.
+    \begin{verbatim}
+        // static method reference:
+        Func<int, str> parseInt = int.parse;
+
+        // dynamic method reference:
+        Func<str> toString = myObject.toString;
+    \end{verbatim}
 
     \subsection{Pipe Functionality}
+    KScr supports both an active and passive object pipeline through the \hyperref[typePipe]{\texttt{pipe<T>}} interface.
+    These can be used to either handle and parse incoming \& outgoing data, or to read and write data finitely to or from an accessor.
+
+    \subsubsection{Passive Pipes}
+    Simple examples for passive Pipes are the \hyperref[litStdio]{stdio Keyword} and all properties. \\
+    Passive Pipes can only be read and written to, by using double-arrow operators. \\
+    Additionally, an active pipe operator can be attached to listen for value changes.
+    \begin{verbatim}
+        // write text to stdout:
+        stdio <<- "text";
+
+        // read line from stdin:
+        stdio ->> str line;
+        
+        // call velocityChangeListener() every time 'velocity' is changed:
+        velocity >>= velocityChangeListener;
+        // or create an active pipe that serves as an event hub:
+        velocityHandler = velocity =>> velocityChangeListener;
+    \end{verbatim}
+
+    \subsubsection{Active Pipes}
+    An active pipe actively uses callbacks to push values downstream.
+    They can be stored in a variable, and cascaded for advanced event processing.
+    \\
+    For example, parsing TCP data from a Websocket to JSON may look like this:
+    \begin{verbatim}
+        // parse websocket packets from TCP data
+        websocketData = tcpData =>> parseWebsocketPacket;
+        // parse json from websocket packet body
+        jsonData = websocketData =>> (data -> data.body) =>> parseJson;
+    \end{verbatim}
 
     \pagebreak
     \section{KScr Build System}

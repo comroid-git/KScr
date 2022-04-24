@@ -102,7 +102,7 @@ href="#x1-350008" id="QQ2-1-35"><span
 class="ectt-1095">class type&#x003C;T&#x003E;</span></a></span>
 <br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.1.9 <a 
 href="#x1-360009" id="QQ2-1-36"><span 
-class="ectt-1095">class pipe&#x003C;T...&#x003E;</span></a></span>
+class="ectt-1095">interface pipe&#x003C;T...&#x003E;</span></a></span>
 <br />&#x00A0;<span class="subsectionToc" >2.2 <a 
 href="#x1-370002" id="QQ2-1-37">Literals</a></span>
 <br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.2.1 <a 
@@ -118,21 +118,32 @@ href="#x1-420004" id="QQ2-1-42">Array Literals</a></span>
 href="#x1-430005" id="QQ2-1-43">Tuple Literals</a></span>
 <br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.2.6 <a 
 href="#x1-440006" id="QQ2-1-44">Other Literals</a></span>
+<br />&#x00A0;<span class="subsectionToc" >2.3 <a 
+href="#x1-460003" id="QQ2-1-46">Native Methods</a></span>
+<br />&#x00A0;<span class="subsectionToc" >2.4 <a 
+href="#x1-480004" id="QQ2-1-48">Implicit Conversions</a></span>
+<br />&#x00A0;<span class="subsectionToc" >2.5 <a 
+href="#x1-490005" id="QQ2-1-49">Implementing Operators</a></span>
+                                                                                       
+                                                                                       
+<br />&#x00A0;<span class="subsectionToc" >2.6 <a 
+href="#x1-500006" id="QQ2-1-50">Property Caches</a></span>
+<br />&#x00A0;<span class="subsectionToc" >2.7 <a 
+href="#x1-510007" id="QQ2-1-51">Lambdas</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.7.1 <a 
+href="#x1-520001" id="QQ2-1-52">Anonymous Lambdas</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.7.2 <a 
+href="#x1-530002" id="QQ2-1-53">Method Reference Lambdas</a></span>
+<br />&#x00A0;<span class="subsectionToc" >2.8 <a 
+href="#x1-540008" id="QQ2-1-54">Pipe Functionality</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.8.1 <a 
+href="#x1-550001" id="QQ2-1-55">Passive Pipes</a></span>
+<br />&#x00A0;&#x00A0;<span class="subsubsectionToc" >2.8.2 <a 
+href="#x1-560002" id="QQ2-1-56">Active Pipes</a></span>
 <br /><span class="sectionToc" >3 <a 
-href="#x1-460003" id="QQ2-1-46">Core Features</a></span>
+href="#x1-570003" id="QQ2-1-57">KScr Build System</a></span>
 <br />&#x00A0;<span class="subsectionToc" >3.1 <a 
-href="#x1-470001" id="QQ2-1-47"><span 
-class="ectt-1095">Convert</span>-Class</a></span>
-<br />&#x00A0;<span class="subsectionToc" >3.2 <a 
-href="#x1-480002" id="QQ2-1-48">Property Caches</a></span>
-                                                                                       
-                                                                                       
-<br />&#x00A0;<span class="subsectionToc" >3.3 <a 
-href="#x1-490003" id="QQ2-1-49">Pipe Functionality</a></span>
-<br /><span class="sectionToc" >4 <a 
-href="#x1-500004" id="QQ2-1-50">KScr Build System</a></span>
-<br />&#x00A0;<span class="subsectionToc" >4.1 <a 
-href="#x1-510001" id="QQ2-1-51">Build Files</a></span>
+href="#x1-580001" id="QQ2-1-58">Build Files</a></span>
 </div>
                                                                                        
                                                                                        
@@ -239,29 +250,29 @@ class="td11"> Must be implemented by a native module  </td>
  id="x1-5001r3"></a>
 <h4 class="subsectionHead"><span class="titlemark">1.2   </span> <a 
  id="x1-60002"></a>Classes</h4>
-<!--l. 76--><p class="noindent" >A class is declared by a class header of the following structure:
+<!--l. 77--><p class="noindent" >A class is declared by a class header of the following structure:
                                                                                        
                                                                                        
 <pre class="verbatim" id="verbatim-2">
 &#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x003C;accessibility&#x00A0;modifiers&#x003E;&#x00A0;[class&#x00A0;type]&#x00A0;[class&#x00A0;name]&#x003C;type&#x00A0;generics&#x003E;&#x00A0;&#x003C;inherits&#x003E;&#x00A0;&#x003C;body&#x003E;
 &#x00A0;&#x00A0;&#x00A0;&#x00A0;
 </pre>
-<!--l. 79--><p class="nopar" > Note that the class body can be optional when using a semicolon.
+<!--l. 80--><p class="nopar" > Note that the class body can be optional when using a semicolon.
 <a 
  id="x1-6001r5"></a>
 <h5 class="subsubsectionHead"><span class="titlemark">1.2.1   </span> <a 
  id="x1-70001"></a>Class Types</h5>
-<!--l. 83--><p class="noindent" >A source class can be of different types:
+<!--l. 84--><p class="noindent" >A source class can be of different types:
 <a 
  id="x1-7001r1"></a>
-<!--l. 85--><p class="noindent" ><span class="paragraphHead"><a 
+<!--l. 86--><p class="noindent" ><span class="paragraphHead"><a 
  id="x1-80001"></a><span 
 class="ectt-1095">class</span><span 
 class="ecbx-1095">-Type</span></span>
 A normal class that can be instantiated. Allowed modifiers are:
 <div class="center" 
 >
-<!--l. 88--><p class="noindent" >
+<!--l. 89--><p class="noindent" >
 <div class="tabular"> <table id="TBL-3" class="tabular" 
  
 ><colgroup id="TBL-3-1g"><col 
@@ -288,7 +299,7 @@ class="td11"> Cannot be instantiated directly and must be inherited by other cla
 </tr></table></div></div>
 <a 
  id="x1-8001r8"></a>
-<!--l. 98--><p class="noindent" ><span class="paragraphHead"><a 
+<!--l. 99--><p class="noindent" ><span class="paragraphHead"><a 
  id="x1-90002"></a><span 
 class="ectt-1095">enum</span><span 
 class="ecbx-1095">-Type</span></span>
@@ -296,7 +307,7 @@ An enumeration of runtime-constants that follow a class-like pattern. This type 
 modifiers.
 <a 
  id="x1-9001r9"></a>
-<!--l. 102--><p class="noindent" ><span class="paragraphHead"><a 
+<!--l. 103--><p class="noindent" ><span class="paragraphHead"><a 
  id="x1-100003"></a><span 
 class="ectt-1095">interface</span><span 
 class="ecbx-1095">-Type</span></span>
@@ -304,7 +315,7 @@ An interface that declares basic structure requirements for implementing classes
 instantiated directly.
 <a 
  id="x1-10001r10"></a>
-<!--l. 106--><p class="noindent" ><span class="paragraphHead"><a 
+<!--l. 107--><p class="noindent" ><span class="paragraphHead"><a 
  id="x1-110004"></a><span 
 class="ectt-1095">annotation</span><span 
 class="ecbx-1095">-Type</span></span>
@@ -314,12 +325,12 @@ markers or carrying information at runtime.
  id="x1-11001r7"></a>
 <h5 class="subsubsectionHead"><span class="titlemark">1.2.2   </span> <a 
  id="x1-120002"></a>Class Names</h5>
-<!--l. 110--><p class="noindent" >It is suggested that class names start with an upper case letter.
+<!--l. 111--><p class="noindent" >It is suggested that class names start with an upper case letter.
 <a 
  id="x1-12001r12"></a>
 <h5 class="subsubsectionHead"><span class="titlemark">1.2.3   </span> <a 
  id="x1-130003"></a>Type Generics</h5>
-<!--l. 113--><p class="noindent" >Type Generics are initially defined in a classes header, detailing the name with a postfix. They are
+<!--l. 114--><p class="noindent" >Type Generics are initially defined in a classes header, detailing the name with a postfix. They are
 surrounded by arrow-brackets <span 
 class="ectt-1095">&#x003C;</span><span 
 class="ectt-1095">&#x2026;&#x003E;</span>:
@@ -329,10 +340,10 @@ class="ectt-1095">&#x2026;&#x003E;</span>:
 &#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;public&#x00A0;class&#x00A0;num&#x003C;T&#x003E;&#x00A0;{}
 &#x00A0;&#x00A0;&#x00A0;&#x00A0;
 </pre>
-<!--l. 117--><p class="nopar" > There is two special kinds of Type Generics;
+<!--l. 118--><p class="nopar" > There is two special kinds of Type Generics;
 <a 
  id="x1-13001r11"></a>
-<!--l. 121--><p class="noindent" ><span class="paragraphHead"><a 
+<!--l. 122--><p class="noindent" ><span class="paragraphHead"><a 
  id="x1-140001"></a><span 
 class="ectt-1095">n</span><span 
 class="ecbx-1095">-Generic</span></span>
@@ -347,7 +358,7 @@ class="ectt-1095">string&#x003C;2&#x003E; </span>is the same as writing <span
 class="ectt-1095">tuple&#x003C;2, string&#x003E;</span>
 <a 
  id="x1-14001r14"></a>
-<!--l. 126--><p class="noindent" ><span class="paragraphHead"><a 
+<!--l. 127--><p class="noindent" ><span class="paragraphHead"><a 
  id="x1-150002"></a><span 
 class="ecbx-1095">Listing Generic</span></span>
 A listing Generic serves as a varargs-Generic. <br 
@@ -358,7 +369,7 @@ class="newline" />Its instance is an array of types which can be accessed at run
  id="x1-160004"></a><span 
 class="ectt-1095">extends </span>and <span 
 class="ectt-1095">implements </span>inheritance setters</h5>
-<!--l. 130--><p class="noindent" >The <span 
+<!--l. 131--><p class="noindent" >The <span 
 class="ectt-1095">extends </span>and <span 
 class="ectt-1095">implements </span>keywords follow the detailed class name definition and declare what
 classes or interfaces a class inherits. <br 
@@ -373,7 +384,7 @@ class="ectt-1095">implements </span>listing can contain multiple members.
  id="x1-17001r16"></a>
 <h5 class="subsubsectionHead"><span class="titlemark">1.3.1   </span> <a 
  id="x1-180001"></a>Static Initializer</h5>
-<!--l. 136--><p class="noindent" >The static initializer is declared by including a static member block in the class. <br 
+<!--l. 137--><p class="noindent" >The static initializer is declared by including a static member block in the class. <br 
 class="newline" />It is executed after compile-time (or read-time if reading binary) and can modify the members of the
 containing class.
                                                                                        
@@ -384,7 +395,7 @@ containing class.
 &#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;}
 &#x00A0;&#x00A0;&#x00A0;&#x00A0;
 </pre>
-<!--l. 142--><p class="nopar" > The static initializer is compile to be a method with the header <span 
+<!--l. 143--><p class="nopar" > The static initializer is compiled to be a method with the header <span 
 class="ectt-1095">private static final void</span>
 <span 
 class="ectt-1095">cctor()</span>
@@ -392,7 +403,7 @@ class="ectt-1095">cctor()</span>
  id="x1-18001r18"></a>
 <h5 class="subsubsectionHead"><span class="titlemark">1.3.2   </span> <a 
  id="x1-190002"></a>Constructors</h5>
-<!--l. 146--><p class="noindent" >The constructor is used to create a dynamic instance of the class. <br 
+<!--l. 147--><p class="noindent" >The constructor is used to create a dynamic instance of the class. <br 
 class="newline" />If a class <span 
 class="ectt-1095">extends </span>more than one class, any of which does not support the default constructor, the
 constructor must declare all superconstructors like this:
@@ -400,17 +411,17 @@ constructor must declare all superconstructors like this:
                                                                                        
 <pre class="verbatim" id="verbatim-5">
 &#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;public&#x00A0;class&#x00A0;Apple&#x00A0;extends&#x00A0;Fruit,&#x00A0;Projectile&#x00A0;implements&#x00A0;Digestable&#x00A0;{
-&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;public&#x00A0;Apple()&#x00A0;:&#x00A0;Fruit("Apple"),&#x00A0;Projectile()
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;public&#x00A0;Apple()&#x00A0;:&#x00A0;Fruit("Apple"),&#x00A0;Projectile();
 &#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;}
 &#x00A0;&#x00A0;&#x00A0;&#x00A0;
 </pre>
-<!--l. 152--><p class="nopar" > Constructors are compiled as Methods named <span 
+<!--l. 153--><p class="nopar" > Constructors are compiled as Methods named <span 
 class="ectt-1095">ctor</span>.
 <a 
  id="x1-19001r19"></a>
 <h5 class="subsubsectionHead"><span class="titlemark">1.3.3   </span> <a 
  id="x1-200003"></a>Methods</h5>
-<!--l. 156--><p class="noindent" >A method is a function of a class that can affect the class, compute a result or print "Hello, world!".
+<!--l. 157--><p class="noindent" >A method is a function of a class that can affect the class, compute a result or print "Hello, world!".
 <br 
 class="newline" />Methods are distinguished from properties by their parameter definition, which may be empty.
 <br 
@@ -420,7 +431,7 @@ class="ectt-1095">void</span>.
  id="x1-20001r20"></a>
 <h5 class="subsubsectionHead"><span class="titlemark">1.3.4   </span> <a 
  id="x1-210004"></a>Properties</h5>
-<!--l. 161--><p class="noindent" >Properties are value computation access ports that can either hold a value, or compute it from a
+<!--l. 162--><p class="noindent" >Properties are value computation access ports that can either hold a value, or compute it from a
 returning body. <br 
 class="newline" />If such return bodies contain another property, then the other property is checked for its last update
 time. If it has been updated before the calling property has been, then computation is skipped and the
@@ -441,11 +452,11 @@ be computed again on their next access.
 <h5 class="subsubsectionHead"><span class="titlemark">2.1.1   </span> <a 
  id="x1-240001"></a><span 
 class="ectt-1095">interface void</span></h5>
-<!--l. 172--><p class="noindent" >The universal base type. Is implemented by all built-in types and can be implicitly cast to
+<!--l. 173--><p class="noindent" >The universal base type. Is implemented by all built-in types and can be implicitly cast to
 everything.
 <a 
  id="x1-24001r15"></a>
-<!--l. 174--><p class="noindent" ><span class="paragraphHead"><a 
+<!--l. 175--><p class="noindent" ><span class="paragraphHead"><a 
  id="x1-250001"></a><span 
 class="ecbx-1095">Method </span><span 
 class="ectt-1095">void#toString(short alt)</span></span>
@@ -457,7 +468,7 @@ the alternative of the output string. Its default value is 0. <br
 class="newline" />The following values must be returned by different alternatives:
 <div class="center" 
 >
-<!--l. 180--><p class="noindent" >
+<!--l. 181--><p class="noindent" >
 <div class="tabular"> <table id="TBL-4" class="tabular" 
  
 ><colgroup id="TBL-4-1g"><col 
@@ -500,7 +511,7 @@ class="td11"> A full detailed name of the object          </td>
 </tr></table></div></div>
 <a 
  id="x1-25001r25"></a>
-<!--l. 193--><p class="noindent" ><span class="paragraphHead"><a 
+<!--l. 194--><p class="noindent" ><span class="paragraphHead"><a 
  id="x1-260002"></a><span 
 class="ecbx-1095">Method </span><span 
 class="ectt-1095">void#equals(void other)</span></span>
@@ -511,14 +522,14 @@ class="cmmi-10x-x-109">&#x2260;</span>
 operators.
 <a 
  id="x1-26001r26"></a>
-<!--l. 197--><p class="noindent" ><span class="paragraphHead"><a 
+<!--l. 198--><p class="noindent" ><span class="paragraphHead"><a 
  id="x1-270003"></a><span 
 class="ecbx-1095">Method </span><span 
 class="ectt-1095">void#getType()</span></span>
 Used to obtain the exact class instance of an object.
 <a 
  id="x1-27001r27"></a>
-<!--l. 200--><p class="noindent" ><span class="paragraphHead"><a 
+<!--l. 201--><p class="noindent" ><span class="paragraphHead"><a 
  id="x1-280004"></a><span 
 class="ecbx-1095">Property </span><span 
 class="ectt-1095">void#InternalID</span></span>
@@ -528,43 +539,43 @@ Used to obtain the internal ID of the object.
 <h5 class="subsubsectionHead"><span class="titlemark">2.1.2   </span> <a 
  id="x1-290002"></a><span 
 class="ectt-1095">class num&#x003C;T&#x003E;</span></h5>
-<!--l. 204--><p class="noindent" >The base type of all numerics. Contains numeric subtypes:
+<!--l. 206--><p class="noindent" >The base type of all numerics. Contains numeric subtypes:
      <ol  class="enumerate1" >
                                                                                        
                                                                                        
 <li 
   class="enumerate" id="x1-29002x1">
-     <!--l. 206--><p class="noindent" ><span 
+     <!--l. 208--><p class="noindent" ><span 
 class="ectt-1095">byte </span>- Type-alias for <span 
 class="ectt-1095">int&#x003C;8&#x003E;</span>
      </li>
 <li 
   class="enumerate" id="x1-29004x2">
-     <!--l. 207--><p class="noindent" ><span 
+     <!--l. 209--><p class="noindent" ><span 
 class="ectt-1095">short </span>- Type-alias for <span 
 class="ectt-1095">int&#x003C;16&#x003E;</span>
      </li>
 <li 
   class="enumerate" id="x1-29006x3">
-     <!--l. 208--><p class="noindent" ><span 
+     <!--l. 210--><p class="noindent" ><span 
 class="ectt-1095">int&#x003C;n = 32&#x003E;</span>
      </li>
 <li 
   class="enumerate" id="x1-29008x4">
-     <!--l. 209--><p class="noindent" ><span 
+     <!--l. 211--><p class="noindent" ><span 
 class="ectt-1095">long </span>- Type-alias for <span 
 class="ectt-1095">int&#x003C;64&#x003E;</span>
      </li>
 <li 
   class="enumerate" id="x1-29010x5">
-     <!--l. 210--><p class="noindent" ><span 
+     <!--l. 212--><p class="noindent" ><span 
 class="ectt-1095">float</span>
      </li>
 <li 
   class="enumerate" id="x1-29012x6">
-     <!--l. 211--><p class="noindent" ><span 
+     <!--l. 213--><p class="noindent" ><span 
 class="ectt-1095">double</span></li></ol>
-<!--l. 213--><p class="noindent" >All subtypes can be used directly, or using the Type Generic T, for example: <span 
+<!--l. 215--><p class="noindent" >All subtypes can be used directly, or using the Type Generic T, for example: <span 
 class="ectt-1095">int&#x003C;24&#x003E; ==</span>
 <span 
 class="ectt-1095">num&#x003C;int&#x003C;24»</span>
@@ -573,14 +584,14 @@ class="ectt-1095">num&#x003C;int&#x003C;24»</span>
 <h5 class="subsubsectionHead"><span class="titlemark">2.1.3   </span> <a 
  id="x1-300003"></a><span 
 class="ectt-1095">class str</span></h5>
-<!--l. 216--><p class="noindent" >The type of all strings. <br 
+<!--l. 219--><p class="noindent" >The type of all strings. <br 
 class="newline" />A string represents an array of characters.
 <a 
  id="x1-30001r30"></a>
 <h5 class="subsubsectionHead"><span class="titlemark">2.1.4   </span> <a 
  id="x1-310004"></a><span 
 class="ectt-1095">class object</span></h5>
-<!--l. 221--><p class="noindent" >The base type of all non-built-in objects. <br 
+<!--l. 225--><p class="noindent" >The base type of all non-built-in objects. <br 
 class="newline" />Every foreign class that has no explicit <span 
 class="ectt-1095">extends </span>definition implements this type implicitly.
 <a 
@@ -588,7 +599,7 @@ class="ectt-1095">extends </span>definition implements this type implicitly.
 <h5 class="subsubsectionHead"><span class="titlemark">2.1.5   </span> <a 
  id="x1-320005"></a><span 
 class="ectt-1095">class array&#x003C;T&#x003E;</span></h5>
-<!--l. 226--><p class="noindent" >The type of arrays. The type Generic <span 
+<!--l. 231--><p class="noindent" >The type of arrays. The type Generic <span 
 class="ectt-1095">T </span>defines the type of the array. <br 
 class="newline" />Writing <span 
 class="ectt-1095">array&#x003C;str&#x003E; </span>is the same as writing <span 
@@ -598,7 +609,7 @@ class="ectt-1095">str[]</span>.
 <h5 class="subsubsectionHead"><span class="titlemark">2.1.6   </span> <a 
  id="x1-330006"></a><span 
 class="ectt-1095">class tuple&#x003C;T...&#x003E;</span></h5>
-<!--l. 231--><p class="noindent" >The type of tuples. The type Generic <span 
+<!--l. 237--><p class="noindent" >The type of tuples. The type Generic <span 
 class="ectt-1095">T... </span>defines all types of held values in order. <br 
 class="newline" />If <span 
 class="ectt-1095">T.Size == 1</span>, the tuple is of a singular type and might have been invoked by the <a 
@@ -611,7 +622,7 @@ class="ectt-1095">it.Size</span>.
 <h5 class="subsubsectionHead"><span class="titlemark">2.1.7   </span> <a 
  id="x1-340007"></a><span 
 class="ectt-1095">class enum&#x003C;T&#x003E;</span></h5>
-<!--l. 237--><p class="noindent" >The type of enums. The type Generic <span 
+<!--l. 244--><p class="noindent" >The type of enums. The type Generic <span 
 class="ectt-1095">T </span>defines the output type of the enum. <br 
 class="newline" />A class <span 
 class="ectt-1095">enum Codes </span>would be of type <span 
@@ -622,15 +633,15 @@ class="ectt-1095">Codes</span>.
 <h5 class="subsubsectionHead"><span class="titlemark">2.1.8   </span> <a 
  id="x1-350008"></a><span 
 class="ectt-1095">class type&#x003C;T&#x003E;</span></h5>
-<!--l. 242--><p class="noindent" >The type of all types. The type Generic <span 
+<!--l. 250--><p class="noindent" >The type of all types. The type Generic <span 
 class="ectt-1095">T </span>defines the actual type that is defined by this
 type.
 <a 
  id="x1-35001r35"></a>
 <h5 class="subsubsectionHead"><span class="titlemark">2.1.9   </span> <a 
  id="x1-360009"></a><span 
-class="ectt-1095">class pipe&#x003C;T...&#x003E;</span></h5>
-<!--l. 245--><p class="noindent" >The type of pipes. The type Generic <span 
+class="ectt-1095">interface pipe&#x003C;T...&#x003E;</span></h5>
+<!--l. 254--><p class="noindent" >The type of pipes. The type Generic <span 
 class="ectt-1095">T </span>defines the type of data that is handled by this
 pipe.
 <a 
@@ -642,7 +653,7 @@ pipe.
 <h5 class="subsubsectionHead"><span class="titlemark">2.2.1   </span> <a 
  id="x1-380001"></a><span 
 class="ectt-1095">null</span></h5>
-<!--l. 250--><p class="noindent" >The <span 
+<!--l. 260--><p class="noindent" >The <span 
 class="ectt-1095">null</span>-Literal. Is always of <a 
 href="#x1-230001">type <span 
 class="ectt-1095">void</span></a>.
@@ -654,13 +665,13 @@ class="ectt-1095">void</span></a>.
  id="x1-39001r39"></a>
 <h5 class="subsubsectionHead"><span class="titlemark">2.2.3   </span> <a 
  id="x1-400003"></a>String Literals</h5>
-<!--l. 255--><p class="noindent" >A string literal is pre- and superceded by a double-quote <span 
+<!--l. 267--><p class="noindent" >A string literal is pre- and superceded by a double-quote <span 
 class="ectt-1095">" </span>symbol. An escaped double-quote <span 
 class="ectt-1095">\" </span>can be
 contained in the string.
 <a 
  id="x1-40001r28"></a>
-<!--l. 258--><p class="noindent" ><span class="paragraphHead"><a 
+<!--l. 270--><p class="noindent" ><span class="paragraphHead"><a 
  id="x1-410001"></a><span 
 class="ecbx-1095">Planned Behaviour: Interpolation</span></span>
 A string supports interpolation using accolades with Formatter-support with the following
@@ -673,58 +684,216 @@ syntax:
 &#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;//&#x00A0;prints&#x00A0;"hex:&#x00A0;0x4"
 &#x00A0;&#x00A0;&#x00A0;&#x00A0;
 </pre>
-<!--l. 264--><p class="nopar" >
+<!--l. 276--><p class="nopar" >
 <a 
  id="x1-41001r40"></a>
 <h5 class="subsubsectionHead"><span class="titlemark">2.2.4   </span> <a 
  id="x1-420004"></a>Array Literals</h5>
-<!--l. 267--><p class="noindent" >Unimplemented.
+<!--l. 280--><p class="noindent" >Unimplemented.
 <a 
  id="x1-42001r42"></a>
 <h5 class="subsubsectionHead"><span class="titlemark">2.2.5   </span> <a 
  id="x1-430005"></a>Tuple Literals</h5>
-<!--l. 270--><p class="noindent" >Unimplemented.
+<!--l. 284--><p class="noindent" >Unimplemented.
 <a 
  id="x1-43001r43"></a>
 <h5 class="subsubsectionHead"><span class="titlemark">2.2.6   </span> <a 
  id="x1-440006"></a>Other Literals</h5>
 <a 
  id="x1-44001r41"></a>
-<!--l. 274--><p class="noindent" ><span class="paragraphHead"><a 
+<!--l. 289--><p class="noindent" ><span class="paragraphHead"><a 
  id="x1-450001"></a><span 
 class="ectt-1095">stdio</span></span>
 Constantly represents the program&#8217;s standard IO stream. <br 
 class="newline" />The held value is of type <span 
 class="ectt-1095">pipe&#x003C;str&#x003E;</span>
-                                                                                       
-                                                                                       
 <a 
- id="x1-45001r22"></a>
-<h3 class="sectionHead"><span class="titlemark">3   </span> <a 
- id="x1-460003"></a>Core Features</h3>
+ id="x1-45001r37"></a>
+<h4 class="subsectionHead"><span class="titlemark">2.3   </span> <a 
+ id="x1-460003"></a>Native Methods</h4>
+<!--l. 294--><p class="noindent" >KScr supports calls to native C# members. To use this, it is necessary to mark a method in KScr
+source code as <a 
+href="#x1-50002"><span 
+class="ectt-1095">native</span></a>, and include a DLL that contains a method attributed with <span 
+class="ectt-1095">[NativeImpl]</span>.
+<br 
+class="newline" />At startup, the directory <span 
+class="ectt-1095">include/ </span>at the installation base path is recursively scanned for <span 
+class="ectt-1095">*.dll</span>
+assemblies, which are then loaded and scanned for <span 
+class="ectt-1095">[NativeImpl] </span>attributes.
 <a 
- id="x1-46001r37"></a>
-<h4 class="subsectionHead"><span class="titlemark">3.1   </span> <a 
+ id="x1-46001r45"></a>
+<!--l. 299--><p class="noindent" ><span class="paragraphHead"><a 
  id="x1-470001"></a><span 
-class="ectt-1095">Convert</span>-Class</h4>
+class="ecbx-1095">Usage Example</span></span>
+Considering the following KScr class:
+                                                                                       
+                                                                                       
+<pre class="verbatim" id="verbatim-7">
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;package&#x00A0;org.comroid.test;
+
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;public&#x00A0;class&#x00A0;NativeTest&#x00A0;{
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;public&#x00A0;static&#x00A0;native&#x00A0;void&#x00A0;callNativeMethod();
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;}
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;
+</pre>
+<!--l. 306--><p class="nopar" > For successful execution, a C# class must be present at runtime with the following signature:
+                                                                                       
+                                                                                       
+<pre class="verbatim" id="verbatim-8">
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;[NativeImpl(Package&#x00A0;=&#x00A0;"org.comroid.test",&#x00A0;ClassName&#x00A0;=&#x00A0;"NativeTest")]
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;public&#x00A0;class&#x00A0;NativeImplementations
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;{
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;[NativeImpl]
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;public&#x00A0;static&#x00A0;IObjectRef&#x00A0;callNativeMethod(RuntimeBase&#x00A0;vm,
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;Stack&#x00A0;stack,&#x00A0;IObject&#x00A0;target,&#x00A0;params&#x00A0;IObject[]&#x00A0;args)
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;{
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;return&#x00A0;vm.ConstantNull;
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;}
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;}
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;
+</pre>
+<!--l. 319--><p class="nopar" >
 <a 
- id="x1-47001r47"></a>
-<h4 class="subsectionHead"><span class="titlemark">3.2   </span> <a 
- id="x1-480002"></a>Property Caches</h4>
+ id="x1-47001r46"></a>
+<h4 class="subsectionHead"><span class="titlemark">2.4   </span> <a 
+ id="x1-480004"></a>Implicit Conversions</h4>
+<!--l. 322--><p class="noindent" >All built-in types can be implicitly converted to and from each other. For example, trying to assign a
+<span 
+class="ectt-1095">str </span>to a variable of type <span 
+class="ectt-1095">int </span>will first call <span 
+class="ectt-1095">int.parse() </span>on the string.
 <a 
  id="x1-48001r48"></a>
-<h4 class="subsectionHead"><span class="titlemark">3.3   </span> <a 
- id="x1-490003"></a>Pipe Functionality</h4>
+<h4 class="subsectionHead"><span class="titlemark">2.5   </span> <a 
+ id="x1-490005"></a>Implementing Operators</h4>
+<!--l. 326--><p class="noindent" >Implementing an operator is as simple as adding a method named <span 
+class="ectt-1095">op&#x003C;Operator&#x003E; </span>to a class, where for
+binary operators, the first and only parameter denotes the right operand. <br 
+class="newline" />For example, implementing a division operator for strings would be as simple as adding the following
+method:
+                                                                                       
+                                                                                       
+<pre class="verbatim" id="verbatim-9">
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;public&#x00A0;str&#x00A0;opDivide(int&#x00A0;right)
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;
+</pre>
+<!--l. 330--><p class="nopar" >
+<a 
+ id="x1-49001r49"></a>
+<h4 class="subsectionHead"><span class="titlemark">2.6   </span> <a 
+ id="x1-500006"></a>Property Caches</h4>
+<!--l. 333--><p class="noindent" >Any property contains a value that knows when the property was last updated. If a property has a
+computed getter, then the getter will only be evaluated if any property used inside the getter has been
+updated later than the computed property. <br 
+class="newline" />After computation, the result is stored in an internal cache and will be returned if all used properties
+have not been updated after the computed property.
+<a 
+ id="x1-50001r50"></a>
+<h4 class="subsectionHead"><span class="titlemark">2.7   </span> <a 
+ id="x1-510007"></a>Lambdas</h4>
+<!--l. 338--><p class="noindent" >Every interface that has exactly one abstract method is a functional interface. <br 
+class="newline" />Functional interfaces can be invoked as a lambda instead of an object instance.
+<a 
+ id="x1-51001r44"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.7.1   </span> <a 
+ id="x1-520001"></a>Anonymous Lambdas</h5>
+<!--l. 342--><p class="noindent" >An anonymous lambda consists of a parameter denotation in parentheses, followed by a normal arrow
+and either an expression or a statement body. An example for an anonymous lambda that implements
+an integer addition <span 
+class="ectt-1095">Func&#x003C;int, int, int&#x003E; </span>is: <br 
+class="newline" />
+                                                                                       
+                                                                                       
+<pre class="verbatim" id="verbatim-10">
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;(x,&#x00A0;y)&#x00A0;-&#x003E;&#x00A0;x&#x00A0;+&#x00A0;y;
+
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;//&#x00A0;or,&#x00A0;using&#x00A0;a&#x00A0;statement&#x00A0;body:
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;(x,&#x00A0;y)&#x00A0;-&#x003E;&#x00A0;{
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;return&#x00A0;x&#x00A0;+&#x00A0;y;
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;}
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;
+</pre>
+<!--l. 351--><p class="nopar" > A lambda without parameters is denoted by empty parentheses.
+<a 
+ id="x1-52001r52"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.7.2   </span> <a 
+ id="x1-530002"></a>Method Reference Lambdas</h5>
+<!--l. 355--><p class="noindent" >A method reference lambda may be used if the functional interface notation and the referenced method
+notation match. If the referenced method is non-static, then the first parameter must be assignable to
+the invoking target object.
+                                                                                       
+                                                                                       
+<pre class="verbatim" id="verbatim-11">
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;//&#x00A0;static&#x00A0;method&#x00A0;reference:
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;Func&#x003C;int,&#x00A0;str&#x003E;&#x00A0;parseInt&#x00A0;=&#x00A0;int.parse;
+
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;//&#x00A0;dynamic&#x00A0;method&#x00A0;reference:
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;Func&#x003C;str&#x003E;&#x00A0;toString&#x00A0;=&#x00A0;myObject.toString;
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;
+</pre>
+<!--l. 363--><p class="nopar" >
+<a 
+ id="x1-53001r51"></a>
+<h4 class="subsectionHead"><span class="titlemark">2.8   </span> <a 
+ id="x1-540008"></a>Pipe Functionality</h4>
+<!--l. 366--><p class="noindent" >KScr supports both an active and passive object pipeline through the <a 
+href="#x1-350008"><span 
+class="ectt-1095">pipe&#x003C;T&#x003E;</span></a> interface. These can be
+used to either handle and parse incoming &amp; outgoing data, or to read and write data finitely to or from
+an accessor.
+<a 
+ id="x1-54001r53"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.8.1   </span> <a 
+ id="x1-550001"></a>Passive Pipes</h5>
+<!--l. 370--><p class="noindent" >Simple examples for passive Pipes are the <a 
+href="#x1-440006">stdio Keyword</a> and all properties. <br 
+class="newline" />Passive Pipes can only be read and written to, by using double-arrow operators. <br 
+class="newline" />Additionally, an active pipe operator can be attached to listen for value changes.
+                                                                                       
+                                                                                       
+<pre class="verbatim" id="verbatim-12">
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;//&#x00A0;write&#x00A0;text&#x00A0;to&#x00A0;stdout:
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;stdio&#x00A0;&#x003C;&#x003C;-&#x00A0;"text";
+
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;//&#x00A0;read&#x00A0;line&#x00A0;from&#x00A0;stdin:
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;stdio&#x00A0;-&#x003E;&#x003E;&#x00A0;str&#x00A0;line;
+
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;//&#x00A0;call&#x00A0;velocityChangeListener()&#x00A0;every&#x00A0;time&#x00A0;&#8217;velocity&#8217;&#x00A0;is&#x00A0;changed:
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;velocity&#x00A0;&#x003E;&#x003E;=&#x00A0;velocityChangeListener;
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;//&#x00A0;or&#x00A0;create&#x00A0;an&#x00A0;active&#x00A0;pipe&#x00A0;that&#x00A0;serves&#x00A0;as&#x00A0;an&#x00A0;event&#x00A0;hub:
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;velocityHandler&#x00A0;=&#x00A0;velocity&#x00A0;=&#x003E;&#x003E;&#x00A0;velocityChangeListener;
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;
+</pre>
+<!--l. 384--><p class="nopar" >
+<a 
+ id="x1-55001r55"></a>
+<h5 class="subsubsectionHead"><span class="titlemark">2.8.2   </span> <a 
+ id="x1-560002"></a>Active Pipes</h5>
+<!--l. 387--><p class="noindent" >An active pipe actively uses callbacks to push values downstream. They can be stored in a variable, and
+cascaded for advanced event processing. <br 
+class="newline" />For example, parsing TCP data from a Websocket to JSON may look like this:
+                                                                                       
+                                                                                       
+<pre class="verbatim" id="verbatim-13">
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;//&#x00A0;parse&#x00A0;websocket&#x00A0;packets&#x00A0;from&#x00A0;TCP&#x00A0;data
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;websocketData&#x00A0;=&#x00A0;tcpData&#x00A0;=&#x003E;&#x003E;&#x00A0;parseWebsocketPacket;
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;//&#x00A0;parse&#x00A0;json&#x00A0;from&#x00A0;websocket&#x00A0;packet&#x00A0;body
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;jsonData&#x00A0;=&#x00A0;websocketData&#x00A0;=&#x003E;&#x003E;&#x00A0;(data&#x00A0;-&#x003E;&#x00A0;data.body)&#x00A0;=&#x003E;&#x003E;&#x00A0;parseJson;
+&#x00A0;&#x00A0;&#x00A0;&#x00A0;
+</pre>
+<!--l. 396--><p class="nopar" >
                                                                                        
                                                                                        
 <a 
- id="x1-49001r46"></a>
-<h3 class="sectionHead"><span class="titlemark">4   </span> <a 
- id="x1-500004"></a>KScr Build System</h3>
+ id="x1-56001r22"></a>
+<h3 class="sectionHead"><span class="titlemark">3   </span> <a 
+ id="x1-570003"></a>KScr Build System</h3>
 <a 
- id="x1-50001r49"></a>
-<h4 class="subsectionHead"><span class="titlemark">4.1   </span> <a 
- id="x1-510001"></a>Build Files</h4>
+ id="x1-57001r54"></a>
+<h4 class="subsectionHead"><span class="titlemark">3.1   </span> <a 
+ id="x1-580001"></a>Build Files</h4>
  
 </body></html> 
 
