@@ -229,9 +229,9 @@ public abstract class RuntimeBase : IBytecodePort
         }
         catch (StackTraceException stc)
         {
-            Console.WriteLine($"An exception occurred:\t{stc.Message}");
+            Console.WriteLine($"An exception occurred:\t{stc.BaseMessage}");
             foreach (var stackTraceElement in Stack.StackTrace)
-                Console.WriteLine($"\t\tat\t{stackTraceElement.Message}");
+                Console.WriteLine($"\tat\t{stackTraceElement.Message}");
         }
 
         return stack;

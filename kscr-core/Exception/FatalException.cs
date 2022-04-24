@@ -51,6 +51,7 @@ public class StackTraceException : System.Exception, IStackTrace
 
     public System.Exception? InnerTrace { get; }
     public string Local { get; }
+    public string BaseMessage => base.Message;
     public CallLocation CallLoc { get; }
 
     public override string Message => $"({CallLoc.SourceName}" + (CallLoc.SourceLine == 0
