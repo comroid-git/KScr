@@ -272,6 +272,16 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         };
     }
 
+    public override StatementComponent VisitVarLitEndl(KScrParser.VarLitEndlContext context)
+    {
+        return new StatementComponent
+        {
+            Type = StatementComponentType.Expression,
+            CodeType = BytecodeType.EndlExpression,
+            SourcefilePosition = ToSrcPos(context)
+        };
+    }
+
     public override StatementComponent VisitVarLitNull(KScrParser.VarLitNullContext context)
     {
         return new StatementComponent

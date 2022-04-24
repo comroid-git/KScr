@@ -347,8 +347,8 @@ public abstract class RuntimeBase : IBytecodePort
         {
             public Stack Evaluate(RuntimeBase vm, Stack stack)
             {
-                var txt = stack.Alp!.Value.ToString(IObject.ToString_ShortName);
-                Console.WriteLine(txt);
+                var txt = stack.Alp!.Value.ToString(IObject.ToString_ParseableName);
+                Console.Write(txt);
                 return stack;
             }
         }

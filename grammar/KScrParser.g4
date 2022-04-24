@@ -259,5 +259,6 @@ primitiveLit
     | FALSE         #varLitFalse
     | STRLIT        #varLitStr
     | STDIOLIT      #varLitStdio
+    | ENDLLIT       #varLitEndl
     | NULL          #varLitNull
     ;

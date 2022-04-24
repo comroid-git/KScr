@@ -11,7 +11,7 @@ public class PrintNumbers implements Throwable {
     public int ExitCode => -3;
     
     static {
-        stdio <<- "this is a static initializer";
+        stdio <<- "this is a static initializer" + endl;
     }
     
     public PrintNumbers() {
@@ -21,39 +21,41 @@ public class PrintNumbers implements Throwable {
     // prints numbers 0 to 11
     public static void main() {
         int start = 0;
-        int end = 12;
+        int end = 24;
         Iterable seq = start~end; 
         
-        stdio <<- "print numbers " + seq.start() + " to (exclusive) " + (seq.end() - 1 + 1) + ":";
+        stdio <<- "print numbers " + seq.start() + " to (exclusive) " + (seq.end() - 1 + 1) + ":" + endl;
         foreach (i : seq)
-            stdio <<- i;
+            stdio <<- "," + i;
+        stdio <<- endl;
         //stdio <<- "i is now " + i; // should error (it did last time)
         
-        stdio <<- "and now backwards bcs we're cool:";
+        stdio <<- "and now backwards bcs we're cool:" + endl;
         for (int i = end; i; --i) {
-            stdio <<- i;
+            stdio <<- "," + i.toString(16);
         }
+        stdio <<- endl;
         
-        stdio <<- "and one last time:";
+        stdio <<- "and one last time:" + endl;
         do {
-            stdio <<- "number: " + end;
+            stdio <<- "," + end.toString(8);
         } while (end--);
-        stdio <<- "end is now " + end; // should be -1
+        stdio <<- endl + "end is now " + end + endl; // should be -1
             
         PrintNumbers obj = new PrintNumbers();
         obj.throingMethod(false);
         
-        stdio <<- "length of ABC is " + "ABC".length();
+        stdio <<- "length of ABC is " + "ABC".length() + endl;
         //todo: static methods NEED the class definition currently 
         PrintNumbers.printSomething("StackSize: " + PrintNumbers.StackSize + "; range was = " + seq + " -- int:", 6345);
         
         // forever print something to test for loop robustness
         // todo: this does not compile. find solution for empty statements
-        //for (;;) stdio <<- "abc";
+        //for (;;) stdio <<- "abc" + endl;
         obj.Message += " & world2";
         
-        stdio <<- "look at my cool object: " + obj.toString(0);
-        stdio <<- "and of course i can access it this way too: " + obj.StackValue;
+        stdio <<- "look at my cool object: " + obj.toString(0) + endl;
+        stdio <<- "and of course i can access it this way too: " + obj.StackValue + endl;
         
         obj.callThroingMethod();
     }
@@ -66,17 +68,18 @@ public class PrintNumbers implements Throwable {
         this.throingMethod(true);
     }
     public void throingMethod(byte thr) {
-        stdio <<- "This is another method. Will it throw? " + thr;
+        stdio <<- "This is another method. Will it throw? " + thr + endl;
         
         if (true) { // any 'multipart' statement
             if (thr)
                 throw this;
-            stdio <<- "This only is printed when it does not throw";
-        } finally stdio <<- "This sums up the throingMethod";
+            stdio <<- "This only is printed when it does not throw" + endl;
+        } finally stdio <<- "This sums up the throingMethod" + endl;
     }
     
     public static void printSomething(str textToPrint, int andAnInteger) {
-        stdio <<- "Print this: " + textToPrint + andAnInteger
-                <<- "and also print another line";
+        stdio <<- "Print this: " + textToPrint + andAnInteger + endl
+                <<- "and also print another line"
+                <<- endl;
     }
 }

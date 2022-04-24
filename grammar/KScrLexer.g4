@@ -72,6 +72,7 @@ NUMLIT
     ;
 STRLIT: QUOTE (ESCAPE_QUOTE | (~[\r\n"]))*? (QUOTE);
 STDIOLIT: 'stdio';
+ENDLLIT: 'endl';
 NULL: 'null';
 TRUE: 'true';
 FALSE: 'false';

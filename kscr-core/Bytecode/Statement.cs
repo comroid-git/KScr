@@ -183,6 +183,9 @@ public class StatementComponent : IBytecode, IStatementComponent
             case (StatementComponentType.Expression, BytecodeType.StdioExpression):
                 stack[Default] = vm.StdioRef;
                 break;
+            case (StatementComponentType.Expression, BytecodeType.EndlExpression):
+                stack[Default] = String.Instance(vm, Environment.NewLine);
+                break;
             case (StatementComponentType.Expression, BytecodeType.Undefined):
                 stack[Default] = stack.This;
                 break;

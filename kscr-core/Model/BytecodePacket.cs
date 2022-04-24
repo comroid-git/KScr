@@ -41,6 +41,7 @@ public enum BytecodeType : uint
     StmtCase = 0x0081_0000 | Statement,
 
     StdioExpression = 0x0200_0000,
+    EndlExpression = 0x1200_0000,
     ParameterExpression = 0x0100_0000,
     TypeExpression = 0x0400_0000,
     ConstructorCall = 0x0800_0000,
