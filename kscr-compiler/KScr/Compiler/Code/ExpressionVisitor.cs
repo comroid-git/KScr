@@ -376,24 +376,12 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             SourcefilePosition = ToSrcPos(context)
         };
     }
-
-    public override StatementComponent VisitExprPipeRead(KScrParser.ExprPipeReadContext context) => new()
-    {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.Parentheses,
-        SubStatement = VisitPipeRead(context.pipe, context.expr()) 
-    };
-    public override StatementComponent VisitExprPipeWrite(KScrParser.ExprPipeWriteContext context) => new()
-    {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.Parentheses,
-        SubStatement = VisitPipeWrite(context.pipe, context.expr()) 
-    };
+    
     public override StatementComponent VisitExprPipeListen(KScrParser.ExprPipeListenContext context) => new()
     {
         Type = StatementComponentType.Code,
         CodeType = BytecodeType.Parentheses,
-        SubStatement = VisitPipeListen(context.pipe, context.expr()) 
+        SubStatement = VisitPipeListen(context.pipe, context.expr()[1..]) 
     };
 }
 

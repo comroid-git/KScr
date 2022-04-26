@@ -72,7 +72,7 @@ memberBlock
     ;
 codeBlock
     : normalBlock               #codeNormalBlock
-    | statements                #codeStmtBlock
+    | statement                 #codeStmtBlock
     | noBlock                   #codeNoBlock
     ;
 
@@ -119,6 +119,30 @@ lambda
     : type COLON idPart
     | tupleExpr lambdaBlock
     ;
+
+returnStatement: YIELD? RETURN expr?;
+throwStatement: THROW expr;
+
+markStatement: MARK idPart SEMICOLON;
+jumpStatement: JUMP idPart SEMICOLON;
+
+tryCatchStatement: TRY codeBlock;
+tryWithResourcesStatement: TRY LPAREN declaration (COMMA declaration)* RPAREN codeBlock;
+catchBlocks: catchBlock* finallyBlock;
+catchBlock: CATCH (LPAREN type (COMMA type)* idPart RPAREN)? codeBlock;
+finallyBlock: FINALLY codeBlock;
+
+ifStatement: IF LPAREN expr RPAREN codeBlock elseStatement?;
+elseStatement: ELSE codeBlock;
+
+whileStatement: WHILE LPAREN expr RPAREN codeBlock;
+forStatement: FOR LPAREN init=statement cond=expr SEMICOLON acc=expr RPAREN codeBlock;
+foreachStatement: FOREACH LPAREN idPart COLON expr RPAREN codeBlock;
+doWhile: DO codeBlock WHILE LPAREN expr RPAREN SEMICOLON;
+
+switchStatement: SWITCH tupleExpr LBRACE caseClause* defaultClause? RBRACE;
+caseClause: CASE tupleExpr caseBlock;
+defaultClause: DEFAULT caseBlock;
 
 statement
     : declaration SEMICOLON                                 #stmtDeclare
@@ -169,8 +193,6 @@ expr
     // range invocator
     | left=expr TILDE right=expr                            #rangeInvoc
     // pipe operators
-    | pipe=expr (RRDASHARROW expr)+                         #exprPipeRead
-    | pipe=expr (LLDASHARROW expr)+                         #exprPipeWrite
     | pipe=expr (RREQARROW expr)+                           #exprPipeListen
     // operators
     | prefixop expr                                         #opPrefix
@@ -181,30 +203,6 @@ expr
     ;
 
 tupleExpr: LPAREN expr (COMMA expr)* RPAREN;
-
-returnStatement: YIELD? RETURN expr?;
-throwStatement: THROW expr;
-
-markStatement: MARK idPart SEMICOLON;
-jumpStatement: JUMP idPart SEMICOLON;
-
-tryCatchStatement: TRY codeBlock;
-tryWithResourcesStatement: TRY LPAREN declaration (COMMA declaration)* RPAREN codeBlock;
-catchBlocks: catchBlock* finallyBlock;
-catchBlock: CATCH (LPAREN type (COMMA type)* idPart RPAREN)? codeBlock;
-finallyBlock: FINALLY codeBlock;
-
-ifStatement: IF LPAREN expr RPAREN codeBlock elseStatement?;
-elseStatement: ELSE codeBlock;
-
-whileStatement: WHILE LPAREN expr RPAREN codeBlock;
-forStatement: FOR LPAREN init=statement cond=expr SEMICOLON acc=expr RPAREN codeBlock;
-foreachStatement: FOREACH LPAREN idPart COLON expr RPAREN codeBlock;
-doWhile: DO codeBlock WHILE LPAREN expr RPAREN SEMICOLON;
-
-switchStatement: SWITCH tupleExpr LBRACE caseClause* defaultClause? RBRACE;
-caseClause: CASE tupleExpr caseBlock;
-defaultClause: DEFAULT caseBlock;
 
 binaryop
     : PLUS                  #opPlus

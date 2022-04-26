@@ -78,8 +78,8 @@ public class PrintNumbers implements Throwable {
     }
     
     public static void printSomething(str textToPrint, int andAnInteger) {
-        stdio <<- "Print this: " + textToPrint + andAnInteger + endl
-                <<- "and also print another line"
+        stdio <<- "Print this: " + textToPrint + endl
+                <<- "and also print another line with an int: " + andAnInteger
                 <<- endl;
     }
 }

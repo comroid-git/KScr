@@ -103,11 +103,11 @@ public class StatementVisitor : AbstractVisitor<Statement>
         };
     }
 
-    public override Statement VisitStmtPipeRead(KScrParser.StmtPipeReadContext context) => VisitPipeRead(context.pipe, context.expr());
+    public override Statement VisitStmtPipeRead(KScrParser.StmtPipeReadContext context) => VisitPipeRead(context.pipe, context.expr()[1..]);
 
-    public override Statement VisitStmtPipeWrite(KScrParser.StmtPipeWriteContext context) => VisitPipeWrite(context.pipe, context.expr());
+    public override Statement VisitStmtPipeWrite(KScrParser.StmtPipeWriteContext context) => VisitPipeWrite(context.pipe, context.expr()[1..]);
 
-    public override Statement VisitStmtPipeListen(KScrParser.StmtPipeListenContext context) => VisitPipeListen(context.pipe, context.expr());
+    public override Statement VisitStmtPipeListen(KScrParser.StmtPipeListenContext context) => VisitPipeListen(context.pipe, context.expr()[1..]);
 
     public override Statement VisitMarkStatement(KScrParser.MarkStatementContext context)
     {

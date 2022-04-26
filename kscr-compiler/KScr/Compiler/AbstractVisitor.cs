@@ -9,6 +9,7 @@ using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
 using KScr.Core.Std;
+using Range = System.Range;
 using String = System.String;
 
 namespace KScr.Compiler;

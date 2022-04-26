@@ -19,7 +19,7 @@ public sealed class CodeObject : NativeObj
 
     public override string ToString(short variant)
     {
-        return Type.Name + "#" + ObjectId.ToString("X");
+        return $"{Type.Name}#{ObjectId:X16}";
     }
 
     public override Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
