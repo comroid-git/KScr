@@ -62,7 +62,7 @@ public enum BytecodeType : uint
 }
 
 [Flags]
-public enum Operator : uint
+public enum Operator
 {
     Unknown = 0,
 
