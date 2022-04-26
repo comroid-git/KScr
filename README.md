@@ -38,10 +38,9 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 
 ### Working Code Files:
 - - [x] `HelloWorld.kscr`
-- - [x] `PrintNumbers.kscr`
+- - [x] `PrintNumbers.kscr` (current sandbox)
 - - [x] `MathFromIO.kscr`
-- - [ ] `ToStringTest.kscr` (requires objects)
-- - [ ] `File.kscr` (core class; requires native class members)
+- - [x] `ToStringTest.kscr` (requires objects)
 - - [ ] `FileIO.kscr` (requires File core class)
 - - [ ] `Function.kscr`
 - - [ ] Core Module
