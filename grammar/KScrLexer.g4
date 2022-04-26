@@ -32,7 +32,7 @@ RETURN: 'return';
 THROW: 'throw';
 NEW: 'new';
 YIELD: 'yield';
-INSTANCEOF: 'instanceof';
+IS: 'is';
 
 // complex statements
 MARK: 'mark';
@@ -137,11 +137,11 @@ LESSER: '<';
 
 ASSIGN: '=';
 
-LDASHARROW: '<-';
-LLDASHARROW: '<<-';
-RDASHARROW: '->';
-RRDASHARROW: '->>';
 REQARROW: '=>';
+LDASHARROW: '<-';
+RDASHARROW: '->';
+LLDASHARROW: '<<-';
+RRDASHARROW: '->>';
 LLEQARROW: '<<=';
 RREQARROW: '=>>';
 LPULLARROW: '=<<';

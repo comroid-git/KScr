@@ -132,34 +132,59 @@ statement
     | forStatement catchBlocks?                             #stmtFor
     | foreachStatement catchBlocks?                         #stmtForeach
     | switchStatement catchBlocks?                          #stmtSwitch
-    | expr (pipeRead | pipeWrite)+ SEMICOLON                #stmtPipe
+    | pipe=expr (rPipeOp expr)+ SEMICOLON                   #stmtPipeRead
+    | pipe=expr (lPipeOp expr)+ SEMICOLON                   #stmtPipeWrite
     | SEMICOLON                                             #stmtEmpty
     ;
 expr
+    // simply a variable
     : idPart                                                #varValue
-    | expr INSTANCEOF type                                  #checkInstanceof
+    // `is` keyword
+    | expr IS type idPart?                                  #checkInstanceof
+    // syntax components
     | YIELD expr                                            #yieldExpr
     | target=expr indexerUse                                #readIndexer
-    | declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
-    | left=expr mutation                                    #varAssign // can't use varAssignment due to recursive rules
-    | left=expr DOT idPart arguments?                       #exprCallMember
     | LPAREN expr RPAREN                                    #parens
-    | ctorCall                                              #callCtor
-    | nullable=expr QUESTION QUESTION fallback=expr         #exprNullFallback
-    | throwStatement                                        #exprThrow
-    | switchStatement                                       #exprSwitch
     | cast                                                  #exprCast
     | newArray                                              #newArrayValue
     | newListedArray                                        #newListedArrayValue
     | primitiveLit                                          #nativeLitValue
     | type                                                  #typeValue
+    // variable mutation
+    | declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
+    | left=expr mutation                                    #varAssign // can't use varAssignment due to recursive rules
+    // member calls
+    | left=expr DOT idPart arguments?                       #exprCallMember
+    | ctorCall                                              #callCtor
+    // statement expressions
+    | throwStatement                                        #exprThrow
+    | switchStatement                                       #exprSwitch
+    // range invocator
     | left=expr TILDE right=expr                            #rangeInvoc
+    // pipe operators
+    | pipe=expr (rPipeOp expr)+                             #exprPipeRead
+    | pipe=expr (lPipeOp expr)+                             #exprPipeWrite
+    // operators
     | prefixop expr                                         #opPrefix
     | left=expr binaryop right=expr                         #opBinary
     | expr postfixop                                        #opPostfix
-    | expr (pipeRead | pipeWrite)+                          #exprPipe
+    // tuple expressions
     | tupleExpr                                             #exprTuple
     ;
+
+lPipeOp
+    : LLDASHARROW   #opPipeLLD
+    | LLEQARROW     #opPipeLLE
+    | LPULLARROW    #opPipeLPL
+    | LBOXARROW     #opPipeLBX
+    ;
+rPipeOp
+    : RRDASHARROW   #opPipeRRD
+    | RREQARROW     #opPipeRRE
+    | RPULLARROW    #opPipeRPL
+    | RBOXARROW     #opPipeRBX
+    ;
+
 tupleExpr: LPAREN expr (COMMA expr)* RPAREN;
 
 returnStatement: YIELD? RETURN expr?;
@@ -182,47 +207,33 @@ forStatement: FOR LPAREN init=statement cond=expr SEMICOLON acc=expr RPAREN code
 foreachStatement: FOREACH LPAREN idPart COLON expr RPAREN codeBlock;
 doWhile: DO codeBlock WHILE LPAREN expr RPAREN SEMICOLON;
 
-pipeRead: rPipeOp expr;
-pipeWrite: lPipeOp expr;
-lPipeOp
-    : LLDASHARROW   #opPipeLLD
-    | LLEQARROW     #opPipeLLE
-    | LPULLARROW    #opPipeLPL
-    | LBOXARROW     #opPipeLBX
-    ;
-rPipeOp
-    : RRDASHARROW   #opPipeRRD
-    | RREQARROW     #opPipeRRE
-    | RPULLARROW    #opPipeRPL
-    | RBOXARROW     #opPipeRBX
-    ;
-
 switchStatement: SWITCH tupleExpr LBRACE caseClause* defaultClause? RBRACE;
 caseClause: CASE tupleExpr caseBlock;
 defaultClause: DEFAULT caseBlock;
 
 binaryop
-    : PLUS          #opPlus
-    | MINUS         #opMinus
-    | STAR          #opMultiply
-    | SLASH         #opDivide
-    | PERCENT       #opModulus
-    | BITAND        #opBitAnd
-    | BITOR         #opBitOr
-    | EXCLAMATION   #opBitNot
-    | AND           #opLogicAnd
-    | OR            #opLogicOr
-    | UP            #opPow
-    | EQUAL         #opEqual
-    | INEQUAL       #opInequal
-    | GREATEREQ     #opGreaterEq
-    | LESSEREQ      #opLesserEq
-    | GREATER       #opGreater
-    | LESSER        #opLesser
-    | LSHIFT        #opLShift
-    | RSHIFT        #opRShift
-    | ULSHIFT       #opULShift
-    | URSHIFT       #opURShift
+    : PLUS                  #opPlus
+    | MINUS                 #opMinus
+    | STAR                  #opMultiply
+    | SLASH                 #opDivide
+    | PERCENT               #opModulus
+    | BITAND                #opBitAnd
+    | BITOR                 #opBitOr
+    | EXCLAMATION           #opBitNot
+    | AND                   #opLogicAnd
+    | OR                    #opLogicOr
+    | UP                    #opPow
+    | EQUAL                 #opEqual
+    | INEQUAL               #opInequal
+    | GREATEREQ             #opGreaterEq
+    | LESSEREQ              #opLesserEq
+    | GREATER               #opGreater
+    | LESSER                #opLesser
+    | LSHIFT                #opLShift
+    | RSHIFT                #opRShift
+    | ULSHIFT               #opULShift
+    | URSHIFT               #opURShift
+    | QUESTION QUESTION     #opNullFallback
     ;
 
 prefixop

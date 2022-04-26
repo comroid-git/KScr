@@ -98,9 +98,11 @@ public enum Operator : uint
     ULShift = 1 << 25, // <<<
     URShift = 1 << 26, // >>>
 
+    NullFallback = 1 << 27, // ??
+
     // flags
-    UnaryPrefix = 1 << 27,
-    UnaryPostfix = 1 << 28,
-    Binary = 1 << 29,
-    Compound = 1 << 30
+    UnaryPrefix = 1 << 28,
+    UnaryPostfix = 1 << 29,
+    Binary = 1 << 30,
+    Compound = 1 << 31
 }
