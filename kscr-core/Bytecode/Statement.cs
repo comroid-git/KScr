@@ -115,6 +115,9 @@ public class StatementComponent : IBytecode, IStatementComponent
             case (StatementComponentType.Expression, BytecodeType.Null):
                 stack[Default] = vm.ConstantVoid;
                 break;
+            case (StatementComponentType.Code, BytecodeType.Parentheses):
+                SubStatement!.Evaluate(vm, stack.Output()).Copy();
+                break;
             case (StatementComponentType.Expression, BytecodeType.Parentheses):
                 SubComponent!.Evaluate(vm, stack.Output()).Copy();
                 break;

@@ -60,6 +60,7 @@ noBlock: SEMICOLON;
 uniformBlock: expr | statement;
 normalBlock: LBRACE statements RBRACE;
 memberExpr: REQARROW uniformBlock;
+lambdaBlock: RDASHARROW uniformBlock;
 caseBlock
     : COLON statements BREAK SEMICOLON  #caseStmtBlock
     | memberExpr COMMA                  #caseExprBlock
@@ -114,6 +115,10 @@ call: idPart arguments;
 ctorCall: NEW type arguments;
 newArray: NEW type indexerUse;
 newListedArray: NEW type indexer LBRACE (expr (COMMA expr)*)? RBRACE;
+lambda
+    : type COLON idPart
+    | tupleExpr lambdaBlock
+    ;
 
 statement
     : declaration SEMICOLON                                 #stmtDeclare
@@ -132,8 +137,9 @@ statement
     | forStatement catchBlocks?                             #stmtFor
     | foreachStatement catchBlocks?                         #stmtForeach
     | switchStatement catchBlocks?                          #stmtSwitch
-    | pipe=expr (rPipeOp expr)+ SEMICOLON                   #stmtPipeRead
-    | pipe=expr (lPipeOp expr)+ SEMICOLON                   #stmtPipeWrite
+    | pipe=expr (RRDASHARROW expr)+ SEMICOLON               #stmtPipeRead
+    | pipe=expr (LLDASHARROW expr)+ SEMICOLON               #stmtPipeWrite
+    | pipe=expr (RREQARROW expr)+ SEMICOLON                 #stmtPipeListen
     | SEMICOLON                                             #stmtEmpty
     ;
 expr
@@ -150,6 +156,7 @@ expr
     | newListedArray                                        #newListedArrayValue
     | primitiveLit                                          #nativeLitValue
     | type                                                  #typeValue
+    | lambda                                                #exprLambda
     // variable mutation
     | declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
     | left=expr mutation                                    #varAssign // can't use varAssignment due to recursive rules
@@ -162,27 +169,15 @@ expr
     // range invocator
     | left=expr TILDE right=expr                            #rangeInvoc
     // pipe operators
-    | pipe=expr (rPipeOp expr)+                             #exprPipeRead
-    | pipe=expr (lPipeOp expr)+                             #exprPipeWrite
+    | pipe=expr (RRDASHARROW expr)+                         #exprPipeRead
+    | pipe=expr (LLDASHARROW expr)+                         #exprPipeWrite
+    | pipe=expr (RREQARROW expr)+                           #exprPipeListen
     // operators
     | prefixop expr                                         #opPrefix
     | left=expr binaryop right=expr                         #opBinary
     | expr postfixop                                        #opPostfix
     // tuple expressions
     | tupleExpr                                             #exprTuple
-    ;
-
-lPipeOp
-    : LLDASHARROW   #opPipeLLD
-    | LLEQARROW     #opPipeLLE
-    | LPULLARROW    #opPipeLPL
-    | LBOXARROW     #opPipeLBX
-    ;
-rPipeOp
-    : RRDASHARROW   #opPipeRRD
-    | RREQARROW     #opPipeRRE
-    | RPULLARROW    #opPipeRPL
-    | RBOXARROW     #opPipeRBX
     ;
 
 tupleExpr: LPAREN expr (COMMA expr)* RPAREN;

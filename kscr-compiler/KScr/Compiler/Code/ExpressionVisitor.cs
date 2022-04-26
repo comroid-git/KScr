@@ -154,18 +154,6 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         return expr;
     }
 
-    public override StatementComponent VisitExprNullFallback(KScrParser.ExprNullFallbackContext context)
-    {
-        return new StatementComponent
-        {
-            Type = StatementComponentType.Expression,
-            CodeType = BytecodeType.NullFallback,
-            SubComponent = VisitExpression(context.nullable),
-            AltComponent = VisitExpression(context.fallback),
-            SourcefilePosition = ToSrcPos(context)
-        };
-    }
-
     public override StatementComponent VisitThrowStatement(KScrParser.ThrowStatementContext context)
     {
         return new StatementComponent
@@ -388,6 +376,25 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             SourcefilePosition = ToSrcPos(context)
         };
     }
+
+    public override StatementComponent VisitExprPipeRead(KScrParser.ExprPipeReadContext context) => new()
+    {
+        Type = StatementComponentType.Code,
+        CodeType = BytecodeType.Parentheses,
+        SubStatement = VisitPipeRead(context.pipe, context.expr()) 
+    };
+    public override StatementComponent VisitExprPipeWrite(KScrParser.ExprPipeWriteContext context) => new()
+    {
+        Type = StatementComponentType.Code,
+        CodeType = BytecodeType.Parentheses,
+        SubStatement = VisitPipeWrite(context.pipe, context.expr()) 
+    };
+    public override StatementComponent VisitExprPipeListen(KScrParser.ExprPipeListenContext context) => new()
+    {
+        Type = StatementComponentType.Code,
+        CodeType = BytecodeType.Parentheses,
+        SubStatement = VisitPipeListen(context.pipe, context.expr()) 
+    };
 }
 
 public class OperatorVisitor : KScrParserBaseVisitor<Operator>
@@ -520,5 +527,10 @@ public class OperatorVisitor : KScrParserBaseVisitor<Operator>
     public override Operator VisitOpReadDecr(KScrParser.OpReadDecrContext context)
     {
         return Operator.ReadDecrement;
+    }
+
+    public override Operator VisitOpNullFallback(KScrParser.OpNullFallbackContext context)
+    {
+        return Operator.NullFallback;
     }
 }

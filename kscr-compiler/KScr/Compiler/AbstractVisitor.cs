@@ -113,13 +113,51 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         return new ExpressionVisitor(vm, ctx).Visit(expr);
     }
 
+    protected Statement VisitPipeRead(KScrParser.ExprContext pipe, KScrParser.ExprContext[] reads)
+    { 
+        var stmt = new Statement
+        {
+            Type = StatementComponentType.Pipe,
+            Main = { VisitExpression(pipe) }
+        };
+        foreach (var read in reads)
+            stmt.Main.Add(new StatementComponent
+            {
+                Type = StatementComponentType.Consumer,
+                SubComponent = VisitExpression(read)
+            });
+        return stmt;
+    }
+
+    protected Statement VisitPipeWrite(KScrParser.ExprContext pipe, KScrParser.ExprContext[] writes)
+    {
+        var stmt = new Statement
+        {
+            Type = StatementComponentType.Pipe,
+            Main = { VisitExpression(pipe) }
+        };
+        foreach (var write in writes)
+            stmt.Main.Add(new StatementComponent
+            {
+                Type = StatementComponentType.Emitter,
+                SubComponent = VisitExpression(write)
+            });
+        return stmt;
+    }
+
+    protected Statement VisitPipeListen(KScrParser.ExprContext pipe, KScrParser.ExprContext[] listeners)
+    {
+        throw new NotImplementedException();
+    }
+
     protected new StatementComponent VisitCatchBlocks(KScrParser.CatchBlocksContext context)
     {
         var comp = new StatementComponent()
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtCatch,
-            SubStatement = new Statement() { Type = StatementComponentType.Code, CodeType = BytecodeType.StmtCatch }
+            SubStatement = new Statement() { Type = StatementComponentType.Code, CodeType = BytecodeType.StmtCatch },
+            SourcefilePosition = ToSrcPos(context)
         };
         // catches
         foreach (var katchow in context.catchBlock())
