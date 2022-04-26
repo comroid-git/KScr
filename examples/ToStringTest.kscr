@@ -4,7 +4,7 @@ public class ToStringTest {
     public num x;
     public num y;
     // the result of z will ALWAYS be up-to-date with the values of x and y 
-    public num z -> x + y;
+    public num z => x + y;
     
     public str toString(num alt) {
         if (alt == 0) {
