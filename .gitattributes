@@ -1,2 +1,5 @@
+# Apply override to all files in the directory
+kscr-intellij/* linguist-vendored
+
 # Auto detect text files and perform LF normalization
 * text=auto
