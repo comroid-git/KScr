@@ -8,6 +8,7 @@ import com.intellij.lang.jvm.JvmClassKind;
 import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.lang.jvm.types.JvmReferenceType;
 import org.comroid.kscr.intellij.inspections.fixes.ChangeSupertypeKindFix;
+import org.comroid.kscr.intellij.psi.ast.types.KScrType;
 import org.comroid.kscr.intellij.psi.types.KScrKind;
 import org.comroid.kscr.intellij.psi.utils.PsiUtils;
 import org.jetbrains.annotations.NotNull;

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class KScrFileWrapper extends KScrElem{
+public class KScrFileWrapper extends KScrElement {
 	
 	public KScrFileWrapper(@NotNull ASTNode node){
 		super(node);

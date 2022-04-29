@@ -15,6 +15,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PlatformIcons;
 import org.comroid.kscr.intellij.KScrIcons;
 import org.comroid.kscr.intellij.psi.KScrFile;
+import org.comroid.kscr.intellij.psi.ast.types.KScrType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
