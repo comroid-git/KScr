@@ -58,14 +58,20 @@ public sealed class DummyMethod : IMethod
     public Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
         params IObject?[] args)
     {
-        throw new NotSupportedException("Invalid State");
+        stack.StepInto(vm, SourceLocation, target, this, stack =>
+        {
+            for (int i = 0; i < Math.Min(Parameters.Count, args.Length); i++)
+                vm.PutLocal(stack, Parameters[i].Name, args[i]);
+            stack[Omg] = target!.InvokeNative(vm, stack, Name, args).Copy();
+        }, maintain);
+        return stack;
     }
 }
 
 public sealed class Method : AbstractClassMember, IMethod
 {
-    public const string ConstructorName = "ctor";
-    public const string StaticInitializerName = "cctor";
+    public const string ConstructorName = ".ctor";
+    public const string StaticInitializerName = ".cctor";
     public ExecutableCode Body = null!;
 
     public Method(SourcefilePosition sourceLocation, Class parent, string name, ITypeInfo returnType,
@@ -85,11 +91,11 @@ public sealed class Method : AbstractClassMember, IMethod
     public override Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null,
         StackOutput maintain = StackOutput.Omg, params IObject?[] args)
     {
-        if (target != null && !this.IsStatic())
+        if (target == null && !this.IsStatic())
             throw new FatalException("Missing invocation target for non-static method " + this.Name);
         stack.StepInto(vm, SourceLocation, target, this, stack =>
         {
-            for (int i = 0; i < args.Length; i++)
+            for (int i = 0; i < Math.Min(Parameters.Count, args.Length); i++)
                 vm.PutLocal(stack, Parameters[i].Name, args[i]);
             Body.Evaluate(vm, stack);
             if (stack.State != State.Return && Name != ConstructorName && ReturnType.Name != "void")

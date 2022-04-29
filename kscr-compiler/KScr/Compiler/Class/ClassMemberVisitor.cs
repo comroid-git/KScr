@@ -27,7 +27,7 @@ public class ClassMemberVisitor : AbstractVisitor<IClassMember>
     public override IClassMember VisitConstructorDecl(KScrParser.ConstructorDeclContext context)
     {
         var cls = ctx.Class!.AsClass(vm);
-        var mod = VisitModifiers(context.modifiers());
+        var mod = VisitModifiers(context.modifiers()) | MemberModifier.Static;
         var ctor = new Method(ToSrcPos(context), cls, Method.ConstructorName, cls, mod)
             { Body = VisitMemberCode(context.memberBlock()) };
         foreach (var param in context.parameters().parameter())

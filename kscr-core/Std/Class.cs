@@ -16,85 +16,27 @@ public sealed class Class : AbstractPackageMember, IClass
 
     public static readonly Package LibCorePackage = LibRootPackage.GetOrCreatePackage("core");
 
-    public static readonly Class VoidType =
-        new(LibCorePackage, "void", true, MemberModifier.Public, ClassType.Interface);
-
-    public static readonly Class TypeType =
-        new(LibCorePackage, "type", true, MemberModifier.Public | MemberModifier.Final);
-
-    public static readonly Class ObjectType =
-        new(LibCorePackage, "object", true, MemberModifier.Public | MemberModifier.Native);
-
-    public static readonly Class EnumType =
-        new(LibCorePackage, "enum", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
-            { TypeParameters = { new TypeParameter("T") } };
-
-    public static readonly Class PipeType =
-        new(LibCorePackage, "pipe", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native,
-                ClassType.Interface)
-            { TypeParameters = { new TypeParameter("T") } };
-
-    public static readonly Class ArrayType =
-        new(LibCorePackage, "array", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
-            { TypeParameters = { new TypeParameter("T") } };
-
-    public static readonly Class TupleType =
-        new(LibCorePackage, "tuple", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
-            { TypeParameters = { new TypeParameter("T", TypeParameterSpecializationType.List) } };
-
-    public static readonly Class StringType = new(LibCorePackage, "str", true,
-        MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
-
-    public static readonly Class NumericType =
-        new(LibCorePackage, "num", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
-            { TypeParameters = { new TypeParameter("T") } };
-
-    public static readonly Class RangeType = new(LibCorePackage, "range", true,
-        MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
-
-    public static readonly Class IteratorType =
-        new(LibCorePackage, "Iterator", false, MemberModifier.Public, ClassType.Interface)
-            { TypeParameters = { new TypeParameter("T") } };
-
-    public static readonly Class IterableType =
-        new(LibCorePackage, "Iterable", false, MemberModifier.Public, ClassType.Interface)
-            { TypeParameters = { new TypeParameter("T") } };
-
-    public static readonly Class ThrowableType =
-        new(LibCorePackage, "Throwable", false, MemberModifier.Public, ClassType.Interface);
-
-    public static readonly Instance NumericByteType = new(NumericType,
-            new Class(LibCorePackage, "byte", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
-
-    public static readonly Instance NumericShortType = new(NumericType,
-            new Class(LibCorePackage, "short", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
-
-    public static readonly Class IntType =
-        new(LibCorePackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
-        {
-            TypeParameters =
-            {
-                new TypeParameter("n", TypeParameterSpecializationType.N)
-                    { DefaultValue = new TypeInfo { Name = "32" } }
-            }
-        };
-
-    public static readonly Instance NumericIntType = new(NumericType, IntType);
-
-    public static readonly Instance NumericLongType = new(NumericType,
-            new Class(LibCorePackage, "long", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
-
-    public static readonly Instance NumericFloatType = new(NumericType,
-            new Class(LibCorePackage, "float", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
-
-    public static readonly Instance NumericDoubleType = new(NumericType,
-            new Class(LibCorePackage, "double", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
-
+    public static readonly Class VoidType;
+    public static readonly Class TypeType;
+    public static readonly Class ObjectType;
+    public static readonly Class EnumType;
+    public static readonly Class PipeType;
+    public static readonly Class ArrayType;
+    public static readonly Class TupleType;
+    public static readonly Class StringType;
+    public static readonly Class NumericType;
+    public static readonly Class RangeType;
+    public static readonly Class IteratorType;
+    public static readonly Class IterableType;
+    public static readonly Class ThrowableType;
+    public static readonly Class IntType;
+    public static Instance NumericByteType;
+    public static Instance NumericShortType;
+    public static Instance NumericIntType;
+    public static Instance NumericLongType;
+    public static Instance NumericFloatType;
+    public static Instance NumericDoubleType;
+    
     public readonly IList<IClassInstance> _interfaces = new List<IClassInstance>();
     public readonly IList<IClassInstance> _superclasses = new List<IClassInstance>();
 
@@ -106,6 +48,41 @@ public sealed class Class : AbstractPackageMember, IClass
     {
         Primitive = primitive;
         ClassType = type;
+    }
+
+    static Class()
+    {
+        VoidType = new Class(LibCorePackage, "void", true, MemberModifier.Public, ClassType.Interface);
+        TypeType = new Class(LibCorePackage, "type", true, MemberModifier.Public | MemberModifier.Final);
+        ObjectType = new Class(LibCorePackage, "object", true, MemberModifier.Public | MemberModifier.Native);
+        EnumType = new Class(LibCorePackage, "enum", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+            { TypeParameters = { new TypeParameter("T") } };
+        PipeType = new Class(LibCorePackage, "pipe", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native,
+                ClassType.Interface)
+            { TypeParameters = { new TypeParameter("T") } };
+        ArrayType = new Class(LibCorePackage, "array", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+            { TypeParameters = { new TypeParameter("T") } };
+        TupleType = new Class(LibCorePackage, "tuple", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+            { TypeParameters = { new TypeParameter("T", TypeParameterSpecializationType.List) } };
+        StringType = new Class(LibCorePackage, "str", true,
+            MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
+        NumericType = new Class(LibCorePackage, "num", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+            { TypeParameters = { new TypeParameter("T") } };
+        RangeType = new Class(LibCorePackage, "range", true,
+            MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
+        IteratorType = new Class(LibCorePackage, "Iterator", false, MemberModifier.Public, ClassType.Interface)
+            { TypeParameters = { new TypeParameter("T") } };
+        IterableType = new Class(LibCorePackage, "Iterable", false, MemberModifier.Public, ClassType.Interface)
+            { TypeParameters = { new TypeParameter("T") } };
+        ThrowableType = new Class(LibCorePackage, "Throwable", false, MemberModifier.Public, ClassType.Interface);
+        IntType = new Class(LibCorePackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+        {
+            TypeParameters =
+            {
+                new TypeParameter("n", TypeParameterSpecializationType.N)
+                    { DefaultValue = new TypeInfo { Name = "32" } }
+            }
+        };
     }
 
     public override IEnumerable<IBytecode> Header => new IBytecode[]
@@ -163,7 +140,7 @@ public sealed class Class : AbstractPackageMember, IClass
     {
         return Name == "void"
                || type?.BaseClass.Name == "void"
-               || Name == "int" && (type?.DetailedName.StartsWith("num<int") ?? false)
+               || Name == "int" && (type?.DetailedName.StartsWith("num") ?? false)
                || type?.BaseClass == BaseClass
                || ((type?.BaseClass as IClass)?.Inheritors
                    .Where(x => x != null)
@@ -494,7 +471,7 @@ public sealed class Class : AbstractPackageMember, IClass
         private readonly Class? _owner;
         private bool _initialized;
 #pragma warning disable CS0628
-        protected internal Instance(Class baseClass, params ITypeInfo[] args) : this(null!, baseClass, null, args)
+        protected internal Instance(RuntimeBase vm, Class baseClass, params ITypeInfo[] args) : this(vm, baseClass, null, args)
 #pragma warning restore CS0628
         {
         }

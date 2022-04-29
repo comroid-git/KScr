@@ -37,10 +37,8 @@ public abstract class RuntimeBase : IBytecodePort
     public const string ModuleFileExt = ".kmod";
     public static Encoding Encoding = Encoding.ASCII;
 
-    public static readonly DummyMethod MainInvoc = new(Class.ObjectType, "main",
-        MemberModifier.Public | MemberModifier.Final | MemberModifier.Static, Class.NumericIntType);
     public static readonly SourcefilePosition
-        SystemSrcPos = new() { SourcefilePath = MainInvoc.FullName + " <native>" };
+        SystemSrcPos = new() { SourcefilePath = "<native>" };
 
     public static readonly DirectoryInfo SdkHome = GetSdkHome();
     public static readonly Stack MainStack = new();
@@ -55,10 +53,6 @@ public abstract class RuntimeBase : IBytecodePort
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
         Assembly = typeof(RuntimeBase).Assembly;
-    }
-
-    protected RuntimeBase()
-    {
     }
 
     public abstract ObjectStore ObjectStore { get; }
@@ -144,6 +138,23 @@ public abstract class RuntimeBase : IBytecodePort
             Mode = NumericMode.Byte,
             Mutable = false,
         };
+        
+        Class.NumericByteType = new Class.Instance(this, Class.NumericType,
+            new Class(Class.LibCorePackage, "byte", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
+        Class.NumericShortType = new Class.Instance(this, Class.NumericType,
+            new Class(Class.LibCorePackage, "short", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
+        Class.NumericIntType = new Class.Instance(this, Class.NumericType, Class.IntType);
+        Class.NumericLongType = new Class.Instance(this, Class.NumericType,
+            new Class(Class.LibCorePackage, "long", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
+        Class.NumericFloatType = new Class.Instance(this, Class.NumericType,
+            new Class(Class.LibCorePackage, "float", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
+        Class.NumericDoubleType = new Class.Instance(this, Class.NumericType,
+            new Class(Class.LibCorePackage, "double", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
         
         Class.VoidType.Initialize(this);
         Class.ObjectType.Initialize(this);
