@@ -59,7 +59,6 @@ public abstract class RuntimeBase : IBytecodePort
 
     protected RuntimeBase()
     {
-        Initialize();
     }
 
     public abstract ObjectStore ObjectStore { get; }
@@ -129,7 +128,7 @@ public abstract class RuntimeBase : IBytecodePort
         };
     }
 
-    private void Initialize()
+    public void Initialize()
     {
         if (Initialized) return;
         

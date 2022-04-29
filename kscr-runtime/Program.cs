@@ -26,7 +26,7 @@ public class Program
     static Program()
     {
         VM = new KScrRuntime();
-        //VM.Initialize();
+        VM.Initialize();
     }
 
     public static int Main(params string[] args)
