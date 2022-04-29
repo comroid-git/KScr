@@ -65,6 +65,7 @@ public class Statement : IBytecode, IStatement<StatementComponent>
         {
             if (CatchFinally != null)
                 CatchFinally.Evaluate(vm, stack);
+            throw codeEx;
         }
 
         return stack;
