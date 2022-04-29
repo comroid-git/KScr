@@ -41,7 +41,7 @@ public sealed class CodeObject : NativeObj
             }
             else
             {
-                stack[StackOutput.Default] = icm.Invoke(vm, stack.Output(), this, args: args).Copy();
+                stack[StackOutput.Default] = icm.Invoke(vm, stack.Output(), this, args: args).Copy(StackOutput.Omg, StackOutput.Alp);
             }
 
             return stack;

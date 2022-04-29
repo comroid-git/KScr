@@ -138,7 +138,6 @@ public class StatementComponent : IBytecode, IStatementComponent
                     && cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is
                         IMethod mtd)
                 {
-                    var param = mtd.Parameters;
                     var output = stack.Output(Del);
                     output[Del] = new ObjectRef(Class.VoidType.DefaultInstance, mtd.Parameters.Count);
                     SubStatement!.Evaluate(vm, output).Copy(Del);
