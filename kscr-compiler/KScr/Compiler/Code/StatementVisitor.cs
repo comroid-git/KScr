@@ -151,14 +151,18 @@ public class StatementVisitor : AbstractVisitor<Statement>
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtTry,
-            CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
+            CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks()),
+            Main =
+            {
+                new StatementComponent()
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.StmtTry,
+                    ByteArg = 0,
+                    InnerCode = VisitCode(context.tryCatchStatement().codeBlock())
+                }
+            }
         };
-        stmt.Main.Add(new StatementComponent()
-        {
-            Type = StatementComponentType.Code,
-            CodeType = BytecodeType.StmtTry,
-            InnerCode = VisitCode(context.tryCatchStatement().codeBlock())
-        });
         return stmt;
     }
 
@@ -182,7 +186,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
             {
                 Type = StatementComponentType.Code,
                 CodeType = BytecodeType.StmtTry,
-                Arg = decl.type().GetText() + ';' + decl.idPart().GetText(),
+                Args = { ctx.FindType(vm, decl.type().GetText())!.FullDetailedName, decl.idPart().GetText() },
                 SubComponent = VisitExpression(decl.expr())
             });
         }
@@ -190,6 +194,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtTry,
+            ByteArg = 1,
             SubStatement = defs,
             InnerCode = VisitCode(context.tryWithResourcesStatement().codeBlock())
         });
