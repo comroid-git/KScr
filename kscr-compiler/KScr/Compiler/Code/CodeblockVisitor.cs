@@ -19,6 +19,14 @@ public class CodeblockVisitor : AbstractVisitor<ExecutableCode>
         return code;
     }
 
+    public override ExecutableCode VisitCodeStmtBlock(KScrParser.CodeStmtBlockContext context)
+    {
+        return new ExecutableCode()
+        {
+            Main = { VisitStatement(context.statement()) }
+        };
+    }
+
     public override ExecutableCode VisitUniformBlock(KScrParser.UniformBlockContext context)
     {
         var code = new ExecutableCode();
