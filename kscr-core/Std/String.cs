@@ -5,21 +5,19 @@ using KScr.Core.Store;
 
 namespace KScr.Core.Std;
 
-public sealed class String : IObject
+public sealed class String : NativeObj
 {
-    private String(RuntimeBase vm, string str)
+    private String(RuntimeBase vm, string str) : base(vm)
     {
         Str = str;
-        ObjectId = vm.NextObjId(GetKey());
     }
 
     public string Str { get; }
 
     public bool Primitive => true;
-    public long ObjectId { get; }
-    public IClassInstance Type => Class.StringType.DefaultInstance;
+    public override IClassInstance Type => Class.StringType.DefaultInstance;
 
-    public string ToString(short variant)
+    public override string ToString(short variant)
     {
         return variant switch
         {
@@ -29,7 +27,7 @@ public sealed class String : IObject
         };
     }
 
-    public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+    public override Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
     {
         switch (member)
         {
@@ -44,7 +42,7 @@ public sealed class String : IObject
                 stack[StackOutput.Default] = Type.SelfRef;
                 break;
             case "opPlus":
-                var other2 = args[0]?.Invoke(vm, stack.Output(), "toString").Copy(StackOutput.Alp, StackOutput.Bet);
+                var other2 = args[0]?.InvokeNative(vm, stack.Output(), "toString").Copy(StackOutput.Alp, StackOutput.Bet);
                 stack[StackOutput.Default] = OpPlus(vm, stack, (other2?.Value as String)?.Str ?? "null");
                 break;
             case "length":
@@ -57,7 +55,7 @@ public sealed class String : IObject
         return stack;
     }
 
-    public string GetKey()
+    public override string GetKey()
     {
         return CreateKey(Str);
     }

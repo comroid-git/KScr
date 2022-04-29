@@ -36,10 +36,11 @@ public sealed class Property : AbstractClassMember, IObjectRef
         if (Gettable && (ReadAccessor is not ExecutableCode ra || ra.Main.Count == 0))
         {
             // is auto-property
-            if (vm[stack, VariableContext.Property, CreateKey(from)] == null)
+            if (vm[stack, VariableContext.Property, CreateKey(from)] is {} rev)
+                stack[StackOutput.Alp | StackOutput.Omg] = rev;
+            else
                 stack[StackOutput.Alp | StackOutput.Omg] = vm[stack, VariableContext.Property, CreateKey(from)]
                     = new ObjectRef(ReturnType.ResolveType(stack[StackOutput.Default]!.Value.Type));
-            else stack[StackOutput.Alp | StackOutput.Omg] = vm[stack, VariableContext.Property, CreateKey(from)];
             return stack;
         }
 
@@ -97,15 +98,9 @@ public sealed class Property : AbstractClassMember, IObjectRef
         set => Value = value;
     }
 
-    public override Stack Evaluate(RuntimeBase vm, Stack stack)
-    {
-        return ReadValue(vm, stack, stack.Alp!.Value);
-    }
-
-    private string CreateSubKey(string ownerKey)
-    {
-        return $"property-{ownerKey}.{Name}";
-    }
+    public override Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
+        params IObject?[] args) =>
+        ReadValue(vm, stack, target ?? Parent.SelfRef[vm, stack, 0]);
 
     private string CreateKey(IObject parent)
     {

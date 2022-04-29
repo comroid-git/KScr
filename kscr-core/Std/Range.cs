@@ -4,13 +4,12 @@ using KScr.Core.Store;
 
 namespace KScr.Core.Std;
 
-public sealed class Range : IObject
+public sealed class Range : NativeObj
 {
-    private Range(RuntimeBase vm, int start, int end)
+    private Range(RuntimeBase vm, int start, int end) : base(vm)
     {
         Start = start;
         End = end;
-        ObjectId = vm.NextObjId(CreateKey(start, end));
     }
 
     public int Start { get; }
@@ -18,10 +17,9 @@ public sealed class Range : IObject
     public bool Decremental => End < Start;
 
     public bool Primitive => true;
-    public long ObjectId { get; }
-    public IClassInstance Type => Class.RangeType.DefaultInstance;
+    public override IClassInstance Type => Class.RangeType.DefaultInstance;
 
-    public string ToString(short variant)
+    public override string ToString(short variant)
     {
         return variant switch
         {
@@ -31,7 +29,7 @@ public sealed class Range : IObject
         };
     }
 
-    public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+    public override Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
     {
         switch (member)
         {
@@ -74,7 +72,7 @@ public sealed class Range : IObject
         return stack;
     }
 
-    public string GetKey()
+    public override string GetKey()
     {
         return CreateKey(Start, End);
     }
@@ -130,7 +128,7 @@ public sealed class Range : IObject
             return "range-iterator:" + _range;
         }
 
-        public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+        public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             switch (member)
             {

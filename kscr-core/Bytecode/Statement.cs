@@ -129,14 +129,8 @@ public class StatementComponent : IBytecode, IStatementComponent
                 var ctor = (type.ClassMembers.First(x => x.Name == Method.ConstructorName) as IMethod)!;
                 var obj = new CodeObject(vm, type);
                 bak = stack[Default] = vm.PutObject(stack, VariableContext.Absolute, obj);
-                stack.StepInto(vm, SourcefilePosition, stack[Default], ctor, stack =>
-                {
-                    SubStatement.Evaluate(vm, stack.Output()).Copy(output: Bet);
-                    for (var i = 0; i < ctor.Parameters.Count; i++)
-                        vm.PutLocal(stack, ctor.Parameters[i].Name, stack.Bet[vm, stack, i]);
-                    ctor.Evaluate(vm, stack.Output());
-                });
-                stack[Default] = bak;
+                SubStatement.Evaluate(vm, stack.Output()).Copy(output: Bet);
+                stack[Default] = ctor.Invoke(vm, stack, obj, args: stack.Bet!.AsArray(vm, stack)).Copy(output: Omg);
                 break;
             case (StatementComponentType.Expression, BytecodeType.Call):
                 // invoke member
@@ -144,20 +138,16 @@ public class StatementComponent : IBytecode, IStatementComponent
                     && cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is
                         IMethod mtd)
                 {
-                    var param = mtd.Parameters;
                     var output = stack.Output(Del);
                     output[Del] = new ObjectRef(Class.VoidType.DefaultInstance, mtd.Parameters.Count);
                     SubStatement!.Evaluate(vm, output).Copy(Del);
                     if (mtd.IsNative() && !mtd.Parent.IsNative())
                         if (vm.NativeRunner == null)
                             throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
-                        else vm.NativeRunner.Invoke(vm, stack, stack[Default][vm, stack, 0], mtd).Copy(Omg, Default);
-                    else // todo having both next to each other is stupid
-                        stack.StepInto(vm, SourcefilePosition, stack[Default], mtd, stack =>
-                        {
-                            stack[Default].Value!.Invoke(vm, stack.Output(), Arg,
-                                (stack.Del as ObjectRef)!.Refs).Copy(Alp);
-                        }, Alp);
+                        else
+                            vm.NativeRunner.InvokeMember(vm, stack, stack[Default][vm, stack, 0], mtd)
+                                .Copy(Omg, Default);
+                    else mtd.Invoke(vm, stack, stack[Default][vm,stack,0], args: stack.Del!.AsArray(vm, stack));
                 }
                 else if (cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Property && x.Name == Arg)
                          is Property prop)
@@ -165,7 +155,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                     if (prop.IsNative())
                         if (vm.NativeRunner == null)
                             throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
-                        else vm.NativeRunner.Invoke(vm, stack, stack[Default][vm, stack, 0], prop).Copy(Omg, Default);
+                        else vm.NativeRunner.InvokeMember(vm, stack, stack[Default][vm, stack, 0], prop).Copy(Omg, Default);
                     else
                         //stack[Default] = prop;
                         prop.ReadValue(vm, stack.Output(),
@@ -175,9 +165,6 @@ public class StatementComponent : IBytecode, IStatementComponent
                 {
                     throw new System.Exception("Invalid state; not a method or property");
                 }
-
-                // todo:: shouldnt be necessary
-                stack[Default] = stack.Alp;
 
                 break;
             case (StatementComponentType.Expression, BytecodeType.StdioExpression):
@@ -257,13 +244,13 @@ public class StatementComponent : IBytecode, IStatementComponent
                 {
                     SubComponent!.Evaluate(vm, stack.Output()).Copy(Alp);
                     var iterable = stack[Alp]![vm, stack, 0];
-                    iterable.Invoke(vm, stack.Output(Eps), "iterator").Copy(Eps);
+                    iterable.InvokeNative(vm, stack.Output(Eps), "iterator").Copy(Eps);
                     var iterator = stack[Eps]![vm, stack, 0];
                     vm[stack, VariableContext.Local, Arg] = stack[Del]
                         = new ObjectRef(iterator.Type.TypeParameterInstances[0].ResolveType(vm, iterator.Type));
-                    while (iterator.Invoke(vm, stack.Channel(Eps, Phi), "hasNext").Copy(Phi)!.ToBool())
+                    while (iterator.InvokeNative(vm, stack.Channel(Eps, Phi), "hasNext").Copy(Phi)!.ToBool())
                     {
-                        iterator.Invoke(vm, stack.Channel(Eps, Bet), "next").Copy(Bet);
+                        iterator.InvokeNative(vm, stack.Channel(Eps, Bet), "next").Copy(Bet);
                         var val = stack[Del]![vm, stack, 0] = stack[Bet]![vm, stack, 0];
                         if (val == null || val.ObjectId == 0)
                             throw new NullReferenceException();
@@ -304,13 +291,11 @@ public class StatementComponent : IBytecode, IStatementComponent
                 if (unaryPrefix || unaryPostfix)
                     if (a![vm, stack, 0] is Numeric numA)
                         stack[Default] = numA.Operator(vm, op);
-                    else stack[Default] = a![vm, stack, 0].Invoke(vm, stack.Output(), "op" + op).Copy();
+                    else stack[Default] = a![vm, stack, 0].InvokeNative(vm, stack.Output(), "op" + op).Copy();
                 else if (binary)
                     if (a![vm, stack, 0] is Numeric numA && b![vm, stack, 0] is Numeric numB)
                         stack[Default] = numA.Operator(vm, op, numB);
-                    else
-                        stack[Default] = a![vm, stack, 0].Invoke(vm, stack.Output(), "op" + op, b![vm, stack, 0])
-                            .Copy();
+                    else stack[Default] = a![vm, stack, 0].InvokeNative(vm, stack.Output(), "op" + op, b![vm, stack, 0]).Copy();
                 if (compound)
                     a![vm, stack, 0] = stack[Default]![vm, stack, 0];
                 break;
@@ -324,10 +309,10 @@ public class StatementComponent : IBytecode, IStatementComponent
                 if (stack[Default]?.Value is { } obj1
                     && obj1.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm1)
                     // call member
-                    icm1.Evaluate(vm, stack);
+                    stack[Default] = icm1.Invoke(vm, stack, stack[Default][vm,stack,0]).Copy();
                 else if (stack.This.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm2)
                     // call to 'this'
-                    icm2.Evaluate(vm, stack);
+                    stack[Default] = icm2.Invoke(vm, stack, stack.This[vm,stack,0]).Copy();
                 else
                     // read variable
                     stack[Default] = vm[stack, VariableContext.Local, Arg]

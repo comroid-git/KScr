@@ -18,23 +18,13 @@ public enum NumericMode
     Double
 }
 
-public sealed class Numeric : IObject
+public sealed class Numeric : NativeObj
 {
     public static readonly Regex NumberRegex = new(@"([\d]+(i|l|f|d|s|b)?)([.,]([\d]+)(f|d))?");
 
-    public static readonly Numeric Zero = new(0)
-    {
-        Mutable = false,
-        Bytes = BitConverter.GetBytes((byte)0),
-        Mode = NumericMode.Byte
-    };
+    public static Numeric Zero;
 
-    public static readonly Numeric One = new(1)
-    {
-        Mutable = false,
-        Bytes = BitConverter.GetBytes((byte)1),
-        Mode = NumericMode.Byte
-    };
+    public static Numeric One;
 
     private static readonly ConcurrentDictionary<decimal, Numeric> Cache = new();
 
@@ -43,12 +33,7 @@ public sealed class Numeric : IObject
     private readonly uint _objId;
     private bool _mutable = true;
 
-    private Numeric(uint objId)
-    {
-        _objId = objId;
-    }
-
-    private Numeric(RuntimeBase vm, bool constant = false)
+    internal Numeric(RuntimeBase vm, bool constant = false) : base(vm)
     {
         _constant = constant;
         _objId = vm.NextObjId();
@@ -57,11 +42,11 @@ public sealed class Numeric : IObject
     public bool Mutable
     {
         get => !_constant && _mutable;
-        private set => _mutable = value;
+        internal set => _mutable = value;
     }
 
-    public NumericMode Mode { get; private set; } = NumericMode.Short;
-    public byte[] Bytes { get; private set; } = BitConverter.GetBytes((short)0);
+    public NumericMode Mode { get; internal set; } = NumericMode.Short;
+    public byte[] Bytes { get; internal set; } = BitConverter.GetBytes((short)0);
     public byte ByteValue => GetAs<byte>();
     public short ShortValue => GetAs<short>();
     public int IntValue => GetAs<int>();
@@ -72,10 +57,9 @@ public sealed class Numeric : IObject
     public bool Primitive => true;
     public bool ImplicitlyFalse => FloatValue <= 0;
 
-    public long ObjectId => RuntimeBase.CombineHash(_objId, CreateKey(StringValue));
-    public IClassInstance Type => Class._NumericType(Mode);
+    public override IClassInstance Type => Class._NumericType(Mode);
 
-    public string ToString(short variant)
+    public override string ToString(short variant)
     {
         return variant switch
         {
@@ -85,7 +69,7 @@ public sealed class Numeric : IObject
         };
     }
 
-    public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+    public override Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
     {
         switch (member)
         {
@@ -131,7 +115,7 @@ public sealed class Numeric : IObject
         return stack;
     }
 
-    public string GetKey()
+    public override string GetKey()
     {
         return Mode switch
         {

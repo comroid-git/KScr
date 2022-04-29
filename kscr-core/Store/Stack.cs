@@ -214,38 +214,17 @@ public sealed class Stack
         }).WrapExecution(vm, exec, maintain);
     }
 
-    // put focus into static class
-    public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IClassMember local, Action<Stack> exec,
-        StackOutput maintain = None)
-    {
-        IClass cls = local.Parent;
-        var localStr = cls.FullName + '.' + local.Name + (local is IMethod mtd
-            ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) + ')'
-            : string.Empty);
-        new Stack(this, new CtxBlob(new CallLocation
-        {
-            SourceName = _local,
-            SourceLine = srcPos.SourcefileLine,
-            SourceCursor = srcPos.SourcefileCursor
-        }, PrefixLocal + local)
-        {
-            Local = localStr,
-            Class = cls,
-            This = cls.SelfRef
-        }).WrapExecution(vm, exec, maintain);
-    }
-
     // put focus into object instance
-    public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IObjectRef? into, IClassMember local,
+    public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IObject? into, IClassMember local,
         Action<Stack> exec, StackOutput maintain = None)
     {
-        into ??= vm.ConstantVoid;
-        var cls = into.Value as IClassInstance ?? into.Value.Type;
-        var localStr = cls.FullName + '#' + into.Value.ObjectId.ToString("X")
-                       + '.' + local.Name + (local is IMethod mtd
-                           ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) +
-                             ')'
-                           : string.Empty);
+        into ??= local.Parent.DefaultInstance;
+        var cls = into as IClassInstance ?? into.Type;
+        var localStr = 
+            (local.IsStatic()
+                ? $"{cls.FullName}"
+                : $"{cls.FullName}#{into.ObjectId:X16}")
+            + $".{local.Name}{(local is IMethod mtd ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) + ')' : string.Empty)}";
         new Stack(this, new CtxBlob(new CallLocation
         {
             SourceName = _local,
@@ -254,8 +233,8 @@ public sealed class Stack
         }, PrefixLocal + cls.Name)
         {
             Local = localStr,
-            Class = into.Value!.Type,
-            This = into
+            Class = into!.Type,
+            This = new ObjectRef(into.Type, into)
         }).WrapExecution(vm, exec, maintain);
     }
 
@@ -278,7 +257,9 @@ public sealed class Stack
             //if (RuntimeBase.DebugMode)
             // ReSharper disable once PossibleIntendedRethrow
             //    throw ex;
-            throw new StackTraceException(CallLocation, _local, ex);
+            var stackTraceException = new StackTraceException(CallLocation, _local, ex);
+            StackTrace.Add(stackTraceException);
+            throw stackTraceException;
         }
 #if !DEBUG
             catch (System.Exception ex)
@@ -309,10 +290,10 @@ public sealed class Stack
                     throw new FatalException(
                         "Value is not instanceof Throwable: " + Omg.Value.ToString(0));
                 RuntimeBase.ExitCode =
-                    (throwable.Invoke(vm, Output(), "ExitCode").Copy(output: StackOutput.Alp)![vm, this, 0] as Numeric)!
+                    (throwable.InvokeNative(vm, Output(), "ExitCode").Copy(output: StackOutput.Alp)![vm, this, 0] as Numeric)!
                     .IntValue;
                 RuntimeBase.ExitMessage =
-                    throwable.Invoke(vm, Output(), "Message").Copy(output: StackOutput.Bet)![vm, this, 0].ToString(0);
+                    throwable.InvokeNative(vm, Output(), "Message").Copy(output: StackOutput.Bet)![vm, this, 0].ToString(0);
                 throw new InternalException(
                     $"{throwable.Type.Name}: {RuntimeBase.ExitMessage} ({RuntimeBase.ExitCode})");
             }

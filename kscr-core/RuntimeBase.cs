@@ -37,10 +37,8 @@ public abstract class RuntimeBase : IBytecodePort
     public const string ModuleFileExt = ".kmod";
     public static Encoding Encoding = Encoding.ASCII;
 
-    public static readonly DummyMethod MainInvoc = new(Class.ObjectType, "main",
-        MemberModifier.Public | MemberModifier.Final | MemberModifier.Static, Class.NumericIntType);
     public static readonly SourcefilePosition
-        SystemSrcPos = new() { SourcefilePath = MainInvoc.FullName + " <native>" };
+        SystemSrcPos = new() { SourcefilePath = "<native>" };
 
     public static readonly DirectoryInfo SdkHome = GetSdkHome();
     public static readonly Stack MainStack = new();
@@ -82,6 +80,7 @@ public abstract class RuntimeBase : IBytecodePort
     public bool StdIoMode { get; set; } = false;
     public static bool ConfirmExit { get; set; }
     public static bool DebugMode { get; set; }
+    public static string[] ExtraArgs { get; set; }
     public static bool CompileSystem { get; set; }
     public CompressionType CompressionType { get; set; } = CompressionType.None;
     public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
@@ -126,6 +125,37 @@ public abstract class RuntimeBase : IBytecodePort
     public void Initialize()
     {
         if (Initialized) return;
+        
+        Numeric.Zero = new(this)
+        {
+            Bytes = BitConverter.GetBytes((byte)0),
+            Mode = NumericMode.Byte,
+            Mutable = false
+        };
+        Numeric.One = new(this)
+        {
+            Bytes = BitConverter.GetBytes((byte)1),
+            Mode = NumericMode.Byte,
+            Mutable = false,
+        };
+        
+        Class.NumericByteType = new Class.Instance(this, Class.NumericType,
+            new Class(Class.LibCorePackage, "byte", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
+        Class.NumericShortType = new Class.Instance(this, Class.NumericType,
+            new Class(Class.LibCorePackage, "short", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
+        Class.NumericIntType = new Class.Instance(this, Class.NumericType, Class.IntType);
+        Class.NumericLongType = new Class.Instance(this, Class.NumericType,
+            new Class(Class.LibCorePackage, "long", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
+        Class.NumericFloatType = new Class.Instance(this, Class.NumericType,
+            new Class(Class.LibCorePackage, "float", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
+        Class.NumericDoubleType = new Class.Instance(this, Class.NumericType,
+            new Class(Class.LibCorePackage, "double", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
+        
         Class.VoidType.Initialize(this);
         Class.ObjectType.Initialize(this);
         Class.TypeType.Initialize(this);
@@ -223,13 +253,12 @@ public abstract class RuntimeBase : IBytecodePort
 
         try
         {
-            stack.StepInto(this, SystemSrcPos, method, stack => method
-                .Evaluate(this, stack.Output())
-                .Copy(StackOutput.Alp, StackOutput.Omg), StackOutput.Omg);
+            stack = method.Invoke(this, stack,
+                args: ExtraArgs.Select(str => String.Instance(this, str)[this, stack, 0]).ToArray());
         }
         catch (StackTraceException stc)
         {
-            Console.WriteLine($"An exception occurred:\t{stc.BaseMessage}");
+            Console.WriteLine($"An exception occurred:\t{stc.InnerTrace.Message}");
             foreach (var stackTraceElement in Stack.StackTrace)
                 Console.WriteLine($"\tat\t{stackTraceElement.Message}");
         }

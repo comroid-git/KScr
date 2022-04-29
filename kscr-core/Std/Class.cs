@@ -16,90 +16,27 @@ public sealed class Class : AbstractPackageMember, IClass
 
     public static readonly Package LibCorePackage = LibRootPackage.GetOrCreatePackage("core");
 
-    public static readonly Class VoidType =
-        new(LibCorePackage, "void", true, MemberModifier.Public, ClassType.Interface);
-
-    public static readonly Class TypeType =
-        new(LibCorePackage, "type", true, MemberModifier.Public | MemberModifier.Final);
-
-    public static readonly Class ObjectType =
-        new(LibCorePackage, "object", true, MemberModifier.Public | MemberModifier.Native);
-
-    public static readonly Class EnumType =
-        new(LibCorePackage, "enum", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
-            { TypeParameters = { new TypeParameter("T") } };
-
-    public static readonly Class PipeType =
-        new(LibCorePackage, "pipe", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native,
-                ClassType.Interface)
-            { TypeParameters = { new TypeParameter("T") } };
-
-    public static readonly Class ArrayType =
-        new(LibCorePackage, "array", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
-            { TypeParameters = { new TypeParameter("T") } };
-
-    public static readonly Class TupleType =
-        new(LibCorePackage, "tuple", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
-            { TypeParameters = { new TypeParameter("T", TypeParameterSpecializationType.List) } };
-
-    public static readonly Class StringType = new(LibCorePackage, "str", true,
-        MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
-
-    public static readonly Class NumericType =
-        new(LibCorePackage, "num", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
-            { TypeParameters = { new TypeParameter("T") } };
-
-    public static readonly Class RangeType = new(LibCorePackage, "range", true,
-        MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
-
-    public static readonly Class IteratorType =
-        new(LibCorePackage, "Iterator", false, MemberModifier.Public, ClassType.Interface)
-            { TypeParameters = { new TypeParameter("T") } };
-
-    public static readonly Class IterableType =
-        new(LibCorePackage, "Iterable", false, MemberModifier.Public, ClassType.Interface)
-            { TypeParameters = { new TypeParameter("T") } };
-
-    public static readonly Class ThrowableType =
-        new(LibCorePackage, "Throwable", false, MemberModifier.Public, ClassType.Interface);
-
-    public static readonly Instance NumericByteType = new(NumericType,
-            new Class(LibCorePackage, "byte", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native))
-        { ObjectId = 0x9 };
-
-    public static readonly Instance NumericShortType = new(NumericType,
-            new Class(LibCorePackage, "short", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native))
-        { ObjectId = 0x8 };
-
-    public static readonly Class IntType =
-        new(LibCorePackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
-        {
-            TypeParameters =
-            {
-                new TypeParameter("n", TypeParameterSpecializationType.N)
-                    { DefaultValue = new TypeInfo { Name = "32" } }
-            }
-        };
-
-    public static readonly Instance NumericIntType = new(NumericType, IntType) { ObjectId = 0x7 };
-
-    public static readonly Instance NumericLongType = new(NumericType,
-            new Class(LibCorePackage, "long", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native))
-        { ObjectId = 0x6 };
-
-    public static readonly Instance NumericFloatType = new(NumericType,
-            new Class(LibCorePackage, "float", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native))
-        { ObjectId = 0x5 };
-
-    public static readonly Instance NumericDoubleType = new(NumericType,
-            new Class(LibCorePackage, "double", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native))
-        { ObjectId = 0x4 };
-
+    public static readonly Class VoidType;
+    public static readonly Class TypeType;
+    public static readonly Class ObjectType;
+    public static readonly Class EnumType;
+    public static readonly Class PipeType;
+    public static readonly Class ArrayType;
+    public static readonly Class TupleType;
+    public static readonly Class StringType;
+    public static readonly Class NumericType;
+    public static readonly Class RangeType;
+    public static readonly Class IteratorType;
+    public static readonly Class IterableType;
+    public static readonly Class ThrowableType;
+    public static readonly Class IntType;
+    public static Instance NumericByteType;
+    public static Instance NumericShortType;
+    public static Instance NumericIntType;
+    public static Instance NumericLongType;
+    public static Instance NumericFloatType;
+    public static Instance NumericDoubleType;
+    
     public readonly IList<IClassInstance> _interfaces = new List<IClassInstance>();
     public readonly IList<IClassInstance> _superclasses = new List<IClassInstance>();
 
@@ -111,6 +48,41 @@ public sealed class Class : AbstractPackageMember, IClass
     {
         Primitive = primitive;
         ClassType = type;
+    }
+
+    static Class()
+    {
+        VoidType = new Class(LibCorePackage, "void", true, MemberModifier.Public, ClassType.Interface);
+        TypeType = new Class(LibCorePackage, "type", true, MemberModifier.Public | MemberModifier.Final);
+        ObjectType = new Class(LibCorePackage, "object", true, MemberModifier.Public | MemberModifier.Native);
+        EnumType = new Class(LibCorePackage, "enum", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+            { TypeParameters = { new TypeParameter("T") } };
+        PipeType = new Class(LibCorePackage, "pipe", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native,
+                ClassType.Interface)
+            { TypeParameters = { new TypeParameter("T") } };
+        ArrayType = new Class(LibCorePackage, "array", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+            { TypeParameters = { new TypeParameter("T") } };
+        TupleType = new Class(LibCorePackage, "tuple", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+            { TypeParameters = { new TypeParameter("T", TypeParameterSpecializationType.List) } };
+        StringType = new Class(LibCorePackage, "str", true,
+            MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
+        NumericType = new Class(LibCorePackage, "num", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+            { TypeParameters = { new TypeParameter("T") } };
+        RangeType = new Class(LibCorePackage, "range", true,
+            MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
+        IteratorType = new Class(LibCorePackage, "Iterator", false, MemberModifier.Public, ClassType.Interface)
+            { TypeParameters = { new TypeParameter("T") } };
+        IterableType = new Class(LibCorePackage, "Iterable", false, MemberModifier.Public, ClassType.Interface)
+            { TypeParameters = { new TypeParameter("T") } };
+        ThrowableType = new Class(LibCorePackage, "Throwable", false, MemberModifier.Public, ClassType.Interface);
+        IntType = new Class(LibCorePackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+        {
+            TypeParameters =
+            {
+                new TypeParameter("n", TypeParameterSpecializationType.N)
+                    { DefaultValue = new TypeInfo { Name = "32" } }
+            }
+        };
     }
 
     public override IEnumerable<IBytecode> Header => new IBytecode[]
@@ -133,7 +105,7 @@ public sealed class Class : AbstractPackageMember, IClass
 
     public Instance DefaultInstance { get; private set; } = null!;
 
-    public IObjectRef SelfRef => DefaultInstance.SelfRef;
+    public ClassRef SelfRef => DefaultInstance.SelfRef;
 
 
     public IDictionary<string, IClassMember> DeclaredMembers { get; } =
@@ -168,7 +140,7 @@ public sealed class Class : AbstractPackageMember, IClass
     {
         return Name == "void"
                || type?.BaseClass.Name == "void"
-               || Name == "int" && (type?.DetailedName.StartsWith("num<int") ?? false)
+               || Name == "int" && (type?.DetailedName.StartsWith("num") ?? false)
                || type?.BaseClass == BaseClass
                || ((type?.BaseClass as IClass)?.Inheritors
                    .Where(x => x != null)
@@ -180,10 +152,10 @@ public sealed class Class : AbstractPackageMember, IClass
 
     public Stack Evaluate(RuntimeBase vm, Stack stack)
     {
-        var icm = DeclaredMembers.Values.FirstOrDefault(x => x.Name == Method.StaticInitializerName);
-        if (icm == null)
+        var cctor = DeclaredMembers.Values.FirstOrDefault(x => x.Name == Method.StaticInitializerName) as IMethod;
+        if (cctor == null)
             return stack;
-        stack.StepInto(vm, new SourcefilePosition(), SelfRef, icm, stack => icm.Evaluate(vm, stack));
+        cctor.Invoke(vm, stack);
         return stack;
     }
 
@@ -259,6 +231,12 @@ public sealed class Class : AbstractPackageMember, IClass
     public override string ToString()
     {
         return FullName;
+    }
+
+    public Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
+        params IObject?[] args)
+    {
+        throw new NotSupportedException("Cannot invoke class");
     }
 
     public static void InitializePrimitives(RuntimeBase vm)
@@ -379,6 +357,9 @@ public sealed class Class : AbstractPackageMember, IClass
         AddToClass(NumericType, getType);
         NumericType._interfaces.Add(ThrowableType.DefaultInstance);
 
+        Numeric.Zero.Mutable = false;
+        Numeric.One.Mutable = false;
+
         #endregion
 
         #region String Class
@@ -485,17 +466,17 @@ public sealed class Class : AbstractPackageMember, IClass
         type.DeclaredMembers[dummyMethod.Name] = dummyMethod;
     }
 
-    public sealed class Instance : IClassInstance
+    public sealed class Instance : NativeObj, IClassInstance
     {
         private readonly Class? _owner;
         private bool _initialized;
 #pragma warning disable CS0628
-        protected internal Instance(Class baseClass, params ITypeInfo[] args) : this(null!, baseClass, null, args)
+        protected internal Instance(RuntimeBase vm, Class baseClass, params ITypeInfo[] args) : this(vm, baseClass, null, args)
 #pragma warning restore CS0628
         {
         }
 #pragma warning disable CS0628
-        protected internal Instance(RuntimeBase vm, Class baseClass, Class? owner = null, params ITypeInfo[] args)
+        protected internal Instance(RuntimeBase vm, Class baseClass, Class? owner = null, params ITypeInfo[] args) : base(vm)
 #pragma warning restore CS0628
         {
             _owner = owner;
@@ -505,13 +486,10 @@ public sealed class Class : AbstractPackageMember, IClass
                 TypeParameterInstances[i] = new TypeParameter.Instance(
                     TypeParameters.First(it => it.Name == BaseClass.TypeParameters[i].Name)!,
                     args[i]);
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            if (vm != null)
-                ObjectId = vm.NextObjId(GetKey());
         }
 
         public Class BaseClass { get; }
-        public IObjectRef SelfRef { get; internal set; } = null!;
+        public ClassRef SelfRef { get; internal set; } = null!;
         public TypeParameter.Instance[] TypeParameterInstances { get; }
         public Class Parent { get; }
         public IDictionary<string, IPackageMember> PackageMembers { get; }
@@ -573,10 +551,9 @@ public sealed class Class : AbstractPackageMember, IClass
         }
 
         public bool Primitive => BaseClass.Primitive;
-        public long ObjectId { get; init; }
-        public IClassInstance Type => Name == "type" ? this : TypeType.DefaultInstance;
+        public override IClassInstance Type => Name == "type" ? this : TypeType.DefaultInstance;
 
-        public string ToString(short variant)
+        public override string ToString(short variant)
         {
             return variant switch
             {
@@ -586,7 +563,7 @@ public sealed class Class : AbstractPackageMember, IClass
             };
         }
 
-        public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+        public override Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             // try invoke static method
             if (DeclaredMembers.TryGetValue(member, out var icm))
@@ -596,14 +573,14 @@ public sealed class Class : AbstractPackageMember, IClass
                 var param = (icm as IMethod)?.Parameters;
                 for (var i = 0; i < param.Count; i++)
                     vm.PutLocal(stack, param[i].Name, args.Length - 1 < i ? IObject.Null : args[i]);
-                icm.Evaluate(vm, stack);
+                icm.Invoke(vm, stack);
                 return stack;
             }
 
             throw new FatalException("Method not implemented: " + member);
         }
 
-        public string GetKey()
+        public override string GetKey()
         {
             return "class-instance:" + (_owner != null
                 ? _owner.FullName + '<' + FullName + '>'
@@ -627,6 +604,12 @@ public sealed class Class : AbstractPackageMember, IClass
         public override string ToString()
         {
             return FullName;
+        }
+
+        public Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
+            params IObject?[] args)
+        {
+            return BaseClass.Invoke(vm, stack, target, maintain, args);
         }
     }
 }

@@ -25,8 +25,8 @@ public class TestUtil
         var cls = vm.CompileClass(testName, source: code);
         var method = (cls.DeclaredMembers["main"] as Method)!;
         IObjectRef? yield = null;
-        RuntimeBase.MainStack.StepInto(vm, new SourcefilePosition(), method,
-            stack => { yield = method.Evaluate(vm, stack.Output(StackOutput.Omg)).Copy(StackOutput.Omg); });
+        RuntimeBase.MainStack.StepInto(vm, new SourcefilePosition(), null, method,
+            stack => { yield = method.Invoke(vm, stack.Output(StackOutput.Omg)).Copy(StackOutput.Omg); });
         vm.Clear();
         return yield ?? vm.ConstantVoid;
     }

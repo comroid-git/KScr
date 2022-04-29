@@ -12,7 +12,7 @@ public enum ClassMemberType : byte
     Class = 0x4
 }
 
-public interface IClassMember : IEvaluable, IModifierContainer, IBytecode
+public interface IClassMember : IInvokable, IModifierContainer, IBytecode
 {
     public Class Parent { get; }
     public string Name { get; }
@@ -50,6 +50,6 @@ public abstract class AbstractClassMember : IClassMember
     public abstract ClassMemberType MemberType { get; }
     public abstract BytecodeElementType ElementType { get; }
     public SourcefilePosition SourceLocation { get; }
-
-    public abstract Stack Evaluate(RuntimeBase vm, Stack stack);
+    public abstract Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
+        params IObject?[] args);
 }
