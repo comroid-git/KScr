@@ -65,13 +65,11 @@ public sealed class Class : AbstractPackageMember, IClass
 
     public static readonly Instance NumericByteType = new(NumericType,
             new Class(LibCorePackage, "byte", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native))
-        { ObjectId = 0x9 };
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
 
     public static readonly Instance NumericShortType = new(NumericType,
             new Class(LibCorePackage, "short", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native))
-        { ObjectId = 0x8 };
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
 
     public static readonly Class IntType =
         new(LibCorePackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
@@ -83,22 +81,19 @@ public sealed class Class : AbstractPackageMember, IClass
             }
         };
 
-    public static readonly Instance NumericIntType = new(NumericType, IntType) { ObjectId = 0x7 };
+    public static readonly Instance NumericIntType = new(NumericType, IntType);
 
     public static readonly Instance NumericLongType = new(NumericType,
             new Class(LibCorePackage, "long", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native))
-        { ObjectId = 0x6 };
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
 
     public static readonly Instance NumericFloatType = new(NumericType,
             new Class(LibCorePackage, "float", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native))
-        { ObjectId = 0x5 };
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
 
     public static readonly Instance NumericDoubleType = new(NumericType,
             new Class(LibCorePackage, "double", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native))
-        { ObjectId = 0x4 };
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
 
     public readonly IList<IClassInstance> _interfaces = new List<IClassInstance>();
     public readonly IList<IClassInstance> _superclasses = new List<IClassInstance>();
@@ -385,6 +380,9 @@ public sealed class Class : AbstractPackageMember, IClass
         AddToClass(NumericType, getType);
         NumericType._interfaces.Add(ThrowableType.DefaultInstance);
 
+        Numeric.Zero.Mutable = false;
+        Numeric.One.Mutable = false;
+
         #endregion
 
         #region String Class
@@ -491,7 +489,7 @@ public sealed class Class : AbstractPackageMember, IClass
         type.DeclaredMembers[dummyMethod.Name] = dummyMethod;
     }
 
-    public sealed class Instance : IClassInstance
+    public sealed class Instance : NativeObj, IClassInstance
     {
         private readonly Class? _owner;
         private bool _initialized;
@@ -501,7 +499,7 @@ public sealed class Class : AbstractPackageMember, IClass
         {
         }
 #pragma warning disable CS0628
-        protected internal Instance(RuntimeBase vm, Class baseClass, Class? owner = null, params ITypeInfo[] args)
+        protected internal Instance(RuntimeBase vm, Class baseClass, Class? owner = null, params ITypeInfo[] args) : base(vm)
 #pragma warning restore CS0628
         {
             _owner = owner;
@@ -511,9 +509,6 @@ public sealed class Class : AbstractPackageMember, IClass
                 TypeParameterInstances[i] = new TypeParameter.Instance(
                     TypeParameters.First(it => it.Name == BaseClass.TypeParameters[i].Name)!,
                     args[i]);
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            if (vm != null)
-                ObjectId = vm.NextObjId(GetKey());
         }
 
         public Class BaseClass { get; }
@@ -579,10 +574,9 @@ public sealed class Class : AbstractPackageMember, IClass
         }
 
         public bool Primitive => BaseClass.Primitive;
-        public long ObjectId { get; init; }
-        public IClassInstance Type => Name == "type" ? this : TypeType.DefaultInstance;
+        public override IClassInstance Type => Name == "type" ? this : TypeType.DefaultInstance;
 
-        public string ToString(short variant)
+        public override string ToString(short variant)
         {
             return variant switch
             {
@@ -592,7 +586,7 @@ public sealed class Class : AbstractPackageMember, IClass
             };
         }
 
-        public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+        public override Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
         {
             // try invoke static method
             if (DeclaredMembers.TryGetValue(member, out var icm))
@@ -609,7 +603,7 @@ public sealed class Class : AbstractPackageMember, IClass
             throw new FatalException("Method not implemented: " + member);
         }
 
-        public string GetKey()
+        public override string GetKey()
         {
             return "class-instance:" + (_owner != null
                 ? _owner.FullName + '<' + FullName + '>'

@@ -6,29 +6,27 @@ using KScr.Core.Store;
 namespace KScr.Core.Std;
 
 [Obsolete]
-public sealed class Tuple : IObject
+public sealed class Tuple : NativeObj
 {
     public Tuple(RuntimeBase vm, int len) : this(vm, new ObjectRef[len])
     {
     }
 
-    public Tuple(RuntimeBase vm, ObjectRef[] arr)
+    public Tuple(RuntimeBase vm, ObjectRef[] arr) : base(vm)
     {
         Arr = arr;
-        ObjectId = vm.NextObjId(GetKey());
     }
 
     public ObjectRef[] Arr { get; }
     public bool Primitive => true;
-    public long ObjectId { get; }
-    public IClassInstance Type => Class.TupleType.DefaultInstance;
+    public override IClassInstance Type => Class.TupleType.DefaultInstance;
 
-    public string ToString(short variant)
+    public override string ToString(short variant)
     {
         return string.Join(", ", Arr.Select(it => it.Value?.ToString(variant)));
     }
 
-    public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+    public override Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
     {
         switch (member)
         {
@@ -46,7 +44,7 @@ public sealed class Tuple : IObject
         return stack;
     }
 
-    public string GetKey()
+    public override string GetKey()
     {
         return $"tuple<{Type.FullName}>[{Arr.Length}]";
     }

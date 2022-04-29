@@ -6,25 +6,23 @@ using KScr.Core.Store;
 
 namespace KScr.Core.Std;
 
-public sealed class CodeObject : IObject
+public sealed class CodeObject : NativeObj
 {
-    public CodeObject(RuntimeBase vm, IClassInstance type)
+    public CodeObject(RuntimeBase vm, IClassInstance type) : base(vm)
     {
         Type = type;
-        ObjectId = vm.NextObjId(GetKey());
     }
 
     public bool Primitive => false;
 
-    public long ObjectId { get; }
-    public IClassInstance Type { get; }
+    public override IClassInstance Type { get; }
 
-    public string ToString(short variant)
+    public override string ToString(short variant)
     {
         return Type.Name + "#" + ObjectId.ToString("X");
     }
 
-    public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+    public override Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
     {
         // try use overrides first
         if (Type.ClassMembers.FirstOrDefault(x => x.Name == member) is { } icm
@@ -84,7 +82,7 @@ public sealed class CodeObject : IObject
         return stack;
     }
 
-    public string GetKey()
+    public override string GetKey()
     {
         return $"obj:{Type.FullName}-{ObjectId:X}";
     }

@@ -57,6 +57,11 @@ public abstract class RuntimeBase : IBytecodePort
         Assembly = typeof(RuntimeBase).Assembly;
     }
 
+    protected RuntimeBase()
+    {
+        Initialize();
+    }
+
     public abstract ObjectStore ObjectStore { get; }
     public abstract ClassStore ClassStore { get; }
     public abstract INativeRunner? NativeRunner { get; }
@@ -124,9 +129,23 @@ public abstract class RuntimeBase : IBytecodePort
         };
     }
 
-    public void Initialize()
+    private void Initialize()
     {
         if (Initialized) return;
+        
+        Numeric.Zero = new(this)
+        {
+            Bytes = BitConverter.GetBytes((byte)0),
+            Mode = NumericMode.Byte,
+            Mutable = false
+        };
+        Numeric.One = new(this)
+        {
+            Bytes = BitConverter.GetBytes((byte)1),
+            Mode = NumericMode.Byte,
+            Mutable = false,
+        };
+        
         Class.VoidType.Initialize(this);
         Class.ObjectType.Initialize(this);
         Class.TypeType.Initialize(this);
