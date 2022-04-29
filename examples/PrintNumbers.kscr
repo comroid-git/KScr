@@ -19,7 +19,10 @@ public class PrintNumbers implements Throwable {
     }
     
     // prints numbers 0 to 11
-    public static void main() {
+    public static void main(str[] args) {
+        stdio <<- "first argument is:" + args[0] + endl
+                <<- "args array is " + args + endl;
+    
         int start = 0;
         int end = 24;
         
