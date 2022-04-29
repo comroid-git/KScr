@@ -146,7 +146,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                         if (vm.NativeRunner == null)
                             throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
                         else
-                            vm.NativeRunner.InvokeMethod(vm, stack, stack[Default][vm, stack, 0], mtd)
+                            vm.NativeRunner.InvokeMember(vm, stack, stack[Default][vm, stack, 0], mtd)
                                 .Copy(Omg, Default);
                     else mtd.Invoke(vm, stack, stack[Default][vm,stack,0], args: stack.Del!.AsArray(vm, stack));
                 }
@@ -156,7 +156,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                     if (prop.IsNative())
                         if (vm.NativeRunner == null)
                             throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
-                        else vm.NativeRunner.InvokeMethod(vm, stack, stack[Default][vm, stack, 0], prop).Copy(Omg, Default);
+                        else vm.NativeRunner.InvokeMember(vm, stack, stack[Default][vm, stack, 0], prop).Copy(Omg, Default);
                     else
                         //stack[Default] = prop;
                         prop.ReadValue(vm, stack.Output(),

@@ -33,7 +33,7 @@ public class NativeRunner : INativeRunner
         }
     }
 
-    public Stack InvokeMethod(RuntimeBase vm, Stack stack, IObject target, IClassMember member)
+    public Stack InvokeMember(RuntimeBase vm, Stack stack, IObject target, IClassMember member)
     {
         if (!member.IsNative())
             throw new FatalException("Member is not native: " + member);

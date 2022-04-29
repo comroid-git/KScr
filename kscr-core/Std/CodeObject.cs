@@ -39,7 +39,7 @@ public sealed class CodeObject : IObject
                 stack[StackOutput.Del] = new ObjectRef(Class.VoidType.DefaultInstance, args.Length);
                 for (var i = 0; i < args.Length; i++)
                     stack[StackOutput.Del]![vm, stack, i] = args[i];
-                vm.NativeRunner!.InvokeMethod(vm, stack.Channel(StackOutput.Del), this, icm)
+                vm.NativeRunner!.InvokeMember(vm, stack.Channel(StackOutput.Del), this, icm)
                     .Copy(StackOutput.Omg, StackOutput.Alp);
             }
             else
