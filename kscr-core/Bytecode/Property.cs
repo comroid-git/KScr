@@ -101,11 +101,6 @@ public sealed class Property : AbstractClassMember, IObjectRef
         params IObject?[] args) =>
         ReadValue(vm, stack, target ?? Parent.SelfRef[vm, stack, 0]);
 
-    private string CreateSubKey(string ownerKey)
-    {
-        return $"property-{ownerKey}.{Name}";
-    }
-
     private string CreateKey(IObject parent)
     {
         return $"property-{parent.GetKey()}.{Name}";
