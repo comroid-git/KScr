@@ -65,6 +65,7 @@ public sealed class CmdCompile : IOutputCmd, IClasspathCmd, ISourcesCmd
     public string? Encoding { get; set; }
     public bool Confirm { get; set; }
     public bool Debug { get; set; }
+    public string[] Args { get; set; }
     public IEnumerable<string> Sources { get; set; }
 }
 
@@ -75,6 +76,7 @@ public sealed class CmdExecute : IClasspathCmd, ISourcesCmd, IOutputCmd
     public string? Encoding { get; set; }
     public bool Confirm { get; set; }
     public bool Debug { get; set; }
+    public string[] Args { get; set; }
     public DirectoryInfo? Output { get; set; }
     public CompressionType Compression { get; set; }
     public CompressionLevel CompressionLevel { get; set; }
@@ -88,6 +90,7 @@ public sealed class CmdRun : IClasspathCmd
     public string? Encoding { get; set; }
     public bool Confirm { get; set; }
     public bool Debug { get; set; }
+    public string[] Args { get; set; }
 }
 
 [Verb("config", HelpText = "Configure your KScr Installation")]
