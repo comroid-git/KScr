@@ -1,9 +1,13 @@
-﻿using KScr.Core.Store;
+﻿using KScr.Core.Model;
+using KScr.Core.Std;
+using KScr.Core.Store;
+using String = System.String;
 
 namespace KScr.Core.Exception;
 
 public class InternalException : System.Exception
 {
+    public IClass Type { get; init; } = Class.ThrowableType;
     public InternalException(string? message) : base(message)
     {
     }
@@ -11,6 +15,11 @@ public class InternalException : System.Exception
     public InternalException(string? message, System.Exception? innerException) : base(message, innerException)
     {
     }
+
+    public string BaseMessage => base.Message;
+    public override string Message => $"An internal {Type.DetailedName} occurred: {BaseMessage}";
+
+    public static InternalException npe(string? message = null!) => new(message ?? String.Empty) { Type = Class.NullPointerExceptionType };
 }
 
 public class FatalException : System.Exception

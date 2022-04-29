@@ -229,18 +229,10 @@ public class StatementComponent : IBytecode, IStatementComponent
             case (StatementComponentType.Code, BytecodeType.StmtFor):
                 stack.StepInside(vm, SourcefilePosition, "for", stack =>
                 {
-                    for (SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Del);
+                    for (IObjectRef i = SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Del)!;
                          SubComponent!.Evaluate(vm, stack.Channel(Del, Phi)).Copy(Phi)!.ToBool();
-                         /* no accumulator :( */)
-                    {
+                         (i[vm, stack, 0] = AltComponent!.Evaluate(vm, stack.Output()).Copy(output: Alp)![vm, stack, 0]).IsNull())
                         InnerCode!.Evaluate(vm, stack.Output()).CopyState();
-                        var delStack = stack.Channel(Del, Del);
-                        // accumulate
-                        AltComponent!.Evaluate(vm, delStack);
-                        var val = stack[Del]![vm, stack, 0] = delStack[Del]![vm, stack, 0];
-                        if (val == null || val.ObjectId == 0)
-                            throw new NullReferenceException();
-                    }
                 });
                 break;
             case (StatementComponentType.Code, BytecodeType.StmtForEach):
