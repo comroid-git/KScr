@@ -34,7 +34,7 @@ public class StackTraceException : System.Exception, IStackTrace
 {
     public StackTraceException(CallLocation srcPos, string local, System.Exception innerTrace,
         string? message = null)
-        : base(message ?? innerTrace.Message, innerTrace)
+        : base(message ?? "<...>", innerTrace)
     {
         CallLoc = srcPos;
         Local = local;
@@ -54,7 +54,7 @@ public class StackTraceException : System.Exception, IStackTrace
     public string BaseMessage => base.Message;
     public CallLocation CallLoc { get; }
 
-    public override string Message => $"({CallLoc.SourceName}" + (CallLoc.SourceLine == 0
+    public override string Message => $"{CallLoc.SourceName}" + (CallLoc.SourceLine == 0
         ? string.Empty
-        : $" [line {CallLoc.SourceLine} pos {CallLoc.SourceCursor}]") + ") " + base.Message;
+        : $" [line {CallLoc.SourceLine} pos {CallLoc.SourceCursor}]");// + BaseMessage;
 }

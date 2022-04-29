@@ -257,7 +257,9 @@ public sealed class Stack
             //if (RuntimeBase.DebugMode)
             // ReSharper disable once PossibleIntendedRethrow
             //    throw ex;
-            throw new StackTraceException(CallLocation, _local, ex);
+            var stackTraceException = new StackTraceException(CallLocation, _local, ex);
+            StackTrace.Add(stackTraceException);
+            throw stackTraceException;
         }
 #if !DEBUG
             catch (System.Exception ex)
