@@ -17,6 +17,8 @@ public interface IMethod : IClassMember
 
 public sealed class DummyMethod : IMethod
 {
+    private MemberModifier _modifier;
+
     public DummyMethod(Class parent, string name, MemberModifier modifier, ITypeInfo returnType)
         : this(parent, name, modifier, returnType, new List<MethodParameter>())
     {
@@ -41,7 +43,12 @@ public sealed class DummyMethod : IMethod
     public string Name { get; set; }
     public string FullName => Parent.FullName + '.' + Name + ": " + ReturnType.FullName;
 
-    public MemberModifier Modifier { get; set; }
+    public MemberModifier Modifier
+    {
+        get => _modifier | MemberModifier.Native;
+        set => _modifier = value;
+    }
+
     public List<MethodParameter> Parameters { get; set; }
     public ITypeInfo ReturnType { get; set; }
     public ClassMemberType MemberType => ClassMemberType.Method;
@@ -51,7 +58,7 @@ public sealed class DummyMethod : IMethod
     public Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
         params IObject?[] args)
     {
-        throw new NotImplementedException();
+        throw new NotSupportedException("Invalid State");
     }
 }
 
