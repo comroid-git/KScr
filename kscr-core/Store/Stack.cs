@@ -220,11 +220,11 @@ public sealed class Stack
     {
         into ??= local.Parent.DefaultInstance;
         var cls = into as IClassInstance ?? into.Type;
-        var localStr = cls.FullName + '#' + into.ObjectId.ToString("X")
-                       + '.' + local.Name + (local is IMethod mtd
-                           ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) +
-                             ')'
-                           : string.Empty);
+        var localStr = 
+            (local.IsStatic()
+                ? $"{cls.FullName}"
+                : $"{cls.FullName}#{into.ObjectId:X16}")
+            + $".{local.Name}{(local is IMethod mtd ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) + ')' : string.Empty)}";
         new Stack(this, new CtxBlob(new CallLocation
         {
             SourceName = _local,
