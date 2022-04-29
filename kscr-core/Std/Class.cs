@@ -99,6 +99,7 @@ public sealed class Class : AbstractPackageMember, IClass
 
     public Class? Parent { get; init; } = null;
     public ClassMemberType MemberType { get; }
+    public StatementComponent CatchFinally { get; set; }
     public SourcefilePosition SourceLocation { get; init; }
 
     public BytecodeElementType ElementType => BytecodeElementType.Class;
@@ -498,6 +499,7 @@ public sealed class Class : AbstractPackageMember, IClass
         public string Name => BaseClass.Name;
         public string FullName => BaseClass.FullName;
         public ClassMemberType MemberType => BaseClass.MemberType;
+        public StatementComponent CatchFinally { get; set; }
 
         public IPackageMember GetMember(string name)
         {

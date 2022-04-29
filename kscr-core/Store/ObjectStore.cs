@@ -103,6 +103,8 @@ public static class IObjectRefExt
     {
         return ToBool(it) ? vm.ConstantFalse : vm.ConstantTrue;
     }
+
+    public static bool IsNull(this IObject? it) => it == null || it.ObjectId == IObject.Null.ObjectId;
 }
 
 public class ObjectRef : IObjectRef

@@ -55,11 +55,19 @@ parameter: FINAL? type idPart (ASSIGN expr)?;
 parameters: LPAREN (parameter (COMMA parameter)*)? RPAREN;
 arguments: LPAREN (expr (COMMA expr)*)? RPAREN;
 
+statements: statement*;
 noBlock: SEMICOLON;
-normalBlock: LBRACE statement* RBRACE;
+uniformBlock: expr | statement;
+normalBlock: LBRACE statements RBRACE;
+memberExpr: REQARROW uniformBlock;
+lambdaBlock: RDASHARROW uniformBlock;
+caseBlock
+    : COLON statements BREAK SEMICOLON  #caseStmtBlock
+    | memberExpr COMMA                  #caseExprBlock
+    ;
 memberBlock
     : normalBlock               #memberNormalBlock
-    | REQARROW expr SEMICOLON   #memberExprBlock
+    | memberExpr SEMICOLON      #memberExprBlock
     | noBlock                   #memberNoBlock
     ;
 codeBlock
@@ -85,11 +93,11 @@ propBlock
 propertyDecl: annotation* modifiers type idPart propBlock;
 
 member
-    : initDecl
-    | propertyDecl
-    | constructorDecl
-    | methodDecl
-    | classDecl
+    : propertyDecl                  #memProp
+    | classDecl                     #memCls
+    | initDecl catchBlocks?         #memInit
+    | constructorDecl catchBlocks?  #memCtor
+    | methodDecl catchBlocks?       #memMtd
     ;
 
 classDecl: annotation* modifiers classType idPart genericTypeDefs? objectExtends? objectImplements? (LBRACE member* RBRACE | SEMICOLON);
@@ -99,56 +107,17 @@ file: packageDecl imports classDecl* EOF;
 inferType: VOID | VAR;
 
 indexer: LSQUAR RSQUAR;
+indexerUse: LSQUAR expr (COMMA expr)* RSQUAR;
 cast: LPAREN type COLON expr RPAREN;
-declaration: type idPart ASSIGN expr;
+declaration: type idPart (ASSIGN expr)?;
 mutation: binaryop? ASSIGN expr;
 call: idPart arguments;
 ctorCall: NEW type arguments;
-newArray: NEW type LSQUAR NUMLIT RSQUAR;
+newArray: NEW type indexerUse;
 newListedArray: NEW type indexer LBRACE (expr (COMMA expr)*)? RBRACE;
-
-statement
-    : declaration SEMICOLON                                 #stmtDeclare
-    | left=expr mutation SEMICOLON                          #stmtAssign
-    | left=expr DOT idPart arguments?                       #stmtCallMember
-    | returnStatement SEMICOLON                             #stmtReturn
-    | throwStatement SEMICOLON                              #stmtThrow
-    | tryCatchStatement finallyBlock?                       #stmtTryCatch
-    | tryWithResourcesStatement finallyBlock?               #stmtTryWithRes
-    | markStatement                                         #stmtMark
-    | jumpStatement                                         #stmtJump
-    | ifStatement finallyBlock?                             #stmtIf
-    | whileStatement finallyBlock?                          #stmtWhile
-    | doWhile finallyBlock?                                 #stmtDoWhile
-    | forStatement finallyBlock?                            #stmtFor
-    | foreachStatement finallyBlock?                        #stmtForeach
-    | switchStatement finallyBlock?                         #stmtSwitch
-    | expr (pipeRead | pipeWrite)+ SEMICOLON                #stmtPipe
-    | SEMICOLON                                             #stmtEmpty
-    ;
-expr
-    : idPart                                                #varValue
-    | expr INSTANCEOF type                                  #checkInstanceof
-    | YIELD expr                                            #yieldExpr
-    | arr=expr LSQUAR index=expr RSQUAR                     #readArray
-    | declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
-    | left=expr mutation                                    #varAssign // can't use varAssignment due to recursive rules
-    | left=expr DOT idPart arguments?                       #exprCallMember
-    | LPAREN expr RPAREN                                    #parens
-    | ctorCall                                              #callCtor
-    | nullable=expr QUESTION QUESTION fallback=expr         #exprNullFallback
-    | throwStatement                                        #exprThrow
-    | switchStatement                                       #exprSwitch
-    | cast                                                  #exprCast
-    | newArray                                              #newArrayValue
-    | newListedArray                                        #newListedArrayValue
-    | primitiveLit                                          #nativeLitValue
-    | type                                                  #typeValue
-    | left=expr TILDE right=expr                            #rangeInvoc
-    | prefixop expr                                         #opPrefix
-    | left=expr binaryop right=expr                         #opBinary
-    | expr postfixop                                        #opPostfix
-//    | expr (pipeRead | pipeWrite)+                          #exprPipe
+lambda
+    : type COLON idPart
+    | tupleExpr lambdaBlock
     ;
 
 returnStatement: YIELD? RETURN expr?;
@@ -157,8 +126,10 @@ throwStatement: THROW expr;
 markStatement: MARK idPart SEMICOLON;
 jumpStatement: JUMP idPart SEMICOLON;
 
-tryCatchStatement: TRY codeBlock CATCH codeBlock;
-tryWithResourcesStatement: TRY LPAREN declaration (COMMA declaration)* RPAREN codeBlock CATCH codeBlock;
+tryCatchStatement: TRY codeBlock;
+tryWithResourcesStatement: TRY LPAREN declaration (COMMA declaration)* RPAREN codeBlock;
+catchBlocks: catchBlock* finallyBlock;
+catchBlock: CATCH (LPAREN type (COMMA type)* idPart RPAREN)? codeBlock;
 finallyBlock: FINALLY codeBlock;
 
 ifStatement: IF LPAREN expr RPAREN codeBlock elseStatement?;
@@ -169,47 +140,93 @@ forStatement: FOR LPAREN init=statement cond=expr SEMICOLON acc=expr RPAREN code
 foreachStatement: FOREACH LPAREN idPart COLON expr RPAREN codeBlock;
 doWhile: DO codeBlock WHILE LPAREN expr RPAREN SEMICOLON;
 
-pipeRead: rPipeOp expr;
-pipeWrite: lPipeOp expr;
-lPipeOp
-    : LLDASHARROW   #opPipeLLD
-    | LLEQARROW     #opPipeLLE
-    | LPULLARROW    #opPipeLPL
-    | LBOXARROW     #opPipeLBX
+switchStatement: SWITCH tupleExpr LBRACE caseClause* defaultClause? RBRACE;
+caseClause: CASE tupleExpr caseBlock;
+defaultClause: DEFAULT caseBlock;
+
+statement
+    : declaration SEMICOLON                                 #stmtDeclare
+    | left=expr mutation SEMICOLON                          #stmtAssign
+    | left=tupleExpr ASSIGN right=tupleExpr                 #stmtAssignTuple
+    | left=expr DOT idPart arguments?                       #stmtCallMember
+    | returnStatement SEMICOLON                             #stmtReturn
+    | throwStatement SEMICOLON                              #stmtThrow
+    | markStatement                                         #stmtMark
+    | jumpStatement                                         #stmtJump
+    | tryCatchStatement catchBlocks?                        #stmtTryCatch
+    | tryWithResourcesStatement catchBlocks?                #stmtTryWithRes
+    | ifStatement catchBlocks?                              #stmtIf
+    | whileStatement catchBlocks?                           #stmtWhile
+    | doWhile catchBlocks?                                  #stmtDoWhile
+    | forStatement catchBlocks?                             #stmtFor
+    | foreachStatement catchBlocks?                         #stmtForeach
+    | switchStatement catchBlocks?                          #stmtSwitch
+    | pipe=expr (RRDASHARROW expr)+ SEMICOLON               #stmtPipeRead
+    | pipe=expr (LLDASHARROW expr)+ SEMICOLON               #stmtPipeWrite
+    | pipe=expr (RREQARROW expr)+ SEMICOLON                 #stmtPipeListen
+    | SEMICOLON                                             #stmtEmpty
     ;
-rPipeOp
-    : RRDASHARROW   #opPipeRRD
-    | RREQARROW     #opPipeRRE
-    | RPULLARROW    #opPipeRPL
-    | RBOXARROW     #opPipeRBX
+expr
+    // simply a variable
+    : idPart                                                #varValue
+    // `is` keyword
+    | expr IS type idPart?                                  #checkInstanceof
+    // syntax components
+    | YIELD expr                                            #yieldExpr
+    | target=expr indexerUse                                #readIndexer
+    | LPAREN expr RPAREN                                    #parens
+    | cast                                                  #exprCast
+    | newArray                                              #newArrayValue
+    | newListedArray                                        #newListedArrayValue
+    | primitiveLit                                          #nativeLitValue
+    | type                                                  #typeValue
+    | lambda                                                #exprLambda
+    // variable mutation
+    | declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
+    | left=expr mutation                                    #varAssign // can't use varAssignment due to recursive rules
+    // member calls
+    | left=expr DOT idPart arguments?                       #exprCallMember
+    | ctorCall                                              #callCtor
+    // statement expressions
+    | throwStatement                                        #exprThrow
+    | switchStatement                                       #exprSwitch
+    // range invocator
+    | left=expr TILDE right=expr                            #rangeInvoc
+    // pipe operators
+    | pipe=expr (RREQARROW expr)+                           #exprPipeListen
+    // operators
+    | prefixop expr                                         #opPrefix
+    | left=expr binaryop right=expr                         #opBinary
+    | expr postfixop                                        #opPostfix
+    // tuple expressions
+    | tupleExpr                                             #exprTuple
     ;
 
-switchStatement: SWITCH LPAREN expr RPAREN LBRACE caseClause* defaultClause? RBRACE;
-caseClause: CASE expr codeBlock;
-defaultClause: DEFAULT codeBlock;
+tupleExpr: LPAREN expr (COMMA expr)* RPAREN;
 
 binaryop
-    : PLUS          #opPlus
-    | MINUS         #opMinus
-    | STAR          #opMultiply
-    | SLASH         #opDivide
-    | PERCENT       #opModulus
-    | BITAND        #opBitAnd
-    | BITOR         #opBitOr
-    | EXCLAMATION   #opBitNot
-    | AND           #opLogicAnd
-    | OR            #opLogicOr
-    | UP            #opPow
-    | EQUAL         #opEqual
-    | INEQUAL       #opInequal
-    | GREATEREQ     #opGreaterEq
-    | LESSEREQ      #opLesserEq
-    | GREATER       #opGreater
-    | LESSER        #opLesser
-    | LSHIFT        #opLShift
-    | RSHIFT        #opRShift
-    | ULSHIFT       #opULShift
-    | URSHIFT       #opURShift
+    : PLUS                  #opPlus
+    | MINUS                 #opMinus
+    | STAR                  #opMultiply
+    | SLASH                 #opDivide
+    | PERCENT               #opModulus
+    | BITAND                #opBitAnd
+    | BITOR                 #opBitOr
+    | EXCLAMATION           #opBitNot
+    | AND                   #opLogicAnd
+    | OR                    #opLogicOr
+    | UP                    #opPow
+    | EQUAL                 #opEqual
+    | INEQUAL               #opInequal
+    | GREATEREQ             #opGreaterEq
+    | LESSEREQ              #opLesserEq
+    | GREATER               #opGreater
+    | LESSER                #opLesser
+    | LSHIFT                #opLShift
+    | RSHIFT                #opRShift
+    | ULSHIFT               #opULShift
+    | URSHIFT               #opURShift
+    | QUESTION QUESTION     #opNullFallback
     ;
 
 prefixop

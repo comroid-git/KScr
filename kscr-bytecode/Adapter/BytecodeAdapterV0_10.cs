@@ -126,9 +126,9 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
             WriteString(stmt.Arg ?? string.Empty);
             WriteString(stmt.TargetType.FullDetailedName);
             WriteArray(stmt.Main.ToArray());
-            WriteByte((byte)(stmt.Finally != null ? 1 : 0));
-            if (stmt.Finally != null)
-                Write(strings, stream, stmt.Finally!);
+            WriteByte((byte)(stmt.CatchFinally != null ? 1 : 0));
+            if (stmt.CatchFinally != null)
+                Write(strings, stream, stmt.CatchFinally!);
         }
         else if (bytecode is StatementComponent comp)
         {
@@ -325,15 +325,15 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
                 sArg = ReadString();
                 var targetType = vm.FindType(ReadString());
                 var comps = ReadArray<StatementComponent>();
-                ExecutableCode? finallyBlock = null;
-                if (ReadByte() == 1) finallyBlock = Load<ExecutableCode>(vm, strings, stream, pkg, cls);
+                StatementComponent? finallyBlock = null;
+                if (ReadByte() == 1) finallyBlock = Load<StatementComponent>(vm, strings, stream, pkg, cls);
                 var stmt = new Statement
                 {
                     Type = sType,
                     CodeType = codeType,
                     Arg = sArg,
                     TargetType = targetType,
-                    Finally = finallyBlock
+                    CatchFinally = finallyBlock
                 };
                 stmt.Main.AddRange(comps);
                 return (T)(object)stmt;

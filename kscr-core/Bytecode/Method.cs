@@ -52,6 +52,7 @@ public sealed class DummyMethod : IMethod
     public List<MethodParameter> Parameters { get; set; }
     public ITypeInfo ReturnType { get; set; }
     public ClassMemberType MemberType => ClassMemberType.Method;
+    public StatementComponent CatchFinally { get; set; }
     public SourcefilePosition SourceLocation => RuntimeBase.SystemSrcPos;
 
     public BytecodeElementType ElementType => BytecodeElementType.Method;
