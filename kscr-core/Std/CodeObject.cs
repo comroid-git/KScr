@@ -39,17 +39,12 @@ public sealed class CodeObject : IObject
                 stack[StackOutput.Del] = new ObjectRef(Class.VoidType.DefaultInstance, args.Length);
                 for (var i = 0; i < args.Length; i++)
                     stack[StackOutput.Del]![vm, stack, i] = args[i];
-                vm.NativeRunner!.Invoke(vm, stack.Channel(StackOutput.Del), this, icm)
+                vm.NativeRunner!.InvokeMethod(vm, stack.Channel(StackOutput.Del), this, icm)
                     .Copy(StackOutput.Omg, StackOutput.Alp);
             }
             else
             {
-                stack.StepInto(vm, icm.SourceLocation, stack.Alp!, icm, stack =>
-                {
-                    for (var i = 0; i < (param?.Count ?? 0); i++)
-                        vm.PutLocal(stack, param![i].Name, args.Length - 1 < i ? IObject.Null : args[i]);
-                    icm.Evaluate(vm, stack.Output()).Copy(StackOutput.Omg, StackOutput.Alp);
-                }, StackOutput.Alp);
+                stack[StackOutput.Default] = icm.Invoke(vm, stack.Output(), stack[StackOutput.Default]![vm,stack,0], args: args).Copy();
             }
 
             return stack;
@@ -60,7 +55,7 @@ public sealed class CodeObject : IObject
             .FirstOrDefault(x => x.Name == member && !x.IsAbstract()) is { } superMember
             && !(superMember.IsNative() && superMember.Parent.IsNative()))
         {
-            superMember.Evaluate(vm, stack.Output());
+            superMember.Invoke(vm, stack.Output(), stack[StackOutput.Default]![vm,stack,0], args: args);
             return stack;
         }
         // then primitive implementations

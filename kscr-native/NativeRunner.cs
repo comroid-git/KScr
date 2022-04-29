@@ -33,11 +33,11 @@ public class NativeRunner : INativeRunner
         }
     }
 
-    public Stack Invoke(RuntimeBase vm, Stack stack, IObject target, IClassMember member)
+    public Stack InvokeMethod(RuntimeBase vm, Stack stack, IObject target, IClassMember member)
     {
         if (!member.IsNative())
             throw new FatalException("Member is not native: " + member);
-        stack.StepInto(vm, new SourcefilePosition { SourcefilePath = $"{member.FullName} <native>" }, member,
+        stack.StepInto(vm, new SourcefilePosition { SourcefilePath = $"{member.FullName} <native>" }, target, member,
             stack =>
             {
                 stack[Alp | Omg] =

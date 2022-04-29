@@ -82,6 +82,7 @@ public abstract class RuntimeBase : IBytecodePort
     public bool StdIoMode { get; set; } = false;
     public static bool ConfirmExit { get; set; }
     public static bool DebugMode { get; set; }
+    public static string[] ExtraArgs { get; set; }
     public static bool CompileSystem { get; set; }
     public CompressionType CompressionType { get; set; } = CompressionType.None;
     public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
@@ -223,9 +224,8 @@ public abstract class RuntimeBase : IBytecodePort
 
         try
         {
-            stack.StepInto(this, SystemSrcPos, method, stack => method
-                .Evaluate(this, stack.Output())
-                .Copy(StackOutput.Alp, StackOutput.Omg), StackOutput.Omg);
+            stack = method.Invoke(this, stack,
+                args: ExtraArgs.Select(str => String.Instance(this, str)[this, stack, 0]).ToArray());
         }
         catch (StackTraceException stc)
         {

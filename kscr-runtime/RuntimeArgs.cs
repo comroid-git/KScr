@@ -16,6 +16,9 @@ public interface IGenericCmd
 
     [Option(HelpText = "Whether to run in Debug mode")]
     public bool Debug { get; set; }
+
+    [Option(HelpText = "Extra arguments to forward to psvm()", Separator = ' ')]
+    public string[] Args { get; set; }
 }
 
 public interface IOutputCmd : IGenericCmd

@@ -8,5 +8,5 @@ public delegate IObjectRef? NativeImplMember(RuntimeBase vm, Stack stack, IObjec
 
 public interface INativeRunner
 {
-    Stack Invoke(RuntimeBase vm, Stack stack, IObject target, IClassMember member);
+    Stack InvokeMethod(RuntimeBase vm, Stack stack, IObject target, IClassMember member);
 }

@@ -50,5 +50,6 @@ public abstract class AbstractClassMember : IClassMember
     public abstract ClassMemberType MemberType { get; }
     public abstract BytecodeElementType ElementType { get; }
     public SourcefilePosition SourceLocation { get; }
-    public abstract Stack Invoke(RuntimeBase vm, Stack stack, IObjectRef target, params IObject?[] args);
+    public abstract Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
+        params IObject?[] args);
 }

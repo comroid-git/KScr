@@ -80,6 +80,7 @@ public class Program
         RuntimeBase.Encoding = Encoding.GetEncoding(cmd.Encoding ?? "ASCII");
         RuntimeBase.ConfirmExit = cmd.Confirm;
         RuntimeBase.DebugMode = cmd.Debug;
+        RuntimeBase.ExtraArgs = cmd.Args;
         if (cmd is IOutputCmd output)
         {
             VM.CompressionType = output.Compression;

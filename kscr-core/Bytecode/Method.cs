@@ -9,7 +9,7 @@ using static KScr.Core.Store.StackOutput;
 
 namespace KScr.Core.Bytecode;
 
-public interface IMethod : IClassMember, IEvaluable
+public interface IMethod : IClassMember
 {
     List<MethodParameter> Parameters { get; }
     ITypeInfo ReturnType { get; }
@@ -48,13 +48,8 @@ public sealed class DummyMethod : IMethod
     public SourcefilePosition SourceLocation => RuntimeBase.SystemSrcPos;
 
     public BytecodeElementType ElementType => BytecodeElementType.Method;
-
-    public IEvaluable? Evaluate(RuntimeBase vm, ref State state, ref ObjectRef? rev)
-    {
-        throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
-    }
-
-    public Stack Invoke(RuntimeBase vm, Stack stack, IObjectRef target, params IObject?[] args)
+    public Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
+        params IObject?[] args)
     {
         throw new NotImplementedException();
     }
@@ -80,24 +75,19 @@ public sealed class Method : AbstractClassMember, IMethod
 
     public override ClassMemberType MemberType => ClassMemberType.Method;
     public override BytecodeElementType ElementType => BytecodeElementType.Method;
-    public override Stack Invoke(RuntimeBase vm, Stack stack, IObjectRef target, params IObject?[] args)
+    public override Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null,
+        StackOutput maintain = StackOutput.Omg, params IObject?[] args)
     {
         if (target != null && !this.IsStatic())
             throw new FatalException("Missing invocation target for non-static method " + this.Name);
-        stack[Tri] = target[vm, stack, 0] == null ? Parent.SelfRef : target;
         stack.StepInto(vm, SourceLocation, target, this, stack =>
         {
-            for (int i = 0; i < Parameters.Count; i++)
-                
-        });
-        return stack;
-    }
-
-    public Stack Evaluate(RuntimeBase vm, Stack stack)
-    {
-        Body.Evaluate(vm, stack);
-        if (stack.State != State.Return && Name != ConstructorName && ReturnType.Name != "void")
-            throw new FatalException("Invalid state after method: " + stack.State);
+            for (int i = 0; i < args.Length; i++)
+                vm.PutLocal(stack, Parameters[i].Name, args[i]);
+            Body.Evaluate(vm, stack);
+            if (stack.State != State.Return && Name != ConstructorName && ReturnType.Name != "void")
+                throw new FatalException("Invalid state after method: " + stack.State);
+        }, maintain);
         return stack;
     }
 }

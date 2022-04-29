@@ -73,8 +73,20 @@ public interface IObjectRef
 
     IClassInstance Type { get; }
     IObject this[RuntimeBase vm, Stack stack, int i] { get; set; }
+
     Stack ReadValue(RuntimeBase vm, Stack stack, IObject from);
+
     Stack WriteValue(RuntimeBase vm, Stack stack, IObject to);
+
+    IObject[] AsArray(RuntimeBase vm, Stack stack)
+    {
+        if (this is ObjectRef rev)
+            return rev.Refs!;
+        IObject[] arr = new IObject[Length];
+        for (int i = 0; i < arr.Length; i++)
+            arr[i] = this[vm, stack, i];
+        return arr;
+    }
 }
 
 public static class IObjectRefExt

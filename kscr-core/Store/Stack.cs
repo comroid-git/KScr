@@ -214,34 +214,13 @@ public sealed class Stack
         }).WrapExecution(vm, exec, maintain);
     }
 
-    // put focus into static class
-    public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IClassMember local, Action<Stack> exec,
-        StackOutput maintain = None)
-    {
-        IClass cls = local.Parent;
-        var localStr = cls.FullName + '.' + local.Name + (local is IMethod mtd
-            ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) + ')'
-            : string.Empty);
-        new Stack(this, new CtxBlob(new CallLocation
-        {
-            SourceName = _local,
-            SourceLine = srcPos.SourcefileLine,
-            SourceCursor = srcPos.SourcefileCursor
-        }, PrefixLocal + local)
-        {
-            Local = localStr,
-            Class = cls,
-            This = cls.SelfRef
-        }).WrapExecution(vm, exec, maintain);
-    }
-
     // put focus into object instance
-    public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IObjectRef? into, IClassMember local,
+    public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IObject? into, IClassMember local,
         Action<Stack> exec, StackOutput maintain = None)
     {
-        into ??= vm.ConstantVoid;
-        var cls = into.Value as IClassInstance ?? into.Value.Type;
-        var localStr = cls.FullName + '#' + into.Value.ObjectId.ToString("X")
+        into ??= local.Parent.DefaultInstance;
+        var cls = into as IClassInstance ?? into.Type;
+        var localStr = cls.FullName + '#' + into.ObjectId.ToString("X")
                        + '.' + local.Name + (local is IMethod mtd
                            ? '(' + string.Join(", ", mtd.Parameters.Select(mp => $"{mp.Type.Name} {mp.Name}")) +
                              ')'
@@ -254,8 +233,8 @@ public sealed class Stack
         }, PrefixLocal + cls.Name)
         {
             Local = localStr,
-            Class = into.Value!.Type,
-            This = into
+            Class = into!.Type,
+            This = new ObjectRef(into.Type, into)
         }).WrapExecution(vm, exec, maintain);
     }
 

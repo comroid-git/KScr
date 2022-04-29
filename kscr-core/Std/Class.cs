@@ -180,10 +180,10 @@ public sealed class Class : AbstractPackageMember, IClass
 
     public Stack Evaluate(RuntimeBase vm, Stack stack)
     {
-        var icm = DeclaredMembers.Values.FirstOrDefault(x => x.Name == Method.StaticInitializerName);
-        if (icm == null)
+        var cctor = DeclaredMembers.Values.FirstOrDefault(x => x.Name == Method.StaticInitializerName) as IMethod;
+        if (cctor == null)
             return stack;
-        stack.StepInto(vm, new SourcefilePosition(), SelfRef, icm, stack => icm.Evaluate(vm, stack));
+        cctor.Invoke(vm, stack);
         return stack;
     }
 
@@ -259,6 +259,12 @@ public sealed class Class : AbstractPackageMember, IClass
     public override string ToString()
     {
         return FullName;
+    }
+
+    public Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
+        params IObject?[] args)
+    {
+        throw new NotSupportedException("Cannot invoke class");
     }
 
     public static void InitializePrimitives(RuntimeBase vm)
@@ -596,7 +602,7 @@ public sealed class Class : AbstractPackageMember, IClass
                 var param = (icm as IMethod)?.Parameters;
                 for (var i = 0; i < param.Count; i++)
                     vm.PutLocal(stack, param[i].Name, args.Length - 1 < i ? IObject.Null : args[i]);
-                icm.Evaluate(vm, stack);
+                icm.Invoke(vm, stack);
                 return stack;
             }
 
@@ -627,6 +633,12 @@ public sealed class Class : AbstractPackageMember, IClass
         public override string ToString()
         {
             return FullName;
+        }
+
+        public Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
+            params IObject?[] args)
+        {
+            return BaseClass.Invoke(vm, stack, target, maintain, args);
         }
     }
 }
