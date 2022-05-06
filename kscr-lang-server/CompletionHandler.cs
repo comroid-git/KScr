@@ -1,10 +1,11 @@
 ﻿using Antlr4.Runtime;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace KScr.LangServer;
 
-public class CompletionHandler
+public class CompletionHandler : ICompletionHandler
 {
     
     private const string PackageReferenceElement = "PackageReference";

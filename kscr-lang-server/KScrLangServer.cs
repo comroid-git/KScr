@@ -17,6 +17,7 @@ public static class KScrLangServer
                 //.WithMinimumLogLevel(LogLevel.Trace)
                 .WithServices(ConfigureServices)
                 .WithHandler<KScrFileSyncHandler>()
+                .WithHandler<CompletionHandler>()
         );
 
         await server.WaitForExit;
