@@ -116,8 +116,8 @@ ctorCall: NEW type arguments;
 newArray: NEW type indexerUse;
 newListedArray: NEW type indexer LBRACE (expr (COMMA expr)*)? RBRACE;
 lambda
-    : type COLON idPart
-    | tupleExpr lambdaBlock
+    : type COLON idPart         #methodRef
+    | tupleExpr lambdaBlock     #lambdaExpr 
     ;
 
 returnStatement: YIELD? RETURN expr?;
