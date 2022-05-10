@@ -22,7 +22,7 @@ public class PrintNumbers implements Throwable {
     public static void main() {
         int start = 0;
         int end = 24;
-        Iterable seq = start~end; 
+        Iterable seq = start..end; 
         
         stdio <<- "print numbers " + seq.start() + " to (exclusive) " + (seq.end() - 1 + 1) + ":" + endl;
         foreach (i : seq)

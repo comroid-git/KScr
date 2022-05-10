@@ -100,6 +100,7 @@ DOT: '.';
 COMMA: ',';
 EXCLAMATION: '!';
 QUESTION: '?';
+SHORTELIPSES: '..';
 ELIPSES: '...';
 TILDE: '~';
 

@@ -191,7 +191,7 @@ expr
     | throwStatement                                        #exprThrow
     | switchStatement                                       #exprSwitch
     // range invocator
-    | left=expr TILDE right=expr                            #rangeInvoc
+    | left=expr SHORTELIPSES right=expr                     #rangeInvoc
     // pipe operators
     | pipe=expr (RREQARROW expr)+                           #exprPipeListen
     // operators
