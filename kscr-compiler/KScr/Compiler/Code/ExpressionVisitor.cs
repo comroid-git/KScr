@@ -436,6 +436,8 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 
     public override StatementComponent VisitLambdaExpr(KScrParser.LambdaExprContext context)
     {
+        ctx.AddLambda(context.label()?.idPart().GetText(), context.tupleExpr(), VisitCode(context.lambdaBlock()));
+        
         throw new NotImplementedException("Lambda");
     }
 }

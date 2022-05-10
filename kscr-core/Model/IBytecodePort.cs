@@ -21,6 +21,7 @@ public enum BytecodeElementType : byte
     Property,
     SourcePosition,
 
+    Lambda,
     CodeBlock,
     Statement,
     Component
