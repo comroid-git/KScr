@@ -24,10 +24,8 @@ public class PrintNumbers implements Throwable {
                 <<- "args array is " + args + endl;
         
         int[] xy = new int[0];
-        
         stdio <<- "array size is " + xy.Size + endl;
-        
-        xy = new int { 0, 24 };
+        xy = new int[]{ 0, 24 };
     
         int start = xy[0];
         int end = xy[1];
