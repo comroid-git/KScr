@@ -37,7 +37,7 @@ genericTypeUses: LESSER (n=NUMLIT | first=type) (COMMA type)* GREATER;
 type
     : idPart                                            #importedTypeName
     | rawType genericTypeUses?                          #normalTypeUse
-    | rawType genericTypeUses? (indexer | ELIPSES)?     #arrayTypeUse
+    | rawType genericTypeUses? (indexerEmpty | ELIPSES)?     #arrayTypeUse
     ;
 
 rawType
@@ -106,15 +106,15 @@ file: packageDecl imports classDecl* EOF;
 
 inferType: VOID | VAR;
 
-indexer: LSQUAR RSQUAR;
-indexerUse: LSQUAR expr (COMMA expr)* RSQUAR;
+indexerEmpty: LSQUAR RSQUAR;
+indexerExpr: LSQUAR expr (COMMA expr)* RSQUAR;
 cast: LPAREN type COLON expr RPAREN;
 declaration: type idPart (ASSIGN expr)?;
 mutation: binaryop? ASSIGN expr;
 call: idPart arguments;
 ctorCall: NEW type arguments;
-newArray: NEW type indexerUse;
-newListedArray: NEW type indexer LBRACE (expr (COMMA expr)*)? RBRACE;
+newArray: NEW type indexerExpr;
+newListedArray: NEW type indexerEmpty LBRACE (expr (COMMA expr)*)? RBRACE;
 lambda
     : type COLON idPart
     | tupleExpr lambdaBlock
@@ -173,7 +173,7 @@ expr
     | expr IS type idPart?                                  #checkInstanceof
     // syntax components
     | YIELD expr                                            #yieldExpr
-    | target=expr indexerUse                                #readIndexer
+    | target=expr indexerExpr                                #readIndexer
     | LPAREN expr RPAREN                                    #parens
     | cast                                                  #exprCast
     | newArray                                              #newArrayValue
