@@ -28,6 +28,7 @@ public sealed class Class : AbstractPackageMember, IClass
     public static readonly Class RangeType;
     public static readonly Class IteratorType;
     public static readonly Class IterableType;
+    public static readonly Class CloseableType;
     public static readonly Class ThrowableType;
     public static readonly Class IntType;
     public static Instance NumericByteType;
@@ -75,6 +76,7 @@ public sealed class Class : AbstractPackageMember, IClass
         IterableType = new Class(LibCorePackage, "Iterable", false, MemberModifier.Public, ClassType.Interface)
             { TypeParameters = { new TypeParameter("T") } };
         ThrowableType = new Class(LibCorePackage, "Throwable", false, MemberModifier.Public, ClassType.Interface);
+        CloseableType = new Class(LibCorePackage, "Closeable", false, MemberModifier.Public, ClassType.Interface);
         IntType = new Class(LibCorePackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
         {
             TypeParameters =
@@ -450,6 +452,14 @@ public sealed class Class : AbstractPackageMember, IClass
         AddToClass(IterableType, equals);
         AddToClass(IterableType, getType);
         AddToClass(IterableType, iterator);
+
+        #endregion
+
+        #region Closeable Class
+
+        var close = new DummyMethod(CloseableType, "close", MemberModifier.Public, VoidType);
+        
+        AddToClass(CloseableType, close);
 
         #endregion
 

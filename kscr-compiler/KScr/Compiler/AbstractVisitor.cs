@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -166,11 +167,13 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             {
                 Type = StatementComponentType.Code,
                 CodeType = BytecodeType.StmtCatch,
-                Arg = katchow.type() == null
-                    ? string.Empty
-                    : string.Join(";", katchow.type()
+                Arg = katchow.idPart().GetText(),
+                Args = katchow.type() == null
+                    ? new List<string>()
+                    : katchow.type()
                         .Select(x => VisitTypeInfo(x).FullDetailedName)
-                        .Append(katchow.idPart().GetText())),
+                        .Append(katchow.idPart().GetText())
+                        .ToList(),
                 InnerCode = VisitCode(katchow.codeBlock())
             });
         if (context.finallyBlock() is { } finalli)
@@ -179,7 +182,6 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
                 Type = StatementComponentType.Code,
                 CodeType = BytecodeType.StmtFinally,
                 InnerCode = VisitCode(finalli.codeBlock())
-
             };
         return comp;
     }
