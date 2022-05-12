@@ -22,9 +22,15 @@ public class PrintNumbers implements Throwable {
     public static void main(str[] args) {
         stdio <<- "first argument is:" + args[0] + endl
                 <<- "args array is " + args + endl;
+        
+        int[] xy = new int[0];
+        
+        stdio <<- "array size is " + xy.Size + endl;
+        
+        xy = new int { 0, 24 };
     
-        int start = 0;
-        int end = 24;
+        int start = xy[0];
+        int end = xy[1];
         
         //start = "abc";
         
