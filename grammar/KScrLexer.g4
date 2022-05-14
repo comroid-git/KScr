@@ -32,7 +32,7 @@ RETURN: 'return';
 THROW: 'throw';
 NEW: 'new';
 YIELD: 'yield';
-INSTANCEOF: 'instanceof';
+IS: 'is';
 
 // complex statements
 MARK: 'mark';
@@ -46,6 +46,8 @@ WHILE: 'while';
 SWITCH: 'switch';
 CASE: 'case';
 DEFAULT: 'default';
+BREAK: 'break';
+CONTINUE: 'continue';
 TRY: 'try';
 CATCH: 'catch';
 FINALLY: 'finally';
@@ -98,6 +100,7 @@ DOT: '.';
 COMMA: ',';
 EXCLAMATION: '!';
 QUESTION: '?';
+SHORTELIPSES: '..';
 ELIPSES: '...';
 TILDE: '~';
 
@@ -135,18 +138,18 @@ LESSER: '<';
 
 ASSIGN: '=';
 
-LDASHARROW: '<-';
-LLDASHARROW: '<<-';
-RDASHARROW: '->';
-RRDASHARROW: '->>';
 REQARROW: '=>';
-LLEQARROW: '<<=';
+LDASHARROW: '<-';
+RDASHARROW: '->';
+LLDASHARROW: '<<-';
+RRDASHARROW: '->>';
+//LLEQARROW: '<<=';
 RREQARROW: '=>>';
-LPULLARROW: '=<<';
-RPULLARROW: '>>=';
-LBOXARROW: '<|';
-RBOXARROW: '|>';
-DBOXARROW: '<|>';
+//LPULLARROW: '=<<';
+//RPULLARROW: '>>=';
+//LBOXARROW: '<|';
+//RBOXARROW: '|>';
+//DBOXARROW: '<|>';
 
 ID: LETTER (DIGIT | LETTER)*;
 DIGIT: [0-9];

@@ -32,10 +32,57 @@
             Kaleidox
         \end{center}
     \end{titlepage}
-    \fancyhead[C]{{KScr Language}}
+    %\fancyhead[C]{{KScr Language}}
     \tableofcontents
-    
+
     \pagebreak
+    \section{Preamble}
+    The KScr Language is developed with the idea in mind that there should be versatile and rudimental features available to write effective, yet compact code. \\
+    Its main design idea is to implement polymorphism at a level that allows implementation of high-quality API to be implemented without repeating code, minimizing time spent writing repetitive code. \\
+    The secondary objective is to allow for runtime optimizations at computation level.
+
+    \subsection{Syntax}
+    The syntax is designed with two known languages in mind; C\# and Java. It implements \hyperref[langProperty]{properties} similar to C\# and \hyperref[langInterface]{interfaces} and \hyperref[langEnum]{enums} similar to Java. \\
+
+    \subsubsection{Naming conventions} % only to piss y'all off
+    Abbreviations should be always capitalized like their first letter. Exceptions may occurr if an abbreviation is artistically or semantically capitalized, an example type name would be: \texttt{LaTeXParser}.
+
+    \paragraph{Package Names}
+    Package names should be all lowercase, and chosen with the following pattern in mind:
+    \begin{enumerate}
+        \item The domain that the project is released under, reversed. For example, all standard packages start with \texttt{org.comroid}. If the domain is a subdomain, the subdomain name should be included at the end; example \texttt{org.comroid.api}
+        \item The name of the project
+        \item Possible sub-packages that might be necessary.
+    \end{enumerate}
+    An example for a full package name is:
+    \begin{verbatim}
+        org.comroid.status.api.model
+    \end{verbatim}
+
+    \paragraph{Type Names}
+    Type names should be capitalized in camel case.
+    An example would be:
+    \begin{verbatim}
+        ChannelIDFinder
+    \end{verbatim}
+
+    \paragraph{Method Names}
+    Member names should be capitalized in lower camel case.
+    Two example would be:
+    \begin{verbatim}
+        #findByID()
+        #wsClose()  // websocket close
+    \end{verbatim}
+
+    \subsection{Differences to 'classical OOP languages'}
+
+    \subsubsection{The \texttt{null}-Literal}
+    The \texttt{null}-Literal differs in KScr from it's commonly known functionality. \\
+    It does implement all members in \hyperref[typeVoid]{\texttt{void}} with reasonable default implementations.
+    For example, \hyperref[methodVoidToString]{\texttt{null.toString()}} will always return a \hyperref[typeStr]{string} that says '\texttt{null}'.
+    \hyperref[propVoidType]{null.Type} will always return \hyperref[typeVoid]{void} and \hyperref[propVoidInternalID]{null.InternalID} will always return \texttt{0}.
+
+    %\pagebreak
     \section{Source Model}
     KScr expects source files to have the extension \texttt{.kscr}, and outputs binaries with the extension \texttt{.kbin}.
     \\
@@ -70,9 +117,13 @@
     \begin{tabular}{c|c}
         Modifier & Function \\
         \hline
+        \label{modStatic}
         \texttt{static} & Cannot be invoked dynamically \\
+        \label{modFinal}
         \texttt{final} & Cannot be overridden or changed \\
+        \label{modAbstract}
         \texttt{abstract} & Must be implemented in inheritors \\
+        \label{modSynchronized}
         \texttt{synchronized} & Invocations are synchronized \\
         \label{modNative}
         \texttt{native} & Must be implemented by a native module
@@ -82,13 +133,16 @@
     \subsection{Classes}
     A class is declared by a class header of the following structure:
     \begin{verbatim}
-        <accessibility modifiers> [class type] [class name]<type generics> <inherits> <body>
+        <accessibility modifiers> [class type] [class name]<type generics>
+        <inherits>
+        <body>
     \end{verbatim}
     Note that the class body can be optional when using a semicolon.
     
     \subsubsection{Class Types}
     A source class can be of different types:
     
+    \label{langClass}
     \paragraph{\texttt{class}-Type}
     A normal class that can be instantiated.
     Allowed modifiers are:
@@ -102,20 +156,21 @@
     \end{tabular}
     \end{center}
     
+    \label{langEnum}
     \paragraph{\texttt{enum}-Type}
     An enumeration of runtime-constants that follow a class-like pattern.
     This type does not allow modifiers.
     
+    \label{langInterface}
     \paragraph{\texttt{interface}-Type}
     An interface that declares basic structure requirements for implementing classes.
     Cannot be instantiated directly.
     
+    \label{langAnnotation}
     \paragraph{\texttt{annotation}-Type}
     A marker for most components of code. Used for flow control by enforcing rules at compile time, setting markers or carrying information at runtime.
-    
-    \subsubsection{Class Names}
-    It is suggested that class names start with an upper case letter.
-    
+
+    \label{langGenerics}    
     \subsubsection{Type Generics}
     Type Generics are initially defined in a classes header, detailing the name with a postfix.
     They are surrounded by arrow-brackets \texttt{<\dots>}:
@@ -140,6 +195,7 @@
     
     \subsection{Class Members}
     
+    \label{langCCtor}
     \subsubsection{Static Initializer}
     The static initializer is declared by including a static member block in the class. \\
     It is executed after compile-time (or read-time if reading binary) and can modify the members of the containing class.
@@ -150,6 +206,7 @@
     \end{verbatim}
     The static initializer is compiled to be a method with the header \texttt{private static final void cctor()}
     
+    \label{langCtor}
     \subsubsection{Constructors}
     The constructor is used to create a dynamic instance of the class. \\
     If a class \texttt{extends} more than one class, any of which does not support the default constructor, the constructor must declare all superconstructors like this:
@@ -160,11 +217,13 @@
     \end{verbatim}
     Constructors are compiled as Methods named \texttt{ctor}.
     
+    \label{langMethod}
     \subsubsection{Methods}
     A method is a function of a class that can affect the class, compute a result or print "Hello, world!". \\
     Methods are distinguished from properties by their parameter definition, which may be empty. \\
     All methods must have an explicitly defined return type, but they may return \texttt{void}.
     
+    \label{langProperty}
     \subsubsection{Properties}
     Properties are value computation access ports that can either hold a value, or compute it from a returning body. \\
     If such return bodies contain another property, then the other property is checked for its last update time. If it has been updated before the calling property has been, then computation is skipped and the last returned value is returned again.
@@ -172,13 +231,14 @@
     
     \pagebreak
     \section{The KScr VM}
-    
+
     \subsection{Built-in Types}
 
     \label{typeVoid}
     \subsubsection{\texttt{interface void}}
     The universal base type. Is implemented by all built-in types and can be implicitly cast to everything.
 
+    \label{methodVoidToString}
     \paragraph{Method \texttt{void\#toString(short alt)}}
     Used to obtain a string representation of the object.
     \\
@@ -198,13 +258,16 @@
     \end{tabular}
     \end{center}
 
+    \label{methodVoidEquals}
     \paragraph{Method \texttt{void\#equals(void other)}}
     Used to test two objects for equality.
     This method is called by the \begin{math}=\end{math} and \begin{math}\neq\end{math} operators.
 
-    \paragraph{Method \texttt{void\#getType()}}
+    \label{propVoidType}
+    \paragraph{Property \texttt{void\#Type}}
     Used to obtain the exact class instance of an object.
 
+    \label{propVoidInternalID}
     \paragraph{Property \texttt{void\#InternalID}}
     Used to obtain the internal ID of the object.
     

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
@@ -102,39 +103,11 @@ public class StatementVisitor : AbstractVisitor<Statement>
         };
     }
 
-    public override Statement VisitStmtPipe(KScrParser.StmtPipeContext context)
-    {
-        var stmt = new Statement
-        {
-            Type = StatementComponentType.Pipe,
-            Main = { VisitExpression(context.expr()) }
-        };
-        if (context.pipeRead() is { Length: > 0 } prs)
-            foreach (var pr in prs)
-                stmt.Main.Add(new StatementComponent
-                {
-                    Type = StatementComponentType.Consumer,
-                    SubComponent = VisitExpression(pr.expr())
-                });
-        else if (context.pipeWrite() is { Length: > 0 } pws)
-            foreach (var pw in pws)
-                stmt.Main.Add(new StatementComponent
-                {
-                    Type = StatementComponentType.Emitter,
-                    SubComponent = VisitExpression(pw.expr())
-                });
-        return stmt;
-    }
+    public override Statement VisitStmtPipeRead(KScrParser.StmtPipeReadContext context) => VisitPipeRead(context.pipe, context.expr()[1..]);
 
-    public override Statement VisitStmtTryCatch(KScrParser.StmtTryCatchContext context)
-    {
-        throw new NotImplementedException("Compiling of statement " + context + " is not supported");
-    }
+    public override Statement VisitStmtPipeWrite(KScrParser.StmtPipeWriteContext context) => VisitPipeWrite(context.pipe, context.expr()[1..]);
 
-    public override Statement VisitStmtTryWithRes(KScrParser.StmtTryWithResContext context)
-    {
-        throw new NotImplementedException("Compiling of statement " + context + " is not supported");
-    }
+    public override Statement VisitStmtPipeListen(KScrParser.StmtPipeListenContext context) => VisitPipeListen(context.pipe, context.expr()[1..]);
 
     public override Statement VisitMarkStatement(KScrParser.MarkStatementContext context)
     {
@@ -172,6 +145,57 @@ public class StatementVisitor : AbstractVisitor<Statement>
         };
     }
 
+    public override Statement VisitStmtTryCatch(KScrParser.StmtTryCatchContext context)
+    {
+        var stmt = new Statement()
+        {
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtTry,
+            CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
+        };
+        stmt.Main.Add(new StatementComponent()
+        {
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtTry,
+            InnerCode = VisitCode(context.tryCatchStatement().codeBlock())
+        });
+        return stmt;
+    }
+
+    public override Statement VisitStmtTryWithRes(KScrParser.StmtTryWithResContext context)
+    {
+        var stmt = new Statement()
+        {
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtTry,
+            // catch and finally blocks
+            CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
+        };
+        var defs = new Statement()
+        {
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtTry
+        };
+        foreach (var decl in context.tryWithResourcesStatement().declaration())
+        {// resource declarations
+            defs.Main.Add(new StatementComponent()
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.StmtTry,
+                Arg = decl.type().GetText() + ';' + decl.idPart().GetText(),
+                SubComponent = VisitExpression(decl.expr())
+            });
+        }
+        stmt.Main.Add(new StatementComponent()
+        {
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtTry,
+            SubStatement = defs,
+            InnerCode = VisitCode(context.tryWithResourcesStatement().codeBlock())
+        });
+        return stmt;
+    }
+
     public override Statement VisitStmtIf(KScrParser.StmtIfContext context)
     {
         return new Statement
@@ -196,7 +220,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
                         : null
                 }
             },
-            Finally = VisitCode(context.finallyBlock())
+            CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
         };
     }
 
@@ -216,7 +240,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
                     InnerCode = VisitCode(context.whileStatement().codeBlock())
                 }
             },
-            Finally = VisitCode(context.finallyBlock())
+            CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
         };
     }
 
@@ -236,7 +260,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
                     InnerCode = VisitCode(context.doWhile().codeBlock())
                 }
             },
-            Finally = VisitCode(context.finallyBlock())
+            CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
         };
     }
 
@@ -258,7 +282,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
                     InnerCode = VisitCode(context.forStatement().codeBlock())
                 }
             },
-            Finally = VisitCode(context.finallyBlock())
+            CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
         };
     }
 
@@ -279,14 +303,16 @@ public class StatementVisitor : AbstractVisitor<Statement>
                     InnerCode = VisitCode(context.foreachStatement().codeBlock())
                 }
             },
-            Finally = VisitCode(context.finallyBlock())
+            CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
         };
     }
 
-    public override Statement VisitStmtSwitch(KScrParser.StmtSwitchContext context)
+    public override Statement VisitSwitchStatement(KScrParser.SwitchStatementContext context) => new()
     {
-        throw new NotImplementedException("Compiling of statement " + context + " is not supported");
-    }
+        Type = StatementComponentType.Code,
+        CodeType = BytecodeType.StmtSwitch,
+        Main = { VisitExpression(context) }
+    };
 
     public override Statement VisitStmtEmpty(KScrParser.StmtEmptyContext context)
     {

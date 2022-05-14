@@ -35,14 +35,23 @@ public enum BytecodeType : uint
     StmtElse = 0x0014_0000 | Statement,
     StmtDo = 0x0021_0000 | Statement,
     StmtWhile = 0x0022_0000 | Statement,
+    StmtTry = 0x0024_0000 | Statement,
+    StmtCatch = 0x0028_0000 | Statement,
+    StmtFinally = 0x0018_0000 | Statement,
     StmtFor = 0x0041_0000 | Statement,
     StmtForEach = 0x0042_0000 | Statement,
-    StmtSwitch = 0x0080_0000 | Statement,
-    StmtCase = 0x0081_0000 | Statement,
+    StmtSwitch = 0x0044_0000 | Statement,
+    StmtCase = 0x0048_0000 | Statement,
+    
+    Cast = 0x0080_0000 | Expression,
+    Instanceof = 0x0081_0000 | Expression,
+    Indexer = 0x0082_0000,
+    TupularExpression = 0x0084_0000 | Expression,
+    ArrayConstructor = 0x0088_0000 | Expression,
 
+    ParameterExpression = 0x0100_0000,
     StdioExpression = 0x0200_0000,
     EndlExpression = 0x1200_0000,
-    ParameterExpression = 0x0100_0000,
     TypeExpression = 0x0400_0000,
     ConstructorCall = 0x0800_0000,
 
@@ -53,7 +62,7 @@ public enum BytecodeType : uint
 }
 
 [Flags]
-public enum Operator : uint
+public enum Operator
 {
     Unknown = 0,
 
@@ -89,9 +98,11 @@ public enum Operator : uint
     ULShift = 1 << 25, // <<<
     URShift = 1 << 26, // >>>
 
+    NullFallback = 1 << 27, // ??
+
     // flags
-    UnaryPrefix = 1 << 27,
-    UnaryPostfix = 1 << 28,
-    Binary = 1 << 29,
-    Compound = 1 << 30
+    UnaryPrefix = 1 << 28,
+    UnaryPostfix = 1 << 29,
+    Binary = 1 << 30,
+    Compound = 1 << 31
 }

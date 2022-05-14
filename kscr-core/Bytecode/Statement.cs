@@ -29,7 +29,7 @@ public class Statement : IBytecode, IStatement<StatementComponent>
 {
     public BytecodeType CodeType { get; set; } = BytecodeType.Undefined;
     public string? Arg { get; set; }
-    public ExecutableCode? Finally { get; set; }
+    public StatementComponent? CatchFinally { get; set; }
     public BytecodeElementType ElementType => BytecodeElementType.Statement;
     public StatementComponentType Type { get; set; }
     public IClassInstance TargetType { get; set; } = Class.VoidType.DefaultInstance;
@@ -61,10 +61,11 @@ public class Statement : IBytecode, IStatement<StatementComponent>
                     break;
             }
         }
-        finally
+        catch (InternalException codeEx)
         {
-            if (Finally != null)
-                Finally.Evaluate(vm, stack);
+            if (CatchFinally != null)
+                CatchFinally.Evaluate(vm, stack);
+            throw codeEx;
         }
 
         return stack;
@@ -114,6 +115,9 @@ public class StatementComponent : IBytecode, IStatementComponent
                 break;
             case (StatementComponentType.Expression, BytecodeType.Null):
                 stack[Default] = vm.ConstantVoid;
+                break;
+            case (StatementComponentType.Code, BytecodeType.Parentheses):
+                SubStatement!.Evaluate(vm, stack.Output()).Copy();
                 break;
             case (StatementComponentType.Expression, BytecodeType.Parentheses):
                 SubComponent!.Evaluate(vm, stack.Output()).Copy();
@@ -285,19 +289,31 @@ public class StatementComponent : IBytecode, IStatementComponent
                 if (unaryPostfix) op ^= Operator.UnaryPostfix;
                 if (binary) op ^= Operator.Binary;
 
-                var a = SubComponent!.Evaluate(vm, stack.Output()).Copy(output: Alp);
-                var b = AltComponent?.Evaluate(vm, stack.Output()).Copy(output: Bet);
+                var left = SubComponent!.Evaluate(vm, stack.Output()).Copy(output: Alp);
+                
+                if (op == Operator.NullFallback) // implement null fallback
+                    if (left![vm, stack, 0].IsNull())
+                        stack[Default] = AltComponent?.Evaluate(vm, stack.Output()).Copy(output: Bet);
+                    else stack[Default] = left;
+                else
+                {
+                    if (unaryPrefix || unaryPostfix)
+                        if (left![vm, stack, 0] is Numeric numA)
+                            stack[Default] = numA.Operator(vm, op);
+                        else stack[Default] = left![vm, stack, 0].InvokeNative(vm, stack.Output(), "op" + op).Copy();
+                    else if (binary)
+                    {
+                        var right = AltComponent?.Evaluate(vm, stack.Output()).Copy(output: Bet);
 
-                if (unaryPrefix || unaryPostfix)
-                    if (a![vm, stack, 0] is Numeric numA)
-                        stack[Default] = numA.Operator(vm, op);
-                    else stack[Default] = a![vm, stack, 0].InvokeNative(vm, stack.Output(), "op" + op).Copy();
-                else if (binary)
-                    if (a![vm, stack, 0] is Numeric numA && b![vm, stack, 0] is Numeric numB)
-                        stack[Default] = numA.Operator(vm, op, numB);
-                    else stack[Default] = a![vm, stack, 0].InvokeNative(vm, stack.Output(), "op" + op, b![vm, stack, 0]).Copy();
-                if (compound)
-                    a![vm, stack, 0] = stack[Default]![vm, stack, 0];
+                        if (left![vm, stack, 0] is Numeric numA && right![vm, stack, 0] is Numeric numB)
+                            stack[Default] = numA.Operator(vm, op, numB);
+                        else stack[Default] = left![vm, stack, 0].InvokeNative(vm, stack.Output(), "op" + op, right![vm, stack, 0]).Copy();
+                    }
+
+                    if (compound)
+                        left![vm, stack, 0] = stack[Default]![vm, stack, 0];
+                }
+
                 break;
             case (StatementComponentType.Provider, BytecodeType.LiteralRange):
                 SubComponent!.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
