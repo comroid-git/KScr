@@ -167,6 +167,7 @@ statement
     | pipe=expr (RREQARROW expr)+ SEMICOLON                 #stmtPipeListen
     | SEMICOLON                                             #stmtEmpty
     ;
+typedExpr: type expr;
 expr
     // simply a variable
     : idPart                                                #varValue
@@ -203,7 +204,9 @@ expr
     | tupleExpr                                             #exprTuple
     ;
 
-tupleExpr: LPAREN expr (COMMA expr)* RPAREN;
+tupleDeclType: type idPart?;
+tupleDecl: LPAREN tupleDeclType (COMMA tupleDeclType)* RPAREN;
+tupleExpr: LPAREN typedExpr (COMMA typedExpr)* RPAREN;
 
 binaryop
     : PLUS                  #opPlus

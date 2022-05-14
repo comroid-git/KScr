@@ -212,7 +212,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             CodeType = BytecodeType.TupularExpression,
             SubStatement = new Statement()
         };
-        foreach (var ctx in context.expr())
+        foreach (var ctx in context.typedExpr())
             expr.SubStatement.Main.Add(VisitExpression(ctx));
         return expr;
     }
