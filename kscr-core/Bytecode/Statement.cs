@@ -67,6 +67,12 @@ public class Statement : IBytecode, IStatement<StatementComponent>
                 CatchFinally.Evaluate(vm, stack);
             throw codeEx;
         }
+        catch (StackTraceException codeEx)
+        {
+            if (CatchFinally != null)
+                CatchFinally.Evaluate(vm, stack);
+            throw codeEx;
+        }
 
         return stack;
     }
