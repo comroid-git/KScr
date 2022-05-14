@@ -67,10 +67,8 @@ public sealed class Numeric : NativeObj
         switch (member)
         {
             case "toString":
-                stack[StackOutput.Default] = String.Instance(vm, StringValue);
-                break;
             case "Message":
-                stack[StackOutput.Default] = vm.ConstantVoid;
+                stack[StackOutput.Default] = String.Instance(vm, StringValue);
                 break;
             case "ExitCode":
                 stack[StackOutput.Default] = Constant(vm, IntValue);

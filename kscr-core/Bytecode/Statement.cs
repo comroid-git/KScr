@@ -230,9 +230,15 @@ public class StatementComponent : IBytecode, IStatementComponent
                 stack.StepInside(vm, SourcefilePosition, "for", stack =>
                 {
                     for (IObjectRef i = SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Del)!;
-                         SubComponent!.Evaluate(vm, stack.Channel(Del, Phi)).Copy(Phi)!.ToBool();
+                         stack.State == State.Normal 
+                         && SubComponent!.Evaluate(vm, stack.Channel(Del, Phi)).Copy(Phi)!.ToBool() 
+                         && stack.State == State.Normal;
                          (i[vm, stack, 0] = AltComponent!.Evaluate(vm, stack.Output()).Copy(output: Alp)![vm, stack, 0]).IsNull())
+                    {
                         InnerCode!.Evaluate(vm, stack.Output()).CopyState();
+                        if (stack.State != State.Normal)
+                            break;
+                    }
                 });
                 break;
             case (StatementComponentType.Code, BytecodeType.StmtForEach):

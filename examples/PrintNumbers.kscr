@@ -72,7 +72,7 @@ public class PrintNumbers implements Throwable {
         stdio <<- "let's test for-loop recursion with an 8x8 matrix:" + endl;
         for (int y = 1; y < 9; y++) {
             for (int x = 1; x < 9; x++)
-                stdio <<- " " + x + y + " -";
+                throw x + (y * 9);//stdio <<- " " + x + y + " -";
             stdio <<- endl;
         } finally stdio <<- "finally, we finish throwing:";
         
