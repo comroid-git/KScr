@@ -81,6 +81,7 @@ subConstructorCall: type arguments;
 subConstructorCalls: COLON subConstructorCall (COMMA subConstructorCall)*?;
 constructorDecl: annotation* modifiers type parameters subConstructorCalls? memberBlock;
 methodDecl: annotation* modifiers genericTypeDefs? type idPart parameters memberBlock;
+indexerMemberDecl: annotation* modifiers genericTypeDefs? type THIS indexerDecl propBlock;
 
 propGetter: GET memberBlock;
 propSetter: SET memberBlock;
@@ -98,6 +99,7 @@ member
     | initDecl catchBlocks?         #memInit
     | constructorDecl catchBlocks?  #memCtor
     | methodDecl catchBlocks?       #memMtd
+    | indexerMemberDecl             #memIdx
     ;
 
 classDecl: annotation* modifiers classType idPart genericTypeDefs? objectExtends? objectImplements? (LBRACE member* RBRACE | SEMICOLON);
@@ -107,6 +109,7 @@ file: packageDecl imports classDecl* EOF;
 inferType: VOID | VAR;
 
 indexerEmpty: LSQUAR RSQUAR;
+indexerDecl: LSQUAR type idPart (COMMA type idPart)* RSQUAR;
 indexerExpr: LSQUAR expr (COMMA expr)* RSQUAR;
 cast: LPAREN type COLON expr RPAREN;
 declaration: type idPart (ASSIGN expr)?;
