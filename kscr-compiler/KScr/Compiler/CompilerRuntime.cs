@@ -38,7 +38,7 @@ public class CompilerRuntime : BytecodeRuntime
 
     private IDictionary<IPackageMember, IBytecode> CompilePackageMembers(DirectoryInfo pkgDir, Package pkg, DirectoryInfo srcDir = null!)
     {
-        srcDir ??= pkgDir;
+        srcDir ??= pkgDir.Parent!;
         var yield = new Dictionary<IPackageMember, IBytecode>();
         
         // compile classes in this package
