@@ -77,7 +77,6 @@ public abstract class RuntimeBase : IBytecodePort
 
     public ObjectRef StdioRef { get; private set; }
 
-    public string BasePackage { get; set; }
     public bool StdIoMode { get; set; } = false;
     public static bool ConfirmExit { get; set; }
     public static bool DebugMode { get; set; }

@@ -87,8 +87,6 @@ public class Program
         RuntimeBase.ExtraArgs = cmd.Args.ToArray();
         if (cmd is CmdCompile compile)
             RuntimeBase.CompileSystem = compile.System;
-        if (cmd is ISourcesCmd sources)
-            VM.BasePackage = sources.BasePackage;
         if (cmd is IOutputCmd output)
         {
             VM.CompressionType = output.Compression;

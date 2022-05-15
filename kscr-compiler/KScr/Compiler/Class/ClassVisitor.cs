@@ -12,10 +12,10 @@ public class ClassVisitor : AbstractVisitor<Core.Std.Class>
     {
     }
 
-    private Core.Std.Class cls => ctx.Class!.AsClass(vm);
-
     public override Core.Std.Class VisitClassDecl(KScrParser.ClassDeclContext context)
     {
+        var classInfo = ctx.Class!;
+        var cls = ctx.Package.GetOrCreateClass(vm, classInfo.Name, classInfo.Modifier, classInfo.ClassType)!;
         if (context.genericTypeDefs() is { } defs)
             foreach (var genTypeDef in defs.genericTypeDef())
                 if (cls.TypeParameters.All(x => x.Name != genTypeDef.idPart().GetText()))

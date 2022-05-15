@@ -28,7 +28,7 @@ public class CompilerRuntime : BytecodeRuntime
         var pkg = Package.RootPackage;
         foreach (var dir in srcDir.EnumerateDirectories())
         {
-            pkg = pkg.GetOrCreatePackage(BasePackage + '.' + dir.Name);
+            pkg = pkg.GetOrCreatePackage(dir.Name);
             foreach (var pair in CompilePackageMembers(dir, pkg))
                 yield.Add(pair.Key, pair.Value);
             pkg = Package.RootPackage;
@@ -145,7 +145,7 @@ public class CompilerRuntime : BytecodeRuntime
             }
             
             var compiled = CompileSymbols(pair.cCtx, pair.classes).ToArray();
-            var mainClass = compiled.First(x => x.Name == pair.mainClassName);
+            var mainClass = compiled.First(x => x.CanonicalName == pair.mainClassName);
             yield return new WritableClass(mainClass, compiled);
         }
     }

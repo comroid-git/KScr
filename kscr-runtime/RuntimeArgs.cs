@@ -44,8 +44,6 @@ public interface ISourcesCmd : IGenericCmd
 {
     [Option(HelpText = "The source paths to compile", Required = true)]
     public IEnumerable<string> Sources { get; set; }
-    [Option(HelpText = "The base Package to compile in")]
-    public string BasePackage { get; set; }
 }
 
 public interface IConfigCmd

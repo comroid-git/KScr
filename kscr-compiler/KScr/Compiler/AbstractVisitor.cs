@@ -85,12 +85,8 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
     {
         return member.RuleIndex switch
         {
-            KScrParser.RULE_methodDecl or KScrParser.RULE_constructorDecl or KScrParser.RULE_initDecl
-                or KScrParser.RULE_propertyDecl or KScrParser.RULE_member
-                => new ClassMemberVisitor(vm, ctx).Visit(member),
             KScrParser.RULE_classDecl => new ClassVisitor(vm, ctx).Visit(member),
-            _ => throw new ArgumentOutOfRangeException(nameof(member.RuleIndex), member.RuleIndex,
-                "Invalid Rule for member: " + member)
+            _ => new ClassMemberVisitor(vm, ctx).Visit(member)
         };
     }
 

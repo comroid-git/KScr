@@ -13,7 +13,6 @@
     <option name="EXECUTE_SCRIPT_FILE" value="false" />
     <envs />
     <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Compile System Package" run_configuration_type="DotNetProject" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Test Execute" run_configuration_type="DotNetProject" />
     </method>
   </configuration>
