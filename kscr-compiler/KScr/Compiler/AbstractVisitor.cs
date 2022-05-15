@@ -194,7 +194,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             param.Main.Add(VisitExpression(expr));
         return param;
     }
-    protected new Statement VisitIndexerUse(KScrParser.IndexerUseContext context)
+    protected new Statement VisitIndexerExpr(KScrParser.IndexerExprContext? context)
     {
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         if (context == null)
