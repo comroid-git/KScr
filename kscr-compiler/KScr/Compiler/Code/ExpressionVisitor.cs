@@ -212,7 +212,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             CodeType = BytecodeType.TupularExpression,
             SubStatement = new Statement()
         };
-        foreach (var ctx in context.expr())
+        foreach (var ctx in context.typedExpr())
             expr.SubStatement.Main.Add(VisitExpression(ctx));
         return expr;
     }
@@ -384,6 +384,18 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         CodeType = BytecodeType.Parentheses,
         SubStatement = VisitPipeListen(context.pipe, context.expr()[1..]) 
     };
+
+    public override StatementComponent VisitMethodRef(KScrParser.MethodRefContext context)
+    {
+        throw new NotImplementedException("MethodRef");
+    }
+
+    public override StatementComponent VisitLambdaExpr(KScrParser.LambdaExprContext context)
+    {
+        ctx.AddLambda(context.label()?.idPart().GetText(), context.tupleExpr(), VisitCode(context.lambdaBlock()));
+        
+        throw new NotImplementedException("Lambda");
+    }
 }
 
 public class OperatorVisitor : KScrParserBaseVisitor<Operator>

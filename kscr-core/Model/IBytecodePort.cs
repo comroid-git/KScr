@@ -23,7 +23,9 @@ public enum BytecodeElementType : byte
 
     CodeBlock,
     Statement,
-    Component
+    Component,
+    Lambda,
+    LambdaParameter,
 }
 
 public interface IBytecode

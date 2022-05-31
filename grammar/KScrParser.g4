@@ -115,9 +115,10 @@ call: idPart arguments;
 ctorCall: NEW type arguments;
 newArray: NEW type indexerUse;
 newListedArray: NEW type indexer LBRACE (expr (COMMA expr)*)? RBRACE;
+label: idPart COLON WS;
 lambda
-    : type COLON idPart
-    | tupleExpr lambdaBlock
+    : label? type COLON idPart        #methodRef
+    | label? tupleExpr lambdaBlock    #lambdaExpr 
     ;
 
 returnStatement: YIELD? RETURN expr?;
@@ -166,6 +167,7 @@ statement
     | pipe=expr (RREQARROW expr)+ SEMICOLON                 #stmtPipeListen
     | SEMICOLON                                             #stmtEmpty
     ;
+typedExpr: type expr;
 expr
     // simply a variable
     : idPart                                                #varValue
@@ -202,7 +204,9 @@ expr
     | tupleExpr                                             #exprTuple
     ;
 
-tupleExpr: LPAREN expr (COMMA expr)* RPAREN;
+tupleDeclType: type idPart?;
+tupleDecl: LPAREN tupleDeclType (COMMA tupleDeclType)* RPAREN;
+tupleExpr: LPAREN typedExpr (COMMA typedExpr)* RPAREN;
 
 binaryop
     : PLUS                  #opPlus

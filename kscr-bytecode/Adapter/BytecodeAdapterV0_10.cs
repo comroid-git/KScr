@@ -115,6 +115,10 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
             WriteInt(srcPos.SourcefileLine);
             WriteInt(srcPos.SourcefileCursor);
         }
+        else if (bytecode is Lambda lambda)
+        {
+            throw new NotImplementedException();
+        }
         else if (bytecode is ExecutableCode code)
         {
             WriteArray(code.Main.ToArray());
@@ -314,6 +318,8 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
                     SourcefileLine = ReadInt(),
                     SourcefileCursor = ReadInt()
                 };
+            case BytecodeElementType.Lambda:
+                throw new NotImplementedException();
             case BytecodeElementType.CodeBlock:
                 var code = ReadArray<Statement>();
                 var block = new ExecutableCode();
