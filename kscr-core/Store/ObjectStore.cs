@@ -109,11 +109,13 @@ public static class IObjectRefExt
 
 public class ObjectRef : IObjectRef
 {
+    public readonly bool Constant;
     public readonly IObject?[] Refs;
 
-    public ObjectRef(IClassInstance type, IObject value) : this(type)
+    public ObjectRef(IClassInstance type, IObject value, bool constant = true) : this(type)
     {
         Value = value;
+        Constant = true;
     }
 
     public ObjectRef(IClassInstance type, [Range(1, int.MaxValue)] int len = 1)
@@ -142,6 +144,8 @@ public class ObjectRef : IObjectRef
 
     public Stack WriteValue(RuntimeBase vm, Stack stack, IObject to)
     {
+        if (Constant)
+            throw new InvalidOperationException("ObjectRef is constant");
         if (Value.ObjectId != 0 && Class.PipeType.CanHold(Value.Type))
             return Value.InvokeNative(vm, stack, "write", stack[StackOutput.Default].Value);
         return WriteAccessor!.Evaluate(vm, stack);
@@ -203,6 +207,8 @@ public class ObjectRef : IObjectRef
 
     private void InsertToStack(int i, IObject? value)
     {
+        if (Constant)
+            throw new InvalidOperationException("ObjectRef is constant");
         if (IsPipe)
             throw new InvalidOperationException("Cannot insert value inte pipe");
         Refs[i] = value;

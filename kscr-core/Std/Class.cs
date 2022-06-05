@@ -358,9 +358,6 @@ public sealed class Class : AbstractPackageMember, IClass
         AddToClass(NumericType, getType);
         NumericType._interfaces.Add(ThrowableType.DefaultInstance);
 
-        Numeric.Zero.Mutable = false;
-        Numeric.One.Mutable = false;
-
         #endregion
 
         #region String Class

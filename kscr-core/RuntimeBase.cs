@@ -126,17 +126,15 @@ public abstract class RuntimeBase : IBytecodePort
     {
         if (Initialized) return;
         
-        Numeric.Zero = new(this)
+        Numeric.Zero = new(this, true)
         {
             Bytes = BitConverter.GetBytes((byte)0),
-            Mode = NumericMode.Byte,
-            Mutable = false
+            Mode = NumericMode.Byte
         };
-        Numeric.One = new(this)
+        Numeric.One = new(this, true)
         {
             Bytes = BitConverter.GetBytes((byte)1),
-            Mode = NumericMode.Byte,
-            Mutable = false,
+            Mode = NumericMode.Byte
         };
         
         Class.NumericByteType = new Class.Instance(this, Class.NumericType,

@@ -31,18 +31,11 @@ public sealed class Numeric : NativeObj
     private readonly bool _constant;
 
     private readonly uint _objId;
-    private bool _mutable = true;
 
     internal Numeric(RuntimeBase vm, bool constant = false) : base(vm)
     {
         _constant = constant;
         _objId = vm.NextObjId();
-    }
-
-    public bool Mutable
-    {
-        get => !_constant && _mutable;
-        internal set => _mutable = value;
     }
 
     public NumericMode Mode { get; internal set; } = NumericMode.Short;
@@ -133,9 +126,11 @@ public sealed class Numeric : NativeObj
     {
         return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(value), () =>
         {
-            var num = new Numeric(vm, true);
-            num.SetAs(value);
-            num.Mutable = false;
+            var num = new Numeric(vm, true)
+            {
+                Bytes = BitConverter.GetBytes(value),
+                Mode = NumericMode.Byte
+            };
             return num;
         });
     }
@@ -144,9 +139,11 @@ public sealed class Numeric : NativeObj
     {
         return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(value), () =>
         {
-            var num = new Numeric(vm, true);
-            num.SetAs(value);
-            num.Mutable = false;
+            var num = new Numeric(vm, true)
+            {
+                Bytes = BitConverter.GetBytes(value),
+                Mode = NumericMode.Short
+            };
             return num;
         });
     }
@@ -155,9 +152,11 @@ public sealed class Numeric : NativeObj
     {
         return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(value), () =>
         {
-            var num = new Numeric(vm, true);
-            num.SetAs(value);
-            num.Mutable = false;
+            var num = new Numeric(vm, true)
+            {
+                Bytes = BitConverter.GetBytes(value),
+                Mode = NumericMode.Int
+            };
             return num;
         });
     }
@@ -166,9 +165,11 @@ public sealed class Numeric : NativeObj
     {
         return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(value), () =>
         {
-            var num = new Numeric(vm, true);
-            num.SetAs(value);
-            num.Mutable = false;
+            var num = new Numeric(vm, true)
+            {
+                Bytes = BitConverter.GetBytes(value),
+                Mode = NumericMode.Long
+            };
             return num;
         });
     }
@@ -177,9 +178,11 @@ public sealed class Numeric : NativeObj
     {
         return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(value), () =>
         {
-            var num = new Numeric(vm, true);
-            num.SetAs(value);
-            num.Mutable = false;
+            var num = new Numeric(vm, true)
+            {
+                Bytes = BitConverter.GetBytes(value),
+                Mode = NumericMode.Float
+            };
             return num;
         });
     }
@@ -188,17 +191,20 @@ public sealed class Numeric : NativeObj
     {
         return vm.ComputeObject(RuntimeBase.MainStack, VariableContext.Absolute, CreateKey(value), () =>
         {
-            var num = new Numeric(vm, true);
-            num.SetAs(value);
-            num.Mutable = false;
+            var num = new Numeric(vm, true)
+            {
+                Bytes = BitConverter.GetBytes(value),
+                Mode = NumericMode.Double
+            };
             return num;
         });
     }
 
+    [Obsolete]
     private void SetAs<T>(T value)
     {
-        if (!Mutable && !_constant)
-            throw new FatalException("Numeric is immutable");
+        if (_constant)
+            throw new FatalException("Numeric is constant");
 
         var type = typeof(T);
 
@@ -455,9 +461,9 @@ public sealed class Numeric : NativeObj
 
     public IObjectRef OpRI(RuntimeBase vm)
     {
-        var rev = OpMultiply(vm, One);
-        SetAs((OpPlus(vm, One).Value as Numeric)!.DoubleValue);
-        return rev;
+        //var rev = OpMultiply(vm, One);
+        //SetAs((OpPlus(vm, One).Value as Numeric)!.DoubleValue);
+        return OpPlus(vm, One);
     }
 
     public IObjectRef OpDR(RuntimeBase vm)
@@ -467,9 +473,9 @@ public sealed class Numeric : NativeObj
 
     public IObjectRef OpRD(RuntimeBase vm)
     {
-        var rev = OpMultiply(vm, One);
-        SetAs((OpMinus(vm, One).Value as Numeric)!.DoubleValue);
-        return rev;
+        //var rev = OpMultiply(vm, One);
+        //SetAs((OpMinus(vm, One).Value as Numeric)!.DoubleValue);
+        return OpMinus(vm, One);
     }
 
     public IObjectRef OpGt(RuntimeBase vm, Numeric right)

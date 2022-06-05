@@ -22,7 +22,16 @@ public class PrintNumbers implements Throwable {
     public static void main() {
         int start = 0;
         int end = 24;
-        Iterable seq = start..end; 
+        
+        // test shorthand ops
+        // TODO: make parentheses for parsing order obsolete (-> antlr grammar order)
+        stdio <<- "24 (24) = " + (end) + " (" + end + ")" + endl;
+        stdio <<- "25 (25) = " + (++end) + " (" + end + ")" + endl;
+        stdio <<- "25 (24) = " + (end--) + " (" + end + ")" + endl;
+        stdio <<- "23 (23) = " + (--end) + " (" + end + ")" + endl;
+        stdio <<- "23 (24) = " + (end++) + " (" + end + ")" + endl;
+        
+        Iterable seq = start..end;
         
         stdio <<- "print numbers " + seq.start() + " to (exclusive) " + (seq.end() - 1 + 1) + ":" + endl;
         foreach (i : seq)

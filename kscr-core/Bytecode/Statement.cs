@@ -288,6 +288,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                 if (unaryPrefix) op ^= Operator.UnaryPrefix;
                 if (unaryPostfix) op ^= Operator.UnaryPostfix;
                 if (binary) op ^= Operator.Binary;
+                if (op is Operator.IncrementRead or Operator.DecrementRead) compound = true;
 
                 var left = SubComponent!.Evaluate(vm, stack.Output()).Copy(output: Alp);
                 
@@ -299,7 +300,12 @@ public class StatementComponent : IBytecode, IStatementComponent
                 {
                     if (unaryPrefix || unaryPostfix)
                         if (left![vm, stack, 0] is Numeric numA)
-                            stack[Default] = numA.Operator(vm, op);
+                            if (op is Operator.ReadIncrement or Operator.ReadDecrement)
+                            {
+                                stack[Default] = new ObjectRef(numA.Type, numA);
+                                left![vm, stack, 0] = numA.Operator(vm, op)[vm, stack, 0];
+                            }
+                            else stack[Default] = numA.Operator(vm, op);
                         else stack[Default] = left![vm, stack, 0].InvokeNative(vm, stack.Output(), "op" + op).Copy();
                     else if (binary)
                     {
