@@ -15,6 +15,7 @@ public sealed class Class : AbstractPackageMember, IClass
         .GetOrCreatePackage("comroid").GetOrCreatePackage("kscr");
 
     public static readonly Package LibCorePackage = LibRootPackage.GetOrCreatePackage("core");
+    public static readonly Package LibErrorPackage = LibRootPackage.GetOrCreatePackage("error");
 
     public static readonly Class VoidType;
     public static readonly Class TypeType;
@@ -29,6 +30,8 @@ public sealed class Class : AbstractPackageMember, IClass
     public static readonly Class IteratorType;
     public static readonly Class IterableType;
     public static readonly Class ThrowableType;
+    public static readonly Class ExceptionType;
+    public static readonly Class NullPointerExceptionType;
     public static readonly Class IntType;
     public static Instance NumericByteType;
     public static Instance NumericShortType;
@@ -75,6 +78,8 @@ public sealed class Class : AbstractPackageMember, IClass
         IterableType = new Class(LibCorePackage, "Iterable", false, MemberModifier.Public, ClassType.Interface)
             { TypeParameters = { new TypeParameter("T") } };
         ThrowableType = new Class(LibCorePackage, "Throwable", false, MemberModifier.Public, ClassType.Interface);
+        ExceptionType = new Class(LibErrorPackage, "Exception", false, MemberModifier.Public);
+        NullPointerExceptionType = new Class(LibErrorPackage, "NullPointerException", false, MemberModifier.Public);
         IntType = new Class(LibCorePackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
         {
             TypeParameters =
@@ -455,6 +460,8 @@ public sealed class Class : AbstractPackageMember, IClass
         AddToClass(ThrowableType, toString);
         AddToClass(ThrowableType, equals);
         AddToClass(ThrowableType, getType);
+        ExceptionType._interfaces.Add(ThrowableType.DefaultInstance);
+        NullPointerExceptionType._superclasses.Add(ExceptionType.DefaultInstance);
 
         #endregion
     }

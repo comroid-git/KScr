@@ -67,6 +67,12 @@ public class Statement : IBytecode, IStatement<StatementComponent>
                 CatchFinally.Evaluate(vm, stack);
             throw codeEx;
         }
+        catch (StackTraceException codeEx)
+        {
+            if (CatchFinally != null)
+                CatchFinally.Evaluate(vm, stack);
+            throw codeEx;
+        }
 
         return stack;
     }
@@ -229,17 +235,15 @@ public class StatementComponent : IBytecode, IStatementComponent
             case (StatementComponentType.Code, BytecodeType.StmtFor):
                 stack.StepInside(vm, SourcefilePosition, "for", stack =>
                 {
-                    for (SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Del);
-                         SubComponent!.Evaluate(vm, stack.Channel(Del, Phi)).Copy(Phi)!.ToBool();
-                         /* no accumulator :( */)
+                    for (IObjectRef i = SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Del)!;
+                         stack.State == State.Normal 
+                         && SubComponent!.Evaluate(vm, stack.Channel(Del, Phi)).Copy(Phi)!.ToBool() 
+                         && stack.State == State.Normal;
+                         (i[vm, stack, 0] = AltComponent!.Evaluate(vm, stack.Output()).Copy(output: Alp)![vm, stack, 0]).IsNull())
                     {
                         InnerCode!.Evaluate(vm, stack.Output()).CopyState();
-                        var delStack = stack.Channel(Del, Del);
-                        // accumulate
-                        AltComponent!.Evaluate(vm, delStack);
-                        var val = stack[Del]![vm, stack, 0] = delStack[Del]![vm, stack, 0];
-                        if (val == null || val.ObjectId == 0)
-                            throw new NullReferenceException();
+                        if (stack.State != State.Normal)
+                            break;
                     }
                 });
                 break;

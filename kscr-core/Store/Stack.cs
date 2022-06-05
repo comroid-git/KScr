@@ -125,10 +125,10 @@ public sealed class Stack
             StackOutput.Alp => _refs[0] ?? _parent?[StackOutput.Alp],
             StackOutput.Bet => _refs[1] ?? _parent?[StackOutput.Bet],
             StackOutput.Del => _refs[2] ?? _parent?[StackOutput.Del],
-            StackOutput.Eps => _refs[3] ?? _parent?[StackOutput.Eps],
-            StackOutput.Tau => _refs[4] ?? _parent?[StackOutput.Tau],
-            StackOutput.Phi => _refs[5] ?? _parent?[StackOutput.Phi],
-            StackOutput.Omg => _refs[6] ?? _parent?[StackOutput.Omg],
+            StackOutput.Eps => _refs[3],
+            StackOutput.Tau => _refs[4],
+            StackOutput.Phi => _refs[5],
+            StackOutput.Omg => _refs[6],
             _ => throw new ArgumentOutOfRangeException(nameof(adr), adr, "Single argument required for getter")
         };
         set
@@ -341,9 +341,10 @@ public sealed class Stack
         return target[output] = this[channel];
     }
 
-    public void CopyState(Stack target = null!)
+    public IObjectRef? CopyState(Stack target = null!)
     {
         if (((target ??= _parent).State = State) is State.Return or State.Throw)
             target[StackOutput.Omg] = this[StackOutput.Omg];
+        return this[Default];
     }
 }
