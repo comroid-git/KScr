@@ -32,7 +32,7 @@ classType
     | ANNOTATION    #ctAnnotation
     ;
 
-genericTypeUses: LESSER (n=NUMLIT | first=type) (COMMA type)* GREATER;
+genericTypeUses: LESSER (n=NUMLIT | type) (COMMA type)* GREATER;
 
 type
     : idPart                                            #importedTypeName
