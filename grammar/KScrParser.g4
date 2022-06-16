@@ -13,23 +13,23 @@ annotationArg: idPart ASSIGN expr;
 annotation: AT id (LPAREN (annotationArg (COMMA annotationArg)* | expr)? RPAREN)?;
 
 modifier
-    : PUBLIC        #modPublic
-    | INTERNAL      #modInternal
-    | PROTECTED     #modProtected
-    | PRIVATE       #modPrivate
-    | STATIC        #modStatic
-    | FINAL         #modFinal
-    | ABSTRACT      #modAbstract
-    | SYNCHRONIZED  #modSyncronized
-    | NATIVE        #modNative
+    : PUBLIC
+    | INTERNAL
+    | PROTECTED
+    | PRIVATE
+    | STATIC
+    | FINAL
+    | ABSTRACT
+    | SYNCHRONIZED
+    | NATIVE
     ;
 modifiers: modifier*;
 
 classType
-    : CLASS         #ctClass
-    | INTERFACE     #ctInterface
-    | ENUM          #ctEnum
-    | ANNOTATION    #ctAnnotation
+    : CLASS
+    | INTERFACE
+    | ENUM
+    | ANNOTATION
     ;
 
 genericTypeUses: LESSER (n=NUMLIT | first=type) (COMMA type)* GREATER;
@@ -205,40 +205,39 @@ expr
 tupleExpr: LPAREN expr (COMMA expr)* RPAREN;
 
 binaryop
-    : PLUS                  #opPlus
-    | MINUS                 #opMinus
-    | STAR                  #opMultiply
-    | SLASH                 #opDivide
-    | PERCENT               #opModulus
-    | BITAND                #opBitAnd
-    | BITOR                 #opBitOr
-    | EXCLAMATION           #opBitNot
-    | AND                   #opLogicAnd
-    | OR                    #opLogicOr
-    | UP                    #opPow
-    | EQUAL                 #opEqual
-    | INEQUAL               #opInequal
-    | GREATEREQ             #opGreaterEq
-    | LESSEREQ              #opLesserEq
-    | GREATER               #opGreater
-    | LESSER                #opLesser
-    | LSHIFT                #opLShift
-    | RSHIFT                #opRShift
-    | ULSHIFT               #opULShift
-    | URSHIFT               #opURShift
-    | QUESTION QUESTION     #opNullFallback
+    : PLUS
+    | MINUS
+    | STAR
+    | SLASH
+    | PERCENT
+    | BITAND
+    | BITOR
+    | AND
+    | OR
+    | UP
+    | EQUAL
+    | INEQUAL
+    | GREATEREQ
+    | LESSEREQ
+    | GREATER
+    | LESSER
+    | LSHIFT
+    | RSHIFT
+    | ULSHIFT
+    | URSHIFT
+    | QUESTION QUESTION
     ;
 
 prefixop
-    : MINUS         #opArithNot
-    | EXCLAMATION   #opLogicNot
-    | PLUSPLUS      #opIncrRead
-    | MINUSMINUS    #opDecrRead
+    : MINUS
+    | EXCLAMATION
+    | PLUSPLUS
+    | MINUSMINUS
     ;
 
 postfixop
-    : PLUSPLUS      #opReadIncr
-    | MINUSMINUS    #opReadDecr
+    : PLUSPLUS
+    | MINUSMINUS
     ;
 
 id: idPart (DOT idPart)*;

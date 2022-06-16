@@ -14,7 +14,7 @@ public enum MemberModifier : uint
     Final = 0x0080_0000,
     Static = 0x0010_0000,
     Native = 0x0100_0000,
-    Syncronized = 0x0200_0000
+    Synchronized = 0x0200_0000
 }
 
 public static class ModifierMethods

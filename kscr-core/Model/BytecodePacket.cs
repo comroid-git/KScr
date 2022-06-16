@@ -67,10 +67,10 @@ public enum Operator
     Unknown = 0,
 
     // unary operators
-    IncrementRead = 1 << 1, // ++x
-    DecrementRead = 1 << 2, // --x
-    ReadIncrement = 1 << 3, // x++
-    ReadDecrement = 1 << 4, // x--
+    Increment = 1 << 1, // ++x & x++
+    Decrement = 1 << 2, // --x & x--
+    
+    
     LogicNot = 1 << 5, // !x
     ArithmeticNot = 1 << 6, // -x
 

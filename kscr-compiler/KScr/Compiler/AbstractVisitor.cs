@@ -230,6 +230,6 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
 
     public SourcefilePosition ToSrcPos(ParserRuleContext context)
     {
-        return Utils.ToSrcPos(context);
+        return context.ToSrcPos();
     }
 }
