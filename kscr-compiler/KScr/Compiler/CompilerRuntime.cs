@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Antlr4.Runtime;
 using KScr.Antlr;
 using KScr.Bytecode;
@@ -17,65 +19,17 @@ public class CompilerRuntime : BytecodeRuntime
     public override ObjectStore ObjectStore => null!;
     public override ClassStore ClassStore { get; } = new();
 
-    [Obsolete]
-    public void CompileFiles(IEnumerable<FileInfo> sources)
+    public void CompileSource(string source)
     {
-        IEnumerator<FileInfo> files = null!;
-        try
-        {
-            files = sources.GetEnumerator();
-            while (files.MoveNext())
-                CompileClass(files.Current);
-        }
-        finally
-        {
-            files?.Dispose();
-        }
+        if (source.EndsWith(SourceFileExt) && File.Exists(source))
+            throw new NotSupportedException(); //new MemberNode(source){Member = Package.RootPackage.GetOrCreateClass(this, )}
+        else if (Directory.Exists(source))
+            node = new PackageNode(source, Package.RootPackage.GetOrCreatePackage())
+        else throw new FileNotFoundException("Source path not found: " + source);
     }
 
-    [Obsolete]
-    public void CompileClass(FileInfo file)
-    {
-        var clsName = file.Name.Substring(0, file.Name.Length - SourceFileExt.Length);
-        CompileClass(clsName, file.FullName);
-    }
-
-    [Obsolete]
-    public Core.Std.Class CompileClass(string clsName, string filePath = "org/comroid/kscr/core/System.kscr",
-        string? source = null)
-    {
-        var fileDecl =
-            MakeFileDecl(source != null ? new AntlrInputStream(source) : new AntlrFileStream(filePath, Encoding));
-
-        // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
-        var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
-        var imports = FindClassImports(fileDecl.imports());
-        
-        // todo: load imported classes first
-        
-        var news = new Dictionary<string, Core.Std.Class>();
-        var ctx = new CompilerContext
-        {
-            Package = pkg,
-            Imports = imports
-        };
-
-        foreach (var classDecl in fileDecl.classDecl())
-        {
-            var classInfo = new ClassInfoVisitor(this, ctx).Visit(classDecl);
-            var subctx = new CompilerContext
-            {
-                Parent = ctx,
-                Class = pkg.GetOrCreateClass(this, classInfo.Name, classInfo.Modifier, classInfo.ClassType)
-            };
-            var cls = new ClassVisitor(this, subctx).Visit(classDecl);
-            cls.Initialize(this);
-            cls.LateInitialize(this, MainStack);
-            news[cls.Name] = cls;
-        }
-
-        return news[clsName];
-    }
+    private readonly ConcurrentDictionary<string, KScrParser.FileContext> _fileDecls = new();
+    public KScrParser.FileContext MakeFileDecl(FileInfo file) => _fileDecls.GetOrAdd(file.FullName, path => MakeFileDecl(new AntlrFileStream(path)));
 
     public KScrParser.FileContext MakeFileDecl(BaseInputCharStream input)
     {
