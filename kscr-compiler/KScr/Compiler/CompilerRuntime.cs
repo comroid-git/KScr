@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Antlr4.Runtime;
 using KScr.Antlr;
@@ -16,6 +17,7 @@ public class CompilerRuntime : BytecodeRuntime
     public override ObjectStore ObjectStore => null!;
     public override ClassStore ClassStore { get; } = new();
 
+    [Obsolete]
     public void CompileFiles(IEnumerable<FileInfo> sources)
     {
         IEnumerator<FileInfo> files = null!;
@@ -31,12 +33,14 @@ public class CompilerRuntime : BytecodeRuntime
         }
     }
 
+    [Obsolete]
     public void CompileClass(FileInfo file)
     {
         var clsName = file.Name.Substring(0, file.Name.Length - SourceFileExt.Length);
         CompileClass(clsName, file.FullName);
     }
 
+    [Obsolete]
     public Core.Std.Class CompileClass(string clsName, string filePath = "org/comroid/kscr/core/System.kscr",
         string? source = null)
     {
