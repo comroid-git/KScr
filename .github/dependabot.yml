@@ -13,7 +13,5 @@ updates:
     assignees:
       - "burdoto
     open-pull-requests-limit: 99
-    pull-request-branch-name:
-      separator: "-"
     reviewers:
       - "burdoto"
