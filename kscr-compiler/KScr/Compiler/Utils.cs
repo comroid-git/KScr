@@ -11,7 +11,7 @@ public static class Utils
         {
             SourcefilePath = context.Start.TokenSource.SourceName,
             SourcefileLine = context.Start.Line,
-            SourcefileCursor = context.Start.TokenIndex
+            SourcefileCursor = context.Start.Column
         };
     }
 }
