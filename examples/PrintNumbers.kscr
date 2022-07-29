@@ -30,6 +30,9 @@ public class PrintNumbers implements Throwable {
         stdio <<- "25 (24) = " + (end--) + " (" + end + ")" + endl;
         stdio <<- "23 (23) = " + (--end) + " (" + end + ")" + endl;
         stdio <<- "23 (24) = " + (end++) + " (" + end + ")" + endl;
+        stdio <<- "23 = " + 23 + endl;
+        stdio <<- "24 = " + 24 + endl;
+        stdio <<- "25 = " + 25 + endl;
         
         Iterable seq = start..end;
         
