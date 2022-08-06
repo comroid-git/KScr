@@ -219,8 +219,8 @@ public abstract class RuntimeBase : IBytecodePort
             .Split(Path.PathSeparator)
             .Select(path => new DirectoryInfo(path))
             .Where(dir => dir.Exists)
-            .First(dir => dir.EnumerateFiles("*.exe")
-                .Any(f => f.Name == "kscr.exe"));
+            .FirstOrDefault(dir => dir.EnumerateFiles("*.exe")
+                .Any(f => f.Name == "kscr.exe")) ?? throw new System.Exception("KScr Home not found in PATH");
     }
 
     public void Clear()
