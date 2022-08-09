@@ -137,7 +137,7 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
             WriteByte((byte)comp.VariableContext);
             WriteULong(comp.ByteArg);
             WriteString(comp.Arg ?? string.Empty);
-            WriteArray(comp.Args.Select(str => IBytecode.String(str)).ToArray());
+            WriteArray(comp.Args.Select(IBytecode.String).ToArray());
             Write(strings, stream, comp.SourcefilePosition);
             var memberState = comp.GetComponentMember();
             WriteByte((byte)memberState);
