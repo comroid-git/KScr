@@ -171,17 +171,20 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
                 Args = katchow.type() == null
                     ? new List<string>()
                     : katchow.type()
-                        .Select(x => VisitTypeInfo(x).FullDetailedName)
+                        .Select(x => VisitTypeInfo(x).CanonicalName)
                         .Append(katchow.idPart().GetText())
                         .ToList(),
-                InnerCode = VisitCode(katchow.codeBlock())
+                InnerCode = VisitCode(katchow.codeBlock()),
+                SourcefilePosition = ToSrcPos(katchow)
             });
+        // finally
         if (context.finallyBlock() is { } finalli)
             comp.AltComponent = new StatementComponent()
             {
                 Type = StatementComponentType.Code,
                 CodeType = BytecodeType.StmtFinally,
-                InnerCode = VisitCode(finalli.codeBlock())
+                InnerCode = VisitCode(finalli.codeBlock()),
+                SourcefilePosition = ToSrcPos(finalli)
             };
         return comp;
     }
