@@ -221,6 +221,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                     throw new FatalException(
                         "Invalid throw statement; no Exception found");
                 SubComponent.Evaluate(vm, stack.Output()).Copy(output: Alp | Omg);
+                //Console.WriteLine(stack[Alp]);
                 stack.State = State.Throw;
                 break;
             case (StatementComponentType.Code, BytecodeType.StmtIf):
@@ -235,11 +236,11 @@ public class StatementComponent : IBytecode, IStatementComponent
             case (StatementComponentType.Code, BytecodeType.StmtFor):
                 stack.StepInside(vm, SourcefilePosition, "for", stack =>
                 {
-                    for (IObjectRef i = SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Del)!;
-                         stack.State == State.Normal 
-                         && SubComponent!.Evaluate(vm, stack.Channel(Del, Phi)).Copy(Phi)!.ToBool() 
+                    for (SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Del);
+                         stack.State == State.Normal
+                         && SubComponent!.Evaluate(vm, stack.Channel(Del, Phi)).Copy(Phi)!.ToBool()
                          && stack.State == State.Normal;
-                         (i[vm, stack, 0] = AltComponent!.Evaluate(vm, stack.Output()).Copy(output: Alp)![vm, stack, 0]).IsNull())
+                         AltComponent!.Evaluate(vm, stack.Output()).Copy(output: Del))
                     {
                         InnerCode!.Evaluate(vm, stack.Output()).CopyState();
                         if (stack.State != State.Normal)
