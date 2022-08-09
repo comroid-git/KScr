@@ -37,6 +37,7 @@ public class Statement : IBytecode, IStatement<StatementComponent>
 
     public Stack Evaluate(RuntimeBase vm, Stack stack)
     {
+        bool caught = false;
         try
         {
             foreach (var component in Main)
@@ -84,6 +85,7 @@ public class Statement : IBytecode, IStatement<StatementComponent>
                                     catchBlock.InnerCode!.Evaluate(vm, stack);
                                 });
                             }
+                            caught = true;
                         }
                         finally
                         {
@@ -93,12 +95,14 @@ public class Statement : IBytecode, IStatement<StatementComponent>
                                     foreach (var resource in resources.Select(x => x.value))
                                         Class.CloseableType.DeclaredMembers["close"].Invoke(vm, stack, resource);
                                 CatchFinally!.AltComponent!.InnerCode!.Evaluate(vm, stack);
+                                caught = true;
                             }
                             catch (StackTraceException fatal)
                             {
                                 throw new FatalException("Inner exception during finalization", fatal);
                             }
                         }
+
                         break;
                     default:
                         component.Evaluate(vm, stack);
@@ -111,15 +115,22 @@ public class Statement : IBytecode, IStatement<StatementComponent>
         }
         catch (InternalException codeEx)
         {
-            if (CatchFinally != null)
-                CatchFinally.Evaluate(vm, stack);
+            stack[Tau] = new ObjectRef(Class.ThrowableType.DefaultInstance, codeEx.Obj);
+            CatchFinally?.Evaluate(vm, stack);
+            caught = true;
             throw codeEx;
         }
         catch (StackTraceException codeEx)
         {
-            if (CatchFinally != null)
-                CatchFinally.Evaluate(vm, stack);
+            stack[Tau] = new ObjectRef(Class.ThrowableType.DefaultInstance, codeEx.InnerCause.Obj);
+            CatchFinally?.Evaluate(vm, stack);
+            caught = true;
             throw codeEx;
+        }
+        finally
+        {
+            if (!caught)
+                CatchFinally?.AltComponent?.InnerCode!.Evaluate(vm, stack);
         }
 
         return stack;
@@ -332,6 +343,20 @@ public class StatementComponent : IBytecode, IStatementComponent
                         InnerCode.Evaluate(vm, stack.Output()).CopyState();
                     } while (SubComponent.Evaluate(vm, stack.Output(Phi)).Copy(Phi).ToBool());
                 });
+                break;
+            case (StatementComponentType.Code, BytecodeType.StmtCatch):
+                IObject ex = stack[Tau]![vm, stack, 0];
+                IClassInfo exType = ex.Type;
+                try
+                {
+                    SubStatement!.Main
+                        .FirstOrDefault(comp => comp.Args.Any(exClsName => exClsName == exType.CanonicalName))
+                        ?.InnerCode!.Evaluate(vm, stack);
+                }
+                finally
+                {
+                    AltComponent?.InnerCode!.Evaluate(vm, stack);
+                }
                 break;
             case (StatementComponentType.Operator, _):
                 var op = (Operator)ByteArg;
