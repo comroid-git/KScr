@@ -137,6 +137,7 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
             WriteByte((byte)comp.VariableContext);
             WriteULong(comp.ByteArg);
             WriteString(comp.Arg ?? string.Empty);
+            WriteArray(comp.Args.Select(IBytecode.String).ToArray());
             Write(strings, stream, comp.SourcefilePosition);
             var memberState = comp.GetComponentMember();
             WriteByte((byte)memberState);
@@ -343,6 +344,7 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
                 var varctx = (VariableContext)ReadByte();
                 var byteArg = ReadULong();
                 sArg = ReadString();
+                var sArgs = ReadArray<string>();
                 srcPos = Load<SourcefilePosition>(vm, strings, stream, pkg, cls);
                 var memberState = (ComponentMember)ReadByte();
                 Statement? subStmt, altStmt = subStmt = null;
@@ -367,6 +369,7 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
                     VariableContext = varctx,
                     ByteArg = byteArg,
                     Arg = sArg,
+                    Args = sArgs.ToList(),
                     SubStatement = subStmt,
                     AltStatement = altStmt,
                     SubComponent = subComp,

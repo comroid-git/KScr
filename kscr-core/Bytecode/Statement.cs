@@ -37,6 +37,7 @@ public class Statement : IBytecode, IStatement<StatementComponent>
 
     public Stack Evaluate(RuntimeBase vm, Stack stack)
     {
+        bool caught = false;
         try
         {
             foreach (var component in Main)
@@ -52,6 +53,57 @@ public class Statement : IBytecode, IStatement<StatementComponent>
                         }
 
                         break;
+                    case (StatementComponentType.Code, BytecodeType.StmtTry):
+                        (string name, IObject value)[]? resources = null;
+                        var comp = Main[0];
+                        try
+                        {
+                            if (comp.ByteArg == 1) // try-with-resources
+                                resources = comp.SubStatement!.Main.Select(x => (x.Args[1],
+                                    x.SubComponent!.Evaluate(vm, stack.Output()).Copy()![vm, stack, 0])).ToArray();
+
+                            var resourcesF = resources;
+                            var compF = comp;
+                            stack.StepInside(vm, comp.SourcefilePosition, "try", stack =>
+                            {
+                                foreach (var resource in resourcesF ?? Array.Empty<(string, IObject)>())
+                                    vm.PutLocal(stack, resource.name, resource.value);
+                                compF.InnerCode!.Evaluate(vm, stack);
+                            });
+                        }
+                        catch (StackTraceException trace)
+                        {
+                            var innerCause = trace.InnerCause.Obj;
+                            foreach (var catchBlock in CatchFinally!.SubStatement!.Main
+                                         .Where(x => x.Args.Select(t => vm.FindType(t))
+                                             .Any(x => x!.CanHold(innerCause.Type)))
+                                         .Select(x => (x.Arg, x.InnerCode)))
+                            {
+                                stack.StepInside(vm, CatchFinally.SourcefilePosition, "catch", stack =>
+                                {
+                                    vm.PutLocal(stack, catchBlock.Arg, innerCause);
+                                    catchBlock.InnerCode!.Evaluate(vm, stack);
+                                });
+                            }
+                            caught = true;
+                        }
+                        finally
+                        {
+                            try
+                            {
+                                if (resources != null)
+                                    foreach (var resource in resources.Select(x => x.value))
+                                        Class.CloseableType.DeclaredMembers["close"].Invoke(vm, stack, resource);
+                                CatchFinally!.AltComponent!.InnerCode!.Evaluate(vm, stack);
+                                caught = true;
+                            }
+                            catch (StackTraceException fatal)
+                            {
+                                throw new FatalException("Inner exception during finalization", fatal);
+                            }
+                        }
+
+                        break;
                     default:
                         component.Evaluate(vm, stack);
                         break;
@@ -63,15 +115,22 @@ public class Statement : IBytecode, IStatement<StatementComponent>
         }
         catch (InternalException codeEx)
         {
-            if (CatchFinally != null)
-                CatchFinally.Evaluate(vm, stack);
+            stack[Tau] = new ObjectRef(Class.ThrowableType.DefaultInstance, codeEx.Obj);
+            CatchFinally?.Evaluate(vm, stack);
+            caught = true;
             throw codeEx;
         }
         catch (StackTraceException codeEx)
         {
-            if (CatchFinally != null)
-                CatchFinally.Evaluate(vm, stack);
+            stack[Tau] = new ObjectRef(Class.ThrowableType.DefaultInstance, codeEx.InnerCause.Obj);
+            CatchFinally?.Evaluate(vm, stack);
+            caught = true;
             throw codeEx;
+        }
+        finally
+        {
+            if (!caught)
+                CatchFinally?.AltComponent?.InnerCode!.Evaluate(vm, stack);
         }
 
         return stack;
@@ -88,6 +147,7 @@ public class StatementComponent : IBytecode, IStatementComponent
     public Statement Statement { get; set; } = null!;
     public VariableContext VariableContext { get; set; }
     public string Arg { get; set; } = string.Empty;
+    public List<string> Args { get; set; } = new();
     public ulong ByteArg { get; set; }
     public SourcefilePosition SourcefilePosition { get; set; }
     public Statement? SubStatement { get; set; }
@@ -223,6 +283,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                 SubComponent.Evaluate(vm, stack.Output()).Copy(output: Alp | Omg);
                 //Console.WriteLine(stack[Alp]);
                 stack.State = State.Throw;
+                Stack.StackTrace.Clear();
                 break;
             case (StatementComponentType.Code, BytecodeType.StmtIf):
                 stack.StepInside(vm, SourcefilePosition, "if", stack =>
@@ -282,6 +343,20 @@ public class StatementComponent : IBytecode, IStatementComponent
                         InnerCode.Evaluate(vm, stack.Output()).CopyState();
                     } while (SubComponent.Evaluate(vm, stack.Output(Phi)).Copy(Phi).ToBool());
                 });
+                break;
+            case (StatementComponentType.Code, BytecodeType.StmtCatch):
+                IObject ex = stack[Tau]![vm, stack, 0];
+                IClassInfo exType = ex.Type;
+                try
+                {
+                    SubStatement!.Main
+                        .FirstOrDefault(comp => comp.Args.Any(exClsName => exClsName == exType.CanonicalName))
+                        ?.InnerCode!.Evaluate(vm, stack);
+                }
+                finally
+                {
+                    AltComponent?.InnerCode!.Evaluate(vm, stack);
+                }
                 break;
             case (StatementComponentType.Operator, _):
                 var op = (Operator)ByteArg;

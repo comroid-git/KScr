@@ -69,14 +69,20 @@ public class PrintNumbers implements Throwable {
         stdio <<- "look at my cool object: " + obj.toString(0) + endl;
         stdio <<- "and of course i can access it this way too: " + obj.StackValue + endl;
         
-        stdio <<- "let's test for-loop recursion with an 8x8 matrix:" + endl;
+        try {
+            obj.callThroingMethod();
+        } catch (Throwable t) {
+            stdio <<- "no this time yet, tho! we caught it" + t + endl;
+        } finally {
+            stdio <<- "and another time, finalization blocks" + endl;
+        }
+        
+        stdio <<- "now we're doing some recursion shit with a 8x8 table:" + endl;
         for (int y = 1; y < 9; y++) {
             for (int x = 1; x < 9; x++)
-                //throw x + (y * 9);
                 stdio <<- " " + x + y + " -";
             stdio <<- endl;
-        }// finally stdio <<- "finally, we finish throwing:";
-        
+        } finally stdio <<- "finally, we finish throwing:" + endl;
         obj.callThroingMethod();
     }
     

@@ -268,7 +268,7 @@ public sealed class Stack
                     // ReSharper disable once PossibleIntendedRethrow
                 //    throw ex;
 #pragma warning restore CA2200
-                throw new StackTraceException(CallLocation, _local, ex, $"Fatal internal {ex.GetType().Name}: {ex.Message}");
+                throw new StackTraceException(CallLocation, _local, new InternalException(null, ex), $"Fatal internal {ex.GetType().Name}: {ex.Message}");
             }
 #endif
         finally
@@ -282,7 +282,7 @@ public sealed class Stack
                 if (Omg == null || /* null check */ Omg.Value.ObjectId == 0)
                 {
                     RuntimeBase.ExitCode = -1;
-                    throw new InternalException("No Message Provided");
+                    throw new InternalException("No Message Provided", IObject.Null);
                 }
 
                 if (!Std.Class.ThrowableType.CanHold(Omg.Value.Type)
@@ -294,8 +294,7 @@ public sealed class Stack
                     .IntValue;
                 RuntimeBase.ExitMessage =
                     throwable.InvokeNative(vm, Output(), "Message").Copy(output: StackOutput.Bet)![vm, this, 0].ToString(0);
-                throw new InternalException(
-                    $"{throwable.Type.Name}: {RuntimeBase.ExitMessage} ({RuntimeBase.ExitCode})");
+                throw new InternalException($"{throwable.Type.Name}: {RuntimeBase.ExitMessage} ({RuntimeBase.ExitCode})", Omg.Value);
             }
 
             maintain = (maintain == Default ? _output : maintain) | StackOutput.Omg;
