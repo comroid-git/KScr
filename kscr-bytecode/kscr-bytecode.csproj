@@ -7,7 +7,7 @@
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
         <Company>comroid</Company>
-        <AssemblyVersion>0.3.0</AssemblyVersion>
+        <AssemblyVersion>0.3.1</AssemblyVersion>
         <FileVersion>10</FileVersion>
     </PropertyGroup>
 

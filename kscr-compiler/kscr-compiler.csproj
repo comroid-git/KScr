@@ -5,7 +5,7 @@
         <RootNamespace></RootNamespace>
         <Nullable>enable</Nullable>
         <Company>comroid</Company>
-        <AssemblyVersion>0.3.0</AssemblyVersion>
+        <AssemblyVersion>0.3.1</AssemblyVersion>
         <LangVersion>latest</LangVersion>
         <FileVersion>10</FileVersion>
         <IsPackable>false</IsPackable>

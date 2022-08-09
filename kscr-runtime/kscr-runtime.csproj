@@ -10,8 +10,8 @@
         <Product>kscr</Product>
         <Company>comroid</Company>
         <AssemblyTitle>KScr Runtime</AssemblyTitle>
-        <AssemblyVersion>0.3.0</AssemblyVersion>
-        <Version>0.3.0</Version>
+        <AssemblyVersion>0.3.1</AssemblyVersion>
+        <Version>0.3.1</Version>
         <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
         <LangVersion>latest</LangVersion>
         <FileVersion>10</FileVersion>

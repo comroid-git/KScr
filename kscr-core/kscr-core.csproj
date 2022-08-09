@@ -5,8 +5,8 @@
         <RootNamespace>KScr.Core</RootNamespace>
         <Nullable>enable</Nullable>
         <Company>comroid</Company>
-        <AssemblyVersion>0.3.0</AssemblyVersion>
-        <PackageVersion>0.3.0</PackageVersion>
+        <AssemblyVersion>0.3.1</AssemblyVersion>
+        <PackageVersion>0.3.1</PackageVersion>
         <LangVersion>latest</LangVersion>
         <FileVersion>10</FileVersion>
         <IsPackable>true</IsPackable>
