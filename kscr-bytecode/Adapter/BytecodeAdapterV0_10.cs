@@ -10,6 +10,18 @@ namespace KScr.Bytecode.Adapter;
 
 public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
 {
+    [Flags]
+    private enum PropState : byte
+    {
+        Automatic = 0b000_000,
+        Gettable  = 0b000_001,
+        Settable  = 0b000_010,
+        Initable  = 0b000_100,
+        HasGetter = 0b001_000,
+        HasSetter = 0b010_000,
+        HasIniter = 0b100_000,
+    }
+
     public BytecodeAdapterV0_10() : base(BytecodeVersion.V_0_10)
     {
     }
@@ -82,12 +94,12 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
             WriteString(prop.ReturnType.FullDetailedName);
             Write(strings, stream, prop.SourceLocation);
             WriteByte((byte)
-                ((prop.Gettable ? 0b000_001 : 0) |
-                 (prop.Settable ? 0b000_010 : 0) |
-                 (prop.Inittable ? 0b000_100 : 0) |
-                 (prop.Getter != null ? 0b001_000 : 0) |
-                 (prop.Setter != null ? 0b010_000 : 0) |
-                 (prop.Initter != null ? 0b100_000 : 0))
+                ((prop.Gettable ? (byte)PropState.Gettable : 0) |
+                 (prop.Settable ? (byte)PropState.Settable : 0) |
+                 (prop.Inittable ? (byte)PropState.Initable : 0) |
+                 (prop.Getter != null ? (byte)PropState.HasGetter : 0) |
+                 (prop.Setter != null ? (byte)PropState.HasSetter : 0) |
+                 (prop.Initter != null ? (byte)PropState.HasIniter : 0))
             );
             if (prop.Getter != null)
                 Write(strings, stream, prop.Getter!);
@@ -260,7 +272,8 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
             case BytecodeElementType.Class:
                 memberType = (ClassMemberType)ReadByte();
                 if (memberType != ClassMemberType.Class)
-                    throw new FatalException("Unexpected member type: " + memberType);
+                    throw new FatalException(
+                        $"Unable to load class {cls?.CanonicalName}; invalid member type at {stream.Position}");
                 var classType = (ClassType)ReadByte();
                 mod = (MemberModifier)ReadUInt();
                 name = ReadString();
@@ -277,26 +290,25 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
             case BytecodeElementType.Property:
                 memberType = (ClassMemberType)ReadByte();
                 if (memberType != ClassMemberType.Property)
-                    throw new FatalException("Unexpected member type: " + memberType);
-                if (cls == null)
-                    throw new FatalException("Containing class cannot be null");
+                    throw new FatalException(
+                        $"Unable to load class {cls?.CanonicalName}; invalid member type at {stream.Position}");
                 mod = (MemberModifier)ReadUInt();
                 name = ReadString();
                 returnType = vm.FindType(ReadString());
                 srcPos = Load<SourcefilePosition>(vm, strings, stream, pkg, cls);
-                var propState = ReadByte();
+                var propState = (PropState)ReadByte();
                 ExecutableCode? getter, setter, initter = setter = getter = null;
-                if ((propState & 0b001_000) != 0)
+                if ((propState & PropState.HasGetter) != 0)
                     getter = Load<ExecutableCode>(vm, strings, stream, pkg, cls);
-                else if ((propState & 0b010_000) != 0)
+                else if ((propState & PropState.HasSetter) != 0)
                     setter = Load<ExecutableCode>(vm, strings, stream, pkg, cls);
-                else if ((propState & 0b100_000) != 0)
+                else if ((propState & PropState.HasIniter) != 0)
                     initter = Load<ExecutableCode>(vm, strings, stream, pkg, cls);
                 return (T)(object)new Property(srcPos, cls!, name, returnType, mod)
                 {
-                    Gettable = (propState & 0b000_001) != 0,
-                    Settable = (propState & 0b000_010) != 0,
-                    Inittable = (propState & 0b000_100) != 0,
+                    Gettable = (propState & PropState.Gettable) != 0,
+                    Settable = (propState & PropState.Settable) != 0,
+                    Inittable = (propState & PropState.Initable) != 0,
                     Getter = getter,
                     Setter = setter,
                     Initter = initter
@@ -304,9 +316,8 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
             case BytecodeElementType.Method:
                 memberType = (ClassMemberType)ReadByte();
                 if (memberType != ClassMemberType.Method)
-                    throw new FatalException("Unexpected member type: " + memberType);
-                if (cls == null)
-                    throw new FatalException("Containing class cannot be null");
+                    throw new FatalException(
+                        $"Unable to load class {cls?.CanonicalName}; invalid member type at {stream.Position}");
                 mod = (MemberModifier)ReadUInt();
                 name = ReadString();
                 returnType = vm.FindType(ReadString());
