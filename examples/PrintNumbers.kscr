@@ -72,9 +72,9 @@ public class PrintNumbers implements Throwable {
         try {
             obj.callThroingMethod();
         } catch (Throwable t) {
-            stdio <<- "no this time yet, tho! we caught it" + t;
+            stdio <<- "no this time yet, tho! we caught it" + t + endl;
         } finally {
-            stdio <<- "and another time, finalization blocks";
+            stdio <<- "and another time, finalization blocks" + endl;
         }
         
         stdio <<- "now we're doing some recursion shit with a 8x8 table:";
@@ -82,7 +82,7 @@ public class PrintNumbers implements Throwable {
             for (int x = 1; x < 9; x++)
                 stdio <<- " " + x + y + " -";
             stdio <<- endl;
-        } finally stdio <<- "finally, we finish throwing:";
+        } finally stdio <<- "finally, we finish throwing:" + endl;
         obj.callThroingMethod();
     }
     
