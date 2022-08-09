@@ -40,7 +40,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         {
             Type = StatementComponentType.Declaration,
             CodeType = context.expr() != null ? BytecodeType.Assignment : BytecodeType.Declaration,
-            Arg = VisitTypeInfo(context.type()).FullDetailedName + ';' + context.idPart().GetText(),
+            Args = { VisitTypeInfo(context.type()).FullDetailedName, context.idPart().GetText() },
             SubComponent = context.expr() is { } expr ? VisitExpression(expr) : null,
             SourcefilePosition = ToSrcPos(context)
         };

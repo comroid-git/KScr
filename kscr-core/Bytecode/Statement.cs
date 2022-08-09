@@ -248,8 +248,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                 break;
             case (StatementComponentType.Declaration, _):
                 // variable declaration
-                var split = Arg.Split(';');
-                stack[Default] = vm[stack, VariableContext, split[1]] = new ObjectRef(vm.FindType(split[0])!);
+                stack[Default] = vm[stack, VariableContext, Args[1]] = new ObjectRef(vm.FindType(Args[0])!);
                 if (CodeType == BytecodeType.Assignment)
                 {
                     SubComponent!.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
