@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using KScr.Core.Bytecode;
+using KScr.Core.Std;
 
 namespace KScr.Core.Util;
 
@@ -10,6 +13,20 @@ public sealed class StringCache
     public const string FileName = "strings" + RuntimeBase.BinaryFileExt;
 
     public static readonly byte[] NewLineBytes = RuntimeBase.Encoding.GetBytes("\n");
+
+    public static IEnumerable<string> CommonStrings => new[] { Method.ConstructorName, Method.StaticInitializerName }
+        .Concat(GetAllClasses(Class.LibRootPackage)
+            .SelectMany(cls => new[] { cls.CanonicalName, cls.FullDetailedName }));
+
+    private static IEnumerable<Class> GetAllClasses(IPackageMember mem)
+    {
+        if (mem is Package pkg)
+            return pkg.PackageMembers.Values.SelectMany(GetAllClasses);
+        if (mem is Class cls)
+            return new[]{cls};
+        throw new System.Exception("invalid state");
+    }
+
     private readonly IList<string> _strings = new List<string>();
     private int _index = -1;
 
@@ -19,6 +36,8 @@ public sealed class StringCache
         {
             if (str == null)
                 throw new NullReferenceException();
+            if (CommonStrings.Contains(str))
+                ; // todo Do not include common strings in every string cache
             if (_strings.IndexOf(str) is var i && i != -1)
                 return i;
             var id = ++_index;
