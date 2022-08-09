@@ -111,12 +111,9 @@ public abstract class RuntimeBase : IBytecodePort
         return (CompressionType, mode) switch
         {
             (CompressionType.None, _) => stream,
-            (CompressionType.GZip, CompressionMode.Compress) => new GZipStream(stream, level ?? CompressionLevel),
-            (CompressionType.GZip, CompressionMode.Decompress) =>
-                new GZipStream(stream, CompressionMode.Decompress),
+            (CompressionType.GZip, _) => new GZipStream(stream, mode),
             (CompressionType.ZLib, CompressionMode.Compress) => new ZLibStream(stream, level ?? CompressionLevel),
-            (CompressionType.ZLib, CompressionMode.Decompress) =>
-                new ZLibStream(stream, CompressionMode.Decompress),
+            (CompressionType.ZLib, CompressionMode.Decompress) => new ZLibStream(stream, CompressionMode.Decompress),
             _ => throw new ArgumentOutOfRangeException(nameof(CompressionType), CompressionType,
                 "Invalid CompressionType")
         };
