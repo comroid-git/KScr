@@ -77,7 +77,7 @@ public class PrintNumbers implements Throwable {
             stdio <<- "and another time, finalization blocks" + endl;
         }
         
-        stdio <<- "now we're doing some recursion shit with a 8x8 table:";
+        stdio <<- "now we're doing some recursion shit with a 8x8 table:" + endl;
         for (int y = 1; y < 9; y++) {
             for (int x = 1; x < 9; x++)
                 stdio <<- " " + x + y + " -";
