@@ -72,7 +72,7 @@ public class PrintNumbers implements Throwable {
         try {
             obj.callThroingMethod();
         } catch (Throwable t) {
-            stdio <<- "no this time yet, tho! we caught it" + t + endl;
+            stdio <<- "no this time yet, tho! we caught it: " + t + endl;
         } finally {
             stdio <<- "and another time, finalization blocks" + endl;
         }
