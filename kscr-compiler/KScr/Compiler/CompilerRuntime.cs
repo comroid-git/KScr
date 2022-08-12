@@ -8,6 +8,7 @@ using Antlr4.Runtime;
 using KScr.Antlr;
 using KScr.Bytecode;
 using KScr.Compiler.Class;
+using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
@@ -27,13 +28,22 @@ public class CompilerRuntime : BytecodeRuntime
         if (basePackage != null)
             pkg = Package.RootPackage.GetOrCreatePackage(basePackage);
         var ctx = new CompilerContext() { Package = pkg };
-        PackageNode node;
-        if (Directory.Exists(source))
+        SourceNode node;
+        var src = new FileInfo(source);
+        if (source.EndsWith(SourceFileExt))
+        {
+            var decl = MakeFileDecl(src);
+            ctx = new CompilerContext() { Parent = ctx, Class = FindClassInfo(src), Imports = FindClassImports(decl.imports()) };
+            node = SourceNode.ForBaseClass(this, ctx, src, new PackageNode(this, ctx, src.DirectoryName!, pkg));
+            int mc = (node as MemberNode)!.ReadMembers();
+            Debug.WriteLine($"[NodeCompiler] Loaded {mc} members");
+        }
+        else if (Directory.Exists(source))
         {
             node = new PackageNode(this, ctx, source, pkg);
-            node.Read();
+            (node as PackageNode)!.Read();
         }
-        else throw new FileNotFoundException("Source path not found: " + source);
+        else throw new FileNotFoundException("Source path not found: " + src.FullName);
 
         SourceNode.RevisitRec(new[] { node });
     }

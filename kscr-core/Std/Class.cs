@@ -105,7 +105,7 @@ public sealed class Class : AbstractPackageMember, IClass
     public TypeParameter.Instance[] TypeParameterInstances { get; } = Array.Empty<TypeParameter.Instance>();
 
     public Class? Parent { get; init; } = null;
-    public ClassMemberType MemberType { get; }
+    public ClassMemberType MemberType => ClassMemberType.Class;
     public StatementComponent CatchFinally { get; set; }
     public SourcefilePosition SourceLocation { get; init; }
 

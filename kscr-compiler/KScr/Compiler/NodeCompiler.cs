@@ -82,7 +82,7 @@ public class PackageNode : SourceNode
         
         pc += ReadPackages();
         pc += ReadPackagesRec(Nodes, ref cc);
-        Debug.WriteLine($"[NodeCompiler] Loaded {pc} packages"); ;
+        Debug.WriteLine($"[NodeCompiler] Loaded {pc} packages");
         Debug.WriteLine($"[NodeCompiler] Loaded {cc} classes");
         Debug.WriteLine($"[NodeCompiler] Loaded {pc + cc} nodes");
     }
