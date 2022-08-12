@@ -228,11 +228,21 @@ public class MemberNode : SourceNode
         if (Member is not Property prop)
             throw new FatalException("Invalid Member for Property body: " + Member);
         if (context.propGetter() is { } getter)
+        {
+            prop.Gettable = true;
             prop.Getter = VisitCode(getter);
+        }
         if (context.propSetter() is { } setter)
+        {
+            prop.Settable = true;
             prop.Setter = VisitCode(setter);
+        }
         if (context.propInit() is { } init)
+        {
+            prop.Inittable = true;
             prop.Initter = VisitCode(init);
+        }
+
         return this;
     }
 
