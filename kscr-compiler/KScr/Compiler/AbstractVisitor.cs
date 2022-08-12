@@ -31,16 +31,6 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         return currentResult == null;
     }
 
-    protected Core.Std.Class VisitClass(KScrParser.ClassDeclContext cls)
-    {
-        return new ClassVisitor(vm, ctx).Visit(cls);
-    }
-
-    protected ClassInfo VisitClassInfo(KScrParser.ClassDeclContext cls)
-    {
-        return new ClassInfoVisitor(vm, ctx).Visit(cls);
-    }
-
     protected ITypeInfo VisitTypeInfo(KScrParser.TypeContext type)
     {
         return new TypeInfoVisitor(vm, ctx).Visit(type);

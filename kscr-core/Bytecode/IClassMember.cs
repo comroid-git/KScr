@@ -18,7 +18,7 @@ public interface IClassMember : IInvokable, IModifierContainer, IBytecode
     public string Name { get; }
     public string FullName { get; }
     public ClassMemberType MemberType { get; }
-    public StatementComponent CatchFinally { get; set; }
+    public StatementComponent? CatchFinally { get; set; }
     public SourcefilePosition SourceLocation { get; }
 }
 
@@ -28,8 +28,7 @@ public abstract class AbstractClassMember : IClassMember
 
     protected AbstractClassMember(SourcefilePosition sourceLocation, Class parent, string name, MemberModifier modifier)
     {
-        Parent = parent;
-        _name = name;
+        (Parent = parent).DeclaredMembers[_name = name] = this;
         Modifier = modifier;
         SourceLocation = sourceLocation;
     }
@@ -49,7 +48,7 @@ public abstract class AbstractClassMember : IClassMember
     public virtual string FullName => Parent.FullName + '.' + Name;
     public MemberModifier Modifier { get; protected set; }
     public abstract ClassMemberType MemberType { get; }
-    public StatementComponent CatchFinally { get; set; }
+    public StatementComponent? CatchFinally { get; set; }
     public abstract BytecodeElementType ElementType { get; }
     public SourcefilePosition SourceLocation { get; }
     public abstract Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,

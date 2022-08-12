@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Antlr4.Runtime;
@@ -8,6 +9,7 @@ using KScr.Antlr;
 using KScr.Bytecode;
 using KScr.Compiler.Class;
 using KScr.Core.Bytecode;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
 
@@ -19,13 +21,21 @@ public class CompilerRuntime : BytecodeRuntime
     public override ObjectStore ObjectStore => null!;
     public override ClassStore ClassStore { get; } = new();
 
-    public void CompileSource(string source)
+    public void CompileSource(string source, string? basePackage = null)
     {
-        if (source.EndsWith(SourceFileExt) && File.Exists(source))
-            throw new NotSupportedException(); //new MemberNode(source){Member = Package.RootPackage.GetOrCreateClass(this, )}
-        else if (Directory.Exists(source))
-            node = new PackageNode(source, Package.RootPackage.GetOrCreatePackage())
+        Package pkg = Package.RootPackage;
+        if (basePackage != null)
+            pkg = Package.RootPackage.GetOrCreatePackage(basePackage);
+        var ctx = new CompilerContext() { Package = pkg };
+        PackageNode node;
+        if (Directory.Exists(source))
+        {
+            node = new PackageNode(this, ctx, source, pkg);
+            node.Read();
+        }
         else throw new FileNotFoundException("Source path not found: " + source);
+
+        SourceNode.RevisitRec(new[] { node });
     }
 
     private readonly ConcurrentDictionary<string, KScrParser.FileContext> _fileDecls = new();
@@ -39,7 +49,7 @@ public class CompilerRuntime : BytecodeRuntime
         return parser.file();
     }
 
-    private List<string> FindClassImports(KScrParser.ImportsContext ctx)
+    public List<string> FindClassImports(KScrParser.ImportsContext ctx)
     {
         var yields = new List<string>();
         foreach (var importDecl in ctx.importDecl())

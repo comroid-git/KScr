@@ -44,7 +44,7 @@ public class Program
                     LoadClasspath(cmd);
                 }
 
-                compileTime = CompileSource(cmd);
+                compileTime = CompileSource(cmd, cmd.PkgBase);
                 ioTime = WriteClasses(cmd);
             })
             .WithParsed<CmdExecute>(cmd =>
@@ -53,7 +53,7 @@ public class Program
                 LoadStdPackage();
                 LoadClasspath(cmd);
 
-                compileTime = CompileSource(cmd);
+                compileTime = CompileSource(cmd, cmd.PkgBase);
                 if (cmd.Output != null)
                     ioTime = WriteClasses(cmd);
                 executeTime = Execute(out stack);
@@ -108,10 +108,10 @@ public class Program
         return ioTime;
     }
 
-    private static long CompileSource(ISourcesCmd cmd)
+    private static long CompileSource(ISourcesCmd cmd, string? basePackage = null)
     {
         var compileTime = RuntimeBase.UnixTime();
-        VM.CompileSource(cmd.Source);
+        VM.CompileSource(cmd.Source, basePackage);
         compileTime = RuntimeBase.UnixTime() - compileTime;
         return compileTime;
     }
@@ -119,7 +119,7 @@ public class Program
     private static long WriteClasses<TC>(TC cmd) where TC : ISourcesCmd, IOutputCmd
     {
         var ioTime = RuntimeBase.UnixTime();
-        WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput), cmd.Source.SelectMany(path =>
+        WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput), new []{cmd.Source}.SelectMany(path =>
             Directory.Exists(path)
                 ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories)
                 : new[] { new FileInfo(path) }));

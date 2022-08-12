@@ -6,6 +6,26 @@ using KScr.Core.Model;
 
 namespace KScr.Compiler.Class;
 
+public class ClassInfoVisitor : AbstractVisitor<ClassInfo>
+{
+    public ClassInfoVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+    {
+    }
+
+    public override ClassInfo VisitClassDecl(KScrParser.ClassDeclContext context)
+    {
+        var pkgName = ctx.Package.FullName;
+        var modifier = new ModifierVisitor().Visit(context.modifiers());
+        var type = new ClassTypeVisitor().Visit(context.classType());
+        var name = context.idPart().GetText();
+        return new ClassInfo(modifier, type, name)
+        {
+            CanonicalName = $"{pkgName}.{name}",
+            FullName = $"{pkgName}.{name}"
+        };
+    }
+}
+
 public class ClassVisitor : AbstractVisitor<Core.Std.Class>
 {
     public ClassVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
