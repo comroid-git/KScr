@@ -3,6 +3,7 @@ using System.Diagnostics;
 using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 
 namespace KScr.Compiler.Code;
@@ -21,35 +22,49 @@ public class StatementVisitor : AbstractVisitor<Statement>
             CodeType = BytecodeType.Declaration,
             Main =
             {
-                VisitExpression(context)
+                VisitExpression(context, FindTypeInfo(context.type()))
             }
         };
     }
 
     public override Statement VisitStmtAssign(KScrParser.StmtAssignContext context)
     {
+        var left = VisitExpression(context.left);
+        if (context.mutation().binaryop() is { } op)
+            return new Statement
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.Assignment,
+                Main =
+                {
+                    new StatementComponent
+                    {
+                        Type = StatementComponentType.Operator,
+                        CodeType = BytecodeType.Assignment,
+                        ByteArg = (ulong)(VisitOperator(op) | Operator.Compound | Operator.Binary),
+                        SubComponent = left,
+                        AltComponent = VisitExpression(context.mutation().expr(), left.OutputType(vm, ctx))
+                    }
+                }
+            };
+        var right = VisitExpression(context.mutation());
+        var actualType = left.OutputType(vm, ctx);
+        var varType = right.OutputType(vm, ctx);
+        if (!actualType.AsClass(vm).CanHold(varType.AsClass(vm)))
+            throw new CompilerException(ToSrcPos(context.mutation().expr()), CompilerError.CannotAssign, actualType, varType);
         return new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.Assignment,
             Main =
             {
-                context.mutation().binaryop() is { } op
-                    ? new StatementComponent
-                    {
-                        Type = StatementComponentType.Operator,
-                        CodeType = BytecodeType.Assignment,
-                        ByteArg = (ulong)(VisitOperator(op) | Operator.Compound | Operator.Binary),
-                        SubComponent = VisitExpression(context.left),
-                        AltComponent = VisitExpression(context.mutation().expr())
-                    }
-                    : new StatementComponent
-                    {
-                        Type = StatementComponentType.Code,
-                        CodeType = BytecodeType.Assignment,
-                        SubComponent = VisitExpression(context.left),
-                        AltComponent = VisitExpression(context.mutation())
-                    }
+                new StatementComponent
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.Assignment,
+                    SubComponent = left,
+                    AltComponent = VisitExpression(context.mutation(), left.OutputType(vm, ctx))
+                }
             }
         };
     }
@@ -145,9 +160,8 @@ public class StatementVisitor : AbstractVisitor<Statement>
         };
     }
 
-    public override Statement VisitStmtTryCatch(KScrParser.StmtTryCatchContext context)
-    {
-        var stmt = new Statement()
+    public override Statement VisitStmtTryCatch(KScrParser.StmtTryCatchContext context) =>
+        ctx.NextSymbolLevel("try-catch", () => new Statement()
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtTry,
@@ -162,48 +176,48 @@ public class StatementVisitor : AbstractVisitor<Statement>
                     InnerCode = VisitCode(context.tryCatchStatement().codeBlock())
                 }
             }
-        };
-        return stmt;
-    }
+        });
 
-    public override Statement VisitStmtTryWithRes(KScrParser.StmtTryWithResContext context)
-    {
-        var stmt = new Statement()
+    public override Statement VisitStmtTryWithRes(KScrParser.StmtTryWithResContext context) =>
+        ctx.NextSymbolLevel("try-with-resources", () =>
         {
-            Type = StatementComponentType.Code,
-            CodeType = BytecodeType.StmtTry,
-            // catch and finally blocks
-            CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
-        };
-        var defs = new Statement()
-        {
-            Type = StatementComponentType.Code,
-            CodeType = BytecodeType.StmtTry
-        };
-        foreach (var decl in context.tryWithResourcesStatement().declaration())
-        {// resource declarations
-            defs.Main.Add(new StatementComponent()
+            var stmt = new Statement()
             {
                 Type = StatementComponentType.Code,
                 CodeType = BytecodeType.StmtTry,
-                Args = { ctx.FindType(vm, decl.type().GetText())!.FullDetailedName, decl.idPart().GetText() },
-                SubComponent = VisitExpression(decl.expr())
-            });
-        }
-        stmt.Main.Add(new StatementComponent()
-        {
-            Type = StatementComponentType.Code,
-            CodeType = BytecodeType.StmtTry,
-            ByteArg = 1,
-            SubStatement = defs,
-            InnerCode = VisitCode(context.tryWithResourcesStatement().codeBlock())
-        });
-        return stmt;
-    }
+                // catch and finally blocks
+                CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
+            };
+            var defs = new Statement()
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.StmtTry
+            };
+            foreach (var decl in context.tryWithResourcesStatement().declaration())
+            {
+                // resource declarations
+                defs.Main.Add(new StatementComponent()
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.StmtTry,
+                    Args = { ctx.FindType(vm, decl.type().GetText())!.FullDetailedName, decl.idPart().GetText() },
+                    SubComponent = VisitExpression(decl.expr())
+                });
+            }
 
-    public override Statement VisitStmtIf(KScrParser.StmtIfContext context)
-    {
-        return new Statement
+            stmt.Main.Add(new StatementComponent()
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.StmtTry,
+                ByteArg = 1,
+                SubStatement = defs,
+                InnerCode = VisitCode(context.tryWithResourcesStatement().codeBlock())
+            });
+            return stmt;
+        });
+
+    public override Statement VisitStmtIf(KScrParser.StmtIfContext context) =>
+        ctx.NextSymbolLevel("if", () => new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtIf,
@@ -226,12 +240,10 @@ public class StatementVisitor : AbstractVisitor<Statement>
                 }
             },
             CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
-        };
-    }
+        });
 
-    public override Statement VisitStmtWhile(KScrParser.StmtWhileContext context)
-    {
-        return new Statement
+    public override Statement VisitStmtWhile(KScrParser.StmtWhileContext context) =>
+        ctx.NextSymbolLevel("while", () => new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtWhile,
@@ -246,12 +258,10 @@ public class StatementVisitor : AbstractVisitor<Statement>
                 }
             },
             CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
-        };
-    }
+        });
 
-    public override Statement VisitStmtDoWhile(KScrParser.StmtDoWhileContext context)
-    {
-        return new Statement
+    public override Statement VisitStmtDoWhile(KScrParser.StmtDoWhileContext context) =>
+        ctx.NextSymbolLevel("do-while", () => new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtDo,
@@ -266,12 +276,10 @@ public class StatementVisitor : AbstractVisitor<Statement>
                 }
             },
             CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
-        };
-    }
+        });
 
-    public override Statement VisitStmtFor(KScrParser.StmtForContext context)
-    {
-        return new Statement
+    public override Statement VisitStmtFor(KScrParser.StmtForContext context) =>
+        ctx.NextSymbolLevel("for", () => new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtFor,
@@ -288,12 +296,10 @@ public class StatementVisitor : AbstractVisitor<Statement>
                 }
             },
             CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
-        };
-    }
+        });
 
-    public override Statement VisitStmtForeach(KScrParser.StmtForeachContext context)
-    {
-        return new Statement
+    public override Statement VisitStmtForeach(KScrParser.StmtForeachContext context) =>
+        ctx.NextSymbolLevel("foreach", () => new Statement
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtForEach,
@@ -309,18 +315,15 @@ public class StatementVisitor : AbstractVisitor<Statement>
                 }
             },
             CatchFinally = context.catchBlocks() == null ? null : VisitCatchBlocks(context.catchBlocks())
-        };
-    }
+        });
 
-    public override Statement VisitSwitchStatement(KScrParser.SwitchStatementContext context) => new()
-    {
-        Type = StatementComponentType.Code,
-        CodeType = BytecodeType.StmtSwitch,
-        Main = { VisitExpression(context) }
-    };
+    public override Statement VisitSwitchStatement(KScrParser.SwitchStatementContext context) =>
+        ctx.NextSymbolLevel("switch", () => new Statement()
+        {
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.StmtSwitch,
+            Main = { VisitExpression(context) }
+        });
 
-    public override Statement VisitStmtEmpty(KScrParser.StmtEmptyContext context)
-    {
-        return new Statement();
-    }
+    public override Statement VisitStmtEmpty(KScrParser.StmtEmptyContext context) => new();
 }

@@ -8,6 +8,7 @@ using KScr.Compiler.Class;
 using KScr.Compiler.Code;
 using KScr.Core;
 using KScr.Core.Bytecode;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
 using Range = System.Range;
@@ -25,20 +26,11 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
 
     protected RuntimeBase vm { get; }
     protected CompilerContext ctx { get; }
+    protected ITypeInfo? RequestedType { get; init; }
 
     protected override bool ShouldVisitNextChild(IRuleNode node, T currentResult)
     {
         return currentResult == null;
-    }
-
-    protected Core.Std.Class VisitClass(KScrParser.ClassDeclContext cls)
-    {
-        return new ClassVisitor(vm, ctx).Visit(cls);
-    }
-
-    protected ClassInfo VisitClassInfo(KScrParser.ClassDeclContext cls)
-    {
-        return new ClassInfoVisitor(vm, ctx).Visit(cls);
     }
 
     protected ITypeInfo VisitTypeInfo(KScrParser.TypeContext type)
@@ -110,9 +102,10 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         return new StatementVisitor(vm, ctx).Visit(stmt);
     }
 
-    protected StatementComponent VisitExpression(ParserRuleContext expr)
+    protected StatementComponent VisitExpression(ParserRuleContext expr, ITypeInfo? requestedType = null)
     {
-        return new ExpressionVisitor(vm, ctx).Visit(expr);
+        requestedType ??= Core.Std.Class.VoidType; // todo Remove
+        return new ExpressionVisitor(vm, ctx){RequestedType = requestedType}.Visit(expr);
     }
 
     protected Statement VisitPipeRead(KScrParser.ExprContext pipe, KScrParser.ExprContext[] reads)
@@ -163,20 +156,28 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         };
         // catches
         foreach (var katchow in context.catchBlock())
+        {
+            var types = katchow.type()
+                .Select(VisitTypeInfo)
+                .ToList();
+            var name = katchow.idPart().GetText();
+            foreach (var type in types)
+                ctx.RegisterSymbol(name, type);
+            var innerCode = VisitCode(katchow.codeBlock());
+            if (ctx.UnregisterSymbols(name) != types.Count)
+                throw new FatalException("Could not unregister all catch variables");
             comp.SubStatement.Main.Add(new StatementComponent()
             {
                 Type = StatementComponentType.Code,
                 CodeType = BytecodeType.StmtCatch,
-                Arg = katchow.idPart().GetText(),
+                Arg = name,
                 Args = katchow.type() == null
                     ? new List<string>()
-                    : katchow.type()
-                        .Select(x => VisitTypeInfo(x).CanonicalName)
-                        .Append(katchow.idPart().GetText())
-                        .ToList(),
-                InnerCode = VisitCode(katchow.codeBlock()),
+                    : types.Select(x => x.CanonicalName).ToList(),
+                InnerCode = innerCode,
                 SourcefilePosition = ToSrcPos(katchow)
             });
+        }
         // finally
         if (context.finallyBlock() is { } finalli)
             comp.AltComponent = new StatementComponent()

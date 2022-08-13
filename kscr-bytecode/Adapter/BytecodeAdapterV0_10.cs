@@ -1,5 +1,6 @@
 ﻿using KScr.Core;
 using KScr.Core.Bytecode;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
 using KScr.Core.Store;
@@ -258,21 +259,27 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
                 return (T)(object)ReadString();
             case BytecodeElementType.Class:
                 memberType = (ClassMemberType)ReadByte();
+                if (memberType != ClassMemberType.Class)
+                    throw new FatalException("Unexpected member type: " + memberType);
                 var classType = (ClassType)ReadByte();
                 mod = (MemberModifier)ReadUInt();
                 name = ReadString();
+                cls = new Class(pkg, name, false, mod, classType);
                 var imports = ReadArray<string>();
                 var superclasses = ReadArray<string>().Select(x => vm.FindType(x));
                 var interfaces = ReadArray<string>().Select(x => vm.FindType(x));
                 var members = ReadArray<IClassMember>();
-                var kls = new Class(pkg, name, false, mod, classType);
-                foreach (var import in imports) kls.Imports.Add(import);
-                foreach (var superclass in superclasses) kls._superclasses.Add(superclass);
-                foreach (var iface in interfaces) kls._interfaces.Add(iface);
-                foreach (var member in members) kls.DeclaredMembers[member.Name] = member;
-                return (T)(object)kls;
+                foreach (var import in imports) cls.Imports.Add(import);
+                foreach (var superclass in superclasses) cls._superclasses.Add(superclass);
+                foreach (var iface in interfaces) cls._interfaces.Add(iface);
+                foreach (var member in members) cls.DeclaredMembers[member.Name] = member;
+                return (T)(object)cls;
             case BytecodeElementType.Property:
                 memberType = (ClassMemberType)ReadByte();
+                if (memberType != ClassMemberType.Property)
+                    throw new FatalException("Unexpected member type: " + memberType);
+                if (cls == null)
+                    throw new FatalException("Containing class cannot be null");
                 mod = (MemberModifier)ReadUInt();
                 name = ReadString();
                 returnType = vm.FindType(ReadString());
@@ -296,6 +303,10 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
                 };
             case BytecodeElementType.Method:
                 memberType = (ClassMemberType)ReadByte();
+                if (memberType != ClassMemberType.Method)
+                    throw new FatalException("Unexpected member type: " + memberType);
+                if (cls == null)
+                    throw new FatalException("Containing class cannot be null");
                 mod = (MemberModifier)ReadUInt();
                 name = ReadString();
                 returnType = vm.FindType(ReadString());
@@ -321,6 +332,8 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
                 block.Main.AddRange(code);
                 return (T)(object)block;
             case BytecodeElementType.Statement:
+                if (cls == null)
+                    throw new FatalException("Containing class cannot be null");
                 sType = (StatementComponentType)ReadUInt();
                 codeType = (BytecodeType)ReadUInt();
                 sArg = ReadString();
@@ -339,6 +352,8 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
                 stmt.Main.AddRange(comps);
                 return (T)(object)stmt;
             case BytecodeElementType.Component:
+                if (cls == null)
+                    throw new FatalException("Containing class cannot be null");
                 sType = (StatementComponentType)ReadUInt();
                 codeType = (BytecodeType)ReadUInt();
                 var varctx = (VariableContext)ReadByte();

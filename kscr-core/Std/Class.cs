@@ -105,7 +105,7 @@ public sealed class Class : AbstractPackageMember, IClass
     public TypeParameter.Instance[] TypeParameterInstances { get; } = Array.Empty<TypeParameter.Instance>();
 
     public Class? Parent { get; init; } = null;
-    public ClassMemberType MemberType { get; }
+    public ClassMemberType MemberType => ClassMemberType.Class;
     public StatementComponent CatchFinally { get; set; }
     public SourcefilePosition SourceLocation { get; init; }
 
@@ -282,15 +282,17 @@ public sealed class Class : AbstractPackageMember, IClass
         AddToClass(VoidType, toString);
         AddToClass(VoidType, equals);
         AddToClass(VoidType, getType);
+
+        #endregion
+
+        #region Object Class
+
         ObjectType._interfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
         #region Type Class
 
-        AddToClass(TypeType, toString);
-        AddToClass(TypeType, equals);
-        AddToClass(TypeType, getType);
         TypeType._superclasses.Add(ObjectType.DefaultInstance);
 
         #endregion
@@ -304,9 +306,6 @@ public sealed class Class : AbstractPackageMember, IClass
             MemberModifier.Public | MemberModifier.Static,
             ArrayType.CreateInstance(vm, EnumType, EnumType.TypeParameters[0]));
 
-        AddToClass(EnumType, toString);
-        AddToClass(EnumType, equals);
-        AddToClass(EnumType, getType);
         AddToClass(EnumType, name);
         AddToClass(EnumType, values);
         EnumType._superclasses.Add(ObjectType.DefaultInstance);
@@ -328,11 +327,9 @@ public sealed class Class : AbstractPackageMember, IClass
             NumericIntType,
             new List<MethodParameter> { new() { Name = "data", Type = PipeType.TypeParameters[0] } });
 
-        AddToClass(PipeType, toString);
-        AddToClass(PipeType, equals);
-        AddToClass(PipeType, getType);
         AddToClass(PipeType, name);
         AddToClass(PipeType, values);
+        PipeType._interfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
@@ -340,10 +337,8 @@ public sealed class Class : AbstractPackageMember, IClass
 
         var length = new Property(RuntimeBase.SystemSrcPos, ArrayType, "length", NumericIntType, MemberModifier.Public);
 
-        AddToClass(ArrayType, toString);
-        AddToClass(ArrayType, equals);
-        AddToClass(ArrayType, getType);
         AddToClass(ArrayType, length);
+        ArrayType._superclasses.Add(ObjectType.DefaultInstance);
 
         #endregion
 
@@ -351,19 +346,15 @@ public sealed class Class : AbstractPackageMember, IClass
 
         var size = new Property(RuntimeBase.SystemSrcPos, TupleType, "size", NumericIntType, MemberModifier.Public);
 
-        AddToClass(TupleType, toString);
-        AddToClass(TupleType, equals);
-        AddToClass(TupleType, getType);
         AddToClass(TupleType, size);
+        TupleType._superclasses.Add(ObjectType.DefaultInstance);
 
         #endregion
 
         #region Numeric Class
 
-        AddToClass(NumericType, toString);
-        AddToClass(NumericType, equals);
-        AddToClass(NumericType, getType);
         NumericType._interfaces.Add(ThrowableType.DefaultInstance);
+        NumericType._superclasses.Add(ObjectType.DefaultInstance);
 
         #endregion
 
@@ -372,10 +363,8 @@ public sealed class Class : AbstractPackageMember, IClass
         var strlen = new DummyMethod(StringType, "length", MemberModifier.Public | MemberModifier.Final,
             NumericIntType);
 
-        AddToClass(StringType, toString);
-        AddToClass(StringType, equals);
         AddToClass(StringType, strlen);
-        AddToClass(StringType, getType);
+        StringType._superclasses.Add(ObjectType.DefaultInstance);
 
         #endregion
 
@@ -417,14 +406,11 @@ public sealed class Class : AbstractPackageMember, IClass
         var iterator = new DummyMethod(IterableType, "iterator", MemberModifier.Public | MemberModifier.Abstract,
             IteratorType.CreateInstance(vm, IterableType, IterableType.TypeParameters[0]));
 
-        AddToClass(RangeType, toString);
-        AddToClass(RangeType, equals);
         AddToClass(RangeType, start);
         AddToClass(RangeType, end);
         AddToClass(RangeType, test);
         AddToClass(RangeType, accumulate);
         AddToClass(RangeType, decremental);
-        AddToClass(RangeType, getType);
         AddToClass(RangeType, iterator);
         RangeType._interfaces.Add(IterableType.CreateInstance(vm, RangeType, NumericIntType));
 
@@ -439,21 +425,17 @@ public sealed class Class : AbstractPackageMember, IClass
         var hasNext = new DummyMethod(IteratorType, "hasNext", MemberModifier.Public | MemberModifier.Abstract,
             NumericByteType);
 
-        AddToClass(IteratorType, toString);
-        AddToClass(IteratorType, equals);
-        AddToClass(IteratorType, getType);
         AddToClass(IteratorType, current);
         AddToClass(IteratorType, next);
         AddToClass(IteratorType, hasNext);
+        IteratorType._interfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
         #region Iterable Class
 
-        AddToClass(IterableType, toString);
-        AddToClass(IterableType, equals);
-        AddToClass(IterableType, getType);
         AddToClass(IterableType, iterator);
+        IterableType._interfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
@@ -462,14 +444,16 @@ public sealed class Class : AbstractPackageMember, IClass
         var close = new DummyMethod(CloseableType, "close", MemberModifier.Public, VoidType);
         
         AddToClass(CloseableType, close);
+        CloseableType._interfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
         #region Throwable Class
+        
+        var message = new Property(RuntimeBase.SystemSrcPos, ThrowableType, "Message", StringType, MemberModifier.Public);
+        var exitCode = new Property(RuntimeBase.SystemSrcPos, ThrowableType, "ExitCode", NumericIntType, MemberModifier.Public);
 
-        AddToClass(ThrowableType, toString);
-        AddToClass(ThrowableType, equals);
-        AddToClass(ThrowableType, getType);
+        ThrowableType._interfaces.Add(VoidType.DefaultInstance);
         ExceptionType._interfaces.Add(ThrowableType.DefaultInstance);
         NullPointerExceptionType._superclasses.Add(ExceptionType.DefaultInstance);
 

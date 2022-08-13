@@ -23,6 +23,8 @@ public class PrintNumbers implements Throwable {
         int start = 0;
         int end = 24;
         
+        //start = "abc";
+        
         // test shorthand ops
         // TODO: make parentheses for parsing order obsolete (-> antlr grammar order)
         stdio <<- "24 (24) = " + (end) + " (" + end + ")" + endl;
@@ -34,7 +36,7 @@ public class PrintNumbers implements Throwable {
         stdio <<- "24 = " + 24 + endl;
         stdio <<- "25 = " + 25 + endl;
         
-        Iterable seq = start..end;
+        range seq = start..end;
         
         stdio <<- "print numbers " + seq.start() + " to (exclusive) " + (seq.end() - 1 + 1) + ":" + endl;
         foreach (i : seq)

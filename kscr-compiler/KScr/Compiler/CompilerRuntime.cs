@@ -1,10 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Antlr4.Runtime;
 using KScr.Antlr;
 using KScr.Bytecode;
 using KScr.Compiler.Class;
+using KScr.Core;
 using KScr.Core.Bytecode;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
 
@@ -16,62 +22,34 @@ public class CompilerRuntime : BytecodeRuntime
     public override ObjectStore ObjectStore => null!;
     public override ClassStore ClassStore { get; } = new();
 
-    public void CompileFiles(IEnumerable<FileInfo> sources)
+    public void CompileSource(string source, string? basePackage = null)
     {
-        IEnumerator<FileInfo> files = null!;
-        try
+        Package pkg = Package.RootPackage;
+        if (basePackage != null)
+            pkg = Package.RootPackage.GetOrCreatePackage(basePackage);
+        var ctx = new CompilerContext() { Package = pkg };
+        SourceNode node;
+        var src = new FileInfo(source);
+        if (source.EndsWith(SourceFileExt))
         {
-            files = sources.GetEnumerator();
-            while (files.MoveNext())
-                CompileClass(files.Current);
+            var decl = MakeFileDecl(src);
+            ctx = new CompilerContext() { Parent = ctx, Class = FindClassInfo(src), Imports = FindClassImports(decl.imports()) };
+            node = SourceNode.ForBaseClass(this, ctx, src, new PackageNode(this, ctx, src.DirectoryName!, pkg));
+            int mc = (node as MemberNode)!.ReadMembers();
+            Debug.WriteLine($"[NodeCompiler] Loaded {mc} members");
         }
-        finally
+        else if (Directory.Exists(source))
         {
-            files?.Dispose();
+            node = new PackageNode(this, ctx, source, pkg);
+            (node as PackageNode)!.Read();
         }
+        else throw new FileNotFoundException("Source path not found: " + src.FullName);
+
+        SourceNode.RevisitRec(new[] { node });
     }
 
-    public void CompileClass(FileInfo file)
-    {
-        var clsName = file.Name.Substring(0, file.Name.Length - SourceFileExt.Length);
-        CompileClass(clsName, file.FullName);
-    }
-
-    public Core.Std.Class CompileClass(string clsName, string filePath = "org/comroid/kscr/core/System.kscr",
-        string? source = null)
-    {
-        var fileDecl =
-            MakeFileDecl(source != null ? new AntlrInputStream(source) : new AntlrFileStream(filePath, Encoding));
-
-        // ReSharper disable once ConstantConditionalAccessQualifier -> because of parameterless override
-        var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
-        var imports = FindClassImports(fileDecl.imports());
-        
-        // todo: load imported classes first
-        
-        var news = new Dictionary<string, Core.Std.Class>();
-        var ctx = new CompilerContext
-        {
-            Package = pkg,
-            Imports = imports
-        };
-
-        foreach (var classDecl in fileDecl.classDecl())
-        {
-            var classInfo = new ClassInfoVisitor(this, ctx).Visit(classDecl);
-            var subctx = new CompilerContext
-            {
-                Parent = ctx,
-                Class = pkg.GetOrCreateClass(this, classInfo.Name, classInfo.Modifier, classInfo.ClassType)
-            };
-            var cls = new ClassVisitor(this, subctx).Visit(classDecl);
-            cls.Initialize(this);
-            cls.LateInitialize(this, MainStack);
-            news[cls.Name] = cls;
-        }
-
-        return news[clsName];
-    }
+    private readonly ConcurrentDictionary<string, KScrParser.FileContext> _fileDecls = new();
+    public KScrParser.FileContext MakeFileDecl(FileInfo file) => _fileDecls.GetOrAdd(file.FullName, path => MakeFileDecl(new AntlrFileStream(path)));
 
     public KScrParser.FileContext MakeFileDecl(BaseInputCharStream input)
     {
@@ -81,7 +59,7 @@ public class CompilerRuntime : BytecodeRuntime
         return parser.file();
     }
 
-    private List<string> FindClassImports(KScrParser.ImportsContext ctx)
+    public List<string> FindClassImports(KScrParser.ImportsContext ctx)
     {
         var yields = new List<string>();
         foreach (var importDecl in ctx.importDecl())

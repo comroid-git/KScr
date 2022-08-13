@@ -1,6 +1,8 @@
-﻿using KScr.Antlr;
+﻿using System;
+using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 
 namespace KScr.Compiler.Code;
@@ -15,7 +17,15 @@ public class CodeblockVisitor : AbstractVisitor<ExecutableCode>
     {
         var code = new ExecutableCode();
         foreach (var stmt in context.statement())
-            code.Main.Add(VisitStatement(stmt));
+            try
+            {
+                code.Main.Add(VisitStatement(stmt));
+            }
+            catch (CompilerException cex)
+            {
+                Console.Error.WriteLine(cex.Message);
+            }
+
         return code;
     }
 
