@@ -3,6 +3,7 @@ using System.Diagnostics;
 using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 
 namespace KScr.Compiler.Code;
@@ -29,14 +30,14 @@ public class StatementVisitor : AbstractVisitor<Statement>
     public override Statement VisitStmtAssign(KScrParser.StmtAssignContext context)
     {
         var left = VisitExpression(context.left);
-        return new Statement
-        {
-            Type = StatementComponentType.Code,
-            CodeType = BytecodeType.Assignment,
-            Main =
+        if (context.mutation().binaryop() is { } op)
+            return new Statement
             {
-                context.mutation().binaryop() is { } op
-                    ? new StatementComponent
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.Assignment,
+                Main =
+                {
+                    new StatementComponent
                     {
                         Type = StatementComponentType.Operator,
                         CodeType = BytecodeType.Assignment,
@@ -44,13 +45,26 @@ public class StatementVisitor : AbstractVisitor<Statement>
                         SubComponent = left,
                         AltComponent = VisitExpression(context.mutation().expr(), left.OutputType(vm, ctx))
                     }
-                    : new StatementComponent
-                    {
-                        Type = StatementComponentType.Code,
-                        CodeType = BytecodeType.Assignment,
-                        SubComponent = left,
-                        AltComponent = VisitExpression(context.mutation(), left.OutputType(vm, ctx))
-                    }
+                }
+            };
+        var right = VisitExpression(context.mutation());
+        var actualType = left.OutputType(vm, ctx);
+        var varType = right.OutputType(vm, ctx);
+        if (!actualType.AsClass(vm).CanHold(varType.AsClass(vm)))
+            throw new CompilerException(ToSrcPos(context.mutation().expr()), CompilerError.CannotAssign, actualType, varType);
+        return new Statement
+        {
+            Type = StatementComponentType.Code,
+            CodeType = BytecodeType.Assignment,
+            Main =
+            {
+                new StatementComponent
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.Assignment,
+                    SubComponent = left,
+                    AltComponent = VisitExpression(context.mutation(), left.OutputType(vm, ctx))
+                }
             }
         };
     }

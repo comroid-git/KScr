@@ -66,24 +66,33 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 
     public override StatementComponent VisitVarAssign(KScrParser.VarAssignContext context)
     {
-        return context.mutation().binaryop() is { } op
-            ? new StatementComponent
+        var left = VisitExpression(context.left);
+        if (context.mutation().binaryop() is { } op)
+            return new StatementComponent
             {
                 Type = StatementComponentType.Operator,
                 CodeType = BytecodeType.Assignment,
                 ByteArg = (ulong)(VisitOperator(op) | Operator.Compound | Operator.Binary),
-                SubComponent = VisitExpression(context.left),
+                SubComponent = left,
                 AltComponent = VisitExpression(context.mutation().expr()),
                 SourcefilePosition = ToSrcPos(context)
-            }
-            : new StatementComponent
+            };
+        else
+        {
+            var right = VisitExpression(context.mutation());
+            var actualType = left.OutputType(vm, ctx);
+            var varType = right.OutputType(vm, ctx);
+            if (!actualType.AsClass(vm).CanHold(varType.AsClass(vm)))
+                throw new CompilerException(ToSrcPos(context.mutation().expr()), CompilerError.CannotAssign, actualType, varType);
+            return new StatementComponent
             {
                 Type = StatementComponentType.Code,
                 CodeType = BytecodeType.Assignment,
-                SubComponent = VisitExpression(context.left),
-                AltComponent = VisitExpression(context.mutation()),
+                SubComponent = left,
+                AltComponent = right,
                 SourcefilePosition = ToSrcPos(context)
             };
+        }
     }
 
     public override StatementComponent VisitOpPrefix(KScrParser.OpPrefixContext context)
