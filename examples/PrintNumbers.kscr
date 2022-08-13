@@ -34,7 +34,7 @@ public class PrintNumbers implements Throwable {
         stdio <<- "24 = " + 24 + endl;
         stdio <<- "25 = " + 25 + endl;
         
-        Iterable seq = start..end;
+        range seq = start..end;
         
         stdio <<- "print numbers " + seq.start() + " to (exclusive) " + (seq.end() - 1 + 1) + ":" + endl;
         foreach (i : seq)

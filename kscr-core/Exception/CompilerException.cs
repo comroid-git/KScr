@@ -7,11 +7,12 @@ public sealed class CompilerError
 {
     public static readonly CompilerError UnexpectedToken = new("Unexpected Token <{1}> in class {0}; {2}");
     public static readonly CompilerError InvalidToken = new("Invalid Token <{1}> in class {0}; {2}");
+    public static readonly CompilerError InvalidType = new("Invalid Type <{1}> in class {0}; {2}");
     public static readonly CompilerError Invalid = new("Invalid {1} in class {0}; {2}");
 
     public static readonly CompilerError CannotAssign = new("Cannot assign type {1} to type {0}");
 
-    public static readonly CompilerError SymbolNotFound = new("Symbol '{0}' not found");
+    public static readonly CompilerError SymbolNotFound = new("Symbol '{0}' not found in context {1}");
     public static readonly CompilerError TypeSymbolNotFound = new("Type '{0}' not found");
 
     public static readonly CompilerError ClassPackageMissing = new("Missing package declaration in class {0}");

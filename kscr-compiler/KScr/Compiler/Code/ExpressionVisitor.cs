@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Linq;
 using Antlr4.Runtime;
 using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
 using KScr.Core.Store;
@@ -36,13 +38,16 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 
     public override StatementComponent VisitDeclaration(KScrParser.DeclarationContext context)
     {
+        var type = VisitTypeInfo(context.type());
+        var name = context.idPart().GetText();
+        ctx.RegisterSymbol(name, type);
         return new StatementComponent
         {
             Type = StatementComponentType.Declaration,
             CodeType = context.expr() != null ? BytecodeType.Assignment : BytecodeType.Declaration,
-            Args = { VisitTypeInfo(context.type()).FullDetailedName, context.idPart().GetText() },
+            Args = { type.FullDetailedName, name },
             SubComponent = context.expr() is { } expr ? VisitExpression(expr) : null,
-            SourcefilePosition = ToSrcPos(context)
+            SourcefilePosition = ToSrcPos(context.idPart())
         };
     }
 
@@ -131,7 +136,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 
     public override StatementComponent VisitCtorCall(KScrParser.CtorCallContext context)
     {
-        return new StatementComponent
+        var comp = new StatementComponent
         {
             Type = StatementComponentType.Expression,
             CodeType = BytecodeType.ConstructorCall,
@@ -139,31 +144,54 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             SubStatement = VisitArguments(context.arguments()),
             SourcefilePosition = ToSrcPos(context)
         };
+        var rtrn = comp.OutputType(vm, ctx);
+        if (!RequestedType!.AsClass(vm).CanHold(rtrn.AsClass(vm)))
+            throw new CompilerException(ToSrcPos(context.type()), CompilerError.InvalidType, ctx.Class,
+                rtrn.FullDetailedName, "Expected derivate of " + RequestedType);
+        return comp;
     }
 
     public override StatementComponent VisitExprCallMember(KScrParser.ExprCallMemberContext context)
     {
         var expr = VisitExpression(context.expr());
+        var memberName = context.idPart().GetText();
         expr.PostComponent = new StatementComponent
         {
             Type = StatementComponentType.Expression,
             CodeType = BytecodeType.Call,
-            Arg = context.idPart().GetText(),
+            Arg = memberName,
             SubStatement = VisitArguments(context.arguments()),
-            SourcefilePosition = ToSrcPos(context)
+            SourcefilePosition = ToSrcPos(context.idPart())
         };
+        bool isExtCall = expr.CodeType is BytecodeType.ExpressionVariable or BytecodeType.LiteralString
+            or BytecodeType.LiteralRange or BytecodeType.LiteralNumeric or BytecodeType.LiteralTrue
+            or BytecodeType.LiteralFalse;
+        if (isExtCall)
+            ctx.PushContext(expr.OutputType(vm, ctx, ignorePostComp: true).AsClass(vm));
+        var rtrn = expr.PostComponent.OutputType(vm, ctx, expr);
+        if (isExtCall)
+            ctx.DropContext();
+        if (!RequestedType!.AsClass(vm).CanHold(rtrn.AsClass(vm)))
+            throw new CompilerException(ToSrcPos(context.expr()), CompilerError.InvalidType, ctx.Class,
+                rtrn.FullDetailedName, "Expected derivate of " + RequestedType);
         return expr;
     }
 
     public override StatementComponent VisitThrowStatement(KScrParser.ThrowStatementContext context)
     {
-        return new StatementComponent
+        var expr = VisitExpression(context.expr());
+        var comp = new StatementComponent
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.Throw,
-            SubComponent = VisitExpression(context.expr()),
+            SubComponent = expr,
             SourcefilePosition = ToSrcPos(context)
         };
+        var rtrn = comp.OutputType(vm, ctx);
+        if (!Core.Std.Class.ThrowableType.CanHold(rtrn.AsClass(vm)))
+            throw new CompilerException(ToSrcPos(context.expr()), CompilerError.InvalidType, ctx.Class,
+                rtrn.FullDetailedName, "Expected derivate of Throwable");
+        return comp;
     }
 
     public override StatementComponent VisitSwitchStatement(KScrParser.SwitchStatementContext context)

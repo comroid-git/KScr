@@ -271,6 +271,8 @@ public abstract class RuntimeBase : IBytecodePort
             return Class.ArrayType.DefaultInstance;
         if (name.EndsWith("tuple"))
             return Class.TupleType.DefaultInstance;
+        if (name.EndsWith("range"))
+            return Class.RangeType.DefaultInstance;
         if (name.EndsWith("pipe"))
             return Class.PipeType.DefaultInstance;
         if (name == "num")
@@ -349,7 +351,7 @@ public abstract class RuntimeBase : IBytecodePort
 
     public sealed class StandardIORef : ObjectRef
     {
-        public StandardIORef() : base(Class.StringType.DefaultInstance)
+        public StandardIORef() : base(Class.StringType.DefaultInstance /* todo: this must be pipe<str> */)
         {
         }
 

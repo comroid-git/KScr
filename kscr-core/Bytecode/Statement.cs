@@ -136,6 +136,8 @@ public class Statement : IBytecode, IStatement<StatementComponent>
         return stack;
     }
 
+    public ITypeInfo OutputType(RuntimeBase vm, ISymbolValidator symbols) => Main.LastOrDefault()?.OutputType(vm, symbols)!;
+
     public void Clear()
     {
         Main.Clear();
@@ -474,5 +476,106 @@ public class StatementComponent : IBytecode, IStatementComponent
         if (InnerCode != null)
             memberState |= ComponentMember.InnerCode;
         return memberState;
+    }
+
+    public ITypeInfo OutputType(RuntimeBase vm, ISymbolValidator symbols, StatementComponent? prev = null, bool ignorePostComp = false)
+    {
+        if (prev == this)
+            throw new FatalException("invalid state");
+        ITypeInfo rtrn;
+        switch (Type, CodeType)
+        {
+            case (StatementComponentType.Expression, BytecodeType.LiteralNumeric):
+                rtrn = Numeric.Compile(vm, Arg).Type;
+                break;
+            case (StatementComponentType.Expression, BytecodeType.LiteralString):
+            case (StatementComponentType.Expression, BytecodeType.EndlExpression):
+                rtrn = Class.StringType;
+                break;
+            case (StatementComponentType.Expression, BytecodeType.LiteralTrue):
+                rtrn = vm.ConstantTrue.Type;
+                break;
+            case (StatementComponentType.Expression, BytecodeType.LiteralFalse):
+                rtrn = vm.ConstantFalse.Type;
+                break;
+            case (StatementComponentType.Expression, BytecodeType.Null):
+                rtrn = Class.VoidType;
+                break;
+            case (StatementComponentType.Code, BytecodeType.Parentheses):
+            case (StatementComponentType.Setter, _):
+                rtrn = SubStatement!.OutputType(vm, symbols);
+                break;
+            case (StatementComponentType.Expression, BytecodeType.TypeExpression):
+            case (StatementComponentType.Expression, BytecodeType.ConstructorCall):
+                rtrn = vm.FindType(Arg)!;
+                break;
+            case (StatementComponentType.Expression, BytecodeType.Call):
+                // invoke member
+                if (symbols.CurrentContext(vm) is { } cls1 
+                    && cls1.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is IMethod mtd)
+                    rtrn = mtd.ReturnType;
+                else if (symbols.CurrentContext(vm) is { } cls2
+                         && cls2.ClassMembers.FirstOrDefault(x =>
+                             x.MemberType == ClassMemberType.Property && x.Name == Arg) is Property prop)
+                    rtrn = prop.ReturnType;
+                else throw new CompilerException(SourcefilePosition, CompilerError.SymbolNotFound, Arg, symbols.CurrentContext(vm));
+                break;
+            case (StatementComponentType.Expression, BytecodeType.StdioExpression):
+                rtrn = Class.PipeType.GetInstance(vm, Class.StringType);
+                break;
+            case (StatementComponentType.Expression, BytecodeType.Undefined):
+                rtrn = symbols.CurrentContext(vm);
+                break;
+            case (StatementComponentType.Declaration, _):
+                rtrn = vm.FindType(Args[0])!;
+                break;
+            case (StatementComponentType.Code, BytecodeType.Assignment):
+                rtrn = AltComponent!.OutputType(vm, symbols, this);
+                break;
+            case (StatementComponentType.Expression, BytecodeType.Parentheses):
+            case (StatementComponentType.Code, BytecodeType.Return):
+            case (StatementComponentType.Code, BytecodeType.Throw):
+            case (StatementComponentType.Operator, _):
+                rtrn = SubComponent!.OutputType(vm, symbols, this);
+                break;
+            case (StatementComponentType.Provider, BytecodeType.LiteralRange):
+                rtrn = Class.RangeType;
+                break;
+            case (StatementComponentType.Provider, BytecodeType.ExpressionVariable):
+                if ((prev?.OutputType(vm, symbols, this).AsClass(vm) as IClass)?.ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm1)
+                {
+                    // call member
+                    if (icm1 is Method mtd1)
+                        rtrn = mtd1.ReturnType;
+                    else if (icm1 is Property prop1)
+                        rtrn = prop1.ReturnType;
+                    else throw new FatalException("Invalid call to member");
+                }
+                else if (symbols.CurrentContext(vm).ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm2)
+                    // call to 'this'
+                    if (icm2 is Method mtd1)
+                        rtrn = mtd1.ReturnType;
+                    else if (icm2 is Property prop1)
+                        rtrn = prop1.ReturnType;
+                    else throw new FatalException("Invalid call to this");
+                else
+                    // read variable
+                    rtrn = symbols.FindSymbol(Arg)!.Type;
+                break;
+            case (StatementComponentType.Provider, BytecodeType.Undefined):
+                rtrn = symbols.CurrentContext(vm);
+                break;
+            case (StatementComponentType.Pipe, _):
+            case (StatementComponentType.Emitter, _):
+            case (StatementComponentType.Consumer, _):
+                rtrn = Class.PipeType;
+                break;
+            default:
+                throw new NotImplementedException($"Unable to obtain OutputType of: {Type} {CodeType}");
+        }
+
+        if (!ignorePostComp && PostComponent != null)
+            rtrn = PostComponent.OutputType(vm, symbols, this);
+        return rtrn;
     }
 }

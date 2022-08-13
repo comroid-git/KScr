@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
 using KScr.Core.Store;
@@ -20,6 +21,9 @@ public interface IClassMember : IInvokable, IModifierContainer, IBytecode
     public ClassMemberType MemberType { get; }
     public StatementComponent? CatchFinally { get; set; }
     public SourcefilePosition SourceLocation { get; }
+
+    ITypeInfo ReturnType => this is Method mtd ? mtd.ReturnType :
+        this is Property prop ? prop.ReturnType : throw new FatalException("Cannot obtain ReturnType of " + this);
 }
 
 public abstract class AbstractClassMember : IClassMember
