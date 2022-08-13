@@ -184,22 +184,36 @@ public class MemberNode : SourceNode
 
     public override SourceNode VisitConstructorDecl(KScrParser.ConstructorDeclContext context)
     {
+        var ctor = new Method(Utils.ToSrcPos(context.type()), ContainingClass(), Method.ConstructorName,
+            ContainingClass(), MemberModifier.PS);
+        foreach (var param in context.parameters().parameter())
+            ctor.Parameters.Add(new MethodParameter()
+            {
+                Type = VisitTypeInfo(param.type()),
+                Name = param.idPart().GetText()
+            });
         return new MemberNode(vm, ctx, Pkg, this)
         {
             MemberContext = context,
-            Member = new Method(Utils.ToSrcPos(context.type()), ContainingClass(), Method.ConstructorName, ContainingClass(),
-                MemberModifier.PS),
+            Member = ctor,
             UncompiledCode = context.memberBlock()
         };
     }
 
     public override SourceNode VisitMethodDecl(KScrParser.MethodDeclContext context)
     {
+        var mtd = new Method(Utils.ToSrcPos(context.idPart()), ContainingClass(), context.idPart().GetText(),
+            FindTypeInfo(context.type())!, VisitModifiers(context.modifiers()));
+        foreach (var param in context.parameters().parameter())
+            mtd.Parameters.Add(new MethodParameter()
+            {
+                Type = VisitTypeInfo(param.type()),
+                Name = param.idPart().GetText()
+            });
         return new MemberNode(vm, ctx, Pkg, this)
         {
             MemberContext = context,
-            Member = new Method(Utils.ToSrcPos(context.idPart()), ContainingClass(), context.idPart().GetText(),
-                FindTypeInfo(context.type())!, VisitModifiers(context.modifiers())),
+            Member = mtd,
             UncompiledCode = context.memberBlock()
         };
     }
