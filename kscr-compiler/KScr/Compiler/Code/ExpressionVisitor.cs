@@ -174,12 +174,19 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         };
         bool isExtCall = expr.CodeType is BytecodeType.ExpressionVariable or BytecodeType.LiteralString
             or BytecodeType.LiteralRange or BytecodeType.LiteralNumeric or BytecodeType.LiteralTrue
-            or BytecodeType.LiteralFalse;
-        if (isExtCall)
-            ctx.PushContext(expr.OutputType(vm, ctx, ignorePostComp: true).AsClass(vm));
-        var rtrn = expr.PostComponent.OutputType(vm, ctx, expr);
-        if (isExtCall)
-            ctx.DropContext();
+            or BytecodeType.LiteralFalse or BytecodeType.TypeExpression;
+        ITypeInfo rtrn;
+        try
+        {
+            if (isExtCall)
+                ctx.PushContext(expr.OutputType(vm, ctx, ignorePostComp: true).AsClass(vm));
+            rtrn = expr.PostComponent.OutputType(vm, ctx, expr);
+        }
+        finally
+        {
+            if (isExtCall)
+                ctx.DropContext();
+        }
         if (!RequestedType!.AsClass(vm).CanHold(rtrn.AsClass(vm)))
             throw new CompilerException(ToSrcPos(context.expr()), CompilerError.InvalidType, ctx.Class,
                 rtrn.FullDetailedName, "Expected derivate of " + RequestedType);
