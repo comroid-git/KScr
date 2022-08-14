@@ -164,14 +164,14 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
     {
         var expr = VisitExpression(context.expr());
         var memberName = context.idPart().GetText();
-        expr.PostComponent = new StatementComponent
+        expr.AppendPostComponent(new StatementComponent
         {
             Type = StatementComponentType.Expression,
             CodeType = BytecodeType.Call,
             Arg = memberName,
             SubStatement = VisitArguments(context.arguments()),
             SourcefilePosition = ToSrcPos(context.idPart())
-        };
+        });
         bool isExtCall = expr.CodeType is BytecodeType.ExpressionVariable or BytecodeType.LiteralString
             or BytecodeType.LiteralRange or BytecodeType.LiteralNumeric or BytecodeType.LiteralTrue
             or BytecodeType.LiteralFalse or BytecodeType.TypeExpression;

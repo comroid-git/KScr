@@ -70,7 +70,7 @@ public interface IObjectRef
     IEvaluable? WriteAccessor { get; set; }
 
     [Obsolete] IObject Value { get; set; }
-
+    IObject? DummyObject { get; }
     IClassInstance Type { get; }
     IObject this[RuntimeBase vm, Stack stack, int i] { get; set; }
 
@@ -115,7 +115,7 @@ public class ObjectRef : IObjectRef
     public ObjectRef(IClassInstance type, IObject value, bool constant = true) : this(type)
     {
         Value = value;
-        Constant = true;
+        Constant = constant;
     }
 
     public ObjectRef(IClassInstance type, [Range(1, int.MaxValue)] int len = 1)
@@ -128,6 +128,7 @@ public class ObjectRef : IObjectRef
         Refs = new IObject?[len];
     }
 
+    public virtual IObject? DummyObject => Value;
     public IClassInstance Type { get; }
 
     public int Length => Refs.Length;

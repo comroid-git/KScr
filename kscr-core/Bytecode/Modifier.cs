@@ -17,7 +17,8 @@ public enum MemberModifier : uint
     Syncronized = 0x0200_0000,
     
     PS = Public | Static,
-    PSF = PS | Final
+    PF = Public | Final,
+    PSF = PS | PF
 }
 
 public static class ModifierMethods

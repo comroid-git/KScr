@@ -352,9 +352,14 @@ public abstract class RuntimeBase : IBytecodePort
 
     public sealed class StandardIORef : ObjectRef
     {
+        private readonly IObject _dummyObject;
+
         public StandardIORef(RuntimeBase vm) : base(Class.PipeType.CreateInstance(vm, Class.PipeType, Class.StringType))
         {
+            _dummyObject = new CodeObject(vm, Type);
         }
+
+        public override IObject DummyObject => _dummyObject;
 
         public override IEvaluable? ReadAccessor
         {
