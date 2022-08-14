@@ -83,7 +83,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             var actualType = left.OutputType(vm, ctx);
             var varType = right.OutputType(vm, ctx);
             if (!actualType.AsClass(vm).CanHold(varType.AsClass(vm)))
-                throw new CompilerException(ToSrcPos(context.mutation().expr()), CompilerError.CannotAssign, actualType, varType);
+                throw new CompilerException(ToSrcPos(context.mutation().expr()), CompilerErrorMessage.CannotAssign, actualType, varType);
             return new StatementComponent
             {
                 Type = StatementComponentType.Code,
@@ -155,7 +155,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         };
         var rtrn = comp.OutputType(vm, ctx);
         if (!RequestedType!.AsClass(vm).CanHold(rtrn.AsClass(vm)))
-            throw new CompilerException(ToSrcPos(context.type()), CompilerError.InvalidType, ctx.Class,
+            throw new CompilerException(ToSrcPos(context.type()), CompilerErrorMessage.InvalidType, ctx.Class,
                 rtrn.FullDetailedName, "Expected derivate of " + RequestedType);
         return comp;
     }
@@ -188,7 +188,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
                 ctx.DropContext();
         }
         if (!RequestedType!.AsClass(vm).CanHold(rtrn.AsClass(vm)))
-            throw new CompilerException(ToSrcPos(context.expr()), CompilerError.InvalidType, ctx.Class,
+            throw new CompilerException(ToSrcPos(context.expr()), CompilerErrorMessage.InvalidType, ctx.Class,
                 rtrn.FullDetailedName, "Expected derivate of " + RequestedType);
         return expr;
     }
@@ -205,7 +205,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         };
         var rtrn = comp.OutputType(vm, ctx);
         if (!Core.Std.Class.ThrowableType.CanHold(rtrn.AsClass(vm)))
-            throw new CompilerException(ToSrcPos(context.expr()), CompilerError.InvalidType, ctx.Class,
+            throw new CompilerException(ToSrcPos(context.expr()), CompilerErrorMessage.InvalidType, ctx.Class,
                 rtrn.FullDetailedName, "Expected derivate of Throwable");
         return comp;
     }

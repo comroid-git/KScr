@@ -23,7 +23,7 @@ public class CodeblockVisitor : AbstractVisitor<ExecutableCode>
             }
             catch (CompilerException cex)
             {
-                Console.Error.WriteLine(cex.Message);
+                vm.CompilerErrors.Add(cex);
             }
 
         return code;

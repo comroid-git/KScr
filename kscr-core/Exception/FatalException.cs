@@ -67,9 +67,9 @@ public class StackTraceException : System.Exception, IStackTrace
     public string BaseMessage => base.Message;
     public CallLocation CallLoc { get; }
 
-    public override string Message => $"{CallLoc.SourceName}" + (CallLoc.SourceLine == 0
+    public override string Message => $"{CallLoc.SourceName}" + (CallLoc.SourceRow == 0
         ? string.Empty
-        : $" [line {CallLoc.SourceLine} pos {CallLoc.SourceCursor}]");// + BaseMessage;
+        : $" [line {CallLoc.SourceRow} pos {CallLoc.SourceColumn}]");// + BaseMessage;
 
     public void PrintStackTrace() => WriteStackTrace(Console.Out);
     public void WriteStackTrace(TextWriter @out)

@@ -25,13 +25,13 @@ public struct CallLocation
     public CallLocation(SourcefilePosition srcPos)
     {
         SourceName = srcPos.SourcefilePath;
-        SourceLine = srcPos.SourcefileLine;
-        SourceCursor = srcPos.SourcefileCursor;
+        SourceRow = srcPos.SourcefileLine;
+        SourceColumn = srcPos.SourcefileCursor;
     }
 
     public string SourceName { get; set; }
-    public int SourceLine { get; set; }
-    public int SourceCursor { get; set; }
+    public int SourceRow { get; set; }
+    public int SourceColumn { get; set; }
 }
 
 public sealed class CtxBlob
@@ -204,8 +204,8 @@ public sealed class Stack
         new Stack(this, new CtxBlob(new CallLocation
         {
             SourceName = _local + ".." + sub,
-            SourceLine = srcPos.SourcefileLine,
-            SourceCursor = srcPos.SourcefileCursor
+            SourceRow = srcPos.SourcefileLine,
+            SourceColumn = srcPos.SourcefileCursor
         }, _local)
         {
             Parent = _blob,
@@ -228,8 +228,8 @@ public sealed class Stack
         new Stack(this, new CtxBlob(new CallLocation
         {
             SourceName = _local,
-            SourceLine = srcPos.SourcefileLine,
-            SourceCursor = srcPos.SourcefileCursor
+            SourceRow = srcPos.SourcefileLine,
+            SourceColumn = srcPos.SourcefileCursor
         }, PrefixLocal + cls.Name)
         {
             Local = localStr,

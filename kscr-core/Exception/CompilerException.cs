@@ -3,29 +3,29 @@ using KScr.Core.Store;
 
 namespace KScr.Core.Exception;
 
-public sealed class CompilerError
+public sealed class CompilerErrorMessage
 {
-    public static readonly CompilerError UnexpectedToken = new("Unexpected Token <{1}> in class {0}; {2}");
-    public static readonly CompilerError InvalidToken = new("Invalid Token <{1}> in class {0}; {2}");
-    public static readonly CompilerError InvalidType = new("Invalid Type <{1}> in class {0}; {2}");
-    public static readonly CompilerError Invalid = new("Invalid {1} in class {0}; {2}");
+    public static readonly CompilerErrorMessage UnexpectedToken = new("Unexpected Token <{1}> in class {0}; {2}");
+    public static readonly CompilerErrorMessage InvalidToken = new("Invalid Token <{1}> in class {0}; {2}");
+    public static readonly CompilerErrorMessage InvalidType = new("Invalid Type <{1}> in class {0}; {2}");
+    public static readonly CompilerErrorMessage Invalid = new("Invalid {1} in class {0}; {2}");
 
-    public static readonly CompilerError CannotAssign = new("Cannot assign type {1} to type {0}");
+    public static readonly CompilerErrorMessage CannotAssign = new("Cannot assign type {1} to type {0}");
 
-    public static readonly CompilerError SymbolNotFound = new("Symbol '{0}' not found in context {1}");
-    public static readonly CompilerError TypeSymbolNotFound = new("Type '{0}' not found");
+    public static readonly CompilerErrorMessage SymbolNotFound = new("Symbol '{0}' not found in {1}");
+    public static readonly CompilerErrorMessage TypeSymbolNotFound = new("Type '{0}' not found");
 
-    public static readonly CompilerError ClassPackageMissing = new("Missing package declaration in class {0}");
-    public static readonly CompilerError ClassNameMissing = new("Missing class name in class {0}");
-    public static readonly CompilerError ClassNameMismatch = new("Declared Class name {1} mismatches File name {0}");
-    public static readonly CompilerError ClassInvalidMemberType = new("Invalid member Type {1} in class {0}; {2}");
+    public static readonly CompilerErrorMessage ClassPackageMissing = new("Missing package declaration in class {0}");
+    public static readonly CompilerErrorMessage ClassNameMissing = new("Missing class name in class {0}");
+    public static readonly CompilerErrorMessage ClassNameMismatch = new("Declared Class name {1} mismatches File name {0}");
+    public static readonly CompilerErrorMessage ClassInvalidMemberType = new("Invalid member Type {1} in class {0}; {2}");
 
-    public static readonly CompilerError ClassAbstractMemberNotImplemented =
+    public static readonly CompilerErrorMessage ClassAbstractMemberNotImplemented =
         new("Class {0} does not implement the following abstract members:\n{1}");
 
     public readonly string Message;
 
-    public CompilerError(string message)
+    public CompilerErrorMessage(string message)
     {
         Message = message;
     }
@@ -38,14 +38,14 @@ public sealed class CompilerError
 
 public class CompilerException : System.Exception, IStackTrace
 {
-    public CompilerException(SourcefilePosition srcPos, CompilerError error,
-        params object?[] messageArgs /* expected, actual */) : base(error.Format(messageArgs))
+    public CompilerException(SourcefilePosition srcPos, CompilerErrorMessage errorMessage,
+        params object?[] messageArgs /* expected, actual */) : base(errorMessage.Format(messageArgs))
     {
         CallLoc = new CallLocation(srcPos);
     }
 
-    public override string Message => base.Message +
-                                      $"\n\tin File {CallLoc.SourceName} line {CallLoc.SourceLine} pos {CallLoc.SourceCursor}";
+    public override string Message =>
+        $"{base.Message}\n\tin file '{CallLoc.SourceName}' line {CallLoc.SourceRow} pos {CallLoc.SourceColumn}";
 
     public CallLocation CallLoc { get; }
 }

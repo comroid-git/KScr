@@ -51,7 +51,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
         var actualType = left.OutputType(vm, ctx);
         var varType = right.OutputType(vm, ctx);
         if (!actualType.AsClass(vm).CanHold(varType.AsClass(vm)))
-            throw new CompilerException(ToSrcPos(context.mutation().expr()), CompilerError.CannotAssign, actualType, varType);
+            throw new CompilerException(ToSrcPos(context.mutation().expr()), CompilerErrorMessage.CannotAssign, actualType, varType);
         return new Statement
         {
             Type = StatementComponentType.Code,

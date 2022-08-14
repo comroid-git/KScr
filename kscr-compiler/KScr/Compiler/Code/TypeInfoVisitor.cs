@@ -4,7 +4,7 @@ using KScr.Core;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
-using static KScr.Core.Exception.CompilerError;
+using static KScr.Core.Exception.CompilerErrorMessage;
 
 namespace KScr.Compiler.Code;
 

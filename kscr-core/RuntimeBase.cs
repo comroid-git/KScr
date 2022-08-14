@@ -87,6 +87,7 @@ public abstract class RuntimeBase : IBytecodePort
     public static int ExitCode { get; set; } = 0;
     public static string? ExitMessage { get; set; } = null;
     public BytecodeVersion BytecodeVersion => BytecodeVersion.Current;
+    public readonly List<CompilerException> CompilerErrors = new();
 
     public void Write(StringCache strings, Stream stream, IBytecode bytecode)
     {

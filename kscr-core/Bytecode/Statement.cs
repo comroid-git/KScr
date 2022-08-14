@@ -518,7 +518,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                          && cls2.ClassMembers.FirstOrDefault(x =>
                              x.MemberType == ClassMemberType.Property && x.Name == Arg) is Property prop)
                     rtrn = prop.ReturnType;
-                else throw new CompilerException(SourcefilePosition, CompilerError.SymbolNotFound, Arg, symbols.CurrentContext(vm));
+                else throw new CompilerException(SourcefilePosition, CompilerErrorMessage.SymbolNotFound, Arg, symbols.CurrentContext(vm));
                 break;
             case (StatementComponentType.Expression, BytecodeType.StdioExpression):
                 rtrn = Class.PipeType.GetInstance(vm, Class.StringType);
