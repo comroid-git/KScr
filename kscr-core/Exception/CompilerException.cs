@@ -10,7 +10,7 @@ public sealed class CompilerErrorMessage
     public static readonly CompilerErrorMessage InvalidType = new("Invalid Type <{1}> in class {0}; {2}");
     public static readonly CompilerErrorMessage Invalid = new("Invalid {1} in class {0}; {2}");
 
-    public static readonly CompilerErrorMessage CannotAssign = new("Cannot assign type {1} to type {0}");
+    public static readonly CompilerErrorMessage CannotAssign = new("Cannot assign {1} to {0}");
 
     public static readonly CompilerErrorMessage SymbolNotFound = new("Symbol '{0}' not found in {1}");
     public static readonly CompilerErrorMessage TypeSymbolNotFound = new("Type '{0}' not found");
