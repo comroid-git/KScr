@@ -210,7 +210,7 @@ public class ObjectRef : IObjectRef
         if (Constant)
             throw new InvalidOperationException("ObjectRef is constant");
         if (IsPipe)
-            throw new InvalidOperationException("Cannot insert value inte pipe");
+            throw new InvalidOperationException("Cannot insert value into pipe");
         Refs[i] = value;
     }
 }
