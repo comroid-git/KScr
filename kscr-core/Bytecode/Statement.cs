@@ -206,7 +206,9 @@ public class StatementComponent : IBytecode, IStatementComponent
                 break;
             case (StatementComponentType.Expression, BytecodeType.Call):
                 // invoke member
-                if ((stack[Default].Value is IClass cls || (cls = stack[Default].Value.Type) != null)
+                if (((stack[Default]!.IsPipe && stack[Default]!.Type is IClass cls) 
+                     || (cls = (stack[Default]![vm, stack, 0] as IClass)!) != null 
+                     || (cls = stack[Default]![vm, stack, 0].Type) != null)
                     && cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is
                         IMethod mtd)
                 {

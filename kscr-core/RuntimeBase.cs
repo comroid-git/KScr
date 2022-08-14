@@ -190,7 +190,7 @@ public abstract class RuntimeBase : IBytecodePort
         Class.IntType.LateInitialize(this, MainStack);
         Class.NumericType.LateInitialize(this, MainStack);
 
-        StdioRef = new StandardIORef();
+        StdioRef = new StandardIORef(this);
 
         Initialized = true;
     }
@@ -352,7 +352,7 @@ public abstract class RuntimeBase : IBytecodePort
 
     public sealed class StandardIORef : ObjectRef
     {
-        public StandardIORef() : base(Class.StringType.DefaultInstance /* todo: this must be pipe<str> */)
+        public StandardIORef(RuntimeBase vm) : base(Class.PipeType.CreateInstance(vm, Class.PipeType, Class.StringType))
         {
         }
 
