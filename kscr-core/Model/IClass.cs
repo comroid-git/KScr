@@ -73,10 +73,10 @@ public interface IClass : IClassInfo, IClassMember, IPackageMember
     new MemberModifier Modifier { get; }
     Class BaseClass { get; }
     ClassRef SelfRef { get; }
-    IEnumerable<IClassMember> ClassMembers => DeclaredMembers.Values.Concat(InheritedMembers);
+    IEnumerable<IClassMember> ClassMembers => DeclaredMembers.Values.Concat(InheritedMembers).Distinct();
 
     IEnumerable<IClassMember> InheritedMembers =>
-        Inheritors.Where(it => it != null).SelectMany(it => it.ClassMembers);
+        Inheritors.Where(it => it != null).SelectMany(it => it.ClassMembers).Distinct();
 
     IDictionary<string, IClassMember> DeclaredMembers { get; }
     IEnumerable<IClassInstance> Inheritors => Superclasses.Concat(Interfaces);

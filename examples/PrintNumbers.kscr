@@ -25,6 +25,11 @@ public class PrintNumbers implements Throwable {
         
         //start = "abc";
         
+        str canonical = stdio.getType().getCanonicalName();
+        str fullDetailed = stdio.getType().getFullDetailedName();
+        stdio <<- canonical + " len:" + canonical.length() + endl;
+        stdio <<- fullDetailed + " len:" + fullDetailed.length() + endl;
+        
         // test shorthand ops
         // TODO: make parentheses for parsing order obsolete (-> antlr grammar order)
         stdio <<- "24 (24) = " + (end) + " (" + end + ")" + endl;

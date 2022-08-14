@@ -76,6 +76,7 @@ public sealed class StackOutputMapping : Dictionary<StackOutput, StackOutput>
 
 public sealed class Stack
 {
+    private readonly Guid _guid = Guid.NewGuid();
     public const string Separator = ".";
     public static readonly List<StackTraceException> StackTrace = new();
     private readonly CtxBlob _blob = null!;

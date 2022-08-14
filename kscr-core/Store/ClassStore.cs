@@ -50,6 +50,7 @@ public class ClassRef : IObjectRef
         set => throw new NotSupportedException("Cannot change ClassRef");
     }
 
+    public IObject? DummyObject => Value;
     public IClassInstance Type => Class.TypeType.DefaultInstance;
 
     public IObject this[RuntimeBase vm, Stack stack, int i]

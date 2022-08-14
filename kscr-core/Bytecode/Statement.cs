@@ -164,6 +164,14 @@ public class StatementComponent : IBytecode, IStatementComponent
     public StatementComponentType Type { get; set; }
     public BytecodeType CodeType { get; set; } = BytecodeType.Undefined;
 
+    public void AppendPostComponent(StatementComponent comp)
+    {
+        StatementComponent x = this;
+        while (x.PostComponent != null) 
+            x = x.PostComponent!;
+        x.PostComponent = comp;
+    }
+
     public virtual Stack Evaluate(RuntimeBase vm, Stack stack)
     {
         IObjectRef? bak;
@@ -206,7 +214,9 @@ public class StatementComponent : IBytecode, IStatementComponent
                 break;
             case (StatementComponentType.Expression, BytecodeType.Call):
                 // invoke member
-                if ((stack[Default].Value is IClass cls || (cls = stack[Default].Value.Type) != null)
+                if (((stack[Default]!.IsPipe && stack[Default]!.Type is IClass cls) 
+                     || (cls = (stack[Default]![vm, stack, 0] as IClass)!) != null 
+                     || (cls = stack[Default]![vm, stack, 0].Type) != null)
                     && cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is
                         IMethod mtd)
                 {
@@ -217,9 +227,12 @@ public class StatementComponent : IBytecode, IStatementComponent
                         if (vm.NativeRunner == null)
                             throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
                         else
-                            vm.NativeRunner.InvokeMember(vm, stack, stack[Default][vm, stack, 0], mtd)
+                            vm.NativeRunner.InvokeMember(vm, stack, stack[Default]![vm, stack, 0], mtd)
                                 .Copy(Omg, Default);
-                    else mtd.Invoke(vm, stack, stack[Default][vm,stack,0], args: stack.Del!.AsArray(vm, stack));
+                    else
+                        mtd.Invoke(vm, stack,
+                            stack[Default]!.IsPipe ? stack[Default]!.DummyObject : stack[Default]![vm, stack, 0],
+                            args: stack.Del!.AsArray(vm, stack));
                 }
                 else if (cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Property && x.Name == Arg)
                          is Property prop)
@@ -455,7 +468,7 @@ public class StatementComponent : IBytecode, IStatementComponent
         }
 
         if (PostComponent != null)
-            PostComponent.Evaluate(vm, stack);
+            PostComponent.Evaluate(vm, stack); // todo fixme for some reason this modifies the parent stack
 
         return stack;
     }
@@ -575,7 +588,16 @@ public class StatementComponent : IBytecode, IStatementComponent
         }
 
         if (!ignorePostComp && PostComponent != null)
-            rtrn = PostComponent.OutputType(vm, symbols, this);
+            try
+            {
+                symbols.PushContext(rtrn.AsClass(vm));
+                rtrn = PostComponent.OutputType(vm, symbols, this);
+            }
+            finally
+            {
+                symbols.DropContext();
+            }
+
         return rtrn;
     }
 }

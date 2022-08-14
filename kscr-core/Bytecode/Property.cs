@@ -90,6 +90,7 @@ public sealed class Property : AbstractClassMember, IObjectRef
         set => Console.Error.WriteLine("Error: Property needs evaluation");
     }
 
+    public IObject? DummyObject => Value;
     public IClassInstance Type => ReturnType.ResolveType(Parent.DefaultInstance);
 
     public IObject this[RuntimeBase vm, Stack stack, int i]

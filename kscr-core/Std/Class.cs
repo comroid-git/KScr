@@ -57,7 +57,8 @@ public sealed class Class : AbstractPackageMember, IClass
     static Class()
     {
         VoidType = new Class(LibCorePackage, "void", true, MemberModifier.Public, ClassType.Interface);
-        TypeType = new Class(LibCorePackage, "type", true, MemberModifier.Public | MemberModifier.Final);
+        TypeType = new Class(LibCorePackage, "type", true, MemberModifier.Public | MemberModifier.Final)
+            { TypeParameters = { new TypeParameter("T") } };
         ObjectType = new Class(LibCorePackage, "object", true, MemberModifier.Public | MemberModifier.Native);
         EnumType = new Class(LibCorePackage, "enum", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
             { TypeParameters = { new TypeParameter("T") } };
@@ -293,6 +294,16 @@ public sealed class Class : AbstractPackageMember, IClass
 
         #region Type Class
 
+        var getCanonicalName = new DummyMethod(TypeType, "getCanonicalName", MemberModifier.PF, StringType);
+        var getName = new DummyMethod(TypeType, "getName", MemberModifier.PF, StringType);
+        var getDetailedName = new DummyMethod(TypeType, "getDetailedName", MemberModifier.PF, StringType);
+        var getFullName = new DummyMethod(TypeType, "getFullName", MemberModifier.PF, StringType);
+        var getFullDetailedName = new DummyMethod(TypeType, "getFullDetailedName", MemberModifier.PF, StringType);
+        AddToClass(TypeType, getCanonicalName);
+        AddToClass(TypeType, getName);
+        AddToClass(TypeType, getDetailedName);
+        AddToClass(TypeType, getFullName);
+        AddToClass(TypeType, getFullDetailedName);
         TypeType._superclasses.Add(ObjectType.DefaultInstance);
 
         #endregion
@@ -327,8 +338,8 @@ public sealed class Class : AbstractPackageMember, IClass
             NumericIntType,
             new List<MethodParameter> { new() { Name = "data", Type = PipeType.TypeParameters[0] } });
 
-        AddToClass(PipeType, name);
-        AddToClass(PipeType, values);
+        AddToClass(PipeType, read);
+        AddToClass(PipeType, write);
         PipeType._interfaces.Add(VoidType.DefaultInstance);
 
         #endregion

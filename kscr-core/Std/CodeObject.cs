@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Runtime.Intrinsics.X86;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
@@ -73,7 +74,7 @@ public sealed class CodeObject : NativeObj
                 stack[StackOutput.Default] = args[0]!.ObjectId == ObjectId ? vm.ConstantTrue : vm.ConstantFalse;
                 break;
             case "getType":
-                stack[StackOutput.Default] = Type.SelfRef;
+                stack[StackOutput.Default] = Class.TypeType.CreateInstance(vm, Class.TypeType, Type).SelfRef;
                 break;
             default: throw new FatalException("Method not implemented: " + member);
         }

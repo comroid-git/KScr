@@ -10,6 +10,8 @@ public interface ISymbolValidator
     Symbol? FindSymbol(string name, ITypeInfo? type = null);
     T NextSymbolLevel<T>(string group, Func<T> task);
     IClass CurrentContext(RuntimeBase vm);
+    void PushContext(IClass cls);
+    IClass DropContext();
 }
 
 public enum SymbolType
