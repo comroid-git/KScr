@@ -250,6 +250,9 @@ public class StatementComponent : IBytecode, IStatementComponent
             case (StatementComponentType.Expression, BytecodeType.Undefined):
                 stack[Default] = stack.This;
                 break;
+            case (StatementComponentType.Expression, BytecodeType.Cast):
+                // casting is implicitly evaluated by design
+                break;
             case (StatementComponentType.Declaration, _):
                 // variable declaration
                 stack[Default] = vm[stack, VariableContext, Args[1]] = new ObjectRef(vm.FindType(Args[0])!);
@@ -533,6 +536,9 @@ public class StatementComponent : IBytecode, IStatementComponent
                 break;
             case (StatementComponentType.Code, BytecodeType.Assignment):
                 rtrn = AltComponent!.OutputType(vm, symbols, this);
+                break;
+            case (StatementComponentType.Expression, BytecodeType.Cast):
+                rtrn = vm.FindTypeInfo(Arg, symbols.CurrentContext(vm).AsClass(vm), symbols.CurrentContext(vm).Package!);
                 break;
             case (StatementComponentType.Expression, BytecodeType.Parentheses):
             case (StatementComponentType.Code, BytecodeType.Return):
