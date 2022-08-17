@@ -5,6 +5,7 @@ namespace KScr.Core.Model;
 [Flags]
 public enum BytecodeType : uint
 {
+    [Obsolete]
     Undefined = 0xFFFF_FFFF,
 
     Declaration = 0x0000_0001,
