@@ -352,19 +352,22 @@ public abstract class RuntimeBase : IBytecodePort
 
     public sealed class StandardIORef : ObjectRef
     {
+        private readonly StdioReader _reader = new();
+        private readonly StdioWriter _writer = new();
+
         public StandardIORef(RuntimeBase vm) : base(Class.PipeType.CreateInstance(vm, Class.PipeType, Class.StringType))
         {
         }
 
         public override IEvaluable? ReadAccessor
         {
-            get => new StdioReader();
+            get => _reader;
             set => throw new FatalException("Cannot reassign stdio ReadAccessor");
         }
 
         public override IEvaluable? WriteAccessor
         {
-            get => new StdioWriter();
+            get => _writer;
             set => throw new FatalException("Cannot reassign stdio WriteAccessor");
         }
 
