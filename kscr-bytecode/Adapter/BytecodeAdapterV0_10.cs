@@ -88,124 +88,6 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         Write(stream, strings, code.Main.ToArray());
     }
 
-<<<<<<< Updated upstream
-        if (bytecode is Class cls)
-        {
-            WriteByte((byte)cls.MemberType);
-            WriteByte((byte)cls.ClassType);
-            WriteUInt((uint)cls.Modifier);
-            WriteString(cls.Name);
-            WriteArray(cls.Imports.Select(IBytecode.String).ToArray());
-            WriteArray(cls._superclasses.Select(it => it.FullDetailedName).Select(IBytecode.String).ToArray());
-            WriteArray(cls._interfaces.Select(it => it.FullDetailedName).Select(IBytecode.String).ToArray());
-            WriteArray(cls.DeclaredMembers.Values.Where(x => x is not DummyMethod).ToArray());
-        }
-        else if (bytecode is Property prop)
-        {
-            WriteByte((byte)prop.MemberType);
-            WriteUInt((uint)prop.Modifier);
-            WriteString(prop.Name);
-            WriteString(prop.ReturnType.FullDetailedName);
-            Write(strings, stream, prop.SourceLocation);
-            WriteByte((byte)
-                ((prop.Gettable ? (byte)PropState.Gettable : 0) |
-                 (prop.Settable ? (byte)PropState.Settable : 0) |
-                 (prop.Inittable ? (byte)PropState.Initable : 0) |
-                 (prop.Getter != null ? (byte)PropState.HasGetter : 0) |
-                 (prop.Setter != null ? (byte)PropState.HasSetter : 0) |
-                 (prop.Initter != null ? (byte)PropState.HasIniter : 0))
-            );
-            if (prop.Getter != null)
-                Write(strings, stream, prop.Getter!);
-            if (prop.Setter != null)
-                Write(strings, stream, prop.Setter!);
-            if (prop.Initter != null)
-                Write(strings, stream, prop.Initter!);
-        }
-        else if (bytecode is Method mtd)
-        {
-            WriteByte((byte)mtd.MemberType);
-            WriteUInt((uint)mtd.Modifier);
-            WriteString(mtd.Name);
-            WriteString(mtd.ReturnType.FullDetailedName);
-            Write(strings, stream, mtd.SourceLocation);
-            WriteArray(mtd.Parameters.ToArray());
-            Write(strings, stream, mtd.Body);
-        }
-        else if (bytecode is MethodParameter param)
-        {
-            WriteString(param.Type.FullDetailedName);
-            WriteString(param.Name);
-        }
-        else if (bytecode is SourcefilePosition srcPos)
-        {
-            WriteInt(srcPos.SourcefileLine);
-            WriteInt(srcPos.SourcefileCursor);
-        }
-        else if (bytecode is ExecutableCode code)
-        {
-            WriteArray(code.Main.ToArray());
-        }
-        else if (bytecode is Statement stmt)
-        {
-            WriteUInt((uint)stmt.Type);
-            WriteUInt((uint)stmt.CodeType);
-            WriteString(stmt.Arg ?? string.Empty);
-            WriteString(stmt.TargetType.FullDetailedName);
-            WriteArray(stmt.Main.ToArray());
-            WriteByte((byte)(stmt.CatchFinally != null ? 1 : 0));
-            if (stmt.CatchFinally != null)
-                Write(strings, stream, stmt.CatchFinally!);
-        }
-        else if (bytecode is StatementComponent comp)
-        {
-            WriteUInt((uint)comp.Type);
-            WriteUInt((uint)comp.CodeType);
-            WriteByte((byte)comp.VariableContext);
-            WriteULong(comp.ByteArg);
-            WriteString(comp.Arg ?? string.Empty);
-            WriteArray(comp.Args.Select(IBytecode.String).ToArray());
-            Write(strings, stream, comp.SourcefilePosition);
-            var memberState = comp.GetComponentMember();
-            WriteByte((byte)memberState);
-            if ((memberState & ComponentMember.SubStatement) != 0)
-                Write(strings, stream, comp.SubStatement!);
-            if ((memberState & ComponentMember.AltStatement) != 0)
-                Write(strings, stream, comp.AltStatement!);
-            if ((memberState & ComponentMember.SubComponent) != 0)
-                Write(strings, stream, comp.SubComponent!);
-            if ((memberState & ComponentMember.AltComponent) != 0)
-                Write(strings, stream, comp.AltComponent!);
-            if ((memberState & ComponentMember.PostComponent) != 0)
-                Write(strings, stream, comp.PostComponent!);
-            if ((memberState & ComponentMember.InnerCode) != 0)
-                Write(strings, stream, comp.InnerCode!);
-        }
-        else if (bytecode is LiteralBytecode<byte> litB)
-        {
-            WriteByte(litB.Value);
-        }
-        else if (bytecode is LiteralBytecode<int> litI)
-        {
-            WriteInt(litI.Value);
-        }
-        else if (bytecode is LiteralBytecode<uint> litUI)
-        {
-            WriteUInt(litUI.Value);
-        }
-        else if (bytecode is LiteralBytecode<ulong> litUL)
-        {
-            WriteULong(litUL.Value);
-        }
-        else if (bytecode is LiteralBytecode<string> litS)
-        {
-            WriteString(litS.Value);
-        }
-        else
-        {
-            throw new NotSupportedException("Bytecode not supported: " + bytecode);
-        }
-=======
     public override void Write(Stream stream, StringCache strings, Statement stmt)
     {
         Write(stream, (uint)stmt.Type);
@@ -217,7 +99,6 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         if (stmt.CatchFinally != null)
             Write(stream, strings, stmt.CatchFinally!);
     }
->>>>>>> Stashed changes
 
     public override void Write(Stream stream, StringCache strings, StatementComponent comp)
     {
