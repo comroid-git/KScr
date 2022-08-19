@@ -12,6 +12,7 @@ using KScr.Core.Model;
 using KScr.Core.Std;
 using KScr.Core.Store;
 using KScr.Core.Util;
+using static KScr.Core.Store.StackOutput;
 using String = KScr.Core.Std.String;
 
 namespace KScr.Core;
@@ -375,7 +376,7 @@ public abstract class RuntimeBase : IBytecodePort
         {
             public Stack Evaluate(RuntimeBase vm, Stack stack)
             {
-                var txt = stack.Alp!.Value.ToString(IObject.ToString_ParseableName);
+                var txt = stack[Default]!.Value.ToString(IObject.ToString_ParseableName);
                 Console.Write(txt);
                 return stack;
             }
@@ -385,13 +386,17 @@ public abstract class RuntimeBase : IBytecodePort
         {
             public Stack Evaluate(RuntimeBase vm, Stack stack)
             {
-                if (stack.Alp!.Length != 1 || !stack.Alp.Type.CanHold(Class.StringType) &&
-                    !stack.Alp.Type.CanHold(Class.NumericType))
-                    throw new FatalException("Invalid reference to write string into: " + stack.Alp);
+                if (stack[Default]!.Length != 1 || !stack[Default].Type.CanHold(Class.StringType) &&
+                    !stack[Default].Type.CanHold(Class.NumericType))
+                    throw new FatalException("Invalid reference to write string into: " + stack[Default]);
                 var txt = Console.ReadLine()!;
-                if (stack.Alp.Type.CanHold(Class.NumericType))
-                    stack.Alp.Value = Numeric.Compile(vm, txt).Value;
-                else stack.Alp.Value = String.Instance(vm, txt).Value;
+                if (Numeric.NumberRegex.IsMatch(txt) && stack[Default].Type.CanHold(Class.NumericType))
+                    txt = Numeric.Compile(vm, txt).Value.ToString(IObject.ToString_ParseableName);
+                else if (txt is "true" or "false")
+                    txt = (txt is "true" ? vm.ConstantTrue.Value : vm.ConstantFalse.Value).ToString(IObject.ToString_ParseableName);
+                else if (txt is "null")
+                    txt = IObject.Null.ToString(IObject.ToString_ParseableName);
+                stack[Default].Value = String.Instance(vm, txt).Value;
                 return stack;
             }
         }
