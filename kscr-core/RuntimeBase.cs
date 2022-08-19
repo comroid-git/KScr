@@ -90,11 +90,11 @@ public abstract class RuntimeBase : IBytecodePort
     public BytecodeVersion BytecodeVersion => BytecodeVersion.Current;
     public readonly List<CompilerException> CompilerErrors = new();
 
-    public void Write(StringCache strings, Stream stream, IBytecode bytecode)
+    public void Write(Stream stream, StringCache strings, IBytecode bytecode)
     {
         stream.Write(BitConverter.GetBytes(BytecodeVersion.Version.Major));
         stream.Write(BitConverter.GetBytes(BytecodeVersion.Version.Minor));
-        BytecodePorts[BytecodeVersion].Write(strings, stream, bytecode);
+        BytecodePorts[BytecodeVersion].Write(stream, strings, bytecode);
     }
 
     public T Load<T>(RuntimeBase vm, StringCache strings, Stream stream, Package pkg, Class? cls)

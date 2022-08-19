@@ -26,55 +26,69 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
     {
     }
 
-    public override void Write(StringCache strings, Stream stream, IBytecode bytecode)
+    public override void Write(Stream stream, StringCache strings, Class cls)
     {
-        if (bytecode == null)
-            throw new NullReferenceException();
+        Write(stream, (byte)cls.MemberType);
+        Write(stream, (byte)cls.ClassType);
+        Write(stream, (uint)cls.Modifier);
+        Write(stream, strings, cls.Name);
+        Write(stream, strings, cls.Imports.Select(IBytecode.String).ToArray());
+        Write(stream, strings, cls._superclasses.Select(it => it.FullDetailedName).Select(IBytecode.String).ToArray());
+        Write(stream, strings, cls._interfaces.Select(it => it.FullDetailedName).Select(IBytecode.String).ToArray());
+        Write(stream, strings, cls.DeclaredMembers.Values.Where(x => x is not DummyMethod).ToArray());
+    }
 
-        void WriteElementType()
-        {
-            WriteByte((byte)bytecode.ElementType);
-        }
+    public override void Write(Stream stream, StringCache strings, Property prop)
+    {
+        Write(stream, (byte)prop.MemberType);
+        Write(stream, (uint)prop.Modifier);
+        Write(stream, strings, prop.Name);
+        Write(stream, strings, prop.ReturnType.FullDetailedName);
+        Write(stream, strings, prop.SourceLocation);
+        Write(stream, (byte)
+            ((prop.Gettable ? 0b000_001 : 0) |
+             (prop.Settable ? 0b000_010 : 0) |
+             (prop.Inittable ? 0b000_100 : 0) |
+             (prop.Getter != null ? 0b001_000 : 0) |
+             (prop.Setter != null ? 0b010_000 : 0) |
+             (prop.Initter != null ? 0b100_000 : 0)));
+        if (prop.Getter != null)
+            Write(stream, strings, prop.Getter!);
+        if (prop.Setter != null)
+            Write(stream, strings, prop.Setter!);
+        if (prop.Initter != null)
+            Write(stream, strings, prop.Initter!);
+    }
 
-        void WriteByte(byte b)
-        {
-            stream!.Write(new[] { b });
-        }
+    public override void Write(Stream stream, StringCache strings, Method mtd)
+    {
+        Write(stream, (byte)mtd.MemberType);
+        Write(stream, (uint)mtd.Modifier);
+        Write(stream, strings, mtd.Name);
+        Write(stream, strings, mtd.ReturnType.FullDetailedName);
+        Write(stream, strings, mtd.SourceLocation);
+        Write(stream, strings, mtd.Parameters.ToArray());
+        Write(stream, strings, mtd.Body);
+    }
 
-        void WriteInt(int i)
-        {
-            stream!.Write(BitConverter.GetBytes(i));
-        }
+    public override void Write(Stream stream, StringCache strings, MethodParameter param)
+    {
+        Write(stream, strings, param.Type.FullDetailedName);
+        Write(stream, strings, param.Name);
+    }
 
-        void WriteUInt(uint ui)
-        {
-            stream!.Write(BitConverter.GetBytes(ui));
-        }
+    public override void Write(Stream stream, StringCache strings, SourcefilePosition srcPos)
+    {
+        Write(stream, srcPos.SourcefileLine);
+        Write(stream, srcPos.SourcefileCursor);
+    }
 
-        void WriteULong(ulong ul)
-        {
-            stream!.Write(BitConverter.GetBytes(ul));
-        }
+    public override void Write(Stream stream, StringCache strings, ExecutableCode code)
+    {
+        Write(stream, strings, code.Main.ToArray());
+    }
 
-        void WriteString(string str)
-        {
-            WriteInt(strings[str]);
-        }
-
-        void WriteNewline()
-        {
-            stream!.Write(StringCache.NewLineBytes);
-        }
-
-        void WriteArray<T>(T[] arr) where T : IBytecode
-        {
-            stream.Write(BitConverter.GetBytes(arr.Length));
-            foreach (var node in arr)
-                Write(strings, stream, node);
-        }
-
-        WriteElementType();
-
+<<<<<<< Updated upstream
         if (bytecode is Class cls)
         {
             WriteByte((byte)cls.MemberType);
@@ -191,8 +205,43 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         {
             throw new NotSupportedException("Bytecode not supported: " + bytecode);
         }
+=======
+    public override void Write(Stream stream, StringCache strings, Statement stmt)
+    {
+        Write(stream, (uint)stmt.Type);
+        Write(stream, (uint)stmt.CodeType);
+        Write(stream, strings, stmt.Arg ?? string.Empty);
+        Write(stream, strings, stmt.TargetType.FullDetailedName);
+        Write(stream, strings, stmt.Main.ToArray());
+        Write(stream, (byte)(stmt.CatchFinally != null ? 1 : 0));
+        if (stmt.CatchFinally != null)
+            Write(stream, strings, stmt.CatchFinally!);
+    }
+>>>>>>> Stashed changes
 
-        stream.Flush();
+    public override void Write(Stream stream, StringCache strings, StatementComponent comp)
+    {
+        Write(stream, (uint)comp.Type);
+        Write(stream, (uint)comp.CodeType);
+        Write(stream, (byte)comp.VariableContext);
+        Write(stream, comp.ByteArg);
+        Write(stream, strings, comp.Arg ?? string.Empty);
+        Write(stream, strings, comp.Args.Select(IBytecode.String).ToArray());
+        Write(stream, strings, comp.SourcefilePosition);
+        var memberState = comp.GetComponentMember();
+        Write(stream, (byte)memberState);
+        if ((memberState & ComponentMember.SubStatement) != 0)
+            Write(stream, strings, comp.SubStatement!);
+        if ((memberState & ComponentMember.AltStatement) != 0)
+            Write(stream, strings, comp.AltStatement!);
+        if ((memberState & ComponentMember.SubComponent) != 0)
+            Write(stream, strings, comp.SubComponent!);
+        if ((memberState & ComponentMember.AltComponent) != 0)
+            Write(stream, strings, comp.AltComponent!);
+        if ((memberState & ComponentMember.PostComponent) != 0)
+            Write(stream, strings, comp.PostComponent!);
+        if ((memberState & ComponentMember.InnerCode) != 0)
+            Write(stream, strings, comp.InnerCode!);
     }
 
     public override T Load<T>(RuntimeBase vm, StringCache strings, Stream stream, Package pkg, Class? cls)
