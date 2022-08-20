@@ -45,7 +45,7 @@ public sealed class Class : AbstractPackageMember, IClass
     public readonly IList<IClassInstance> DeclaredSuperclasses = new List<IClassInstance>();
 
     private bool _initialized;
-    private bool _lateInitialized;
+    internal bool _lateInitialized;
 
     public Class(Package package, string name, bool primitive, MemberModifier modifier = MemberModifier.Protected,
         ClassType type = ClassType.Class) : base(package, name, modifier)

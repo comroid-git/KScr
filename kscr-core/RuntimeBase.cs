@@ -196,6 +196,16 @@ public abstract class RuntimeBase : IBytecodePort
         Initialized = true;
     }
 
+    public void LateInitializeNonPrimitives(Stack stack) => LateInitializeNonPrimitives_Rec(stack, Package.RootPackage);
+
+    private void LateInitializeNonPrimitives_Rec(Stack stack, Package pkg)
+    {
+        foreach (var sub in pkg.PackageMembers.Values.Where(it => it is Package).Cast<Package>())
+            LateInitializeNonPrimitives_Rec(stack, sub);
+        foreach (var cls in pkg.PackageMembers.Values.Where(it => it is Class { _lateInitialized: true }).Cast<Class>())
+            cls.LateInitialize(this, stack);
+    }
+
     public uint NextObjId()
     {
         return ++_lastObjId;
