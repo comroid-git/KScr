@@ -310,6 +310,9 @@ public abstract class RuntimeBase : IBytecodePort
             return Class.StringType.DefaultInstance;
         if (name.EndsWith("void") || name.EndsWith("object") || name == "object")
             return Class.VoidType.DefaultInstance;
+        if (name.StartsWith("pipe<"))
+            return Class.PipeType.CreateInstance(this, (owner ?? Class.PipeType).AsClass(this),
+                FindType(name.Substring("pipe<".Length, name.Length - "pipe<>".Length))!);
 
         if (name.Contains('<'))
         {

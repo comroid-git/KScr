@@ -328,7 +328,7 @@ public sealed class Class : AbstractPackageMember, IClass
 
         AddToClass(PipeType, name);
         AddToClass(PipeType, values);
-        PipeType._interfaces.Add(VoidType.DefaultInstance);
+        PipeType.DeclaredInterfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
@@ -337,7 +337,7 @@ public sealed class Class : AbstractPackageMember, IClass
         var length = new Property(RuntimeBase.SystemSrcPos, ArrayType, "length", NumericIntType, MemberModifier.Public);
 
         AddToClass(ArrayType, length);
-        ArrayType._superclasses.Add(ObjectType.DefaultInstance);
+        ArrayType.DeclaredSuperclasses.Add(ObjectType.DefaultInstance);
 
         #endregion
 
@@ -346,7 +346,7 @@ public sealed class Class : AbstractPackageMember, IClass
         var size = new Property(RuntimeBase.SystemSrcPos, TupleType, "size", NumericIntType, MemberModifier.Public);
 
         AddToClass(TupleType, size);
-        TupleType._superclasses.Add(ObjectType.DefaultInstance);
+        TupleType.DeclaredSuperclasses.Add(ObjectType.DefaultInstance);
 
         #endregion
 
@@ -362,7 +362,7 @@ public sealed class Class : AbstractPackageMember, IClass
             NumericIntType);
 
         AddToClass(StringType, strlen);
-        StringType._superclasses.Add(ObjectType.DefaultInstance);
+        StringType.DeclaredSuperclasses.Add(ObjectType.DefaultInstance);
 
         #endregion
 
@@ -426,14 +426,14 @@ public sealed class Class : AbstractPackageMember, IClass
         AddToClass(IteratorType, current);
         AddToClass(IteratorType, next);
         AddToClass(IteratorType, hasNext);
-        IteratorType._interfaces.Add(VoidType.DefaultInstance);
+        IteratorType.DeclaredInterfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
         #region Iterable Class
 
         AddToClass(IterableType, iterator);
-        IterableType._interfaces.Add(VoidType.DefaultInstance);
+        IterableType.DeclaredInterfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
@@ -442,7 +442,7 @@ public sealed class Class : AbstractPackageMember, IClass
         var close = new DummyMethod(CloseableType, "close", MemberModifier.Public, VoidType);
         
         AddToClass(CloseableType, close);
-        CloseableType._interfaces.Add(VoidType.DefaultInstance);
+        CloseableType.DeclaredInterfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
