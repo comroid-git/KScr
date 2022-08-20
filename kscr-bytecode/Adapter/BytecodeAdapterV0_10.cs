@@ -61,6 +61,7 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         foreach (var superclass in superclasses) cls.DeclaredSuperclasses.Add(superclass);
         foreach (var iface in interfaces) cls.DeclaredInterfaces.Add(iface);
         foreach (var member in members) cls.DeclaredMembers[member.Name] = member;
+        cls.Initialize(vm);
         return cls;
     }
     #endregion
@@ -73,18 +74,18 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         Write(stream, strings, prop.Name);
         Write(stream, strings, prop.ReturnType.FullDetailedName);
         Write(stream, strings, prop.SourceLocation);
-        Write(stream, (byte)
-            ((prop.Gettable ? 0b000_001 : 0) |
-             (prop.Settable ? 0b000_010 : 0) |
-             (prop.Inittable ? 0b000_100 : 0) |
-             (prop.Getter != null ? 0b001_000 : 0) |
-             (prop.Setter != null ? 0b010_000 : 0) |
-             (prop.Initter != null ? 0b100_000 : 0)));
-        if (prop.Getter != null)
+        var propState = (prop.Gettable ? PropState.Gettable : 0) |
+                        (prop.Settable ? PropState.Settable : 0) |
+                        (prop.Inittable ? PropState.Initable : 0) |
+                        (prop.Getter != null && prop.Getter.Main.Count > 0 ? PropState.HasGetter : 0) |
+                        (prop.Setter != null && prop.Setter.Main.Count > 0 ? PropState.HasSetter : 0) |
+                        (prop.Initter != null && prop.Initter.Main.Count > 0 ? PropState.HasIniter : 0);
+        Write(stream, (byte)propState);
+        if ((propState & PropState.HasGetter) != 0)
             Write(stream, strings, prop.Getter!);
-        if (prop.Setter != null)
+        if ((propState & PropState.HasSetter) != 0)
             Write(stream, strings, prop.Setter!);
-        if (prop.Initter != null)
+        if ((propState & PropState.HasIniter) != 0)
             Write(stream, strings, prop.Initter!);
     }
 
