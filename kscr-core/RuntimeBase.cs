@@ -214,6 +214,7 @@ public abstract class RuntimeBase : IBytecodePort
 
     private static DirectoryInfo GetSdkHome()
     {
+        //return new FileInfo(Assembly.Location).Directory!;
         return Environment.GetEnvironmentVariable("PATH")!
             .Split(Path.PathSeparator)
             .Select(path => new DirectoryInfo(path))

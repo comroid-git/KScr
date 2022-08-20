@@ -41,8 +41,8 @@ public sealed class Class : AbstractPackageMember, IClass
     public static Instance NumericFloatType;
     public static Instance NumericDoubleType;
     
-    public readonly IList<IClassInstance> _interfaces = new List<IClassInstance>();
-    public readonly IList<IClassInstance> _superclasses = new List<IClassInstance>();
+    public readonly IList<IClassInstance> DeclaredInterfaces = new List<IClassInstance>();
+    public readonly IList<IClassInstance> DeclaredSuperclasses = new List<IClassInstance>();
 
     private bool _initialized;
     private bool _lateInitialized;
@@ -119,10 +119,10 @@ public sealed class Class : AbstractPackageMember, IClass
     public IDictionary<string, IClassMember> DeclaredMembers { get; } =
         new ConcurrentDictionary<string, IClassMember>();
 
-    public IEnumerable<IClassInstance> Superclasses => _superclasses.SelectMany(ExpandSuperclasses);
+    public IEnumerable<IClassInstance> Superclasses => DeclaredSuperclasses.SelectMany(ExpandSuperclasses);
 
     public IEnumerable<IClassInstance> Interfaces =>
-        _interfaces.Concat(Superclasses.SelectMany(x => x.Interfaces)).SelectMany(ExpandInterfaces);
+        DeclaredInterfaces.Concat(Superclasses.SelectMany(x => x.Interfaces)).SelectMany(ExpandInterfaces);
 
     public ClassType ClassType { get; }
 
@@ -193,15 +193,15 @@ public sealed class Class : AbstractPackageMember, IClass
             switch (ClassType)
             {
                 case ClassType.Class:
-                    _superclasses.Add(ObjectType.DefaultInstance);
+                    DeclaredSuperclasses.Add(ObjectType.DefaultInstance);
                     break;
                 case ClassType.Enum:
-                    _superclasses.Add(EnumType.DefaultInstance);
+                    DeclaredSuperclasses.Add(EnumType.DefaultInstance);
                     break;
             }
         else if (Name == "void") ;
-        else if (Name == "object") _interfaces.Add(VoidType.DefaultInstance);
-        else if (Name != "object") _superclasses.Add(ObjectType.DefaultInstance);
+        else if (Name == "object") DeclaredInterfaces.Add(VoidType.DefaultInstance);
+        else if (Name != "object") DeclaredSuperclasses.Add(ObjectType.DefaultInstance);
 
 
         vm.ClassStore.Add(this);
@@ -286,14 +286,13 @@ public sealed class Class : AbstractPackageMember, IClass
         #endregion
 
         #region Object Class
-
-        ObjectType._interfaces.Add(VoidType.DefaultInstance);
+        ObjectType.DeclaredInterfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
         #region Type Class
 
-        TypeType._superclasses.Add(ObjectType.DefaultInstance);
+        TypeType.DeclaredSuperclasses.Add(ObjectType.DefaultInstance);
 
         #endregion
 
@@ -308,7 +307,7 @@ public sealed class Class : AbstractPackageMember, IClass
 
         AddToClass(EnumType, name);
         AddToClass(EnumType, values);
-        EnumType._superclasses.Add(ObjectType.DefaultInstance);
+        EnumType.DeclaredSuperclasses.Add(ObjectType.DefaultInstance);
 
         #endregion
 
@@ -353,8 +352,7 @@ public sealed class Class : AbstractPackageMember, IClass
 
         #region Numeric Class
 
-        NumericType._interfaces.Add(ThrowableType.DefaultInstance);
-        NumericType._superclasses.Add(ObjectType.DefaultInstance);
+        NumericType.DeclaredInterfaces.Add(ThrowableType.DefaultInstance);
 
         #endregion
 
@@ -412,7 +410,7 @@ public sealed class Class : AbstractPackageMember, IClass
         AddToClass(RangeType, accumulate);
         AddToClass(RangeType, decremental);
         AddToClass(RangeType, iterator);
-        RangeType._interfaces.Add(IterableType.CreateInstance(vm, RangeType, NumericIntType));
+        RangeType.DeclaredInterfaces.Add(IterableType.CreateInstance(vm, RangeType, NumericIntType));
 
         #endregion
 
@@ -453,9 +451,8 @@ public sealed class Class : AbstractPackageMember, IClass
         var message = new Property(RuntimeBase.SystemSrcPos, ThrowableType, "Message", StringType, MemberModifier.Public);
         var exitCode = new Property(RuntimeBase.SystemSrcPos, ThrowableType, "ExitCode", NumericIntType, MemberModifier.Public);
 
-        ThrowableType._interfaces.Add(VoidType.DefaultInstance);
-        ExceptionType._interfaces.Add(ThrowableType.DefaultInstance);
-        NullPointerExceptionType._superclasses.Add(ExceptionType.DefaultInstance);
+        ExceptionType.DeclaredInterfaces.Add(ThrowableType.DefaultInstance);
+        NullPointerExceptionType.DeclaredSuperclasses.Add(ExceptionType.DefaultInstance);
 
         #endregion
     }
