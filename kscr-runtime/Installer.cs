@@ -18,21 +18,24 @@ public sealed class FileType
         Extension = SourceFileExt,
         ExecVerb = "execute",
         ExecArgs = "--sources",
-        PerceivedType = "Text"
+        PerceivedType = "Text",
+        GUID = Guid.Parse("69f07ba4-06fd-40cb-8e44-262dee75930f")
     };
     public static readonly FileType BinaryFile = new()
     {
         Extension = BinaryFileExt,
         ExecVerb = "run",
         ExecArgs = "--classpath",
-        PerceivedType = "System"
+        PerceivedType = "System",
+        GUID = Guid.Parse("21fe00c4-11ea-4764-9069-3f68ee89234a")
     };
     public static readonly FileType ModuleFile = new()
     {
         Extension = ModuleFileExt,
         ExecVerb = "run",
         ExecArgs = "--classpath",
-        PerceivedType = "Application"
+        PerceivedType = "Application",
+        GUID = Guid.Parse("32fa6e88-6020-4a3f-9a4b-0cbeaacd6ded")
     };
 
     public FileType()
@@ -47,15 +50,16 @@ public sealed class FileType
     public string ExecVerb { get; init; }
     public string ExecArgs { get; init; }
     public string PerceivedType { get; init; }
+    public Guid GUID { get; init; }
     public string? IconPath { get; init; }
 
     public string Command => $"\"{ExecPath}\" {ExecVerb} {ExecArgs} %1";
     public string FileReg => Path.Combine("Software", "Classes", Extension);
-    public string ProgId => Path.Combine("Applications", ExecName);
+    public string ProgId => Path.Combine("Applications", GUID.ToString());
     public string AppReg => Path.Combine("Software", "Classes", ProgId);
     public string AppAssoc => Path.Combine("Software", "Microsoft", "Windows", "CurrentVersion", "Explorer", "FileExts", Extension);
 
-    public override string ToString() => PerceivedType + ": " + Extension;
+    public override string ToString() => PerceivedType + " '" + Extension + '\'';
 }
 
 public static class Installer
@@ -65,7 +69,7 @@ public static class Installer
     
     public static void CheckInstallation()
     {
-        Debug.WriteLine($"[KScr Installer] Checking installation...");
+        Console.WriteLine($"[KScr Installer] Checking installation...");
         
         CheckPATH();
         
@@ -74,7 +78,11 @@ public static class Installer
             | CheckFileAssociation(FileType.ModuleFile))
             SHChangeNotify(0x0800_0000, 0x0000, IntPtr.Zero, IntPtr.Zero);
         
-        Debug.WriteLine($"[KScr Installer] Done");
+        Dump(FileType.SourceFile.Extension);
+        Dump(FileType.BinaryFile.Extension);
+        Dump(FileType.ModuleFile.Extension);
+
+        Console.WriteLine($"[KScr Installer] Done");
     }
 
     private static void CheckPATH()
@@ -82,7 +90,7 @@ public static class Installer
         if (GetExecutable() != null)
             return;
         var scope = EnvironmentVariableTarget.Machine;
-        Debug.WriteLine($"[KScr Installer] Executable not found in PATH. Adding it to scope {scope}");
+        Console.WriteLine($"[KScr Installer] Executable not found in PATH. Adding Assembly location directory to PATH...");
         var dir = new FileInfo(Assembly.Location).Directory!;
         var oldValue = Environment.GetEnvironmentVariable(ENV_PATH, scope);
         var newValue  = oldValue + Path.PathSeparator + dir.FullName;
@@ -93,14 +101,14 @@ public static class Installer
     {
         if (IsAssociated(type))
             return false;
-        Debug.WriteLine($"[KScr Installer] File type {type} is not associated. Attempting to associate...");
+        Console.WriteLine($"[KScr Installer] File type {type} is not associated. Attempting to associate...");
         Associate(type);
         return true;
     }
 
     [SuppressMessage("Interoperability", "CA1416:Plattformkompatibilität überprüfen")]
     private static bool IsAssociated(FileType type) => Registry.CurrentUser.OpenSubKey(
-        Path.Combine("Software", "Classes", type.Extension), false) == null;
+        Path.Combine("Software", "Classes", type.Extension), false) != null;
 
     [SuppressMessage("Interoperability", "CA1416:Plattformkompatibilität überprüfen")]
     private static void Associate(FileType type)
@@ -124,15 +132,15 @@ public static class Installer
 
     private static void Dump(string ext)
     {
-        Console.WriteLine("1"+FileExtentionInfo(AssocStr.Command, ext), "Command");
-        Console.WriteLine("2"+FileExtentionInfo(AssocStr.DDEApplication, ext), "DDEApplication");
-        Console.WriteLine("3"+FileExtentionInfo(AssocStr.DDEIfExec, ext), "DDEIfExec");
-        Console.WriteLine("4"+FileExtentionInfo(AssocStr.DDETopic, ext), "DDETopic");
-        Console.WriteLine("5"+FileExtentionInfo(AssocStr.Executable, ext), "Executable");
-        Console.WriteLine("6"+FileExtentionInfo(AssocStr.FriendlyAppName, ext), "FriendlyAppName");
-        Console.WriteLine("7"+FileExtentionInfo(AssocStr.FriendlyDocName, ext), "FriendlyDocName");
-        Console.WriteLine("8"+FileExtentionInfo(AssocStr.NoOpen, ext), "NoOpen");
-        Console.WriteLine("9"+FileExtentionInfo(AssocStr.ShellNewValue, ext), "ShellNewValue");
+        Debug.WriteLine("1"+FileExtentionInfo(AssocStr.Command, ext), "Command");
+        Debug.WriteLine("2"+FileExtentionInfo(AssocStr.DDEApplication, ext), "DDEApplication");
+        Debug.WriteLine("3"+FileExtentionInfo(AssocStr.DDEIfExec, ext), "DDEIfExec");
+        Debug.WriteLine("4"+FileExtentionInfo(AssocStr.DDETopic, ext), "DDETopic");
+        Debug.WriteLine("5"+FileExtentionInfo(AssocStr.Executable, ext), "Executable");
+        Debug.WriteLine("6"+FileExtentionInfo(AssocStr.FriendlyAppName, ext), "FriendlyAppName");
+        Debug.WriteLine("7"+FileExtentionInfo(AssocStr.FriendlyDocName, ext), "FriendlyDocName");
+        Debug.WriteLine("8"+FileExtentionInfo(AssocStr.NoOpen, ext), "NoOpen");
+        Debug.WriteLine("9"+FileExtentionInfo(AssocStr.ShellNewValue, ext), "ShellNewValue");
     }
 
 

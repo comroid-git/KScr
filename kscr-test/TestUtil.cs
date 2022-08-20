@@ -1,6 +1,7 @@
 ﻿using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
+using KScr.Core.Std;
 using KScr.Core.Store;
 using KScr.Runtime;
 
@@ -22,7 +23,7 @@ public class TestUtil
         if (!code.Contains("main()"))
             code = "public static void main() { " + code + " }";
         code = "package org.comroid.kscr.test; public class " + testName + " { " + code + " }";
-        var cls = vm.CompileClass(testName, source: code);
+        Class cls = null;// vm.CompileClass(testName, source: code);
         var method = (cls.DeclaredMembers["main"] as Method)!;
         IObjectRef? yield = null;
         RuntimeBase.MainStack.StepInto(vm, new SourcefilePosition(), null, method,
