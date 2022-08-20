@@ -42,10 +42,10 @@ public class ClassVisitor : AbstractVisitor<Core.Std.Class>
                     cls.TypeParameters.Add(VisitTypeParameter(genTypeDef));
         if (context.objectExtends() is { } ext)
             foreach (var extendsType in ext.type())
-                cls._superclasses.Add(VisitTypeInfo(extendsType).AsClassInstance(vm));
+                cls.DeclaredSuperclasses.Add(VisitTypeInfo(extendsType).AsClassInstance(vm));
         if (context.objectImplements() is { } impl)
             foreach (var implementsType in impl.type())
-                cls._interfaces.Add(VisitTypeInfo(implementsType).AsClassInstance(vm));
+                cls.DeclaredInterfaces.Add(VisitTypeInfo(implementsType).AsClassInstance(vm));
 
         foreach (var each in context.member())
         {

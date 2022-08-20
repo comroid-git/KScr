@@ -47,7 +47,7 @@ public class CompilerContext : ISymbolValidator
             return Class;
         if (Imports.FirstOrDefault(n => n.EndsWith(name)) is { } imported)
             return vm.FindType(imported, Package);
-        return null;
+        return vm.FindType(name, _package, CurrentContext(vm));
     }
 
     public Symbol RegisterSymbol(string name, ITypeInfo type, SymbolType symbolType = SymbolType.Variable)

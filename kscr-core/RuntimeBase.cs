@@ -12,6 +12,7 @@ using KScr.Core.Model;
 using KScr.Core.Std;
 using KScr.Core.Store;
 using KScr.Core.Util;
+using static KScr.Core.Store.StackOutput;
 using String = KScr.Core.Std.String;
 
 namespace KScr.Core;
@@ -89,11 +90,11 @@ public abstract class RuntimeBase : IBytecodePort
     public BytecodeVersion BytecodeVersion => BytecodeVersion.Current;
     public readonly List<CompilerException> CompilerErrors = new();
 
-    public void Write(StringCache strings, Stream stream, IBytecode bytecode)
+    public void Write(Stream stream, StringCache strings, IBytecode bytecode)
     {
         stream.Write(BitConverter.GetBytes(BytecodeVersion.Version.Major));
         stream.Write(BitConverter.GetBytes(BytecodeVersion.Version.Minor));
-        BytecodePorts[BytecodeVersion].Write(strings, stream, bytecode);
+        BytecodePorts[BytecodeVersion].Write(stream, strings, bytecode);
     }
 
     public T Load<T>(RuntimeBase vm, StringCache strings, Stream stream, Package pkg, Class? cls)
@@ -195,6 +196,16 @@ public abstract class RuntimeBase : IBytecodePort
         Initialized = true;
     }
 
+    public void LateInitializeNonPrimitives(Stack stack) => LateInitializeNonPrimitives_Rec(stack, Package.RootPackage);
+
+    private void LateInitializeNonPrimitives_Rec(Stack stack, Package pkg)
+    {
+        foreach (var sub in pkg.PackageMembers.Values.Where(it => it is Package).Cast<Package>())
+            LateInitializeNonPrimitives_Rec(stack, sub);
+        foreach (var cls in pkg.PackageMembers.Values.Where(it => it is Class { _lateInitialized: true }).Cast<Class>())
+            cls.LateInitialize(this, stack);
+    }
+
     public uint NextObjId()
     {
         return ++_lastObjId;
@@ -213,6 +224,7 @@ public abstract class RuntimeBase : IBytecodePort
 
     private static DirectoryInfo GetSdkHome()
     {
+        //return new FileInfo(Assembly.Location).Directory!;
         return Environment.GetEnvironmentVariable("PATH")!
             .Split(Path.PathSeparator)
             .Select(path => new DirectoryInfo(path))
@@ -308,6 +320,9 @@ public abstract class RuntimeBase : IBytecodePort
             return Class.StringType.DefaultInstance;
         if (name.EndsWith("void") || name.EndsWith("object") || name == "object")
             return Class.VoidType.DefaultInstance;
+        if (name.StartsWith("pipe<"))
+            return Class.PipeType.CreateInstance(this, (owner ?? Class.PipeType).AsClass(this),
+                FindType(name.Substring("pipe<".Length, name.Length - "pipe<>".Length))!);
 
         if (name.Contains('<'))
         {
@@ -375,7 +390,7 @@ public abstract class RuntimeBase : IBytecodePort
         {
             public Stack Evaluate(RuntimeBase vm, Stack stack)
             {
-                var txt = stack.Alp!.Value.ToString(IObject.ToString_ParseableName);
+                var txt = stack[Default]!.Value.ToString(IObject.ToString_ParseableName);
                 Console.Write(txt);
                 return stack;
             }
@@ -385,13 +400,17 @@ public abstract class RuntimeBase : IBytecodePort
         {
             public Stack Evaluate(RuntimeBase vm, Stack stack)
             {
-                if (stack.Alp!.Length != 1 || !stack.Alp.Type.CanHold(Class.StringType) &&
-                    !stack.Alp.Type.CanHold(Class.NumericType))
-                    throw new FatalException("Invalid reference to write string into: " + stack.Alp);
+                if (stack[Default]!.Length != 1 || !stack[Default].Type.CanHold(Class.StringType) &&
+                    !stack[Default].Type.CanHold(Class.NumericType))
+                    throw new FatalException("Invalid reference to write string into: " + stack[Default]);
                 var txt = Console.ReadLine()!;
-                if (stack.Alp.Type.CanHold(Class.NumericType))
-                    stack.Alp.Value = Numeric.Compile(vm, txt).Value;
-                else stack.Alp.Value = String.Instance(vm, txt).Value;
+                if (Numeric.NumberRegex.IsMatch(txt) && stack[Default].Type.CanHold(Class.NumericType))
+                    txt = Numeric.Compile(vm, txt).Value.ToString(IObject.ToString_ParseableName);
+                else if (txt is "true" or "false")
+                    txt = (txt is "true" ? vm.ConstantTrue.Value : vm.ConstantFalse.Value).ToString(IObject.ToString_ParseableName);
+                else if (txt is "null")
+                    txt = IObject.Null.ToString(IObject.ToString_ParseableName);
+                stack[Default].Value = String.Instance(vm, txt).Value;
                 return stack;
             }
         }

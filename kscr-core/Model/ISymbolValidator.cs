@@ -14,7 +14,8 @@ public interface ISymbolValidator
 
 public enum SymbolType
 {
-    Variable
+    Variable,
+    Parameter
 }
 
 public sealed class Symbol

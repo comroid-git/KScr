@@ -31,10 +31,18 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>
             throw new NotImplementedException("Unable to load more than one class from source file " + file.FullName);
         var cls = pkg.Package.GetOrCreateClass(vm, info.Name, info.Modifier, info.ClassType)!;
         var kls = decl.classDecl(0);
-        foreach (var type in kls.objectExtends()?.type() ?? new KScrParser.TypeContext[]{})
-            cls._superclasses.Add(ctx.FindType(vm, type.GetText())!.AsClassInstance(vm));
-        foreach (var type in kls.objectImplements()?.type() ?? new KScrParser.TypeContext[]{})
-            cls._interfaces.Add(ctx.FindType(vm, type.GetText())!.AsClassInstance(vm));
+        try
+        {
+            ctx.PushContext(cls);
+            foreach (var type in kls.objectExtends()?.type() ?? new KScrParser.TypeContext[] { })
+                cls.DeclaredSuperclasses.Add(ctx.FindType(vm, type.GetText())!.AsClassInstance(vm));
+            foreach (var type in kls.objectImplements()?.type() ?? new KScrParser.TypeContext[] { })
+                cls.DeclaredInterfaces.Add(ctx.FindType(vm, type.GetText())!.AsClassInstance(vm));
+        }
+        finally
+        {
+            ctx.DropContext();
+        }
         return new MemberNode(vm,
             new CompilerContext() { Parent = ctx, Class = cls, Imports = vm.FindClassImports(decl.imports()) }, pkg)
         {
@@ -164,7 +172,12 @@ public class MemberNode : SourceNode
     {
         if (Member is Method mtd)
         {
+            HashSet<Symbol> symbols = new();
+            foreach (var param in mtd.Parameters)
+                symbols.Add(ctx.RegisterSymbol(param.Name, param.Type, SymbolType.Parameter));
             mtd.Body = VisitCode(UncompiledCode);
+            foreach (var symbol in symbols)
+                ctx.UnregisterSymbol(symbol);
             return 1;
         }
         else if (UncompiledCode != null)

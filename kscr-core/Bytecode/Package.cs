@@ -52,7 +52,7 @@ public sealed class Package : AbstractPackageMember
                 var file = new FileInfo(Path.Combine(dir.FullName, (member.Name.Contains("<")
                     ? member.Name.Substring(0, member.Name.IndexOf("<", StringComparison.Ordinal))
                     : member.Name) + ".kbin"));
-                vm.Write(strings, FStream(vm, file, FileMode.Create), cls);
+                vm.Write(FStream(vm, file, FileMode.Create), strings, cls);
             }
             else
             {

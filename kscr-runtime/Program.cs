@@ -69,6 +69,7 @@ public class Program
                 LoadStdPackage();
 
                 ioTime = LoadClasspath(cmd);
+                VM.LateInitializeNonPrimitives(stack);
                 executeTime = Execute(out stack);
             })
             .WithParsed<CmdConfig>(cmd =>
