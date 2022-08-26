@@ -1,9 +1,0 @@
-package sandbox;
-
-import sandbox.Printer;
-
-public class StdIOPrinter implements Printer {
-    public StdIOPrinter();
-
-    public void writeLine(str line) => stdio << line;
-}

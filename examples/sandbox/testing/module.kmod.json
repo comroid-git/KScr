@@ -1,0 +1,29 @@
+﻿ {
+  "inherit": "../modules.kmod.json",
+  "project": {
+    "id": "testing"
+  },
+  "build": {
+    "pre": {
+      "name": "testingBuild.dll",
+      "entry": "PreBuild"
+    },
+    "post": {
+      "name": "testingBuild.dll",
+      "entry": "PreBuild"
+    }
+  },
+  "dependencies": [
+    {
+      "domain": "org.comroid",
+      "group": "kscr",
+      "id": "api",
+      "scope": "implementation"
+    },
+    {
+      "domain": "org.jetbrains",
+      "group": "annotations",
+      "scope": "compile"
+    }
+  ]
+}

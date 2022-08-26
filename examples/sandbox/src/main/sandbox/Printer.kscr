@@ -1,5 +1,0 @@
-package sandbox;
-
-public interface Printer {
-    void writeLine(str line);
-}

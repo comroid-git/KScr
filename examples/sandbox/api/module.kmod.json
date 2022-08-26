@@ -1,0 +1,27 @@
+﻿{
+  "inherit": "../modules.kmod.json",
+  "project": {
+    "id": "api"
+  },
+  "build": {
+    "pre": {
+      "name": "apiBuild.dll",
+      "entry": "PreBuild"
+    },
+    "post": {
+      "name": "apiBuild.dll",
+      "entry": "PostBuild"
+    }
+  },
+  "dependencies": [
+    {
+      "domain": "org.comroid",
+      "group": "kscr",
+      "exclude": [
+        {
+          "id": "api"
+        }
+      ]
+    }
+  ]
+}

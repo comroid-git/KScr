@@ -1,0 +1,16 @@
+﻿{
+  "project": {
+    "domain": "org.comroid",
+    "group": "kscr"
+  },
+  "build": {
+    "sources": "src/",
+    "output": "build/compile/"
+  },
+  "repositories": [
+    {
+      "name": "comroid KScr Repository",
+      "url": "https://repo.kscr.comroid.org"
+    }
+  ]
+}
