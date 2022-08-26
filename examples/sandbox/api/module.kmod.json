@@ -1,5 +1,5 @@
 ﻿{
-  "inherit": "../modules.kmod.json",
+  "inherit": "modules.kmod.json",
   "project": {
     "id": "api"
   },
