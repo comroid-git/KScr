@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using Newtonsoft.Json;
 
 namespace KScr.Build;
 
@@ -8,6 +9,7 @@ public sealed class Program
 
     private static void RunBuild(CmdBuild cmd)
     {
+        ModuleInfo modules = JsonConvert.DeserializeObject<ModuleInfo>(json);
         throw new NotImplementedException();
     }
 }
