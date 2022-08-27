@@ -35,6 +35,68 @@ public sealed class Program
     private static void RunBuild(CmdBuild cmd)
     {
         var (baseModule, exported) = ExtractModules(cmd);
+
+        SortModulesByCoDependencies(exported);
+    }
+    
+    private class CoDepNode
+    { 
+        internal readonly Module Module;
+        internal readonly List<CoDepNode> Children = new();
+        internal CoDepNode? Parent { get; set; }
+
+        public CoDepNode(Module module)
+        {
+            Module = module;
+        }
+
+        internal CoDepNode FindAnywhere(Module dep)
+        {
+            if (Parent?.Module.Notation == dep.Notation)
+                return Parent;
+            if (Children.FirstOrDefault(x => x.Module.Notation == dep.Notation) is { } child)
+                return child;
+            return new CoDepNode(dep);
+        }
+    }
+
+    private static void SortModulesByCoDependencies(List<Module> exported)
+    {
+        CoDepNode parent = null!;
+        foreach (var module in exported)
+        {
+            parent = new CoDepNode(module);
+            foreach (var dep in exported.Where(x => x.Dependencies.Any(y => y.Notation == module.Notation)))
+                parent.Children.Add(parent.FindAnywhere(dep));
+        }
+
+        
+        // todo fixme
+        CheckCircular_Rec(ArraySegment<string>.Empty, parent);
+        
+        while (parent.Parent != null)
+            parent = parent.Parent;
+        exported.Clear();
+        exported.Add(parent.Module);
+        AddCoDeps_Rec(exported, parent);
+    }
+
+    private static void CheckCircular_Rec(IEnumerable<string> above, CoDepNode node)
+    {
+        if (node.Children.Any(x => above.Contains(x.Module.Notation)))
+            throw new Exception("Circular dependency detected");
+        var above_ = above.Append(node.Module.Notation).ToArray();
+        foreach (var child in node.Children) 
+            CheckCircular_Rec(above_, child);
+    }
+
+    private static void AddCoDeps_Rec(List<Module> exported, CoDepNode node)
+    {
+        foreach (var coDepNode in node.Children)
+        {
+            exported.Add(coDepNode.Module);
+            AddCoDeps_Rec(exported, coDepNode);
+        }
     }
 
     private static void PrintDependencies(CmdDependencies cmd)
@@ -55,6 +117,8 @@ public sealed class Program
     private static void PrintInfo(CmdInfo cmd)
     {
         var (baseModule, exported) = ExtractModules(cmd);
+
+        SortModulesByCoDependencies(exported);
         PrintModuleInfo(baseModule, true);
         foreach (var module in exported)
         {

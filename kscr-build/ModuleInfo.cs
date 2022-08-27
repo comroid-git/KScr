@@ -126,6 +126,14 @@ public sealed class DependencyInfo
     [JsonProperty]
     public IEnumerable<DependencyInfo>? Exclude { get; set; }
 
+    public string Notation => new ProjectInfo()
+    {
+        Domain = Domain,
+        Group = Group,
+        Id = Id,
+        Version = Version
+    }.ToString();
+
     public override string ToString() => new ProjectInfo()
     {
         Domain = Domain,

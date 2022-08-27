@@ -7,6 +7,12 @@
     {
       "domain": "org.comroid",
       "group": "kscr",
+      "id": "testing",
+      "scope": "implementation"
+    },
+    {
+      "domain": "org.comroid",
+      "group": "kscr",
       "exclude": [
         {
           "id": "common"
