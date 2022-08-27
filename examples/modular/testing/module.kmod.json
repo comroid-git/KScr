@@ -1,17 +1,10 @@
 ﻿ {
-  "inherit": "modules.kmod.json",
   "project": {
     "id": "testing"
   },
   "build": {
-    "pre": {
-      "name": "testingBuild.dll",
-      "entry": "PreBuild"
-    },
-    "post": {
-      "name": "testingBuild.dll",
-      "entry": "PreBuild"
-    }
+    "pre": "runBeforeBuild",
+    "post": "runAfterBuild"
   },
   "dependencies": [
     {

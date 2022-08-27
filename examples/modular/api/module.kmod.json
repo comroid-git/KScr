@@ -1,17 +1,10 @@
 ﻿{
-  "inherit": "modules.kmod.json",
   "project": {
     "id": "api"
   },
   "build": {
-    "pre": {
-      "name": "apiBuild.dll",
-      "entry": "PreBuild"
-    },
-    "post": {
-      "name": "apiBuild.dll",
-      "entry": "PostBuild"
-    }
+    "pre": "runBeforeBuild",
+    "post": "runAfterBuild"
   },
   "dependencies": [
     {
