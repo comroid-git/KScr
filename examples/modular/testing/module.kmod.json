@@ -1,5 +1,6 @@
 ﻿ {
   "project": {
+    "basePackage": "+testing",
     "id": "testing"
   },
   "build": {
@@ -10,7 +11,7 @@
     {
       "domain": "org.comroid",
       "group": "kscr",
-      "id": "api",
+      "id": "common",
       "scope": "implementation"
     },
     {

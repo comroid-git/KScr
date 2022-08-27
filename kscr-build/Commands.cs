@@ -19,3 +19,9 @@ public class CmdDependencies : CmdBase
 {
     public DirectoryInfo? Dir { get; set; }
 }
+
+[Verb("info")]
+public class CmdInfo : CmdBase
+{
+    public DirectoryInfo? Dir { get; set; }
+}
