@@ -263,9 +263,9 @@ public sealed class Stack
         }
         _stack.WrapExecution(vm, (stack) =>
         {
-            lambda.InnerCode!.Evaluate(vm, stack).Copy(StackOutput.Alp);
-        }, StackOutput.Alp);
-        return stack[StackOutput.Alp];
+            lambda.InnerCode!.Evaluate(vm, stack).Copy(StackOutput.Alp, StackOutput.Bet);
+        }, StackOutput.Bet);
+        return stack[StackOutput.Bet];
     }
 
     private void WrapExecution(RuntimeBase vm, Action<Stack> exec, StackOutput maintain)
