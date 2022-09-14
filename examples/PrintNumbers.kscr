@@ -51,7 +51,7 @@ public class PrintNumbers implements Throwable {
         stdio <<- endl;
         
         stdio <<- "now, we print it with pipes:" + endl;
-        seq =>> x -> stdio <<- "#" + x + endl;
+        seq =>> (x) -> stdio <<- "#" + x + endl;;
         stdio <<- endl;
         
         stdio <<- "and one last time:" + endl;

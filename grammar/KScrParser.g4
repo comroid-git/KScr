@@ -60,7 +60,7 @@ noBlock: SEMICOLON;
 uniformBlock: expr | statement;
 normalBlock: LBRACE statements RBRACE;
 memberExpr: REQARROW uniformBlock;
-lambdaBlock: RDASHARROW uniformBlock;
+lambdaBlock: RDASHARROW (uniformBlock | normalBlock);
 caseBlock
     : COLON statements BREAK SEMICOLON  #caseStmtBlock
     | memberExpr COMMA                  #caseExprBlock
@@ -162,12 +162,12 @@ statement
     | forStatement catchBlocks?                             #stmtFor
     | foreachStatement catchBlocks?                         #stmtForeach
     | switchStatement catchBlocks?                          #stmtSwitch
+    | pipe=expr (RREQARROW expr)+ SEMICOLON                 #stmtPipeListen
     | pipe=expr (RRDASHARROW expr)+ SEMICOLON               #stmtPipeRead
     | pipe=expr (LLDASHARROW expr)+ SEMICOLON               #stmtPipeWrite
-    | pipe=expr (RREQARROW expr)+ SEMICOLON                 #stmtPipeListen
     | SEMICOLON                                             #stmtEmpty
     ;
-typedExpr: type expr;
+typedExpr: type? expr;
 expr
     // simply a variable
     : idPart                                                #varValue
