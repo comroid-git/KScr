@@ -1,7 +1,7 @@
 package org.comroid.kscr.test;
 
 import org.comroid.kscr.core.Throwable;
-import org.comroid.kscr.core.Iterable;
+import org.comroid.kscr.core.Sequencable;
 
 public class PrintNumbers implements Throwable {
     public static int StackSize => 64;
@@ -51,7 +51,7 @@ public class PrintNumbers implements Throwable {
         stdio <<- endl;
         
         stdio <<- "now, we print it with pipes:" + endl;
-        seq =>> (x) -> stdio <<- "#" + x + endl;;
+        seq =>> (x) -> x.toString() =>> (x) -> stdio <<- "#" + x + endl;;
         stdio <<- endl;
         
         stdio <<- "and one last time:" + endl;

@@ -162,7 +162,7 @@ statement
     | forStatement catchBlocks?                             #stmtFor
     | foreachStatement catchBlocks?                         #stmtForeach
     | switchStatement catchBlocks?                          #stmtSwitch
-    | pipe=expr (RREQARROW expr)+ SEMICOLON                 #stmtPipeListen
+    | pipe=expr (RREQARROW lambda)+ SEMICOLON               #stmtPipeListen
     | pipe=expr (RRDASHARROW expr)+ SEMICOLON               #stmtPipeRead
     | pipe=expr (LLDASHARROW expr)+ SEMICOLON               #stmtPipeWrite
     | SEMICOLON                                             #stmtEmpty
@@ -195,7 +195,7 @@ expr
     // range invocator
     | left=expr SHORTELIPSES right=expr                     #rangeInvoc
     // pipe operators
-    | pipe=expr (RREQARROW expr)+                           #exprPipeListen
+    | pipe=expr (RREQARROW lambda)+                         #exprPipeListen
     // operators
     | prefixop expr                                         #opPrefix
     | left=expr binaryop right=expr                         #opBinary

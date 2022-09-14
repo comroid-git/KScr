@@ -27,8 +27,8 @@ public sealed class Class : AbstractPackageMember, IClass
     public static readonly Class StringType;
     public static readonly Class NumericType;
     public static readonly Class RangeType;
-    public static readonly Class IteratorType;
-    public static readonly Class IterableType;
+    public static readonly Class Sequence;
+    public static readonly Class Sequencable;
     public static readonly Class CloseableType;
     public static readonly Class ThrowableType;
     public static readonly Class ExceptionType;
@@ -74,9 +74,9 @@ public sealed class Class : AbstractPackageMember, IClass
             { TypeParameters = { new TypeParameter("T") } };
         RangeType = new Class(LibCorePackage, "range", true,
             MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
-        IteratorType = new Class(LibCorePackage, "Iterator", false, MemberModifier.Public, ClassType.Interface)
+        Sequence = new Class(LibCorePackage, "Sequence", false, MemberModifier.Public, ClassType.Interface)
             { TypeParameters = { new TypeParameter("T") } };
-        IterableType = new Class(LibCorePackage, "Iterable", false, MemberModifier.Public, ClassType.Interface)
+        Sequencable = new Class(LibCorePackage, "Sequencable", false, MemberModifier.Public, ClassType.Interface)
             { TypeParameters = { new TypeParameter("T") } };
         ThrowableType = new Class(LibCorePackage, "Throwable", false, MemberModifier.Public, ClassType.Interface);
         ExceptionType = new Class(LibErrorPackage, "Exception", false, MemberModifier.Public);
@@ -401,39 +401,43 @@ public sealed class Class : AbstractPackageMember, IClass
             NumericByteType);
 
         // iterable methods
-        var iterator = new DummyMethod(IterableType, "iterator", MemberModifier.Public | MemberModifier.Abstract,
-            IteratorType.CreateInstance(vm, IterableType, IterableType.TypeParameters[0]));
+        var sequence = new DummyMethod(Sequencable, "sequence", MemberModifier.Public | MemberModifier.Abstract,
+            Sequence.CreateInstance(vm, Sequencable, Sequencable.TypeParameters[0]));
 
         AddToClass(RangeType, start);
         AddToClass(RangeType, end);
         AddToClass(RangeType, test);
         AddToClass(RangeType, accumulate);
         AddToClass(RangeType, decremental);
-        AddToClass(RangeType, iterator);
-        RangeType.DeclaredInterfaces.Add(IterableType.CreateInstance(vm, RangeType, NumericIntType));
+        AddToClass(RangeType, sequence);
+        RangeType.DeclaredInterfaces.Add(Sequencable.CreateInstance(vm, RangeType, NumericIntType));
 
         #endregion
 
-        #region Iterator Class
+        #region Sequence Class
 
-        var current = new DummyMethod(IteratorType, "current", MemberModifier.Public | MemberModifier.Abstract,
-            IteratorType.TypeParameters[0]);
-        var next = new DummyMethod(IteratorType, "next", MemberModifier.Public | MemberModifier.Abstract,
-            IteratorType.TypeParameters[0]);
-        var hasNext = new DummyMethod(IteratorType, "hasNext", MemberModifier.Public | MemberModifier.Abstract,
+        var current = new DummyMethod(Sequence, "current", MemberModifier.Public | MemberModifier.Abstract,
+            Sequence.TypeParameters[0]);
+        var next = new DummyMethod(Sequence, "next", MemberModifier.Public | MemberModifier.Abstract,
+            Sequence.TypeParameters[0]);
+        var hasNext = new DummyMethod(Sequence, "hasNext", MemberModifier.Public | MemberModifier.Abstract,
             NumericByteType);
+        var finite = new DummyMethod(Sequence, "finite", MemberModifier.Public, NumericByteType);
+        var seqLength = new DummyMethod(Sequence, "length", MemberModifier.Public, NumericIntType);
 
-        AddToClass(IteratorType, current);
-        AddToClass(IteratorType, next);
-        AddToClass(IteratorType, hasNext);
-        IteratorType.DeclaredInterfaces.Add(VoidType.DefaultInstance);
+        AddToClass(Sequence, current);
+        AddToClass(Sequence, next);
+        AddToClass(Sequence, hasNext);
+        AddToClass(Sequence, finite);
+        AddToClass(Sequence, seqLength);
+        Sequence.DeclaredInterfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
-        #region Iterable Class
+        #region Sequencable Class
 
-        AddToClass(IterableType, iterator);
-        IterableType.DeclaredInterfaces.Add(VoidType.DefaultInstance);
+        AddToClass(Sequencable, sequence);
+        Sequencable.DeclaredInterfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
@@ -451,6 +455,8 @@ public sealed class Class : AbstractPackageMember, IClass
         var message = new Property(RuntimeBase.SystemSrcPos, ThrowableType, "Message", StringType, MemberModifier.Public);
         var exitCode = new Property(RuntimeBase.SystemSrcPos, ThrowableType, "ExitCode", NumericIntType, MemberModifier.Public);
 
+        AddToClass(ThrowableType, message);
+        AddToClass(ThrowableType, exitCode);
         ExceptionType.DeclaredInterfaces.Add(ThrowableType.DefaultInstance);
         NullPointerExceptionType.DeclaredSuperclasses.Add(ExceptionType.DefaultInstance);
 

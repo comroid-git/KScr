@@ -1,6 +1,6 @@
 package org.comroid.kscr.core;
 
-public interface Iterator<T> {
+public interface Sequence<T> {
     T current();
 
     T next();

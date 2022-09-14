@@ -43,7 +43,7 @@ public sealed class Range : NativeObj
             case "getType":
                 stack[StackOutput.Default] = Type.SelfRef;
                 break;
-            case "iterator":
+            case "sequence":
                 var iterator = new RangeIterator(vm, this);
                 stack[StackOutput.Default] = vm.PutObject(stack, VariableContext.Local, iterator);
                 break;
@@ -117,7 +117,7 @@ public sealed class Range : NativeObj
         {
             _range = range;
             ObjectId = vm.NextObjId(ToString(0));
-            Type = Class.IteratorType.GetInstance(vm, Class.NumericIntType);
+            Type = Class.Sequence.GetInstance(vm, Class.NumericIntType);
         }
 
         public long ObjectId { get; }
@@ -143,6 +143,12 @@ public sealed class Range : NativeObj
                     stack[StackOutput.Default] = _n == null
                         ? vm.ConstantTrue
                         : _range.test(vm, (_range.accumulate(vm, (_n.Value as Numeric)!).Value as Numeric)!);
+                    break;
+                case "finite":
+                    stack[StackOutput.Default] = vm.ConstantTrue;
+                    break;
+                case "length":
+                    stack[StackOutput.Default] = Numeric.Constant(vm, _range.End - _range.Start);
                     break;
                 default: throw new InvalidOperationException();
             }

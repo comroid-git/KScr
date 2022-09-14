@@ -426,20 +426,8 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
     {
         Type = StatementComponentType.Code,
         CodeType = BytecodeType.Parentheses,
-        SubStatement = VisitPipeListen(context.pipe, context.expr()[1..]) 
+        SubStatement = VisitPipeListen(context.pipe, context.lambda()) 
     };
-
-    public override StatementComponent VisitMethodRef(KScrParser.MethodRefContext context)
-    {
-        throw new NotImplementedException("MethodRef");
-    }
-
-    public override StatementComponent VisitLambdaExpr(KScrParser.LambdaExprContext context)
-    {
-        ctx.AddLambda(context.label()?.idPart().GetText(), context.tupleExpr(), VisitCode(context.lambdaBlock()));
-        
-        throw new NotImplementedException("Lambda");
-    }
 }
 
 public class OperatorVisitor : KScrParserBaseVisitor<Operator>

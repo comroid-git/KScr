@@ -162,8 +162,8 @@ public abstract class RuntimeBase : IBytecodePort
         Class.TupleType.Initialize(this);
         Class.StringType.Initialize(this);
         Class.RangeType.Initialize(this);
-        Class.IterableType.Initialize(this);
-        Class.IteratorType.Initialize(this);
+        Class.Sequencable.Initialize(this);
+        Class.Sequence.Initialize(this);
         Class.ThrowableType.Initialize(this);
         Class.NumericType.Initialize(this);
         Class.NumericByteType.Initialize(this);
@@ -185,8 +185,8 @@ public abstract class RuntimeBase : IBytecodePort
         Class.TupleType.LateInitialize(this, MainStack);
         Class.StringType.LateInitialize(this, MainStack);
         Class.RangeType.LateInitialize(this, MainStack);
-        Class.IterableType.LateInitialize(this, MainStack);
-        Class.IteratorType.LateInitialize(this, MainStack);
+        Class.Sequencable.LateInitialize(this, MainStack);
+        Class.Sequence.LateInitialize(this, MainStack);
         Class.ThrowableType.LateInitialize(this, MainStack);
         Class.IntType.LateInitialize(this, MainStack);
         Class.NumericType.LateInitialize(this, MainStack);
