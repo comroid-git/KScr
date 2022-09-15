@@ -73,6 +73,7 @@ public sealed class Method : AbstractClassMember, IMethod
 {
     public const string ConstructorName = ".ctor";
     public const string StaticInitializerName = ".cctor";
+    public const string IndexerName = ".idx";
     public ExecutableCode Body = null!;
 
     public Method(SourcefilePosition sourceLocation, Class parent, string name, ITypeInfo returnType,

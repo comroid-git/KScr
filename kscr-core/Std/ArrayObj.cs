@@ -5,21 +5,16 @@ using KScr.Core.Store;
 
 namespace KScr.Core.Std;
 
-[Obsolete]
 public sealed class ArrayObj : NativeObj
 {
-    public ArrayObj(RuntimeBase vm, int len) : this(vm, new ObjectRef[len])
+    public ArrayObj(RuntimeBase vm, ITypeInfo t, int len) : base(vm)
     {
-    }
-
-    public ArrayObj(RuntimeBase vm, ObjectRef[] arr) : base(vm)
-    {
-        Arr = arr;
+        Type = Class.ArrayType.CreateInstance(vm, typeParameters: t);
+        Arr = new ObjectRef[len];
     }
 
     public ObjectRef[] Arr { get; }
-    public bool Primitive => true;
-    public override IClassInstance Type => Class.ArrayType.DefaultInstance;
+    public override IClassInstance Type { get; }
 
     public override string ToString(short variant)
     {

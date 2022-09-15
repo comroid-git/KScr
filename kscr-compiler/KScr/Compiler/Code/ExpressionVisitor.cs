@@ -32,7 +32,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             Type = StatementComponentType.Provider,
             CodeType = BytecodeType.Indexer,
             SubComponent = VisitExpression(context.target),
-            SubStatement = VisitIndexerUse(context.indexerUse())
+            SubStatement = VisitIndexerExpr(context.indexerExpr())
         };
     }
 
@@ -275,7 +275,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         CodeType = BytecodeType.ArrayConstructor,
         ByteArg = 0,
         Arg = VisitTypeInfo(context.type()).FullDetailedName,
-        SubStatement = VisitIndexerUse(context.indexerUse())
+        SubStatement = VisitIndexerExpr(context.indexerExpr())
     };
 
     public override StatementComponent VisitNewListedArray(KScrParser.NewListedArrayContext context) => new()

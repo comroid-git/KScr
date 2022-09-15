@@ -112,6 +112,8 @@ public class ObjectRef : IObjectRef
     public readonly bool Constant;
     public readonly IObject?[] Refs;
 
+    public ObjectRef(IObject value, bool constant = true) : this(value.Type, value, constant) {}
+        
     public ObjectRef(IClassInstance type, IObject value, bool constant = true) : this(type)
     {
         Value = value;
