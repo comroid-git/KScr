@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
@@ -16,6 +17,7 @@ public class CompilerContext : ISymbolValidator
     private readonly IClassInfo? _class;
     private readonly List<string>? _imports;
     private readonly Package? _package;
+    internal readonly Dictionary<string, Lambda> _lambdas = new();
     private readonly HashSet<Symbol> _symbols = new();
     private readonly Stack<string> _symbolGroups = new();
     private readonly Stack<IClass> _contexts = new();
@@ -83,4 +85,9 @@ public class CompilerContext : ISymbolValidator
     public IClass DropContext() => _contexts.Pop();
 
     public IClass CurrentContext(RuntimeBase vm) => _contexts.Count == 0 ? Class!.AsClass(vm) : _contexts.Peek();
+
+    public void AddLambda(string? key, KScrParser.TupleExprContext? tupleExpr, ExecutableCode body)
+    {
+        throw new System.NotImplementedException();
+    }
 }

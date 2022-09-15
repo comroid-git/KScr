@@ -5,6 +5,7 @@ using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
 using KScr.Core.Store;
+using Microsoft.VisualBasic.CompilerServices;
 using static KScr.Core.Store.StackOutput;
 using Range = KScr.Core.Std.Range;
 using String = KScr.Core.Std.String;
@@ -263,8 +264,6 @@ public class StatementComponent : IBytecode, IStatementComponent
                 }
 
                 break;
-            case (StatementComponentType.Pipe, _):
-                throw new NotImplementedException();
             case (StatementComponentType.Code, BytecodeType.Assignment):
                 // assignment
                 if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
@@ -320,7 +319,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                 {
                     SubComponent!.Evaluate(vm, stack.Output()).Copy(Alp);
                     var iterable = stack[Alp]![vm, stack, 0];
-                    iterable.InvokeNative(vm, stack.Output(Eps), "iterator").Copy(Eps);
+                    iterable.InvokeNative(vm, stack.Output(Eps), "sequence").Copy(Eps);
                     var iterator = stack[Eps]![vm, stack, 0];
                     vm[stack, VariableContext.Local, Arg] = stack[Del]
                         = new ObjectRef(iterator.Type.TypeParameterInstances[0].ResolveType(vm, iterator.Type));
@@ -455,6 +454,35 @@ public class StatementComponent : IBytecode, IStatementComponent
                 SubComponent.Evaluate(vm, stack.Output()).Copy(Alp, Bet);
                 stack[Default].ReadValue(vm, stack.Channel(Bet), stack.Bet?.Value ?? IObject.Null);
                 break;
+            case (StatementComponentType.Pipe, BytecodeType.Call):
+                if (SubComponent == null || (SubComponent.Type & StatementComponentType.Lambda) == 0)
+                    throw new FatalException("Invalid pipe listener; no lambda found");
+                if (!Class.Sequence.CanHold(stack[Default]!.Value.Type) && !Class.Sequencable.CanHold(stack[Default]!.Value.Type))
+                    throw new FatalException($"Invalid type for pipe listener {stack[Default]!.Value.Type}; requires {Class.Sequencable}");
+                if (!Class.Sequence.CanHold(stack[Default]!.Value.Type))
+                    Class.Sequencable.DeclaredMembers["sequence"].Invoke(vm, stack.Output(), stack[Default]!.Value).Copy(Omg, Alp);
+
+                if (Class.Sequence.DeclaredMembers["finite"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].ToBool())
+                { // evaluate finite sequence
+                    int len = (Class.Sequence.DeclaredMembers["length"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].Value as Numeric).IntValue;
+                    var next = new ObjectRef(Class.VoidType.DefaultInstance, len);
+
+                    for (int i = 0; i < len; i++)
+                    {
+                        if (!Class.Sequence.DeclaredMembers["hasNext"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].ToBool())
+                            throw new FatalException("Unexpected end of sequence");
+                        var it = Class.Sequence.DeclaredMembers["next"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg];
+                        var res = stack.StepIntoLambda(vm, stack.Output(), SubComponent, it.Value);
+                        next[vm, stack, i] = res!.Value;
+                    }
+
+                    stack[Default] = new ObjectRef(Class.Sequence.DefaultInstance, new DummySequence_Finite(vm, next.Type, next.Refs));
+                    break;
+                }
+                else
+                { // evaluate infinite sequence
+                    throw new NotImplementedException("Listening to infinite sequences not implemented");
+                }
             default:
                 throw new NotImplementedException($"Not Implemented: {Type} {CodeType}");
         }

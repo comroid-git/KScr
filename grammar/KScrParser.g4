@@ -60,7 +60,7 @@ noBlock: SEMICOLON;
 uniformBlock: expr | statement;
 normalBlock: LBRACE statements RBRACE;
 memberExpr: REQARROW uniformBlock;
-lambdaBlock: RDASHARROW uniformBlock;
+lambdaBlock: RDASHARROW (uniformBlock | normalBlock);
 caseBlock
     : COLON statements BREAK SEMICOLON  #caseStmtBlock
     | memberExpr COMMA                  #caseExprBlock
@@ -115,9 +115,10 @@ call: idPart arguments;
 ctorCall: NEW type arguments;
 newArray: NEW type indexerUse;
 newListedArray: NEW type indexer LBRACE (expr (COMMA expr)*)? RBRACE;
+label: idPart COLON WS;
 lambda
-    : type COLON idPart
-    | tupleExpr lambdaBlock
+    : label? type COLON idPart        #methodRef
+    | label? tupleExpr lambdaBlock    #lambdaExpr 
     ;
 
 returnStatement: YIELD? RETURN expr?;
@@ -161,11 +162,12 @@ statement
     | forStatement catchBlocks?                             #stmtFor
     | foreachStatement catchBlocks?                         #stmtForeach
     | switchStatement catchBlocks?                          #stmtSwitch
+    | pipe=expr (RREQARROW lambda)+ SEMICOLON               #stmtPipeListen
     | pipe=expr (RRDASHARROW expr)+ SEMICOLON               #stmtPipeRead
     | pipe=expr (LLDASHARROW expr)+ SEMICOLON               #stmtPipeWrite
-    | pipe=expr (RREQARROW expr)+ SEMICOLON                 #stmtPipeListen
     | SEMICOLON                                             #stmtEmpty
     ;
+typedExpr: type? expr;
 expr
     // simply a variable
     : idPart                                                #varValue
@@ -193,7 +195,7 @@ expr
     // range invocator
     | left=expr SHORTELIPSES right=expr                     #rangeInvoc
     // pipe operators
-    | pipe=expr (RREQARROW expr)+                           #exprPipeListen
+    | pipe=expr (RREQARROW lambda)+                         #exprPipeListen
     // operators
     | prefixop expr                                         #opPrefix
     | left=expr binaryop right=expr                         #opBinary
@@ -202,7 +204,9 @@ expr
     | tupleExpr                                             #exprTuple
     ;
 
-tupleExpr: LPAREN expr (COMMA expr)* RPAREN;
+tupleDeclType: type idPart?;
+tupleDecl: LPAREN tupleDeclType (COMMA tupleDeclType)* RPAREN;
+tupleExpr: LPAREN typedExpr (COMMA typedExpr)* RPAREN;
 
 binaryop
     : PLUS                  #opPlus

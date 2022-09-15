@@ -256,7 +256,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             CodeType = BytecodeType.TupularExpression,
             SubStatement = new Statement()
         };
-        foreach (var ctx in context.expr())
+        foreach (var ctx in context.typedExpr())
             expr.SubStatement.Main.Add(VisitExpression(ctx));
         return expr;
     }
@@ -426,7 +426,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
     {
         Type = StatementComponentType.Code,
         CodeType = BytecodeType.Parentheses,
-        SubStatement = VisitPipeListen(context.pipe, context.expr()[1..]) 
+        SubStatement = VisitPipeListen(context.pipe, context.lambda()) 
     };
 }
 

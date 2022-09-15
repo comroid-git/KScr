@@ -122,7 +122,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitStmtPipeWrite(KScrParser.StmtPipeWriteContext context) => VisitPipeWrite(context.pipe, context.expr()[1..]);
 
-    public override Statement VisitStmtPipeListen(KScrParser.StmtPipeListenContext context) => VisitPipeListen(context.pipe, context.expr()[1..]);
+    public override Statement VisitStmtPipeListen(KScrParser.StmtPipeListenContext context) => VisitPipeListen(context.pipe, context.lambda());
 
     public override Statement VisitMarkStatement(KScrParser.MarkStatementContext context)
     {

@@ -5,6 +5,7 @@ using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
+using Microsoft.VisualBasic.CompilerServices;
 using static KScr.Core.Store.StackOutput;
 
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
@@ -215,6 +216,7 @@ public sealed class Stack
     }
 
     // put focus into object instance
+
     public void StepInto(RuntimeBase vm, SourcefilePosition srcPos, IObject? into, IClassMember local,
         Action<Stack> exec, StackOutput maintain = None)
     {
@@ -236,6 +238,34 @@ public sealed class Stack
             Class = into!.Type,
             This = new ObjectRef(into.Type, into)
         }).WrapExecution(vm, exec, maintain);
+    }
+
+    public IObjectRef? StepIntoLambda(RuntimeBase vm, Stack stack, StatementComponent lambda, params IObject[] args)
+    {
+        var srcPos = lambda.SourcefilePosition;
+        var lambdaContext = stack;
+        while (!lambdaContext._local.StartsWith(lambda.Args[0]))
+            lambdaContext = lambdaContext._parent;
+        var _stack = new Stack(this, new CtxBlob(new CallLocation
+        {
+            SourceName = _local,
+            SourceRow = srcPos.SourcefileLine,
+            SourceColumn = srcPos.SourcefileCursor
+        }, lambdaContext.PrefixLocal)
+        {
+            Class = lambdaContext.Class,
+            This = lambdaContext.This
+        });
+        for (var i = 0; i < lambda.SubStatement!.Main.Count; i++)
+        {
+            var param = lambda.SubStatement!.Main[i];
+            vm.PutLocal(_stack, param.Args[1], args[i]);
+        }
+        _stack.WrapExecution(vm, (stack) =>
+        {
+            lambda.InnerCode!.Evaluate(vm, stack).Copy(StackOutput.Alp, StackOutput.Bet);
+        }, StackOutput.Bet);
+        return _stack[StackOutput.Bet];
     }
 
     private void WrapExecution(RuntimeBase vm, Action<Stack> exec, StackOutput maintain)

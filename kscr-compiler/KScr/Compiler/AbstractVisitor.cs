@@ -58,8 +58,8 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             : TypeParameterSpecializationType.Extends;
         var target = spec switch
         {
-            TypeParameterSpecializationType.List => Core.Std.Class.IterableType.CreateInstance(vm,
-                Core.Std.Class.IterableType,
+            TypeParameterSpecializationType.List => Core.Std.Class.Sequencable.CreateInstance(vm,
+                Core.Std.Class.Sequencable,
                 Core.Std.Class.ObjectType),
             TypeParameterSpecializationType.N => Core.Std.Class.NumericIntType,
             TypeParameterSpecializationType.Extends => gtd.ext == null
@@ -140,9 +140,84 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         return stmt;
     }
 
-    protected Statement VisitPipeListen(KScrParser.ExprContext pipe, KScrParser.ExprContext[] listeners)
+    protected Statement VisitPipeListen(KScrParser.ExprContext pipe, KScrParser.LambdaContext[] listeners)
     {
-        throw new NotImplementedException();
+        var stmt = new Statement
+        {
+            Type = StatementComponentType.Pipe,
+            Main = { VisitExpression(pipe) }
+        };
+        foreach (var listener in listeners)
+            stmt.Main.Add(new StatementComponent
+            {
+                Type = StatementComponentType.Pipe,
+                CodeType = BytecodeType.Call,
+                SubComponent = listener is KScrParser.MethodRefContext mRef 
+                    ? VisitMethodRef(mRef)
+                    : listener is KScrParser.LambdaExprContext lExpr 
+                        ? VisitLambdaExpr(lExpr)
+                        : throw new CompilerException(ToSrcPos(listener), CompilerErrorMessage.Invalid, "syntax", ctx.Class, "expected Lambda or Method reference")
+            });
+        return stmt;
+    }
+
+    protected new StatementComponent VisitMethodRef(KScrParser.MethodRefContext context)
+    {
+        return new StatementComponent
+        {
+            Type = StatementComponentType.Lambda,
+            CodeType = BytecodeType.Call,
+            Arg = context.label()?.GetText() ?? "unlabelled",
+            Args =
+            {
+                ctx.Class!.CanonicalName,
+                VisitTypeInfo(context.type()).CanonicalName,
+                context.idPart().GetText()
+            }
+        };
+    }
+
+    protected new StatementComponent VisitLambdaExpr(KScrParser.LambdaExprContext context)
+    {
+        var args = new Statement
+        {
+            Type = StatementComponentType.Lambda,
+            CodeType = BytecodeType.ParameterExpression
+        };
+        List<Symbol> sym = new List<Symbol>();
+        try
+        {
+            foreach (var paramDecl in context.tupleExpr().typedExpr())
+            {
+                var pType = paramDecl.type() != null ? VisitTypeInfo(paramDecl.type()) : Core.Std.Class.VoidType;
+                sym.Add(ctx.RegisterSymbol(paramDecl.expr().GetText(), pType));
+                args.Main.Add(new StatementComponent()
+                {
+                    Type = StatementComponentType.Declaration,
+                    CodeType = BytecodeType.ParameterExpression,
+                    Args =
+                    {
+                        pType
+                        .CanonicalName,
+                        paramDecl.expr().GetText()
+                    }
+                });
+            }
+            return new StatementComponent
+            {
+                Type = StatementComponentType.Lambda,
+                CodeType = BytecodeType.Statement,
+                SubStatement = args,
+                Arg = context.label()?.GetText() ?? "unlabelled",
+                Args = { ctx.Class!.CanonicalName },
+                InnerCode = VisitCode(context.lambdaBlock())
+            };
+        }
+        finally
+        {
+            foreach (var symbol in sym)
+                ctx.UnregisterSymbol(symbol);
+        }
     }
 
     protected new StatementComponent VisitCatchBlocks(KScrParser.CatchBlocksContext context)
