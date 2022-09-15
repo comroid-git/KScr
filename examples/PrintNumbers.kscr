@@ -29,7 +29,6 @@ public class PrintNumbers implements Throwable {
         xy = new int[]{ 0, 24 };
         stdio <<- "array size is " + xy.length() + endl;
     
-        int start = xy[0];
         int end = xy[1];
         
         //start = "abc";
@@ -45,7 +44,7 @@ public class PrintNumbers implements Throwable {
         stdio <<- "24 = " + 24 + endl;
         stdio <<- "25 = " + 25 + endl;
         
-        range seq = start..end;
+        range seq = xy[0]..end;
         
         stdio <<- "print numbers " + seq.start() + " to (exclusive) " + (seq.end() - 1 + 1) + ":" + endl;
         foreach (i : seq)
