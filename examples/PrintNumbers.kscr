@@ -51,7 +51,8 @@ public class PrintNumbers implements Throwable {
         stdio <<- endl;
         
         stdio <<- "now, we print it with a lambda:" + endl;
-        seq =>> (x) -> x.toString() =>> (x) -> stdio <<- "#" + x + endl;;
+        seq =>> (x) -> x.toString()
+            =>> (x) -> stdio <<- "#" + x + endl;;
         
         stdio <<- "and one last time:" + endl;
         do {
