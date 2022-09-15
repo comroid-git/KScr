@@ -476,7 +476,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                         next[vm, stack, i] = res!.Value;
                     }
 
-                    stack[Default] = new ObjectRef(Class.Sequence.DefaultInstance, new DummySequence(vm, next.Type, next.Refs));
+                    stack[Default] = new ObjectRef(Class.Sequence.DefaultInstance, new DummySequence_Finite(vm, next.Type, next.Refs));
                     break;
                 }
                 else
