@@ -334,7 +334,8 @@ public sealed class Class : AbstractPackageMember, IClass
 
         #region Array Class
 
-        var length = new Property(RuntimeBase.SystemSrcPos, ArrayType, "length", NumericIntType, MemberModifier.Public);
+        //var length = new Property(RuntimeBase.SystemSrcPos, ArrayType, "length", NumericIntType, MemberModifier.Public);
+        var length = new DummyMethod(ArrayType, "length", MemberModifier.Public, NumericIntType);
 
         AddToClass(ArrayType, length);
         ArrayType.DeclaredSuperclasses.Add(ObjectType.DefaultInstance);

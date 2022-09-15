@@ -168,6 +168,7 @@ public class StatementComponent : IBytecode, IStatementComponent
     public virtual Stack Evaluate(RuntimeBase vm, Stack stack)
     {
         IObjectRef? bak;
+        int len;
         switch (Type, CodeType)
         {
             case (StatementComponentType.Expression, BytecodeType.LiteralNumeric):
@@ -426,6 +427,28 @@ public class StatementComponent : IBytecode, IStatementComponent
                                      ?? throw new FatalException("Undefined variable: " + Arg);
 
                 break;
+            case (StatementComponentType.Provider, BytecodeType.ArrayConstructor):
+                var arrType = vm.FindType(Arg);
+                var listed = ByteArg == 1;
+                len = listed
+                    ? SubStatement!.Main.Count
+                    : (SubStatement!.Main[0].Evaluate(vm, stack.Output())[Alp]!.Value as Numeric).IntValue;
+                var arrObj = new ArrayObj(vm, arrType ?? Class.VoidType.DefaultInstance, len);
+                if (listed)
+                    for (int i = 0; i < len; i++)
+                    {
+                        var idxRes = SubStatement!.Main[i].Evaluate(vm, stack.Output()).Copy(output: Bet)!.Value;
+                        arrObj.Arr[i] = new ObjectRef(idxRes);
+                    }
+                stack[Default] = new ObjectRef(arrObj);
+                break;
+            case (StatementComponentType.Provider, BytecodeType.Indexer):
+                var arr = SubComponent!.Evaluate(vm, stack.Output()).Copy()!.Value as ArrayObj;
+                if (arr == null)
+                    throw new FatalException("Target Array could not be found");
+                var idx = (SubStatement!.Evaluate(vm, stack.Output()).Copy(output: Bet)!.Value as Numeric).IntValue;
+                stack[Default] = arr.Arr[idx];
+                break;
             case (StatementComponentType.Provider, BytecodeType.Undefined):
                 stack[Default] = stack.This!;
                 break;
@@ -464,7 +487,7 @@ public class StatementComponent : IBytecode, IStatementComponent
 
                 if (Class.Sequence.DeclaredMembers["finite"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].ToBool())
                 { // evaluate finite sequence
-                    int len = (Class.Sequence.DeclaredMembers["length"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].Value as Numeric).IntValue;
+                    len = (Class.Sequence.DeclaredMembers["length"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].Value as Numeric).IntValue;
                     var next = new ObjectRef(Class.VoidType.DefaultInstance, len);
 
                     for (int i = 0; i < len; i++)
@@ -597,6 +620,10 @@ public class StatementComponent : IBytecode, IStatementComponent
                 else
                     // read variable
                     rtrn = symbols.FindSymbol(Arg)!.Type;
+                break;
+            case (StatementComponentType.Provider, BytecodeType.ArrayConstructor):
+                var type = vm.FindType(Arg) ?? Class.VoidType.DefaultInstance;
+                rtrn = Class.ArrayType.CreateInstance(vm, Class.ArrayType, type);
                 break;
             case (StatementComponentType.Provider, BytecodeType.Undefined):
                 rtrn = symbols.CurrentContext(vm);
