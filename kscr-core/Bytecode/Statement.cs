@@ -476,7 +476,8 @@ public class StatementComponent : IBytecode, IStatementComponent
                         next[vm, stack, i] = res!.Value;
                     }
 
-                    throw new NotImplementedException("Implementation incomplete");
+                    stack[Default] = new ObjectRef(Class.Sequence.DefaultInstance, new DummySequence(vm, next.Type, next.Refs));
+                    break;
                 }
                 else
                 { // evaluate infinite sequence
