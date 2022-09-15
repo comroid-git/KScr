@@ -44,6 +44,8 @@ public class PrintNumbers implements Throwable {
         stdio <<- "24 = " + 24 + endl;
         stdio <<- "25 = " + 25 + endl;
         
+        PrintNumbers.markJumpTest();
+        
         range seq = xy[0]..end;
         
         stdio <<- "print numbers " + seq.start() + " to (exclusive) " + (seq.end() - 1 + 1) + ":" + endl;
@@ -98,6 +100,14 @@ public class PrintNumbers implements Throwable {
             stdio <<- endl;
         } finally stdio <<- "finally, we finish throwing:" + endl;
         obj.callThroingMethod();
+    }
+    
+    public static void markJumpTest() {
+        int i = 6;
+        mark loop;
+        stdio <<- "loop with number " + i + endl;
+        if (--i > 2)
+            jump loop;
     }
     
     public str toString(short variant) {
