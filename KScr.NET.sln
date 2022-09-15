@@ -86,6 +86,8 @@ Global
 		File = Test Install.run.xml
 		File = Test Build - dependencies.run.xml
 		File = Test Build - info.run.xml
+		File = Test Build - build.run.xml
+		File = Test Build - run.run.xml
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8F75C3E7-3788-47DA-8313-4C7051D5D342} = {BCE9FFFF-7A44-4FFF-A877-A1C5076A2847}

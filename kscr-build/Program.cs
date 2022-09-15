@@ -62,15 +62,14 @@ public sealed class Program
 
     private static void SortModulesByCoDependencies(List<Module> exported)
     {
-        CoDepNode parent = null!;
+        CoDepNode? parent = null;
         foreach (var module in exported)
         {
-            parent = new CoDepNode(module);
-            foreach (var dep in exported.Where(x => x.Dependencies.Any(y => y.Notation == module.Notation)))
-                parent.Children.Add(parent.FindAnywhere(dep));
+            var buf = new CoDepNode(module);
+            if (parent == null)
+                parent = buf;
         }
 
-        
         // todo fixme
         CheckCircular_Rec(ArraySegment<string>.Empty, parent);
         

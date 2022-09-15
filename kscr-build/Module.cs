@@ -21,7 +21,7 @@ public class Module
     private IEnumerable<T> Concat<T>(IEnumerable<T>? first, IEnumerable<T>? second) =>
         (first ?? ArraySegment<T>.Empty).Concat(second ?? ArraySegment<T>.Empty);
 
-    public string Notation => ModuleInfo.Notation;
+    public string Notation => Project.ToString();
     public override string ToString() =>
         $"Module {Project} ({Repositories.Count()} repositories; {Dependencies.Count()} dependencies)";
 }
