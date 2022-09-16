@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using KScr.Core;
 using KScr.Core.Exception;
@@ -35,8 +36,8 @@ public class StatementTest
         if (desiredCode < 10)
             desiredCode = TestScale;
 
-        var code = RunSourcecode("TestReturn", $"return {desiredCode};");
-        Assert.AreEqual(desiredCode, (code.Value as Numeric).IntValue);
+        var result = RunSourcecode("TestReturn", $"return {desiredCode};");
+        Assert.AreEqual(desiredCode, result.exitCode);
     }
 
     [Test]
@@ -49,23 +50,14 @@ public class StatementTest
 
         var writer = new StringWriter();
         Console.SetOut(writer);
-        try
-        {
-            RunSourcecode("TestThrow", $"throw {desiredCode};");
-        }
-        catch (InternalException expected)
-        {
-            var expectedOut = "";
+        var result = RunSourcecode("TestThrow", $"throw {desiredCode};");
+        var expectedOut = "";
 
-            Console.WriteLine($"test: ExitCode == {desiredCode}");
-            Assert.AreEqual(desiredCode, RuntimeBase.ExitCode);
-            Assert.IsTrue(writer.ToString().StartsWith(expectedOut),
-                $"Expected output was:\n{expectedOut}\nActual Output was \n{writer}");
-            Assert.Pass();
-            return;
-        }
-
-        Assert.Fail("Did not throw");
+        Console.WriteLine($"test: ExitCode == {desiredCode}");
+        Assert.AreEqual(desiredCode, result.exitCode);
+        Assert.IsTrue(writer.ToString().StartsWith(expectedOut),
+            $"Expected output was:\n{expectedOut}\nActual Output was \n{writer}");
+        Assert.Pass();
     }
 
     [Test]
@@ -78,9 +70,9 @@ public class StatementTest
 
         var writer = new StringWriter();
         Console.SetOut(writer);
-        var code = RunSourcecode("TestDeclaration", $"public static int main() {{ int x = {desired}; return x; }}");
+        var result = RunSourcecode("TestDeclaration", $"public static int main() {{ int x = {desired}; return x; }}");
 
-        Assert.AreEqual(desired, (code.Value as Numeric).IntValue);
+        Assert.AreEqual(desired, result.exitCode);
     }
 
     [Test]
@@ -91,10 +83,10 @@ public class StatementTest
         if (desired < 10)
             desired = TestScale;
 
-        var code = RunSourcecode("TestIf",
+        var result = RunSourcecode("TestIf",
             $"public static int main() {{ int x = {desired}; if (x > 8) return x; return x * 2; }}");
 
-        Assert.AreEqual(desired > 8 ? desired : desired * 2, (code.Value as Numeric).IntValue);
+        Assert.AreEqual(desired > 8 ? desired : desired * 2, result.exitCode);
     }
 
     [Test]
@@ -105,10 +97,10 @@ public class StatementTest
         if (desired < 10)
             desired = TestScale;
 
-        var code = RunSourcecode("TestIfElse",
+        var result = RunSourcecode("TestIfElse",
             $"public static int main() {{ int x = {desired}; if (x % 2) {{ return x; }} else return x * 2; throw x; }}");
 
-        Assert.AreEqual(desired % 2 > 0 ? desired : desired * 2, (code.Value as Numeric).IntValue);
+        Assert.AreEqual(desired % 2 > 0 ? desired : desired * 2, result.exitCode);
     }
 
     [Test]
