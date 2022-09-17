@@ -44,6 +44,11 @@ public class PrintNumbers implements Throwable {
         stdio <<- "24 = " + 24 + endl;
         stdio <<- "25 = " + 25 + endl;
         
+        PrintNumbers.testSwitch(0, 4);  // case 1
+        PrintNumbers.testSwitch(1, 1);  // case 2
+        PrintNumbers.testSwitch(4, 20); // case 3
+        PrintNumbers.testSwitch(1, 4);  // default
+        
         range seq = xy[0]..end;
         
         stdio <<- "print numbers " + seq.start() + " to (exclusive) " + (seq.end() - 1 + 1) + ":" + endl;
@@ -98,6 +103,23 @@ public class PrintNumbers implements Throwable {
             stdio <<- endl;
         } finally stdio <<- "finally, we finish throwing:" + endl;
         obj.callThroingMethod();
+    }
+    
+    public static void testSwitch(int x, int y) {
+        switch (x, y) {
+            case (0, _):
+                stdio <<- "zero";
+                break;
+            case (1, 1):
+                stdio <<- "one, one";
+                break;
+            case (4, 20):
+                stdio <<- "fourtwenty";
+                break;
+            default:
+                stdio <<- "owo whats this";
+                break;
+        }
     }
     
     public str toString(short variant) {
