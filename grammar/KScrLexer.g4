@@ -123,6 +123,7 @@ PLUS: '+';
 MINUS: '-';
 PERCENT: '%';
 AT: '@';
+UNDERSCORE: '_';
 
 LSHIFT: '<<';
 RSHIFT: '>>';

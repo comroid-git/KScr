@@ -62,8 +62,8 @@ normalBlock: LBRACE statements RBRACE;
 memberExpr: REQARROW uniformBlock;
 lambdaBlock: RDASHARROW (uniformBlock | normalBlock);
 caseBlock
-    : COLON statements BREAK SEMICOLON  #caseStmtBlock
-    | memberExpr COMMA                  #caseExprBlock
+    : COLON statements BREAK( SEMICOLON)?   #caseStmtBlock
+    | memberExpr COMMA                      #caseExprBlock
     ;
 memberBlock
     : normalBlock               #memberNormalBlock
@@ -144,9 +144,8 @@ forStatement: FOR LPAREN init=statement cond=expr SEMICOLON acc=expr RPAREN code
 foreachStatement: FOREACH LPAREN idPart COLON expr RPAREN codeBlock;
 doWhile: DO codeBlock WHILE LPAREN expr RPAREN SEMICOLON;
 
-switchStatement: SWITCH tupleExpr LBRACE caseClause* defaultClause? RBRACE;
-caseClause: CASE tupleExpr caseBlock;
-defaultClause: DEFAULT caseBlock;
+switchStatement: SWITCH tupleExpr LBRACE caseClause* RBRACE;
+caseClause: ((CASE tupleExpr) | (DEFAULT)) caseBlock;
 
 statement
     : declaration SEMICOLON                                 #stmtDeclare
@@ -205,6 +204,7 @@ expr
     | expr postfixop                                        #opPostfix
     // tuple expressions
     | tupleExpr                                             #exprTuple
+    | UNDERSCORE                                            #exprVoid
     ;
 
 tupleDeclType: type idPart?;
