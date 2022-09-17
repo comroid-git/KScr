@@ -6,19 +6,19 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 ### Statements:
 - - [x] `if` and `else`
 - - [ ] `mark` and `jump`
-- - [ ] `try` and `catch`
+- - [x] `try` and `catch`
 - - - [x] `throw`
 - - - [x] `finally`
 - - [x] `do` and `while`
 - - [x] `for`
-- - [ ] ~~`forn`~~ Replaced by foreach because Range implements Iterable
+- - [x] ~~`forn`~~ Replaced by foreach because Range implements Iterable
 - - [x] `foreach`
 - - [ ] `switch` and `case`
 - - - [ ] `break` and `continue`
 
 ### Language Features:
 - - [x] Objects
-- - [ ] Arrays
+- - [x] Arrays
 - - [ ] Tuple Literals
 - - [x] Computed Properties
 - - [x] Properties with Getters and Setters
@@ -31,7 +31,8 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 - - [x] Static and Dynamic components
 - - [x] Prettier StackTrace
 - - [x] Compiling into Bytecode
-- - [ ] Pipe operators
+- - [x] Pipe operators (partially done)
+- - [ ] Pipe listeners
 - - [ ] Reflection
 - - [ ] Encoding Support
 - - [ ] LLVM Support
@@ -46,9 +47,9 @@ A simple interpreter that attempts to grow into an object oriented language (eve
 - - [ ] Core Module
 
 ### Other To-Do Items:
-- - [ ] Automate TokenType scanning
+- - [x] Automate TokenType scanning (done by ANTLR)
 - - [ ] IDEA Language Support
 - - [ ] VSC Language Support
-- - [ ] Packaging
+- - [ ] Module Packaging
 - - [ ] Something for Databinding
 - - [ ] More system Classes
