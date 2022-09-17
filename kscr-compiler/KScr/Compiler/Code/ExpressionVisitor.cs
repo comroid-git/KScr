@@ -226,24 +226,25 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         };
         // cases
         foreach (var cas in context.caseClause())
-            comp.SubStatement.Main.Add(new StatementComponent
-            {
-                Type = StatementComponentType.Code,
-                CodeType = BytecodeType.StmtCase,
-                // case condition
-                SubComponent = VisitExpression(cas.tupleExpr()),
-                // case body
-                InnerCode = VisitCode(cas.caseBlock())
-            });
-        // default case
-        if (context.defaultClause() is { } def)
-            comp.SubStatement.Main.Add(new StatementComponent
-            {
-                Type = StatementComponentType.Code,
-                CodeType = BytecodeType.StmtCase | BytecodeType.StmtElse,
-                // case body
-                InnerCode = VisitCode(def.caseBlock())
-            });
+            if (cas.GetToken(KScrLexer.DEFAULT, 0) != null)
+                comp.AltComponent = new StatementComponent
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.StmtCase | BytecodeType.StmtElse,
+                    // case body
+                    InnerCode = VisitCode(cas.caseBlock())
+                };
+            else
+                
+                comp.SubStatement.Main.Add(new StatementComponent
+                {
+                    Type = StatementComponentType.Code,
+                    CodeType = BytecodeType.StmtCase,
+                    // case condition
+                    SubComponent = VisitExpression(cas.tupleExpr()),
+                    // case body
+                    InnerCode = VisitCode(cas.caseBlock())
+                });
 
         return comp;
     }
