@@ -1,15 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using KScr.Core;
-using KScr.Core.Exception;
-using KScr.Core.Std;
 using NUnit.Framework;
 using static KScr.Test.TestUtil;
 
 namespace KScr.Test;
 
-[Parallelizable(ParallelScope.Children)]
+[Parallelizable(ParallelScope.None)]
 public class StatementTest
 {
     public static readonly Random rng = new();
@@ -113,16 +109,14 @@ public class StatementTest
         if (desiredLen < 10)
             desiredLen = TestScale;
 
-        var writer = new StringWriter();
-        Console.SetOut(writer);
-        var code = RunSourcecode("TestFor", $"for (int i = {desiredLen}; i; i -= 1) stdio << i;");
+        var result = RunSourcecode("TestFor", $"for (int i = {desiredLen}; i; i -= 1) stdio <<- i;");
         var expected = "";
         for (var i = desiredLen; i > 0; i -= 1)
-            expected += $"{i}\n";
+            expected += i;
         expected = expected.Substring(0, expected.Length - 1);
 
-        Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected),
-            $"Expected output was:\n{expected}\nActual Output was \n{writer}");
+        Assert.IsTrue(result.output.Replace("\r\n", "\n").StartsWith(expected),
+            $"Expected output was:\n{expected}\nActual Output was \n{result.output}");
     }
 
     [Test]
@@ -135,16 +129,14 @@ public class StatementTest
         if (desiredLen < 10)
             desiredLen = TestScale;
 
-        var writer = new StringWriter();
-        Console.SetOut(writer);
-        var code = RunSourcecode("TestForEach", $"foreach (i : 0~{desiredLen}) stdio << i;");
+        var result = RunSourcecode("TestForEach", $"foreach (i : 0..{desiredLen}) stdio <<- i;");
         var expected = "";
         for (var i = 0; i < desiredLen; i++)
-            expected += $"{i}\n";
+            expected += i;
         expected = expected.Substring(0, expected.Length - 1);
 
-        Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected),
-            $"Expected output was:\n{expected}\nActual Output was \n{writer}");
+        Assert.IsTrue(result.output.Replace("\r\n", "\n").StartsWith(expected),
+            $"Expected output was:\n{expected}\nActual Output was \n{result.output}");
     }
 
     [Test]
@@ -157,17 +149,15 @@ public class StatementTest
         if (desiredLen < 10)
             desiredLen = TestScale;
 
-        var writer = new StringWriter();
-        Console.SetOut(writer);
-        var code = RunSourcecode("TestWhile", $"int i = {desiredLen}; while (i--) stdio << i;");
+        var result = RunSourcecode("TestWhile", $"int i = {desiredLen}; while (i--) stdio <<- i;");
         var expected = "";
         var i = desiredLen;
         while (i-- > 0)
-            expected += $"{i}\n";
+            expected += i;
         expected = expected.Substring(0, expected.Length - 1);
 
-        Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected),
-            $"Expected output was:\n{expected}\nActual Output was \n{writer}");
+        Assert.IsTrue(result.output.Replace("\r\n", "\n").StartsWith(expected),
+            $"Expected output was:\n{expected}\nActual Output was \n{result.output}");
     }
 
     [Test]
@@ -180,19 +170,17 @@ public class StatementTest
         if (desiredLen < 10)
             desiredLen = TestScale;
 
-        var writer = new StringWriter();
-        Console.SetOut(writer);
-        var code = RunSourcecode("TestDoWhile", $"int i = {desiredLen}; do {{ stdio << i; }} while (i--);");
+        var result = RunSourcecode("TestDoWhile", $"int i = {desiredLen}; do {{ stdio <<- i; }} while (i--);");
         var expected = "";
         var i = desiredLen;
         do
         {
-            expected += $"{i}\n";
+            expected += i;
         } while (i-- > 0);
 
         expected = expected.Substring(0, expected.Length - 1);
 
-        Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith(expected),
-            $"Expected output was:\n{expected}\nActual Output was \n{writer}");
+        Assert.IsTrue(result.output.Replace("\r\n", "\n").StartsWith(expected),
+            $"Expected output was:\n{expected}\nActual Output was \n{result.output}");
     }
 }

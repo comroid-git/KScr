@@ -42,7 +42,8 @@ public sealed class String : NativeObj
                 stack[StackOutput.Default] = Type.SelfRef;
                 break;
             case "opPlus":
-                var other2 = args[0]?.InvokeNative(vm, stack.Output(), "toString").Copy(StackOutput.Alp, StackOutput.Bet);
+                var other2 = args[0]?.InvokeNative(vm, stack.Output(), "toString")
+                    .Copy(StackOutput.Alp, StackOutput.Bet);
                 stack[StackOutput.Default] = OpPlus(vm, stack, (other2?.Value as String)?.Str ?? "null");
                 break;
             case "length":

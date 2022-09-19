@@ -1,5 +1,4 @@
-﻿using System.Runtime.Intrinsics.X86;
-using KScr.Core;
+﻿using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
@@ -11,23 +10,24 @@ namespace KScr.Bytecode.Adapter;
 
 public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
 {
-    [Flags]
-    private enum PropState : byte
-    {
-        Automatic = 0b000_000,
-        Gettable  = 0b000_001,
-        Settable  = 0b000_010,
-        Initable  = 0b000_100,
-        HasGetter = 0b001_000,
-        HasSetter = 0b010_000,
-        HasIniter = 0b100_000,
-    }
-
     public BytecodeAdapterV0_10() : base(BytecodeVersion.V_0_10)
     {
     }
 
+    [Flags]
+    private enum PropState : byte
+    {
+        Automatic = 0b000_000,
+        Gettable = 0b000_001,
+        Settable = 0b000_010,
+        Initable = 0b000_100,
+        HasGetter = 0b001_000,
+        HasSetter = 0b010_000,
+        HasIniter = 0b100_000
+    }
+
     #region Class
+
     protected override void WriteClass(Stream stream, StringCache strings, Class cls)
     {
         Write(stream, (byte)cls.MemberType);
@@ -35,8 +35,10 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         Write(stream, (uint)cls.Modifier);
         Write(stream, strings, cls.Name);
         Write(stream, strings, cls.Imports.Select(IBytecode.String).ToArray());
-        Write(stream, strings, cls.DeclaredSuperclasses.Select(it => it.FullDetailedName).Select(IBytecode.String).ToArray());
-        Write(stream, strings, cls.DeclaredInterfaces.Select(it => it.FullDetailedName).Select(IBytecode.String).ToArray());
+        Write(stream, strings,
+            cls.DeclaredSuperclasses.Select(it => it.FullDetailedName).Select(IBytecode.String).ToArray());
+        Write(stream, strings,
+            cls.DeclaredInterfaces.Select(it => it.FullDetailedName).Select(IBytecode.String).ToArray());
         Write(stream, strings, cls.DeclaredMembers.Values.Where(x => x is not DummyMethod).ToArray());
     }
 
@@ -64,9 +66,11 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         cls.Initialize(vm);
         return cls;
     }
+
     #endregion
 
     #region Property
+
     protected override void WriteProperty(Stream stream, StringCache strings, Property prop)
     {
         Write(stream, (byte)prop.MemberType);
@@ -122,9 +126,11 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
             Initter = initter
         };
     }
+
     #endregion
 
     #region Method
+
     protected override void WriteMethod(Stream stream, StringCache strings, Method mtd)
     {
         Write(stream, (byte)mtd.MemberType);
@@ -157,15 +163,19 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         mtd.Parameters.AddRange(parameters);
         return mtd;
     }
+
     #endregion
 
     #region Method Parameter
+
     protected override void WriteMethodParameter(Stream stream, StringCache strings, MethodParameter param)
     {
         Write(stream, strings, param.Type.FullDetailedName);
         Write(stream, strings, param.Name);
     }
-    protected override MethodParameter ReadMethodParameter(RuntimeBase vm, Stream stream, StringCache strings, Package pkg, Class cls)
+
+    protected override MethodParameter ReadMethodParameter(RuntimeBase vm, Stream stream, StringCache strings,
+        Package pkg, Class cls)
     {
         string name;
         IClassInstance? returnType;
@@ -173,15 +183,19 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         name = ReadString(stream, strings);
         return new MethodParameter { Name = name, Type = returnType };
     }
+
     #endregion
 
     #region SrcPos
+
     protected override void WriteSrcPos(Stream stream, StringCache strings, SourcefilePosition srcPos)
     {
         Write(stream, srcPos.SourcefileLine);
         Write(stream, srcPos.SourcefileCursor);
     }
-    protected override SourcefilePosition ReadSrcPos(RuntimeBase vm, Stream stream, StringCache strings, Package pkg, Class cls)
+
+    protected override SourcefilePosition ReadSrcPos(RuntimeBase vm, Stream stream, StringCache strings, Package pkg,
+        Class cls)
     {
         return new SourcefilePosition
         {
@@ -189,20 +203,29 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
             SourcefileCursor = ReadInt(stream)
         };
     }
+
     #endregion
 
     #region Code
-    protected override void WriteCode(Stream stream, StringCache strings, ExecutableCode code) => Write(stream, strings, code.Main.ToArray());
-    protected override ExecutableCode ReadCode(RuntimeBase vm, Stream stream, StringCache strings, Package pkg, Class cls)
+
+    protected override void WriteCode(Stream stream, StringCache strings, ExecutableCode code)
+    {
+        Write(stream, strings, code.Main.ToArray());
+    }
+
+    protected override ExecutableCode ReadCode(RuntimeBase vm, Stream stream, StringCache strings, Package pkg,
+        Class cls)
     {
         var code = ReadArray<Statement>(vm, stream, strings, pkg, cls);
         var block = new ExecutableCode();
         block.Main.AddRange(code);
         return block;
     }
+
     #endregion
 
     #region Statement
+
     protected override void WriteStatement(Stream stream, StringCache strings, Statement stmt)
     {
         Write(stream, (uint)stmt.Type);
@@ -214,7 +237,9 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         if (stmt.CatchFinally != null)
             Write(stream, strings, stmt.CatchFinally!);
     }
-    protected override Statement ReadStatement(RuntimeBase vm, Stream stream, StringCache strings, Package pkg, Class cls)
+
+    protected override Statement ReadStatement(RuntimeBase vm, Stream stream, StringCache strings, Package pkg,
+        Class cls)
     {
         StatementComponentType sType;
         BytecodeType codeType;
@@ -237,9 +262,11 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         stmt.Main.AddRange(comps);
         return stmt;
     }
+
     #endregion
 
     #region Component
+
     protected override void WriteComponent(Stream stream, StringCache strings, StatementComponent comp)
     {
         Write(stream, (uint)comp.Type);
@@ -264,7 +291,9 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         if ((memberState & ComponentMember.InnerCode) != 0)
             Write(stream, strings, comp.InnerCode!);
     }
-    protected override StatementComponent ReadComponent(RuntimeBase vm, Stream stream, StringCache strings, Package pkg, Class cls)
+
+    protected override StatementComponent ReadComponent(RuntimeBase vm, Stream stream, StringCache strings, Package pkg,
+        Class cls)
     {
         StatementComponentType sType;
         BytecodeType codeType;
@@ -310,5 +339,6 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
             SourcefilePosition = srcPos
         };
     }
+
     #endregion
 }

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
 using KScr.Core.Store;
-using Microsoft.VisualBasic.CompilerServices;
 using static KScr.Core.Store.StackOutput;
 using Range = KScr.Core.Std.Range;
 using String = KScr.Core.Std.String;
@@ -38,7 +38,7 @@ public class Statement : IBytecode, IStatement<StatementComponent>
 
     public Stack Evaluate(RuntimeBase vm, Stack stack)
     {
-        bool caught = false;
+        var caught = false;
         try
         {
             foreach (var component in Main)
@@ -79,13 +79,11 @@ public class Statement : IBytecode, IStatement<StatementComponent>
                                          .Where(x => x.Args.Select(t => vm.FindType(t))
                                              .Any(x => x!.CanHold(innerCause.Type)))
                                          .Select(x => (x.Arg, x.InnerCode)))
-                            {
                                 stack.StepInside(vm, CatchFinally.SourcefilePosition, "catch", stack =>
                                 {
                                     vm.PutLocal(stack, catchBlock.Arg, innerCause);
                                     catchBlock.InnerCode!.Evaluate(vm, stack);
                                 });
-                            }
                             caught = true;
                         }
                         finally
@@ -137,7 +135,10 @@ public class Statement : IBytecode, IStatement<StatementComponent>
         return stack;
     }
 
-    public ITypeInfo OutputType(RuntimeBase vm, ISymbolValidator symbols) => Main.LastOrDefault()?.OutputType(vm, symbols)!;
+    public ITypeInfo OutputType(RuntimeBase vm, ISymbolValidator symbols)
+    {
+        return Main.LastOrDefault()?.OutputType(vm, symbols)!;
+    }
 
     public void Clear()
     {
@@ -208,8 +209,8 @@ public class StatementComponent : IBytecode, IStatementComponent
                 break;
             case (StatementComponentType.Expression, BytecodeType.Call):
                 // invoke member
-                if (((stack[Default]!.IsPipe && stack[Default]!.Type is IClass cls) 
-                     || (cls = (stack[Default]![vm, stack, 0] as IClass)!) != null 
+                if (((stack[Default]!.IsPipe && stack[Default]!.Type is IClass cls)
+                     || (cls = (stack[Default]![vm, stack, 0] as IClass)!) != null
                      || (cls = stack[Default]![vm, stack, 0].Type) != null)
                     && cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is
                         IMethod mtd)
@@ -223,7 +224,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                         else
                             vm.NativeRunner.InvokeMember(vm, stack, stack[Default][vm, stack, 0], mtd)
                                 .Copy(Omg, Default);
-                    else mtd.Invoke(vm, stack, stack[Default][vm,stack,0], args: stack.Del!.AsArray(vm, stack));
+                    else mtd.Invoke(vm, stack, stack[Default][vm, stack, 0], args: stack.Del!.AsArray(vm, stack));
                 }
                 else if (cls.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Property && x.Name == Arg)
                          is Property prop)
@@ -231,7 +232,9 @@ public class StatementComponent : IBytecode, IStatementComponent
                     if (prop.IsNative())
                         if (vm.NativeRunner == null)
                             throw new FatalException("Cannot invoke native method; NativeRunner not loaded");
-                        else vm.NativeRunner.InvokeMember(vm, stack, stack[Default][vm, stack, 0], prop).Copy(Omg, Default);
+                        else
+                            vm.NativeRunner.InvokeMember(vm, stack, stack[Default][vm, stack, 0], prop)
+                                .Copy(Omg, Default);
                     else
                         //stack[Default] = prop;
                         prop.ReadValue(vm, stack.Output(),
@@ -254,6 +257,12 @@ public class StatementComponent : IBytecode, IStatementComponent
                 break;
             case (StatementComponentType.Expression, BytecodeType.Cast):
                 // casting is implicitly evaluated by design
+                break;
+            case (StatementComponentType.Expression, BytecodeType.StmtIf):
+                // ternary
+                if (SubStatement!.Evaluate(vm, stack.Output()).Copy()!.ToBool())
+                    SubComponent!.Evaluate(vm, stack.Output()).Copy();
+                else AltComponent!.Evaluate(vm, stack.Output()).Copy();
                 break;
             case (StatementComponentType.Declaration, _):
                 // variable declaration
@@ -351,7 +360,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                 });
                 break;
             case (StatementComponentType.Code, BytecodeType.StmtCatch):
-                IObject ex = stack[Tau]![vm, stack, 0];
+                var ex = stack[Tau]![vm, stack, 0];
                 IClassInfo exType = ex.Type;
                 try
                 {
@@ -363,6 +372,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                 {
                     AltComponent?.InnerCode!.Evaluate(vm, stack);
                 }
+
                 break;
             case (StatementComponentType.Operator, _):
                 var op = (Operator)ByteArg;
@@ -377,29 +387,38 @@ public class StatementComponent : IBytecode, IStatementComponent
                 if (op is Operator.IncrementRead or Operator.DecrementRead) compound = true;
 
                 var left = SubComponent!.Evaluate(vm, stack.Output()).Copy(output: Alp);
-                
+
                 if (op == Operator.NullFallback) // implement null fallback
+                {
                     if (left![vm, stack, 0].IsNull())
                         stack[Default] = AltComponent?.Evaluate(vm, stack.Output()).Copy(output: Bet);
                     else stack[Default] = left;
+                }
                 else
                 {
                     if (unaryPrefix || unaryPostfix)
+                    {
                         if (left![vm, stack, 0] is Numeric numA)
                             if (op is Operator.ReadIncrement or Operator.ReadDecrement)
                             {
                                 stack[Default] = new ObjectRef(numA.Type, numA);
                                 left![vm, stack, 0] = numA.Operator(vm, op)[vm, stack, 0];
                             }
-                            else stack[Default] = numA.Operator(vm, op);
+                            else
+                            {
+                                stack[Default] = numA.Operator(vm, op);
+                            }
                         else stack[Default] = left![vm, stack, 0].InvokeNative(vm, stack.Output(), "op" + op).Copy();
+                    }
                     else if (binary)
                     {
                         var right = AltComponent?.Evaluate(vm, stack.Output()).Copy(output: Bet);
 
                         if (left![vm, stack, 0] is Numeric numA && right![vm, stack, 0] is Numeric numB)
                             stack[Default] = numA.Operator(vm, op, numB);
-                        else stack[Default] = left![vm, stack, 0].InvokeNative(vm, stack.Output(), "op" + op, right![vm, stack, 0]).Copy();
+                        else
+                            stack[Default] = left![vm, stack, 0]
+                                .InvokeNative(vm, stack.Output(), "op" + op, right![vm, stack, 0]).Copy();
                     }
 
                     if (compound)
@@ -417,10 +436,10 @@ public class StatementComponent : IBytecode, IStatementComponent
                 if (stack[Default]?.Value is { } obj1
                     && obj1.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm1)
                     // call member
-                    stack[Default] = icm1.Invoke(vm, stack, stack[Default][vm,stack,0]).Copy();
+                    stack[Default] = icm1.Invoke(vm, stack, stack[Default][vm, stack, 0]).Copy();
                 else if (stack.This.Type.ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm2)
                     // call to 'this'
-                    stack[Default] = icm2.Invoke(vm, stack, stack.This[vm,stack,0]).Copy();
+                    stack[Default] = icm2.Invoke(vm, stack, stack.This[vm, stack, 0]).Copy();
                 else
                     // read variable
                     stack[Default] = vm[stack, VariableContext.Local, Arg]
@@ -435,11 +454,12 @@ public class StatementComponent : IBytecode, IStatementComponent
                     : (SubStatement!.Main[0].Evaluate(vm, stack.Output())[Alp]!.Value as Numeric).IntValue;
                 var arrObj = new ArrayObj(vm, arrType ?? Class.VoidType.DefaultInstance, len);
                 if (listed)
-                    for (int i = 0; i < len; i++)
+                    for (var i = 0; i < len; i++)
                     {
                         var idxRes = SubStatement!.Main[i].Evaluate(vm, stack.Output()).Copy(output: Bet)!.Value;
                         arrObj.Arr[i] = new ObjectRef(idxRes);
                     }
+
                 stack[Default] = new ObjectRef(arrObj);
                 break;
             case (StatementComponentType.Provider, BytecodeType.Indexer):
@@ -480,32 +500,39 @@ public class StatementComponent : IBytecode, IStatementComponent
             case (StatementComponentType.Pipe, BytecodeType.Call):
                 if (SubComponent == null || (SubComponent.Type & StatementComponentType.Lambda) == 0)
                     throw new FatalException("Invalid pipe listener; no lambda found");
-                if (!Class.Sequence.CanHold(stack[Default]!.Value.Type) && !Class.Sequencable.CanHold(stack[Default]!.Value.Type))
-                    throw new FatalException($"Invalid type for pipe listener {stack[Default]!.Value.Type}; requires {Class.Sequencable}");
+                if (!Class.Sequence.CanHold(stack[Default]!.Value.Type) &&
+                    !Class.Sequencable.CanHold(stack[Default]!.Value.Type))
+                    throw new FatalException(
+                        $"Invalid type for pipe listener {stack[Default]!.Value.Type}; requires {Class.Sequencable}");
                 if (!Class.Sequence.CanHold(stack[Default]!.Value.Type))
-                    Class.Sequencable.DeclaredMembers["sequence"].Invoke(vm, stack.Output(), stack[Default]!.Value).Copy(Omg, Alp);
+                    Class.Sequencable.DeclaredMembers["sequence"].Invoke(vm, stack.Output(), stack[Default]!.Value)
+                        .Copy(Omg, Alp);
 
-                if (Class.Sequence.DeclaredMembers["finite"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].ToBool())
-                { // evaluate finite sequence
-                    len = (Class.Sequence.DeclaredMembers["length"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].Value as Numeric).IntValue;
+                if (Class.Sequence.DeclaredMembers["finite"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg]
+                    .ToBool())
+                {
+                    // evaluate finite sequence
+                    len = (Class.Sequence.DeclaredMembers["length"]
+                        .Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].Value as Numeric).IntValue;
                     var next = new ObjectRef(Class.VoidType.DefaultInstance, len);
 
-                    for (int i = 0; i < len; i++)
+                    for (var i = 0; i < len; i++)
                     {
-                        if (!Class.Sequence.DeclaredMembers["hasNext"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].ToBool())
+                        if (!Class.Sequence.DeclaredMembers["hasNext"]
+                                .Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].ToBool())
                             throw new FatalException("Unexpected end of sequence");
-                        var it = Class.Sequence.DeclaredMembers["next"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg];
+                        var it = Class.Sequence.DeclaredMembers["next"]
+                            .Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg];
                         var res = stack.StepIntoLambda(vm, stack.Output(), SubComponent, it.Value);
                         next[vm, stack, i] = res!.Value;
                     }
 
-                    stack[Default] = new ObjectRef(Class.Sequence.DefaultInstance, new DummySequence_Finite(vm, next.Type, next.Refs));
+                    stack[Default] = new ObjectRef(Class.Sequence.DefaultInstance,
+                        new DummySequence_Finite(vm, next.Type, next.Refs));
                     break;
-                }
-                else
-                { // evaluate infinite sequence
-                    throw new NotImplementedException("Listening to infinite sequences not implemented");
-                }
+                } // evaluate infinite sequence
+
+                throw new NotImplementedException("Listening to infinite sequences not implemented");
             default:
                 throw new NotImplementedException($"Not Implemented: {Type} {CodeType}");
         }
@@ -534,7 +561,8 @@ public class StatementComponent : IBytecode, IStatementComponent
         return memberState;
     }
 
-    public ITypeInfo OutputType(RuntimeBase vm, ISymbolValidator symbols, StatementComponent? prev = null, bool ignorePostComp = false)
+    public ITypeInfo OutputType(RuntimeBase vm, ISymbolValidator symbols, StatementComponent? prev = null,
+        bool ignorePostComp = false)
     {
         if (prev == this)
             throw new FatalException("invalid state");
@@ -567,14 +595,17 @@ public class StatementComponent : IBytecode, IStatementComponent
                 break;
             case (StatementComponentType.Expression, BytecodeType.Call):
                 // invoke member
-                if (symbols.CurrentContext(vm) is { } cls1 
-                    && cls1.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is IMethod mtd)
+                if (symbols.CurrentContext(vm) is { } cls1
+                    && cls1.ClassMembers.FirstOrDefault(x => x.MemberType == ClassMemberType.Method && x.Name == Arg) is
+                        IMethod mtd)
                     rtrn = mtd.ReturnType;
                 else if (symbols.CurrentContext(vm) is { } cls2
                          && cls2.ClassMembers.FirstOrDefault(x =>
                              x.MemberType == ClassMemberType.Property && x.Name == Arg) is Property prop)
                     rtrn = prop.ReturnType;
-                else throw new CompilerException(SourcefilePosition, CompilerErrorMessage.SymbolNotFound, Arg, symbols.CurrentContext(vm));
+                else
+                    throw new CompilerException(SourcefilePosition, CompilerErrorMessage.SymbolNotFound, Arg,
+                        symbols.CurrentContext(vm));
                 break;
             case (StatementComponentType.Expression, BytecodeType.StdioExpression):
                 rtrn = Class.PipeType.GetInstance(vm, Class.StringType);
@@ -589,11 +620,15 @@ public class StatementComponent : IBytecode, IStatementComponent
                 rtrn = AltComponent!.OutputType(vm, symbols, this);
                 break;
             case (StatementComponentType.Expression, BytecodeType.Cast):
-                rtrn = vm.FindTypeInfo(Arg, symbols.CurrentContext(vm).AsClass(vm), symbols.CurrentContext(vm).Package!);
+                rtrn = vm.FindTypeInfo(Arg, symbols.CurrentContext(vm).AsClass(vm),
+                    symbols.CurrentContext(vm).Package!);
+                break;
+            case (StatementComponentType.Code, BytecodeType.Throw):
+                rtrn = Class.ThrowableType; // todo Specify this (was in next case block)
                 break;
             case (StatementComponentType.Expression, BytecodeType.Parentheses):
+            case (StatementComponentType.Expression, BytecodeType.StmtIf):
             case (StatementComponentType.Code, BytecodeType.Return):
-            case (StatementComponentType.Code, BytecodeType.Throw):
             case (StatementComponentType.Operator, _):
                 rtrn = SubComponent!.OutputType(vm, symbols, this);
                 break;
@@ -601,7 +636,8 @@ public class StatementComponent : IBytecode, IStatementComponent
                 rtrn = Class.RangeType;
                 break;
             case (StatementComponentType.Provider, BytecodeType.ExpressionVariable):
-                if ((prev?.OutputType(vm, symbols, this).AsClass(vm) as IClass)?.ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm1)
+                if ((prev?.OutputType(vm, symbols, this).AsClass(vm) as IClass)?.ClassMembers.FirstOrDefault(x =>
+                        x.Name == Arg) is { } icm1)
                 {
                     // call member
                     if (icm1 is Method mtd1)
@@ -612,14 +648,19 @@ public class StatementComponent : IBytecode, IStatementComponent
                 }
                 else if (symbols.CurrentContext(vm).ClassMembers.FirstOrDefault(x => x.Name == Arg) is { } icm2)
                     // call to 'this'
+                {
                     if (icm2 is Method mtd1)
                         rtrn = mtd1.ReturnType;
                     else if (icm2 is Property prop1)
                         rtrn = prop1.ReturnType;
                     else throw new FatalException("Invalid call to this");
+                }
                 else
                     // read variable
+                {
                     rtrn = symbols.FindSymbol(Arg)!.Type;
+                }
+
                 break;
             case (StatementComponentType.Provider, BytecodeType.ArrayConstructor):
                 var type = vm.FindType(Arg) ?? Class.VoidType.DefaultInstance;

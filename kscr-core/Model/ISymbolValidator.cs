@@ -20,9 +20,9 @@ public enum SymbolType
 
 public sealed class Symbol
 {
-    public readonly SymbolType SymbolType;
     public readonly string Group;
     public readonly string Name;
+    public readonly SymbolType SymbolType;
     public readonly ITypeInfo Type;
 
     public Symbol(SymbolType symbolType, string group, string name, ITypeInfo type)
@@ -33,7 +33,10 @@ public sealed class Symbol
         Type = type;
     }
 
-    public override string ToString() => $"{Type.DetailedName}: {Name}";
+    public override string ToString()
+    {
+        return $"{Type.DetailedName}: {Name}";
+    }
 
     public override bool Equals(object? obj)
     {
@@ -42,5 +45,8 @@ public sealed class Symbol
         return Name == sym.Name && Type == sym.Type;
     }
 
-    public override int GetHashCode() => ToString().GetHashCode();
+    public override int GetHashCode()
+    {
+        return ToString().GetHashCode();
+    }
 }

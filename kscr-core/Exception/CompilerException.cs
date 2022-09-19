@@ -17,8 +17,12 @@ public sealed class CompilerErrorMessage
 
     public static readonly CompilerErrorMessage ClassPackageMissing = new("Missing package declaration in class {0}");
     public static readonly CompilerErrorMessage ClassNameMissing = new("Missing class name in class {0}");
-    public static readonly CompilerErrorMessage ClassNameMismatch = new("Declared Class name {1} mismatches File name {0}");
-    public static readonly CompilerErrorMessage ClassInvalidMemberType = new("Invalid member Type {1} in class {0}; {2}");
+
+    public static readonly CompilerErrorMessage ClassNameMismatch =
+        new("Declared Class name {1} mismatches File name {0}");
+
+    public static readonly CompilerErrorMessage ClassInvalidMemberType =
+        new("Invalid member Type {1} in class {0}; {2}");
 
     public static readonly CompilerErrorMessage ClassAbstractMemberNotImplemented =
         new("Class {0} does not implement the following abstract members:\n{1}");

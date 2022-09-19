@@ -1,16 +1,16 @@
-﻿using KScr.Core.Exception;
+﻿using System;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
-using System;
 
 namespace KScr.Core.Std;
 
 public interface IObject
 {
-    [Obsolete]
-    public const int ToString_ShortName = ToString_ParseableName;
-    [Obsolete]
-    public const int ToString_LongName = ToString_FullDetailedName;
+    [Obsolete] public const int ToString_ShortName = ToString_ParseableName;
+
+    [Obsolete] public const int ToString_LongName = ToString_FullDetailedName;
+
     public const short ToString_ParseableName = 0;
     public const short ToString_TypeName = 1;
     public const short ToString_Name = 2;
@@ -24,7 +24,7 @@ public interface IObject
     IClassInstance Type { get; }
 
     string ToString(short variant);
-    
+
     public Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args);
 
     public string GetKey();
@@ -48,7 +48,7 @@ internal sealed class VoidValue : IObject
                 stack[StackOutput.Default] = String.Instance(vm, "null");
                 break;
             case "equals":
-                stack[StackOutput.Default] = args[0] is VoidValue || args[0] is Numeric num && num.ByteValue != 0
+                stack[StackOutput.Default] = args[0] is VoidValue || (args[0] is Numeric num && num.ByteValue != 0)
                     ? vm.ConstantTrue
                     : vm.ConstantFalse;
                 break;

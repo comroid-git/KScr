@@ -37,11 +37,13 @@ public sealed class CodeObject : NativeObj
                 stack[StackOutput.Del] = new ObjectRef(Class.VoidType.DefaultInstance, args.Length);
                 for (var i = 0; i < args.Length; i++)
                     stack[StackOutput.Del]![vm, stack, i] = args[i];
-                vm.NativeRunner!.InvokeMember(vm, stack.Channel(StackOutput.Del), this, icm).Copy(StackOutput.Omg, StackOutput.Alp);
+                vm.NativeRunner!.InvokeMember(vm, stack.Channel(StackOutput.Del), this, icm)
+                    .Copy(StackOutput.Omg, StackOutput.Alp);
             }
             else
             {
-                stack[StackOutput.Default] = icm.Invoke(vm, stack.Output(), this, args: args).Copy(StackOutput.Omg, StackOutput.Alp);
+                stack[StackOutput.Default] = icm.Invoke(vm, stack.Output(), this, args: args)
+                    .Copy(StackOutput.Omg, StackOutput.Alp);
             }
 
             return stack;
@@ -52,7 +54,7 @@ public sealed class CodeObject : NativeObj
             .FirstOrDefault(x => x.Name == member && !x.IsAbstract()) is { } superMember
             && !(superMember.IsNative() && superMember.Parent.IsNative()))
         {
-            superMember.Invoke(vm, stack.Output(), stack[StackOutput.Default]![vm,stack,0], args: args);
+            superMember.Invoke(vm, stack.Output(), stack[StackOutput.Default]![vm, stack, 0], args: args);
             return stack;
         }
         // then primitive implementations
