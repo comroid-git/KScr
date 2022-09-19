@@ -20,6 +20,7 @@ public class TestUtil
             = 512;
 #endif
     public const int TestTimeout = 2000;
+    public static readonly Guid TestID = Guid.NewGuid();
 
     public static (int exitCode, List<string> output) RunSourcecode(string testName, string code)
     {
@@ -30,11 +31,17 @@ public class TestUtil
             code = "\npublic static void main() { " + code + " }";
         code = $"package {testPkg};\npublic class {testName} {{\n{code}\n}}";
  
-        var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "src");
+        var testDir = Path.Combine(Path.GetTempPath(), "kscr-test-" + TestID.ToString());
+        Directory.CreateDirectory(testDir);
         var srcDir = Path.Combine(testDir, "src");
+        Directory.CreateDirectory(srcDir);
         var buildDir = Path.Combine(testDir, "build");
+        Directory.CreateDirectory(buildDir);
         var srcFile = Path.Combine(srcDir, testName + RuntimeBase.SourceFileExt);
-        File.WriteAllText(srcFile, code);
+        var fs = File.Create(srcFile);
+        var sw = new StreamWriter(fs);
+        sw.Write(code);
+        sw.Close();
         
         Console.WriteLine($"Running {testName} in test dir {testDir}");
 
@@ -46,8 +53,10 @@ public class TestUtil
                        $" --pkgbase {testPkg}" +
                        $" --source {srcFile}" +
                        $" --output {buildDir}";
-        var execInfo = new ProcessStartInfo(execFile, execArgs) { WorkingDirectory = testDir };
+        var execInfo = new ProcessStartInfo(execFile, execArgs)
+            { WorkingDirectory = testDir, RedirectStandardOutput = true };
         var exec = Process.Start(execInfo) ?? throw new Exception("Could not start testing process");
+        exec.Start();
         exec.WaitForExit();
         List<string> output = new();
         while (!exec.StandardOutput.EndOfStream)
