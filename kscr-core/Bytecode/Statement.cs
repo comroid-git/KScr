@@ -591,9 +591,11 @@ public class StatementComponent : IBytecode, IStatementComponent
             case (StatementComponentType.Expression, BytecodeType.Cast):
                 rtrn = vm.FindTypeInfo(Arg, symbols.CurrentContext(vm).AsClass(vm), symbols.CurrentContext(vm).Package!);
                 break;
+            case (StatementComponentType.Code, BytecodeType.Throw):
+                rtrn = Class.ThrowableType; // todo Specify this (was in next case block)
+                break;
             case (StatementComponentType.Expression, BytecodeType.Parentheses):
             case (StatementComponentType.Code, BytecodeType.Return):
-            case (StatementComponentType.Code, BytecodeType.Throw):
             case (StatementComponentType.Operator, _):
                 rtrn = SubComponent!.OutputType(vm, symbols, this);
                 break;
