@@ -442,6 +442,23 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             SubStatement = VisitPipeListen(context.pipe, context.lambda())
         };
     }
+
+    public override StatementComponent VisitTernary(KScrParser.TernaryContext context)
+    {
+        return new()
+        {
+            Type = StatementComponentType.Expression,
+            CodeType = BytecodeType.StmtIf,
+            SubStatement = new Statement()
+            {
+                Type = StatementComponentType.Expression,
+                CodeType = BytecodeType.StmtCond,
+                Main = { Visit(context.cond) }
+            },
+            SubComponent = Visit(context.left),
+            AltComponent = Visit(context.right)
+        };
+    }
 }
 
 public class OperatorVisitor : KScrParserBaseVisitor<Operator>

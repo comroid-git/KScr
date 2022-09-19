@@ -178,8 +178,9 @@ expr
     | expr IS type idPart?                                  #checkInstanceof
     // syntax components
     | YIELD expr                                            #yieldExpr
-    | target=expr indexerExpr                                #readIndexer
+    | target=expr indexerExpr                               #readIndexer
     | LPAREN expr RPAREN                                    #parens
+    | cond=expr QUESTION left=expr COLON right=expr         #ternary
     | cast                                                  #exprCast
     | newArray                                              #newArrayValue
     | newListedArray                                        #newListedArrayValue

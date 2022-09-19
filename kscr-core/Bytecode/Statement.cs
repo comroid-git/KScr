@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
@@ -256,6 +257,12 @@ public class StatementComponent : IBytecode, IStatementComponent
                 break;
             case (StatementComponentType.Expression, BytecodeType.Cast):
                 // casting is implicitly evaluated by design
+                break;
+            case (StatementComponentType.Expression, BytecodeType.StmtIf):
+                // ternary
+                if (SubStatement!.Evaluate(vm, stack.Output()).Copy()!.ToBool())
+                    SubComponent!.Evaluate(vm, stack.Output()).Copy();
+                else AltComponent!.Evaluate(vm, stack.Output()).Copy();
                 break;
             case (StatementComponentType.Declaration, _):
                 // variable declaration
@@ -620,6 +627,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                 rtrn = Class.ThrowableType; // todo Specify this (was in next case block)
                 break;
             case (StatementComponentType.Expression, BytecodeType.Parentheses):
+            case (StatementComponentType.Expression, BytecodeType.StmtIf):
             case (StatementComponentType.Code, BytecodeType.Return):
             case (StatementComponentType.Operator, _):
                 rtrn = SubComponent!.OutputType(vm, symbols, this);
