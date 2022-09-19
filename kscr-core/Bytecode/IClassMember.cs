@@ -55,6 +55,8 @@ public abstract class AbstractClassMember : IClassMember
     public StatementComponent? CatchFinally { get; set; }
     public abstract BytecodeElementType ElementType { get; }
     public SourcefilePosition SourceLocation { get; }
-    public abstract Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
+
+    public abstract Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null,
+        StackOutput maintain = StackOutput.Omg,
         params IObject?[] args);
 }

@@ -1,10 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using KScr.Core;
-using KScr.Core.Exception;
-using KScr.Core.Std;
 using NUnit.Framework;
 using static KScr.Test.TestUtil;
 
@@ -178,8 +173,10 @@ public class StatementTest
         var result = RunSourcecode("TestDoWhile", $"int i = {desiredLen}; do {{ stdio <<- i; }} while (i--);");
         var expected = "";
         var i = desiredLen;
-        do expected += i;
-        while (i-- > 0);
+        do
+        {
+            expected += i;
+        } while (i-- > 0);
 
         expected = expected.Substring(0, expected.Length - 1);
 

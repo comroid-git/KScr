@@ -25,7 +25,7 @@ public enum BytecodeElementType : byte
     Statement,
     Component,
     Lambda,
-    LambdaParameter,
+    LambdaParameter
 }
 
 public interface IBytecode

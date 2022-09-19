@@ -6,7 +6,6 @@ using System.Text;
 using CommandLine;
 using KScr.Core;
 using KScr.Core.Bytecode;
-using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
 using KScr.Core.Store;
@@ -127,7 +126,7 @@ public class Program
     private static long WriteClasses<TC>(TC cmd) where TC : ISourcesCmd, IOutputCmd
     {
         var ioTime = RuntimeBase.UnixTime();
-        WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput), new []{cmd.Source}.SelectMany(path =>
+        WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput), new[] { cmd.Source }.SelectMany(path =>
             Directory.Exists(path)
                 ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories)
                 : new[] { new FileInfo(path) }));
@@ -233,11 +232,12 @@ public class Program
         {
             foreach (var compilerError in VM.CompilerErrors)
                 Console.Error.WriteLine(compilerError.Message);
-            bool plural = VM.CompilerErrors.Count != 1;
-            Console.Error.WriteLine($"There {(plural ? "were" : "was")} {VM.CompilerErrors.Count} compilation error{(plural ? 's' : string.Empty)}.");
+            var plural = VM.CompilerErrors.Count != 1;
+            Console.Error.WriteLine(
+                $"There {(plural ? "were" : "was")} {VM.CompilerErrors.Count} compilation error{(plural ? 's' : string.Empty)}.");
         }
     }
-    
+
     private static int HandleExit(State state, IObject? result, long compileTime = -1, long executeTime = -1,
         long ioTime = -1, bool pressToExit = false)
     {

@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using KScr.Core;
-using KScr.Core.Bytecode;
-using KScr.Core.Model;
 using KScr.Core.Std;
 using KScr.Core.Store;
 using KScr.Runtime;
@@ -31,14 +28,14 @@ public class TestUtil
         if (!TestNo.ContainsKey(testName))
             TestNo[testName] = 0;
         testName += ++TestNo[testName];
-        
+
         var vm = Program.VM;
         if (!code.Contains("main()"))
             code = "\npublic static void main() {\n" + code + "\n" +
                    "}";
         code = $"package {testPkg};\npublic class {testName} {{\n{code}\n}}";
- 
-        var testDir = Path.Combine(Path.GetTempPath(), "kscr-test-" + TestID.ToString());
+
+        var testDir = Path.Combine(Path.GetTempPath(), "kscr-test-" + TestID);
         Directory.CreateDirectory(testDir);
         var srcDir = Path.Combine(testDir, "src");
         Directory.CreateDirectory(srcDir);
@@ -51,8 +48,8 @@ public class TestUtil
         sw.Close();
 
         Debug.WriteLine($"Running {testName} in test dir {testDir}");
-        
-        var cmd = new CmdExecute()
+
+        var cmd = new CmdExecute
         {
 #if DEBUG
             Debug = true,
@@ -65,13 +62,14 @@ public class TestUtil
         var outw = new StringWriter();
         var outb = Console.Out;
         Console.SetOut(outw);
-        var executeTime = Program.Execute(out Stack stack, $"{testPkg}.{testName}");
+        var executeTime = Program.Execute(out var stack, $"{testPkg}.{testName}");
         Console.SetOut(outb);
         if (stack[StackOutput.Omg]?.Value is Numeric num)
             RuntimeBase.ExitCode = num.IntValue;
-        
-        Debug.WriteLine($"Test compilation took {(double)compileTime / 1000:#,##0.00}ms, execution took {(double)executeTime / 1000:#,##0.00}ms");
-        
+
+        Debug.WriteLine(
+            $"Test compilation took {(double)compileTime / 1000:#,##0.00}ms, execution took {(double)executeTime / 1000:#,##0.00}ms");
+
         return (RuntimeBase.ExitCode, outw.ToString());
     }
 }

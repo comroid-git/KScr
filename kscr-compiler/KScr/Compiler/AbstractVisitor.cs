@@ -11,8 +11,6 @@ using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
-using Range = System.Range;
-using String = System.String;
 
 namespace KScr.Compiler;
 
@@ -105,11 +103,11 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
     protected StatementComponent VisitExpression(ParserRuleContext expr, ITypeInfo? requestedType = null)
     {
         requestedType ??= Core.Std.Class.VoidType; // todo Remove
-        return new ExpressionVisitor(vm, ctx){RequestedType = requestedType}.Visit(expr);
+        return new ExpressionVisitor(vm, ctx) { RequestedType = requestedType }.Visit(expr);
     }
 
     protected Statement VisitPipeRead(KScrParser.ExprContext pipe, KScrParser.ExprContext[] reads)
-    { 
+    {
         var stmt = new Statement
         {
             Type = StatementComponentType.Pipe,
@@ -152,11 +150,12 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             {
                 Type = StatementComponentType.Pipe,
                 CodeType = BytecodeType.Call,
-                SubComponent = listener is KScrParser.MethodRefContext mRef 
+                SubComponent = listener is KScrParser.MethodRefContext mRef
                     ? VisitMethodRef(mRef)
-                    : listener is KScrParser.LambdaExprContext lExpr 
+                    : listener is KScrParser.LambdaExprContext lExpr
                         ? VisitLambdaExpr(lExpr)
-                        : throw new CompilerException(ToSrcPos(listener), CompilerErrorMessage.Invalid, "syntax", ctx.Class, "expected Lambda or Method reference")
+                        : throw new CompilerException(ToSrcPos(listener), CompilerErrorMessage.Invalid, "syntax",
+                            ctx.Class, "expected Lambda or Method reference")
             });
         return stmt;
     }
@@ -184,25 +183,26 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             Type = StatementComponentType.Lambda,
             CodeType = BytecodeType.ParameterExpression
         };
-        List<Symbol> sym = new List<Symbol>();
+        var sym = new List<Symbol>();
         try
         {
             foreach (var paramDecl in context.tupleExpr().typedExpr())
             {
                 var pType = paramDecl.type() != null ? VisitTypeInfo(paramDecl.type()) : Core.Std.Class.VoidType;
                 sym.Add(ctx.RegisterSymbol(paramDecl.expr().GetText(), pType));
-                args.Main.Add(new StatementComponent()
+                args.Main.Add(new StatementComponent
                 {
                     Type = StatementComponentType.Declaration,
                     CodeType = BytecodeType.ParameterExpression,
                     Args =
                     {
                         pType
-                        .CanonicalName,
+                            .CanonicalName,
                         paramDecl.expr().GetText()
                     }
                 });
             }
+
             return new StatementComponent
             {
                 Type = StatementComponentType.Lambda,
@@ -222,11 +222,11 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
 
     protected new StatementComponent VisitCatchBlocks(KScrParser.CatchBlocksContext context)
     {
-        var comp = new StatementComponent()
+        var comp = new StatementComponent
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.StmtCatch,
-            SubStatement = new Statement() { Type = StatementComponentType.Code, CodeType = BytecodeType.StmtCatch },
+            SubStatement = new Statement { Type = StatementComponentType.Code, CodeType = BytecodeType.StmtCatch },
             SourcefilePosition = ToSrcPos(context)
         };
         // catches
@@ -241,7 +241,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             var innerCode = VisitCode(katchow.codeBlock());
             if (ctx.UnregisterSymbols(name) != types.Count)
                 throw new FatalException("Could not unregister all catch variables");
-            comp.SubStatement.Main.Add(new StatementComponent()
+            comp.SubStatement.Main.Add(new StatementComponent
             {
                 Type = StatementComponentType.Code,
                 CodeType = BytecodeType.StmtCatch,
@@ -253,9 +253,10 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
                 SourcefilePosition = ToSrcPos(katchow)
             });
         }
+
         // finally
         if (context.finallyBlock() is { } finalli)
-            comp.AltComponent = new StatementComponent()
+            comp.AltComponent = new StatementComponent
             {
                 Type = StatementComponentType.Code,
                 CodeType = BytecodeType.StmtFinally,
@@ -275,6 +276,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             param.Main.Add(VisitExpression(expr));
         return param;
     }
+
     protected new Statement VisitIndexerExpr(KScrParser.IndexerExprContext? context)
     {
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse

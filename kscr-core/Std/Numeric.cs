@@ -83,7 +83,7 @@ public sealed class Numeric : NativeObj
                 if (Mode is NumericMode.Float or NumericMode.Double && args.Length == 2 &&
                     args[1] is not Numeric delta)
                     throw new FatalException("Invalid second argument; expected: num delta");
-                else delta = (Constant(vm, 0.001).Value as Numeric)!;
+                delta = (Constant(vm, 0.001).Value as Numeric)!;
                 stack[StackOutput.Default] = Mode switch
                 {
                     NumericMode.Byte => ByteValue == other.ByteValue,

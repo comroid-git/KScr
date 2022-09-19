@@ -5,7 +5,6 @@ using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
-using Microsoft.VisualBasic.CompilerServices;
 using static KScr.Core.Store.StackOutput;
 
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
@@ -222,7 +221,7 @@ public sealed class Stack
     {
         into ??= local.Parent.DefaultInstance;
         var cls = into as IClassInstance ?? into.Type;
-        var localStr = 
+        var localStr =
             (local.IsStatic()
                 ? $"{cls.FullName}"
                 : $"{cls.FullName}#{into.ObjectId:X16}")
@@ -261,10 +260,12 @@ public sealed class Stack
             var param = lambda.SubStatement!.Main[i];
             vm.PutLocal(_stack, param.Args[1], args[i]);
         }
-        _stack.WrapExecution(vm, (stack) =>
-        {
-            lambda.InnerCode!.Evaluate(vm, stack).Copy(StackOutput.Alp, StackOutput.Bet);
-        }, StackOutput.Bet);
+
+        _stack.WrapExecution(vm,
+            stack =>
+            {
+                lambda.InnerCode!.Evaluate(vm, stack).Copy(StackOutput.Alp, StackOutput.Bet);
+            }, StackOutput.Bet);
         return _stack[StackOutput.Bet];
     }
 
@@ -320,11 +321,14 @@ public sealed class Stack
                     throw new FatalException(
                         "Value is not instanceof Throwable: " + Omg.Value.ToString(0));
                 RuntimeBase.ExitCode =
-                    (throwable.InvokeNative(vm, Output(), "ExitCode").Copy(output: StackOutput.Alp)![vm, this, 0] as Numeric)!
+                    (throwable.InvokeNative(vm, Output(), "ExitCode").Copy(output: StackOutput.Alp)![vm, this, 0] as
+                        Numeric)!
                     .IntValue;
                 RuntimeBase.ExitMessage =
-                    throwable.InvokeNative(vm, Output(), "Message").Copy(output: StackOutput.Bet)![vm, this, 0].ToString(0);
-                throw new InternalException($"{throwable.Type.Name}: {RuntimeBase.ExitMessage} ({RuntimeBase.ExitCode})", Omg.Value);
+                    throwable.InvokeNative(vm, Output(), "Message").Copy(output: StackOutput.Bet)![vm, this, 0]
+                        .ToString(0);
+                throw new InternalException(
+                    $"{throwable.Type.Name}: {RuntimeBase.ExitMessage} ({RuntimeBase.ExitCode})", Omg.Value);
             }
 
             maintain = (maintain == Default ? _output : maintain) | StackOutput.Omg;

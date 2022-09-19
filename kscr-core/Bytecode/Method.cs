@@ -34,11 +34,6 @@ public sealed class DummyMethod : IMethod
         ReturnType = returnType;
     }
 
-    public Stack Evaluate(RuntimeBase vm, Stack stack)
-    {
-        throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
-    }
-
     public Class Parent { get; set; }
     public string Name { get; set; }
     public string FullName => Parent.FullName + '.' + Name + ": " + ReturnType.FullName;
@@ -56,16 +51,22 @@ public sealed class DummyMethod : IMethod
     public SourcefilePosition SourceLocation => RuntimeBase.SystemSrcPos;
 
     public BytecodeElementType ElementType => BytecodeElementType.Method;
-    public Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
+
+    public Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = Omg,
         params IObject?[] args)
     {
         stack.StepInto(vm, SourceLocation, target, this, stack =>
         {
-            for (int i = 0; i < Math.Min(Parameters.Count, args.Length); i++)
+            for (var i = 0; i < Math.Min(Parameters.Count, args.Length); i++)
                 vm.PutLocal(stack, Parameters[i].Name, args[i]);
             stack[Omg] = target!.InvokeNative(vm, stack, Name, args).Copy();
         }, maintain);
         return stack;
+    }
+
+    public Stack Evaluate(RuntimeBase vm, Stack stack)
+    {
+        throw new InvalidOperationException("Cannot evaluate a dummy method. This is an invalid state.");
     }
 }
 
@@ -90,14 +91,15 @@ public sealed class Method : AbstractClassMember, IMethod
 
     public override ClassMemberType MemberType => ClassMemberType.Method;
     public override BytecodeElementType ElementType => BytecodeElementType.Method;
+
     public override Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null,
-        StackOutput maintain = StackOutput.Omg, params IObject?[] args)
+        StackOutput maintain = Omg, params IObject?[] args)
     {
         if (target == null && !this.IsStatic())
-            throw new FatalException("Missing invocation target for non-static method " + this.Name);
+            throw new FatalException("Missing invocation target for non-static method " + Name);
         stack.StepInto(vm, SourceLocation, target, this, stack =>
         {
-            for (int i = 0; i < Math.Min(Parameters.Count, args.Length); i++)
+            for (var i = 0; i < Math.Min(Parameters.Count, args.Length); i++)
                 vm.PutLocal(stack, Parameters[i].Name, args[i]);
             Body.Evaluate(vm, stack);
             if (stack.State != State.Return && Name != ConstructorName && ReturnType.Name != "void")

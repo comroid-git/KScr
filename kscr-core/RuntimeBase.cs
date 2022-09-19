@@ -45,6 +45,7 @@ public abstract class RuntimeBase : IBytecodePort
     public static readonly Stack MainStack = new();
     public static readonly Assembly Assembly;
     public static bool Initialized;
+    public readonly List<CompilerException> CompilerErrors = new();
 
     private uint _lastObjId = 0xF;
 
@@ -88,7 +89,6 @@ public abstract class RuntimeBase : IBytecodePort
     public static int ExitCode { get; set; } = 0;
     public static string? ExitMessage { get; set; } = null;
     public BytecodeVersion BytecodeVersion => BytecodeVersion.Current;
-    public readonly List<CompilerException> CompilerErrors = new();
 
     public void Write(Stream stream, StringCache strings, IBytecode bytecode)
     {
@@ -124,18 +124,18 @@ public abstract class RuntimeBase : IBytecodePort
     public void Initialize()
     {
         if (Initialized) return;
-        
-        Numeric.Zero = new(this, true)
+
+        Numeric.Zero = new Numeric(this, true)
         {
             Bytes = BitConverter.GetBytes((byte)0),
             Mode = NumericMode.Byte
         };
-        Numeric.One = new(this, true)
+        Numeric.One = new Numeric(this, true)
         {
             Bytes = BitConverter.GetBytes((byte)1),
             Mode = NumericMode.Byte
         };
-        
+
         Class.NumericByteType = new Class.Instance(this, Class.NumericType,
             new Class(Class.LibCorePackage, "byte", true,
                 MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
@@ -152,7 +152,7 @@ public abstract class RuntimeBase : IBytecodePort
         Class.NumericDoubleType = new Class.Instance(this, Class.NumericType,
             new Class(Class.LibCorePackage, "double", true,
                 MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
-        
+
         Class.VoidType.Initialize(this);
         Class.ObjectType.Initialize(this);
         Class.TypeType.Initialize(this);
@@ -196,7 +196,10 @@ public abstract class RuntimeBase : IBytecodePort
         Initialized = true;
     }
 
-    public void LateInitializeNonPrimitives(Stack stack) => LateInitializeNonPrimitives_Rec(stack, Package.RootPackage);
+    public void LateInitializeNonPrimitives(Stack stack)
+    {
+        LateInitializeNonPrimitives_Rec(stack, Package.RootPackage);
+    }
 
     private void LateInitializeNonPrimitives_Rec(Stack stack, Package pkg)
     {
@@ -225,7 +228,7 @@ public abstract class RuntimeBase : IBytecodePort
     private static DirectoryInfo GetSdkHome()
     {
         //return new FileInfo(Assembly.Location).Directory!;
-        string? khm = Environment.GetEnvironmentVariable("KSCR_HOME");
+        var khm = Environment.GetEnvironmentVariable("KSCR_HOME");
         if (khm != null)
             return new DirectoryInfo(khm);
         return Environment.GetEnvironmentVariable("PATH")!
@@ -258,17 +261,20 @@ public abstract class RuntimeBase : IBytecodePort
     }
 
     public Stack Execute(string? mainClassName = null)
-    { 
+    {
         Method method;
         if (mainClassName == null)
+        {
             method = Package.RootPackage.FindEntrypoint();
+        }
         else
         {
-            var cls = FindType(mainClassName) ?? 
+            var cls = FindType(mainClassName) ??
                       throw new FatalException($"Main class with name {mainClassName} was not found!");
             method = cls.DeclaredMembers["main"] as Method ??
-                     throw new FatalException($"Main class has no main() method!");
+                     throw new FatalException("Main class has no main() method!");
         }
+
         var stack = MainStack;
 
         try
@@ -412,14 +418,15 @@ public abstract class RuntimeBase : IBytecodePort
         {
             public Stack Evaluate(RuntimeBase vm, Stack stack)
             {
-                if (stack[Default]!.Length != 1 || !stack[Default].Type.CanHold(Class.StringType) &&
-                    !stack[Default].Type.CanHold(Class.NumericType))
+                if (stack[Default]!.Length != 1 || (!stack[Default].Type.CanHold(Class.StringType) &&
+                                                    !stack[Default].Type.CanHold(Class.NumericType)))
                     throw new FatalException("Invalid reference to write string into: " + stack[Default]);
                 var txt = Console.ReadLine()!;
                 if (Numeric.NumberRegex.IsMatch(txt) && stack[Default].Type.CanHold(Class.NumericType))
                     txt = Numeric.Compile(vm, txt).Value.ToString(IObject.ToString_ParseableName);
                 else if (txt is "true" or "false")
-                    txt = (txt is "true" ? vm.ConstantTrue.Value : vm.ConstantFalse.Value).ToString(IObject.ToString_ParseableName);
+                    txt = (txt is "true" ? vm.ConstantTrue.Value : vm.ConstantFalse.Value).ToString(
+                        IObject.ToString_ParseableName);
                 else if (txt is "null")
                     txt = IObject.Null.ToString(IObject.ToString_ParseableName);
                 stack[Default].Value = String.Instance(vm, txt).Value;

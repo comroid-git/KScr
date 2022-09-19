@@ -14,24 +14,26 @@ public class InternalException : System.Exception
         Obj = obj ?? IObject.Null;
     }
 
-    public InternalException(string? message, System.Exception? innerException) : base(message ?? innerException?.Message, innerException)
+    public InternalException(string? message, System.Exception? innerException) : base(
+        message ?? innerException?.Message, innerException)
     {
         Obj = IObject.Null;
     }
 }
 
-public class FatalException :  
-        #if DEBUG
-System.Exception 
-        #else
+public class FatalException :
+#if DEBUG
+    System.Exception
+#else
 InternalException
-        #endif
+#endif
 {
     public FatalException(string? message) : base(message)
     {
     }
 
-    public FatalException(string? message, System.Exception? innerException) : base(message ?? innerException?.Message, innerException)
+    public FatalException(string? message, System.Exception? innerException) : base(message ?? innerException?.Message,
+        innerException)
     {
     }
 }
@@ -69,9 +71,13 @@ public class StackTraceException : System.Exception, IStackTrace
 
     public override string Message => $"{CallLoc.SourceName}" + (CallLoc.SourceRow == 0
         ? string.Empty
-        : $" [line {CallLoc.SourceRow} pos {CallLoc.SourceColumn}]");// + BaseMessage;
+        : $" [line {CallLoc.SourceRow} pos {CallLoc.SourceColumn}]"); // + BaseMessage;
 
-    public void PrintStackTrace() => WriteStackTrace(Console.Out);
+    public void PrintStackTrace()
+    {
+        WriteStackTrace(Console.Out);
+    }
+
     public void WriteStackTrace(TextWriter @out)
     {
         @out.WriteLine($"An exception occurred:\t{InnerCause.Message}");

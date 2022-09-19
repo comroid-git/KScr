@@ -14,21 +14,12 @@ public sealed class StringCache
 
     public static readonly byte[] NewLineBytes = RuntimeBase.Encoding.GetBytes("\n");
 
+    private readonly IList<string> _strings = new List<string>();
+    private int _index = -1;
+
     public static IEnumerable<string> CommonStrings => new[] { Method.ConstructorName, Method.StaticInitializerName }
         .Concat(GetAllClasses(Class.LibRootPackage)
             .SelectMany(cls => new[] { cls.CanonicalName, cls.FullDetailedName }));
-
-    private static IEnumerable<Class> GetAllClasses(IPackageMember mem)
-    {
-        if (mem is Package pkg)
-            return pkg.PackageMembers.Values.SelectMany(GetAllClasses);
-        if (mem is Class cls)
-            return new[]{cls};
-        throw new System.Exception("invalid state");
-    }
-
-    private readonly IList<string> _strings = new List<string>();
-    private int _index = -1;
 
     public int this[string str]
     {
@@ -49,6 +40,15 @@ public sealed class StringCache
     }
 
     public string? this[int id] => _strings[id];
+
+    private static IEnumerable<Class> GetAllClasses(IPackageMember mem)
+    {
+        if (mem is Package pkg)
+            return pkg.PackageMembers.Values.SelectMany(GetAllClasses);
+        if (mem is Class cls)
+            return new[] { cls };
+        throw new System.Exception("invalid state");
+    }
 
     public void Write(DirectoryInfo dir)
     {

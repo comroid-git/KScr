@@ -1,5 +1,4 @@
-﻿using System;
-using KScr.Antlr;
+﻿using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
@@ -31,7 +30,7 @@ public class CodeblockVisitor : AbstractVisitor<ExecutableCode>
 
     public override ExecutableCode VisitCodeStmtBlock(KScrParser.CodeStmtBlockContext context)
     {
-        return new ExecutableCode()
+        return new ExecutableCode
         {
             Main = { VisitStatement(context.statement()) }
         };
@@ -50,7 +49,11 @@ public class CodeblockVisitor : AbstractVisitor<ExecutableCode>
             };
             stmt.Main.Add(VisitExpression(context.expr()));
         }
-        else stmt = VisitStatement(context.statement());
+        else
+        {
+            stmt = VisitStatement(context.statement());
+        }
+
         code.Main.Add(stmt);
         return code;
     }

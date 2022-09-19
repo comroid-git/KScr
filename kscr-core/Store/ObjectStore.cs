@@ -82,8 +82,8 @@ public interface IObjectRef
     {
         if (this is ObjectRef rev)
             return rev.Refs!;
-        IObject[] arr = new IObject[Length];
-        for (int i = 0; i < arr.Length; i++)
+        var arr = new IObject[Length];
+        for (var i = 0; i < arr.Length; i++)
             arr[i] = this[vm, stack, i];
         return arr;
     }
@@ -104,7 +104,10 @@ public static class IObjectRefExt
         return ToBool(it) ? vm.ConstantFalse : vm.ConstantTrue;
     }
 
-    public static bool IsNull(this IObject? it) => it == null || it.ObjectId == IObject.Null.ObjectId;
+    public static bool IsNull(this IObject? it)
+    {
+        return it == null || it.ObjectId == IObject.Null.ObjectId;
+    }
 }
 
 public class ObjectRef : IObjectRef
@@ -112,8 +115,10 @@ public class ObjectRef : IObjectRef
     public readonly bool Constant;
     public readonly IObject?[] Refs;
 
-    public ObjectRef(IObject value, bool constant = true) : this(value.Type, value, constant) {}
-        
+    public ObjectRef(IObject value, bool constant = true) : this(value.Type, value, constant)
+    {
+    }
+
     public ObjectRef(IClassInstance type, IObject value, bool constant = true) : this(type)
     {
         Value = value;

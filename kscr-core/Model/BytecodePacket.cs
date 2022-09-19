@@ -5,8 +5,7 @@ namespace KScr.Core.Model;
 [Flags]
 public enum BytecodeType : uint
 {
-    [Obsolete]
-    Undefined = 0xFFFF_FFFF,
+    [Obsolete] Undefined = 0xFFFF_FFFF,
 
     Declaration = 0x0000_0001,
     Assignment = 0x0000_0002,
@@ -43,7 +42,7 @@ public enum BytecodeType : uint
     StmtForEach = 0x0042_0000 | Statement,
     StmtSwitch = 0x0044_0000 | Statement,
     StmtCase = 0x0048_0000 | Statement,
-    
+
     Cast = 0x0080_0000 | Expression,
     Instanceof = 0x0081_0000 | Expression,
     Indexer = 0x0082_0000,

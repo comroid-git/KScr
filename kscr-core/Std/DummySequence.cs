@@ -17,7 +17,11 @@ public class DummySequence_Finite : NativeObj
     }
 
     public override IClassInstance Type { get; }
-    public override string GetKey() => "dummy-" + Type.FullDetailedName + $"[{_values.Length}]";
+
+    public override string GetKey()
+    {
+        return "dummy-" + Type.FullDetailedName + $"[{_values.Length}]";
+    }
 
     public override Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
     {
@@ -47,8 +51,8 @@ public class DummySequence_Finite : NativeObj
 
 public class DummySequence_Infinite : NativeObj
 {
-    private readonly IObject _sequence;
     private readonly StatementComponent _lambda;
+    private readonly IObject _sequence;
 
     public DummySequence_Infinite(RuntimeBase vm, ITypeInfo t, IObject sequence, StatementComponent lambda) : base(vm)
     {
@@ -58,7 +62,11 @@ public class DummySequence_Infinite : NativeObj
     }
 
     public override IClassInstance Type { get; }
-    public override string GetKey() => "dummy-" + Type.FullDetailedName + $"[unknown length]";
+
+    public override string GetKey()
+    {
+        return "dummy-" + Type.FullDetailedName + "[unknown length]";
+    }
 
     public override Stack InvokeNative(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
     {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using Antlr4.Runtime;
 using KScr.Antlr;
 using KScr.Core;
@@ -17,10 +16,15 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>
 {
     public readonly List<SourceNode> Nodes = new();
 
-    public static PackageNode ForPackage(CompilerRuntime vm, CompilerContext ctx, DirectoryInfo dir, Package? package = null)
+    protected SourceNode(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+    {
+    }
+
+    public static PackageNode ForPackage(CompilerRuntime vm, CompilerContext ctx, DirectoryInfo dir,
+        Package? package = null)
     {
         var pkg = (package ?? Package.RootPackage).GetOrCreatePackage(dir.Name);
-        return new PackageNode(vm, new CompilerContext() { Parent = ctx, Package = pkg }, dir.FullName, pkg);
+        return new PackageNode(vm, new CompilerContext { Parent = ctx, Package = pkg }, dir.FullName, pkg);
     }
 
     public static MemberNode ForBaseClass(CompilerRuntime vm, CompilerContext ctx, FileInfo file, PackageNode pkg)
@@ -43,19 +47,19 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>
         {
             ctx.DropContext();
         }
+
         return new MemberNode(vm,
-            new CompilerContext() { Parent = ctx, Class = cls, Imports = vm.FindClassImports(decl.imports()) }, pkg)
+            new CompilerContext { Parent = ctx, Class = cls, Imports = vm.FindClassImports(decl.imports()) }, pkg)
         {
             MemberContext = kls,
-            Member = cls,
+            Member = cls
         };
     }
 
     public static int RevisitRec(IEnumerable<SourceNode> nodes, bool rec = false)
     {
-        int c = 0;
+        var c = 0;
         foreach (var node in nodes)
-        {
             if (node is PackageNode pkg)
                 c += RevisitRec(pkg.Nodes, true);
             else if (node is MemberNode mem)
@@ -66,22 +70,17 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>
                         .Sum();
                 else c += mem.RevisitCode();
             else throw new FatalException("Invalid Node to revisit: " + node);
-        }
 
         if (!rec)
             Debug.WriteLine($"[NodeCompiler] Revisited {c} members");
         return c;
     }
-
-    protected SourceNode(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
-    {
-    }
 }
 
 public class PackageNode : SourceNode
 {
-    public readonly string Path;
     public readonly Package Package;
+    public readonly string Path;
 
     public PackageNode(RuntimeBase vm, CompilerContext ctx, string path, Package package) : base(vm, ctx)
     {
@@ -92,7 +91,7 @@ public class PackageNode : SourceNode
     public void Read()
     {
         int pc, cc = pc = 0;
-        
+
         pc += ReadPackages();
         pc += ReadPackagesRec(Nodes, ref cc);
         Debug.WriteLine($"[NodeCompiler] Loaded {pc} packages");
@@ -102,19 +101,21 @@ public class PackageNode : SourceNode
 
     public int ReadPackages()
     {
-        int c = 0;
+        var c = 0;
         foreach (var sub in Directory.EnumerateDirectories(Path))
         {
             var dir = new DirectoryInfo(sub);
-            Nodes.Add(ForPackage(vm as CompilerRuntime ?? throw new FatalException("Invalid Runtime"), ctx, dir, Package));
+            Nodes.Add(ForPackage(vm as CompilerRuntime ?? throw new FatalException("Invalid Runtime"), ctx, dir,
+                Package));
             c++;
         }
+
         return c;
     }
 
     public static int ReadPackagesRec(IEnumerable<SourceNode> nodes, ref int cc)
     {
-        int c = 0;
+        var c = 0;
         foreach (var node in nodes.Where(x => x is PackageNode).Cast<PackageNode>())
         {
             c += node.ReadPackages();
@@ -127,37 +128,40 @@ public class PackageNode : SourceNode
 
     public int ReadClasses()
     {
-        int c = 0;
-        foreach (var sub in Directory.EnumerateFiles(Path, '*'+RuntimeBase.SourceFileExt, SearchOption.TopDirectoryOnly))
+        var c = 0;
+        foreach (var sub in Directory.EnumerateFiles(Path, '*' + RuntimeBase.SourceFileExt,
+                     SearchOption.TopDirectoryOnly))
         {
             var file = new FileInfo(sub);
-            var classNode = ForBaseClass(vm as CompilerRuntime ?? throw new FatalException("Invalid Runtime"), ctx, file, this);
+            var classNode = ForBaseClass(vm as CompilerRuntime ?? throw new FatalException("Invalid Runtime"), ctx,
+                file, this);
             classNode.ReadMembers();
             Nodes.Add(classNode);
             c++;
         }
+
         return c;
     }
 }
 
 public class MemberNode : SourceNode
 {
-    public ParserRuleContext MemberContext { get; init; } = null!;
-    public IClassMember? Member { get; init; }
-    public ParserRuleContext? UncompiledCode { get; init; }
-    public PackageNode Pkg { get; }
-    public MemberNode? Parent { get; }
-
     public MemberNode(RuntimeBase vm, CompilerContext ctx, PackageNode pkg, MemberNode? parent = null) : base(vm, ctx)
     {
         Pkg = pkg;
         Parent = parent;
     }
 
+    public ParserRuleContext MemberContext { get; init; } = null!;
+    public IClassMember? Member { get; init; }
+    public ParserRuleContext? UncompiledCode { get; init; }
+    public PackageNode Pkg { get; }
+    public MemberNode? Parent { get; }
+
     // only if is ClassNode
     public int ReadMembers()
     {
-        int c = 0;
+        var c = 0;
         if (MemberContext is not KScrParser.ClassDeclContext cls)
             throw new NotSupportedException("Can read members only for Class node");
         foreach (var mem in cls.member())
@@ -165,6 +169,7 @@ public class MemberNode : SourceNode
             Nodes.Add(Visit(mem));
             c++;
         }
+
         return c;
     }
 
@@ -180,7 +185,8 @@ public class MemberNode : SourceNode
                 ctx.UnregisterSymbol(symbol);
             return 1;
         }
-        else if (UncompiledCode != null)
+
+        if (UncompiledCode != null)
         {
             Visit(UncompiledCode);
             return 1;
@@ -205,7 +211,7 @@ public class MemberNode : SourceNode
         var ctor = new Method(Utils.ToSrcPos(context.type()), ContainingClass(), Method.ConstructorName,
             ContainingClass(), MemberModifier.PS);
         foreach (var param in context.parameters().parameter())
-            ctor.Parameters.Add(new MethodParameter()
+            ctor.Parameters.Add(new MethodParameter
             {
                 Type = VisitTypeInfo(param.type()),
                 Name = param.idPart().GetText()
@@ -223,7 +229,7 @@ public class MemberNode : SourceNode
         var mtd = new Method(Utils.ToSrcPos(context.idPart()), ContainingClass(), context.idPart().GetText(),
             FindTypeInfo(context.type())!, VisitModifiers(context.modifiers()));
         foreach (var param in context.parameters().parameter())
-            mtd.Parameters.Add(new MethodParameter()
+            mtd.Parameters.Add(new MethodParameter
             {
                 Type = VisitTypeInfo(param.type()),
                 Name = param.idPart().GetText()
@@ -264,11 +270,13 @@ public class MemberNode : SourceNode
             prop.Gettable = true;
             prop.Getter = VisitCode(getter);
         }
+
         if (context.propSetter() is { } setter)
         {
             prop.Settable = true;
             prop.Setter = VisitCode(setter);
         }
+
         if (context.propInit() is { } init)
         {
             prop.Inittable = true;
@@ -282,11 +290,11 @@ public class MemberNode : SourceNode
     {
         if (Member is not Property prop)
             throw new FatalException("Invalid Member for Property body: " + Member);
-        prop.Getter = new ExecutableCode()
+        prop.Getter = new ExecutableCode
         {
             Main =
             {
-                new Statement()
+                new Statement
                 {
                     Type = StatementComponentType.Expression,
                     CodeType = BytecodeType.Expression,

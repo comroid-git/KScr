@@ -40,37 +40,35 @@ public sealed class Class : AbstractPackageMember, IClass
     public static Instance NumericLongType;
     public static Instance NumericFloatType;
     public static Instance NumericDoubleType;
-    
+
     public readonly IList<IClassInstance> DeclaredInterfaces = new List<IClassInstance>();
     public readonly IList<IClassInstance> DeclaredSuperclasses = new List<IClassInstance>();
 
     private bool _initialized;
     internal bool _lateInitialized;
 
-    public Class(Package package, string name, bool primitive, MemberModifier modifier = MemberModifier.Protected,
-        ClassType type = ClassType.Class) : base(package, name, modifier)
-    {
-        Primitive = primitive;
-        ClassType = type;
-    }
-
     static Class()
     {
         VoidType = new Class(LibCorePackage, "void", true, MemberModifier.Public, ClassType.Interface);
         TypeType = new Class(LibCorePackage, "type", true, MemberModifier.Public | MemberModifier.Final);
         ObjectType = new Class(LibCorePackage, "object", true, MemberModifier.Public | MemberModifier.Native);
-        EnumType = new Class(LibCorePackage, "enum", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+        EnumType = new Class(LibCorePackage, "enum", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
             { TypeParameters = { new TypeParameter("T") } };
-        PipeType = new Class(LibCorePackage, "pipe", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native,
+        PipeType = new Class(LibCorePackage, "pipe", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native,
                 ClassType.Interface)
             { TypeParameters = { new TypeParameter("T") } };
-        ArrayType = new Class(LibCorePackage, "array", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+        ArrayType = new Class(LibCorePackage, "array", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
             { TypeParameters = { new TypeParameter("T") } };
-        TupleType = new Class(LibCorePackage, "tuple", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+        TupleType = new Class(LibCorePackage, "tuple", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
             { TypeParameters = { new TypeParameter("T", TypeParameterSpecializationType.List) } };
         StringType = new Class(LibCorePackage, "str", true,
             MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
-        NumericType = new Class(LibCorePackage, "num", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+        NumericType = new Class(LibCorePackage, "num", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
             { TypeParameters = { new TypeParameter("T") } };
         RangeType = new Class(LibCorePackage, "range", true,
             MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
@@ -82,7 +80,8 @@ public sealed class Class : AbstractPackageMember, IClass
         ExceptionType = new Class(LibErrorPackage, "Exception", false, MemberModifier.Public);
         NullPointerExceptionType = new Class(LibErrorPackage, "NullPointerException", false, MemberModifier.Public);
         CloseableType = new Class(LibCorePackage, "Closeable", false, MemberModifier.Public, ClassType.Interface);
-        IntType = new Class(LibCorePackage, "int", true, MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+        IntType = new Class(LibCorePackage, "int", true,
+            MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
         {
             TypeParameters =
             {
@@ -90,6 +89,13 @@ public sealed class Class : AbstractPackageMember, IClass
                     { DefaultValue = new TypeInfo { Name = "32" } }
             }
         };
+    }
+
+    public Class(Package package, string name, bool primitive, MemberModifier modifier = MemberModifier.Protected,
+        ClassType type = ClassType.Class) : base(package, name, modifier)
+    {
+        Primitive = primitive;
+        ClassType = type;
     }
 
     public override IEnumerable<IBytecode> Header => new IBytecode[]
@@ -148,7 +154,7 @@ public sealed class Class : AbstractPackageMember, IClass
     {
         return Name == "void"
                || type?.BaseClass.Name == "void"
-               || Name == "int" && (type?.DetailedName.StartsWith("num") ?? false)
+               || (Name == "int" && (type?.DetailedName.StartsWith("num") ?? false))
                || type?.BaseClass == BaseClass
                || ((type?.BaseClass as IClass)?.Inheritors
                    .Where(x => x != null)
@@ -158,15 +164,6 @@ public sealed class Class : AbstractPackageMember, IClass
 
     public bool Primitive { get; }
 
-    public Stack Evaluate(RuntimeBase vm, Stack stack)
-    {
-        var cctor = DeclaredMembers.Values.FirstOrDefault(x => x.Name == Method.StaticInitializerName) as IMethod;
-        if (cctor == null)
-            return stack;
-        cctor.Invoke(vm, stack);
-        return stack;
-    }
-
     public Instance CreateInstance(RuntimeBase vm, Class? owner = null, params ITypeInfo[] typeParameters)
     {
         if (typeParameters.Length != TypeParameters.Count)
@@ -174,6 +171,21 @@ public sealed class Class : AbstractPackageMember, IClass
         var instance = new Instance(vm, this, owner, typeParameters);
         instance.Initialize(vm);
         return instance;
+    }
+
+    public Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
+        params IObject?[] args)
+    {
+        throw new NotSupportedException("Cannot invoke class");
+    }
+
+    public Stack Evaluate(RuntimeBase vm, Stack stack)
+    {
+        var cctor = DeclaredMembers.Values.FirstOrDefault(x => x.Name == Method.StaticInitializerName) as IMethod;
+        if (cctor == null)
+            return stack;
+        cctor.Invoke(vm, stack);
+        return stack;
     }
 
     private IEnumerable<IClassInstance> ExpandSuperclasses(IClassInstance arg)
@@ -241,12 +253,6 @@ public sealed class Class : AbstractPackageMember, IClass
         return FullName;
     }
 
-    public Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
-        params IObject?[] args)
-    {
-        throw new NotSupportedException("Cannot invoke class");
-    }
-
     public static void InitializePrimitives(RuntimeBase vm)
     {
         #region Void Class
@@ -286,6 +292,7 @@ public sealed class Class : AbstractPackageMember, IClass
         #endregion
 
         #region Object Class
+
         ObjectType.DeclaredInterfaces.Add(VoidType.DefaultInstance);
 
         #endregion
@@ -445,16 +452,18 @@ public sealed class Class : AbstractPackageMember, IClass
         #region Closeable Class
 
         var close = new DummyMethod(CloseableType, "close", MemberModifier.Public, VoidType);
-        
+
         AddToClass(CloseableType, close);
         CloseableType.DeclaredInterfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
         #region Throwable Class
-        
-        var message = new Property(RuntimeBase.SystemSrcPos, ThrowableType, "Message", StringType, MemberModifier.Public);
-        var exitCode = new Property(RuntimeBase.SystemSrcPos, ThrowableType, "ExitCode", NumericIntType, MemberModifier.Public);
+
+        var message = new Property(RuntimeBase.SystemSrcPos, ThrowableType, "Message", StringType,
+            MemberModifier.Public);
+        var exitCode = new Property(RuntimeBase.SystemSrcPos, ThrowableType, "ExitCode", NumericIntType,
+            MemberModifier.Public);
 
         AddToClass(ThrowableType, message);
         AddToClass(ThrowableType, exitCode);
@@ -474,12 +483,14 @@ public sealed class Class : AbstractPackageMember, IClass
         private readonly Class? _owner;
         private bool _initialized;
 #pragma warning disable CS0628
-        protected internal Instance(RuntimeBase vm, Class baseClass, params ITypeInfo[] args) : this(vm, baseClass, null, args)
+        protected internal Instance(RuntimeBase vm, Class baseClass, params ITypeInfo[] args) : this(vm, baseClass,
+            null, args)
 #pragma warning restore CS0628
         {
         }
 #pragma warning disable CS0628
-        protected internal Instance(RuntimeBase vm, Class baseClass, Class? owner = null, params ITypeInfo[] args) : base(vm)
+        protected internal Instance(RuntimeBase vm, Class baseClass, Class? owner = null, params ITypeInfo[] args) :
+            base(vm)
 #pragma warning restore CS0628
         {
             _owner = owner;
@@ -591,12 +602,18 @@ public sealed class Class : AbstractPackageMember, IClass
                 : FullName);
         }
 
+        public BytecodeElementType ElementType => throw new NotSupportedException();
+
+        public Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
+            params IObject?[] args)
+        {
+            return BaseClass.Invoke(vm, stack, target, maintain, args);
+        }
+
         public Stack Evaluate(RuntimeBase vm, Stack stack)
         {
             throw new NotSupportedException();
         }
-
-        public BytecodeElementType ElementType => throw new NotSupportedException();
 
         public void Initialize(RuntimeBase vm)
         {
@@ -608,12 +625,6 @@ public sealed class Class : AbstractPackageMember, IClass
         public override string ToString()
         {
             return FullName;
-        }
-
-        public Stack Invoke(RuntimeBase vm, Stack stack, IObject? target = null, StackOutput maintain = StackOutput.Omg,
-            params IObject?[] args)
-        {
-            return BaseClass.Invoke(vm, stack, target, maintain, args);
         }
     }
 }

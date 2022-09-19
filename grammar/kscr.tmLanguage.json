@@ -1,45 +1,48 @@
 {
-	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-	"name": "KScr",
-	"patterns": [
-		{
-			"include": "#sourceFile"
-		}
-	],
-	"repository": {
-		"sourceFile": {
-			"name": "kscr.class.file",
-			""
-		},
-		"keywords": {
-			"patterns": [{
-				"name": "keyword.control.kscr",
-				"match": "\\b(if|while|for|return)\\b"
-			},{
-				"name": "keyword.modifier.kscr",
-				"match": "\\b(public|internal|protected|private|static|final|abstract|native|synchronized)\\b"
-			}]
-		},
-		"strings": {
-			"name": "string.kscr",
-			"begin": "\"",
-			"end": "\"",
-			"patterns": [
-				{
-					"name": "constant.character.escape.kscr",
-					"match": "\\\\."
-				}
-			]
-		},
-		"numerics": {
-			"name": ".kscr",
-			"patterns": [
-				{
-					"name": "constant.character.escape.kscr",
-					"match": "-?\\d+"
-				}
-			]
-		}
-	},
-	"scopeName": "source.kscr"
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "KScr",
+  "patterns": [
+    {
+      "include": "#sourceFile"
+    }
+  ],
+  "repository": {
+    "sourceFile": {
+      "name": "kscr.class.file",
+      ""
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.kscr",
+          "match": "\\b(if|while|for|return)\\b"
+        },
+        {
+          "name": "keyword.modifier.kscr",
+          "match": "\\b(public|internal|protected|private|static|final|abstract|native|synchronized)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.kscr",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.kscr",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "numerics": {
+      "name": ".kscr",
+      "patterns": [
+        {
+          "name": "constant.character.escape.kscr",
+          "match": "-?\\d+"
+        }
+      ]
+    }
+  },
+  "scopeName": "source.kscr"
 }

@@ -36,7 +36,7 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
         var args = new List<ITypeInfo>();
         foreach (var type in context.genericTypeUses().type())
             args.Add(Visit(type));
-        if (raw is Core.Std.Class cls || raw is IClassInstance inst && (cls = inst.BaseClass) != null)
+        if (raw is Core.Std.Class cls || (raw is IClassInstance inst && (cls = inst.BaseClass) != null))
             return cls.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
         throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.rawType().GetText());
     }
@@ -51,7 +51,7 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
         var args = new List<ITypeInfo>();
         foreach (var type in context.genericTypeUses().type())
             args.Add(Visit(type));
-        if (raw is Core.Std.Class cls || raw is IClassInstance inst && (cls = inst.BaseClass) != null)
+        if (raw is Core.Std.Class cls || (raw is IClassInstance inst && (cls = inst.BaseClass) != null))
             return Core.Std.Class.ArrayType.CreateInstance(vm, ctx.Class!.AsClass(vm),
                 cls.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray()));
         throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.rawType().GetText());
