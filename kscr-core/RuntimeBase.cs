@@ -257,9 +257,18 @@ public abstract class RuntimeBase : IBytecodePort
             new ObjectRef(value.Type == null && !Initialized ? value as IClassInstance : value.Type, value);
     }
 
-    public Stack Execute()
-    {
-        var method = Package.RootPackage.FindEntrypoint();
+    public Stack Execute(string? mainClassName = null)
+    { 
+        Method method;
+        if (mainClassName == null)
+            method = Package.RootPackage.FindEntrypoint();
+        else
+        {
+            var cls = FindType(mainClassName) ?? 
+                      throw new FatalException($"Main class with name {mainClassName} was not found!");
+            method = cls.DeclaredMembers["main"] as Method ??
+                     throw new FatalException($"Main class has no main() method!");
+        }
         var stack = MainStack;
 
         try

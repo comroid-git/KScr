@@ -116,7 +116,7 @@ public class Program
         return ioTime;
     }
 
-    private static long CompileSource(ISourcesCmd cmd, string? basePackage = null)
+    public static long CompileSource(ISourcesCmd cmd, string? basePackage = null)
     {
         var compileTime = RuntimeBase.UnixTime();
         VM.CompileSource(cmd.Source, basePackage);
@@ -142,10 +142,10 @@ public class Program
         Package.RootPackage.Write(VM, output, sources.Select(f => VM.FindClassInfo(f)).ToArray(), new StringCache());
     }
 
-    private static long Execute(out Stack stack)
+    public static long Execute(out Stack stack, string? mainClassName = null)
     {
         var executeTime = RuntimeBase.UnixTime();
-        stack = VM.Execute();
+        stack = VM.Execute(mainClassName);
         executeTime = RuntimeBase.UnixTime() - executeTime;
         return executeTime;
     }
