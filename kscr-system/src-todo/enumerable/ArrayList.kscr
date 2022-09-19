@@ -1,0 +1,41 @@
+package org.comroid.kscr.enumerable;
+
+public class ArrayList<T> implements List<T> {
+    private Entry<int, T>[] array;
+    private int len;
+
+    @Override
+    public int Length => len;
+
+    @Override
+    public T? get(int key) {
+        return getEntry(key).Value;
+    }
+
+    @Override
+    public Entry<int, T>? getEntry(int key) {
+        if (range.insideRange(key, 0..Length))
+            throw new IndexOutOfBoundsException($"Index {key} is out of bounds (min={0}, max={Length-1})");
+        return array[key];
+    }
+
+    @Override
+    public T? set(int key, T? value) {
+        if (range.insideRange(key, 0..Length)) {
+            getEntry(key).Value = value;
+        } else if (key < 0) {
+            throw new IndexOutOfBoundsException($"Index {key} is out of bounds (min={0}, max={Length-1})");
+        } else {
+            
+        }
+    }
+
+    Collection<K> keys();
+
+    Collection<T> values();
+
+    Collection<Entry<K, T>> entries();
+
+    public ArrayList(T... values) {
+    }
+}

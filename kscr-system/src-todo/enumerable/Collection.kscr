@@ -19,14 +19,14 @@ public interface Collection<K, T> extends Pipe<Entry<K, T>> {
     Collection<Entry<K, T>> entries();
 
     bool contains(T value) {
-        fori (0, Length)
+        foreach (int i : 0..Length)
             if (get(i) == value)
                 return true;
         return false;
     }
 
     bool containsKey(K key) {
-        fori (0, n)
+        foreach (int i : 0..Length)
             if (getEntry(i).Key == key)
                 return true;
         return false;
@@ -44,7 +44,7 @@ public interface Collection<K, T> extends Pipe<Entry<K, T>> {
         if (value == null)
             return false;
         K key;
-        fori (0, Length)
+        foreach (int i : 0..Length)
             if (get(i) == value)
                 return key;
         return false;
@@ -68,7 +68,7 @@ public interface Collection<K, T> extends Pipe<Entry<K, T>> {
     }
 
     interface Entry<K = int, T> {
-        K Key;
+        final K Key;
         T Value;
     }
 }
