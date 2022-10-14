@@ -256,6 +256,10 @@ public class StatementComponent : IBytecode, IStatementComponent
                 stack[Default] = stack.This;
                 break;
             case (StatementComponentType.Expression, BytecodeType.Cast):
+                var targetType = vm.FindType(Arg)!;
+                var currentType = stack[Default]!.Value!.Type;
+                if (!targetType.CanHold(currentType))
+                    throw new InternalException($"Cannot cast {currentType} to {targetType}");
                 // casting is implicitly evaluated by design
                 break;
             case (StatementComponentType.Expression, BytecodeType.StmtIf):
