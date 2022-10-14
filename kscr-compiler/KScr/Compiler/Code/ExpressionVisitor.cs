@@ -121,6 +121,19 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         };
     }
 
+    public override StatementComponent VisitOpBinaryLate(KScrParser.OpBinaryLateContext context)
+    {
+        return new StatementComponent
+        {
+            Type = StatementComponentType.Operator,
+            CodeType = BytecodeType.Operator,
+            ByteArg = (ulong)(new OperatorVisitor().Visit(context.binaryop_late()) | Operator.Binary),
+            SubComponent = VisitExpression(context.left),
+            AltComponent = VisitExpression(context.right),
+            SourcefilePosition = ToSrcPos(context)
+        };
+    }
+
     public override StatementComponent VisitOpPostfix(KScrParser.OpPostfixContext context)
     {
         return new StatementComponent

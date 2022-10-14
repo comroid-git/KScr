@@ -174,6 +174,10 @@ typedExpr: type? expr;
 expr
     // simply a variable
     : idPart                                                #varValue
+    // operators
+    | prefixop expr                                         #opPrefix
+    | left=expr binaryop right=expr                         #opBinary
+    | expr postfixop                                        #opPostfix
     // `is` keyword
     | expr IS type idPart?                                  #checkInstanceof
     // syntax components
@@ -200,12 +204,9 @@ expr
     | left=expr SHORTELIPSES right=expr                     #rangeInvoc
     // pipe operators
     | pipe=expr (RREQARROW lambda)+                         #exprPipeListen
-    // operators
-    | prefixop expr                                         #opPrefix
-    | left=expr binaryop right=expr                         #opBinary
-    | expr postfixop                                        #opPostfix
     // tuple expressions
     | tupleExpr                                             #exprTuple
+    | left=expr binaryop_late right=expr                    #opBinaryLate
     ;
 
 tupleDeclType: type idPart?;
@@ -213,9 +214,7 @@ tupleDecl: LPAREN tupleDeclType (COMMA tupleDeclType)* RPAREN;
 tupleExpr: LPAREN typedExpr (COMMA typedExpr)* RPAREN;
 
 binaryop
-    : PLUS                  #opPlus
-    | MINUS                 #opMinus
-    | STAR                  #opMultiply
+    : STAR                  #opMultiply
     | SLASH                 #opDivide
     | PERCENT               #opModulus
     | BITAND                #opBitAnd
@@ -235,6 +234,10 @@ binaryop
     | ULSHIFT               #opULShift
     | URSHIFT               #opURShift
     | QUESTION QUESTION     #opNullFallback
+    ;
+binaryop_late // binary operators that have less precedence
+    : PLUS                  #opPlus
+    | MINUS                 #opMinus 
     ;
 
 prefixop
