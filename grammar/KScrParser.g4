@@ -192,8 +192,8 @@ expr
     | type                                                  #typeValue
     | lambda                                                #exprLambda
     // variable mutation
-    | declaration                                           #varDeclare // can't use varDeclaration due to recursive rules
-    | left=expr mutation                                    #varAssign // can't use varAssignment due to recursive rules
+    | declaration                                           #varDeclare
+    | left=expr mutation                                    #varAssign
     // member calls
     | left=expr DOT idPart arguments?                       #exprCallMember
     | ctorCall                                              #callCtor
