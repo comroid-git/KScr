@@ -283,7 +283,7 @@ public sealed class Stack
             // ReSharper disable once PossibleIntendedRethrow
             throw ex;
         }
-        catch (InternalException ex)
+        catch (RuntimeException ex)
         {
             //if (RuntimeBase.DebugMode)
             // ReSharper disable once PossibleIntendedRethrow
@@ -313,7 +313,7 @@ public sealed class Stack
                 if (Omg == null || /* null check */ Omg.Value.ObjectId == 0)
                 {
                     RuntimeBase.ExitCode = -1;
-                    throw new InternalException("No Message Provided", IObject.Null);
+                    throw new RuntimeException("No Message Provided", IObject.Null);
                 }
 
                 if (!Std.Class.ThrowableType.CanHold(Omg.Value.Type)
@@ -327,7 +327,7 @@ public sealed class Stack
                 RuntimeBase.ExitMessage =
                     throwable.InvokeNative(vm, Output(), "Message").Copy(output: StackOutput.Bet)![vm, this, 0]
                         .ToString(0);
-                throw new InternalException(
+                throw new RuntimeException(
                     $"{throwable.Type.Name}: {RuntimeBase.ExitMessage} ({RuntimeBase.ExitCode})", Omg.Value);
             }
 

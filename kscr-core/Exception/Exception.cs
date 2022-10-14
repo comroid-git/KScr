@@ -5,16 +5,16 @@ using KScr.Core.Store;
 
 namespace KScr.Core.Exception;
 
-public class InternalException : System.Exception
+public class RuntimeException : System.Exception
 {
     internal readonly IObject Obj;
 
-    public InternalException(string? message, IObject? obj = null) : base(message)
+    public RuntimeException(string? message, IObject? obj = null) : base(message)
     {
         Obj = obj ?? IObject.Null;
     }
 
-    public InternalException(string? message, System.Exception? innerException) : base(
+    public RuntimeException(string? message, System.Exception? innerException) : base(
         message ?? innerException?.Message, innerException)
     {
         Obj = IObject.Null;
@@ -46,7 +46,7 @@ public interface IStackTrace
 
 public class StackTraceException : System.Exception, IStackTrace
 {
-    public StackTraceException(CallLocation srcPos, string local, InternalException innerCause,
+    public StackTraceException(CallLocation srcPos, string local, RuntimeException innerCause,
         string? message = null)
         : base(message ?? "<...>", innerCause)
     {
@@ -64,7 +64,7 @@ public class StackTraceException : System.Exception, IStackTrace
         InnerCause = innerTrace.InnerCause;
     }
 
-    public InternalException InnerCause { get; }
+    public RuntimeException InnerCause { get; }
     public string Local { get; }
     public string BaseMessage => base.Message;
     public CallLocation CallLoc { get; }

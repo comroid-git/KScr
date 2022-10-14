@@ -65,7 +65,7 @@ public sealed class Property : AbstractClassMember, IObjectRef
 
         if (WriteAccessor != null)
             return WriteAccessor.Evaluate(vm, stack);
-        throw new InternalException("Property " + FullName + " is not settable");
+        throw new RuntimeException("Property " + FullName + " is not settable");
     }
 
     public IEvaluable? ReadAccessor

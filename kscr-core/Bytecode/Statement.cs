@@ -112,7 +112,7 @@ public class Statement : IBytecode, IStatement<StatementComponent>
                     break;
             }
         }
-        catch (InternalException codeEx)
+        catch (RuntimeException codeEx)
         {
             stack[Tau] = new ObjectRef(Class.ThrowableType.DefaultInstance, codeEx.Obj);
             CatchFinally?.Evaluate(vm, stack);
@@ -259,7 +259,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                 var targetType = vm.FindType(Arg)!;
                 var currentType = stack[Default]!.Value!.Type;
                 if (!targetType.CanHold(currentType))
-                    throw new InternalException($"Cannot cast {currentType} to {targetType}");
+                    throw new RuntimeException($"Cannot cast {currentType} to {targetType}");
                 // casting is implicitly evaluated by design
                 break;
             case (StatementComponentType.Expression, BytecodeType.StmtIf):
