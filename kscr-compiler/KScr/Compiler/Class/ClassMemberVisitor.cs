@@ -1,6 +1,9 @@
-﻿using KScr.Antlr;
+﻿using System.Collections.Generic;
+using System.Linq;
+using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 
 namespace KScr.Compiler.Class;
@@ -32,9 +35,28 @@ public class ClassMemberVisitor : AbstractVisitor<IClassMember>
             Body = VisitMemberCode(context.memberBlock()),
             CatchFinally = memCtor.catchBlocks() == null ? null : VisitCatchBlocks(memCtor.catchBlocks())
         };
+        List<Symbol> paramSymbols = new();
         foreach (var param in context.parameters().parameter())
-            ctor.Parameters.Add(new MethodParameter
-                { Name = param.idPart().GetText(), Type = VisitTypeInfo(param.type()) });
+        {
+            var parameter = new MethodParameter
+                { Name = param.idPart().GetText(), Type = VisitTypeInfo(param.type()) };
+            ctor.Parameters.Add(parameter);
+            paramSymbols.Add(ctx.RegisterSymbol(parameter.Name, parameter.Type, SymbolType.Parameter));
+        }
+        foreach (var super in context.subConstructorCalls().subConstructorCall())
+        {
+            var superType = ctx.FindType(vm, super.type().GetText())!;
+            ctor.SuperCalls.Add(new StatementComponent()
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.ConstructorCall,
+                Arg = superType.FullDetailedName,
+                SubStatement = VisitArguments(super.arguments())
+            });
+        }
+        if (!paramSymbols.All(ctx.UnregisterSymbol))
+            throw new FatalException("Could not unregister all ctor parameter symbols");
+
         return ctor;
     }
 
