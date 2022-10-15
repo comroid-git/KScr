@@ -1,0 +1,10 @@
+package org.comroid.kscr.time;
+
+import org.comroid.kscr.time.Date;
+import org.comroid.kscr.time.Time;
+
+public final class DateTime extends Date, Time {
+    public DateTime(int days, int seconds) : Date(days), Time(seconds) {
+        stdio <<- "DateTime is " + days + ":" + seconds + endl;
+    }
+}

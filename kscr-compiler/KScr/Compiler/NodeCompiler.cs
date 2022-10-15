@@ -34,6 +34,7 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>
         if (decl.classDecl().Length != 1)
             throw new NotImplementedException("Unable to load more than one class from source file " + file.FullName);
         var cls = pkg.Package.GetOrCreateClass(vm, info.Name, info.Modifier, info.ClassType)!;
+        ctx = new CompilerContext { Parent = ctx, Class = cls, Imports = vm.FindClassImports(decl.imports()) };
         var kls = decl.classDecl(0);
         try
         {
@@ -48,8 +49,7 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>
             ctx.DropContext();
         }
 
-        return new MemberNode(vm,
-            new CompilerContext { Parent = ctx, Class = cls, Imports = vm.FindClassImports(decl.imports()) }, pkg)
+        return new MemberNode(vm, ctx, pkg)
         {
             MemberContext = kls,
             Member = cls

@@ -1,0 +1,40 @@
+package org.comroid.kscr.time;
+
+public class Time {
+    public Time(int seconds) {
+        stdio <<- "Time is " + seconds + "secs" + endl;
+    }
+
+    //private static final Map<str, Time> interns = new Trie<str, Time>();
+    //public final int Hour;
+    //public final int Minute;
+    //public final int? Second;
+    //public final int? Millisecond;
+//
+    //public Time(int hour, int minute, int second?, int millisecond?) {
+    //    return getInternal(hour, minute, second, millisecond);
+    //}
+//
+    //@Convert
+    //public Time(str time) {
+    //    int[] split = time.split("[:.]") >> int::parse;
+    //    return new Time(split[0], split[1], split[2], split[3]);
+    //}
+//
+    //public str toString(short variant) {
+    //    return toString(Hour, Minute, Second, Millisecond);
+    //}
+//
+    //@Trie.Key
+    //private static str toString(int hour, int minute, int second?, int millisecond?) {
+    //    str txt = $"{Hour}:{Minute}";
+    //    Second ?> txt += "." + Second;
+    //    Millisecond ?> txt += "." + Millisecond;
+    //    return txt;
+    //    
+    //}
+//
+    //private static Time getInternal(int hour, int minute, int second?, int millisecond?) {
+    //    return interns.getOrCreate(hour, minute, second, millisecond);
+    //}
+}
