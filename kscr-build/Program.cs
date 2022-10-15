@@ -70,7 +70,7 @@ public sealed class Program
                 parent = buf;
         }
 
-        // todo fixme
+        // todo fixme: should throw circular dependency error in current state
         CheckCircular_Rec(ArraySegment<string>.Empty, parent);
         
         while (parent.Parent != null)
