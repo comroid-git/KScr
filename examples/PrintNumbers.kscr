@@ -2,6 +2,7 @@ package org.comroid.kscr.test;
 
 import org.comroid.kscr.core.Throwable;
 import org.comroid.kscr.core.Sequencable;
+import org.comroid.kscr.time.DateTime;
 
 public class PrintNumbers implements Throwable {
     public static int StackSize => 64;
@@ -23,6 +24,7 @@ public class PrintNumbers implements Throwable {
     //    stdio <<- "first argument is:" + args[0] + endl
     //            <<- "args array is " + args + endl;
     public static void main() {
+        DateTime datetime = new DateTime(3, 4);
         
         int[] xy = new int[6];
         stdio <<- "array size is " + xy.length() + endl;
