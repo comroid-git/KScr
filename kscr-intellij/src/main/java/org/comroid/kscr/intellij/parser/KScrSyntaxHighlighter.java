@@ -8,7 +8,7 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
-import org.comroid.kscr.intellij.antlr_generated.KScrLangLexer;
+import org.comroid.kscr.intellij.antlr_generated.KScrLexer;
 import org.comroid.kscr.intellij.psi.Tokens;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +26,7 @@ public class KScrSyntaxHighlighter extends SyntaxHighlighterFactory implements S
 
     @NotNull
     @Override public Lexer getHighlightingLexer(){
-        KScrLangLexer lexer = new KScrLangLexer(null);
+        KScrLexer lexer = new KScrLexer(null);
         return new LexerAdapter(lexer);
     }
 
@@ -35,7 +35,7 @@ public class KScrSyntaxHighlighter extends SyntaxHighlighterFactory implements S
             return array(ID);
         else if(Tokens.KEYWORDS.contains(element))
             return array(KEYWORD);
-        else if(Tokens.getFor(KScrLangLexer.STRLIT) == element)
+        else if(Tokens.getFor(KScrLexer.STRLIT) == element)
             return array(STRLIT);
         else if(Tokens.LITERALS.contains(element))
             return array(NUMLIT); // Add boolean literal formatting

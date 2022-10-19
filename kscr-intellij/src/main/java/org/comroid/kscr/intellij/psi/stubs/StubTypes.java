@@ -4,7 +4,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.stubs.*;
 import org.comroid.kscr.intellij.KScrLanguage;
-import org.comroid.kscr.intellij.antlr_generated.KScrLangParser;
+import org.comroid.kscr.intellij.antlr_generated.KScrParser;
 import org.comroid.kscr.intellij.psi.Tokens;
 import org.comroid.kscr.intellij.psi.ast.KScrMethod;
 import org.comroid.kscr.intellij.psi.ast.KScrModifierList;
@@ -335,7 +335,7 @@ public interface StubTypes{
 
         public boolean shouldCreateStub(ASTNode node){
             // only fields, not locals
-            return node.getTreeParent().getElementType() == Tokens.getRuleFor(KScrLangParser.RULE_member);
+            return node.getTreeParent().getElementType() == Tokens.getRuleFor(KScrParser.RULE_member);
         }
     }
 }
