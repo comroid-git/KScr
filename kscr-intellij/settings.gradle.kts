@@ -1,1 +1,1 @@
-rootProject.name = "KScrIntellijPlugin"
+rootProject.name = "intellij"
