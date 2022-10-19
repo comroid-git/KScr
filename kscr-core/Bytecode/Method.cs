@@ -100,6 +100,8 @@ public sealed class Method : AbstractClassMember, IMethod
             throw new FatalException("Missing invocation target for non-static method " + Name);
         stack.StepInto(vm, SourceLocation, target, this, stack =>
         {
+            for (var i = 0; i < Math.Min(Parameters.Count, args.Length); i++)
+                vm.PutLocal(stack, Parameters[i].Name, args[i]);
             if (Name == ConstructorName)
             {
                 // pre-handle super calls
@@ -113,8 +115,6 @@ public sealed class Method : AbstractClassMember, IMethod
                     superCtor.Invoke(vm, stack, target, args: args.AsArray(vm, stack));
                 }
             }
-            for (var i = 0; i < Math.Min(Parameters.Count, args.Length); i++)
-                vm.PutLocal(stack, Parameters[i].Name, args[i]);
             Body.Evaluate(vm, stack);
             if (stack.State != State.Return && Name != ConstructorName && ReturnType.Name != "void")
                 throw new FatalException("Invalid state after method: " + stack.State);
