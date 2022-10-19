@@ -260,6 +260,17 @@ public class MemberNode : SourceNode
                 Type = VisitTypeInfo(param.type()),
                 Name = param.idPart().GetText()
             });
+        foreach (var super in context.subConstructorCalls()?.subConstructorCall() ?? Array.Empty<KScrParser.SubConstructorCallContext>())
+        {
+            var superType = ctx.FindType(vm, super.type().GetText())!;
+            ctor.SuperCalls.Add(new StatementComponent()
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.ConstructorCall,
+                Arg = superType.FullDetailedName,
+                SubStatement = VisitArguments(super.arguments())
+            });
+        }
         return new MemberNode(vm, ctx, Pkg, this)
         {
             MemberContext = context,

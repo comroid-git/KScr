@@ -72,19 +72,6 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         return new TypeParameter(name, spec, target.AsClassInstance(vm)) { DefaultValue = def };
     }
 
-    protected IClassMember VisitClassMember(KScrParser.MemberContext member)
-    {
-        return member.RuleIndex switch
-        {
-            KScrParser.RULE_methodDecl or KScrParser.RULE_constructorDecl or KScrParser.RULE_initDecl
-                or KScrParser.RULE_propertyDecl or KScrParser.RULE_member
-                => new ClassMemberVisitor(vm, ctx).Visit(member),
-            KScrParser.RULE_classDecl => new ClassVisitor(vm, ctx).Visit(member),
-            _ => throw new ArgumentOutOfRangeException(nameof(member.RuleIndex), member.RuleIndex,
-                "Invalid Rule for member: " + member)
-        };
-    }
-
     protected ExecutableCode VisitCode(ParserRuleContext? code)
     {
         return code == null ? new ExecutableCode() : new CodeblockVisitor(vm, ctx).Visit(code);
