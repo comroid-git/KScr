@@ -84,6 +84,7 @@ public sealed class Method : AbstractClassMember, IMethod
     }
 
     public List<MethodParameter> Parameters { get; } = new();
+    public List<StatementComponent> SuperCalls { get; } = new();
     public ITypeInfo ReturnType { get; }
 
     public override string FullName =>
@@ -101,6 +102,19 @@ public sealed class Method : AbstractClassMember, IMethod
         {
             for (var i = 0; i < Math.Min(Parameters.Count, args.Length); i++)
                 vm.PutLocal(stack, Parameters[i].Name, args[i]);
+            if (Name == ConstructorName)
+            {
+                // pre-handle super calls
+                foreach (var superCall in SuperCalls)
+                {
+                    var superType = vm.FindType(superCall.Arg!)!;
+                    var superCtor = superType.DeclaredMembers[ConstructorName];
+                    if ((superCall.SubStatement!.CodeType & BytecodeType.ParameterExpression) == 0)
+                        throw new FatalException("Invalid supercall: Missing parameter expression");
+                    var args = superCall.SubStatement.Evaluate(vm, stack.Output(Del))[Del]!;
+                    superCtor.Invoke(vm, stack, target, args: args.AsArray(vm, stack));
+                }
+            }
             Body.Evaluate(vm, stack);
             if (stack.State != State.Return && Name != ConstructorName && ReturnType.Name != "void")
                 throw new FatalException("Invalid state after method: " + stack.State);

@@ -32,7 +32,7 @@ public class CompilerRuntime : BytecodeRuntime
             var decl = MakeFileDecl(src);
             ctx = new CompilerContext
                 { Parent = ctx, Class = FindClassInfo(src), Imports = FindClassImports(decl.imports()) };
-            node = SourceNode.ForBaseClass(this, ctx, src, new PackageNode(this, ctx, src.DirectoryName!, pkg));
+            node = new FileNode(this, ctx, new PackageNode(this, ctx, src.DirectoryName!, pkg), src).CreateClassNode();
             var mc = (node as MemberNode)!.ReadMembers();
             Debug.WriteLine($"[NodeCompiler] Loaded {mc} members");
         }

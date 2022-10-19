@@ -139,6 +139,8 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         Write(stream, strings, mtd.ReturnType.FullDetailedName);
         Write(stream, strings, mtd.SourceLocation);
         Write(stream, strings, mtd.Parameters.ToArray());
+        if (mtd.Name == Method.ConstructorName)
+            Write(stream, strings, mtd.SuperCalls.ToArray());
         Write(stream, strings, mtd.Body);
     }
 
@@ -158,9 +160,14 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         returnType = vm.FindType(ReadString(stream, strings));
         srcPos = Load<SourcefilePosition>(vm, strings, stream, pkg, cls);
         var parameters = ReadArray<MethodParameter>(vm, stream, strings, pkg, cls);
+        StatementComponent[]? supers = name == Method.ConstructorName
+            ? ReadArray<StatementComponent>(vm, stream, strings, pkg, cls)
+            : null;
         var body = Load<ExecutableCode>(vm, strings, stream, pkg, cls);
         var mtd = new Method(srcPos, cls!, name, returnType, mod) { Body = body };
         mtd.Parameters.AddRange(parameters);
+        if (supers != null)
+            mtd.SuperCalls.AddRange(supers);
         return mtd;
     }
 

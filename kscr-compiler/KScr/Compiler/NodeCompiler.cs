@@ -16,7 +16,7 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>
 {
     public readonly List<SourceNode> Nodes = new();
 
-    protected SourceNode(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+    protected SourceNode(CompilerRuntime vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 
@@ -25,35 +25,6 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>
     {
         var pkg = (package ?? Package.RootPackage).GetOrCreatePackage(dir.Name);
         return new PackageNode(vm, new CompilerContext { Parent = ctx, Package = pkg }, dir.FullName, pkg);
-    }
-
-    public static MemberNode ForBaseClass(CompilerRuntime vm, CompilerContext ctx, FileInfo file, PackageNode pkg)
-    {
-        var info = vm.FindClassInfo(file);
-        var decl = vm.MakeFileDecl(file);
-        if (decl.classDecl().Length != 1)
-            throw new NotImplementedException("Unable to load more than one class from source file " + file.FullName);
-        var cls = pkg.Package.GetOrCreateClass(vm, info.Name, info.Modifier, info.ClassType)!;
-        var kls = decl.classDecl(0);
-        try
-        {
-            ctx.PushContext(cls);
-            foreach (var type in kls.objectExtends()?.type() ?? new KScrParser.TypeContext[] { })
-                cls.DeclaredSuperclasses.Add(ctx.FindType(vm, type.GetText())!.AsClassInstance(vm));
-            foreach (var type in kls.objectImplements()?.type() ?? new KScrParser.TypeContext[] { })
-                cls.DeclaredInterfaces.Add(ctx.FindType(vm, type.GetText())!.AsClassInstance(vm));
-        }
-        finally
-        {
-            ctx.DropContext();
-        }
-
-        return new MemberNode(vm,
-            new CompilerContext { Parent = ctx, Class = cls, Imports = vm.FindClassImports(decl.imports()) }, pkg)
-        {
-            MemberContext = kls,
-            Member = cls
-        };
     }
 
     public static int RevisitRec(IEnumerable<SourceNode> nodes, bool rec = false)
@@ -69,6 +40,8 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>
                         .Select(x => x.RevisitCode())
                         .Sum();
                 else c += mem.RevisitCode();
+            else if (node is FileNode fil)
+                c += RevisitRec(fil.Nodes, true);
             else throw new FatalException("Invalid Node to revisit: " + node);
 
         if (!rec)
@@ -82,7 +55,7 @@ public class PackageNode : SourceNode
     public readonly Package Package;
     public readonly string Path;
 
-    public PackageNode(RuntimeBase vm, CompilerContext ctx, string path, Package package) : base(vm, ctx)
+    public PackageNode(CompilerRuntime vm, CompilerContext ctx, string path, Package package) : base(vm, ctx)
     {
         Path = path;
         Package = package;
@@ -90,13 +63,27 @@ public class PackageNode : SourceNode
 
     public void Read()
     {
-        int pc, cc = pc = 0;
+        int pc, fc, mc = fc = pc = 0;
 
         pc += ReadPackages();
-        pc += ReadPackagesRec(Nodes, ref cc);
+        pc += ReadPackageMembersRec(Nodes);
+        fc += ReadFilesRec(Nodes);
+        mc += ReadClassesRec(Nodes);
         Debug.WriteLine($"[NodeCompiler] Loaded {pc} packages");
-        Debug.WriteLine($"[NodeCompiler] Loaded {cc} classes");
-        Debug.WriteLine($"[NodeCompiler] Loaded {pc + cc} nodes");
+        Debug.WriteLine($"[NodeCompiler] Loaded {fc} files");
+        Debug.WriteLine($"[NodeCompiler] Loaded {mc} members");
+        Debug.WriteLine($"[NodeCompiler] Loaded {pc + fc + mc} nodes");
+    }
+
+    public static int ReadPackageMembersRec(IEnumerable<SourceNode> nodes)
+    {
+        int c = 0;
+        foreach (var node in nodes.Where(x => x is PackageNode).Cast<PackageNode>())
+        {
+            c += node.ReadPackages();
+            c += ReadPackageMembersRec(node.Nodes);
+        }
+        return c;
     }
 
     public int ReadPackages()
@@ -105,48 +92,105 @@ public class PackageNode : SourceNode
         foreach (var sub in Directory.EnumerateDirectories(Path))
         {
             var dir = new DirectoryInfo(sub);
-            Nodes.Add(ForPackage(vm as CompilerRuntime ?? throw new FatalException("Invalid Runtime"), ctx, dir,
-                Package));
+            Nodes.Add(ForPackage(vm, ctx, dir, Package));
             c++;
         }
-
         return c;
     }
 
-    public static int ReadPackagesRec(IEnumerable<SourceNode> nodes, ref int cc)
+    private static int ReadFilesRec(IEnumerable<SourceNode> nodes)
     {
-        var c = 0;
+        int c = 0;
         foreach (var node in nodes.Where(x => x is PackageNode).Cast<PackageNode>())
         {
-            c += node.ReadPackages();
-            c += ReadPackagesRec(node.Nodes, ref cc);
-            cc += node.ReadClasses();
+            c += node.ReadFiles();
+            c += ReadFilesRec(node.Nodes);
         }
-
         return c;
     }
 
-    public int ReadClasses()
+    public int ReadFiles()
     {
-        var c = 0;
-        foreach (var sub in Directory.EnumerateFiles(Path, '*' + RuntimeBase.SourceFileExt,
-                     SearchOption.TopDirectoryOnly))
+        int c = 0;
+        foreach (var sub in Directory.EnumerateFiles(Path, '*' + RuntimeBase.SourceFileExt, SearchOption.TopDirectoryOnly))
         {
             var file = new FileInfo(sub);
-            var classNode = ForBaseClass(vm as CompilerRuntime ?? throw new FatalException("Invalid Runtime"), ctx,
-                file, this);
-            classNode.ReadMembers();
-            Nodes.Add(classNode);
+            Nodes.Add(new FileNode(vm, ctx, this, file));
             c++;
         }
-
         return c;
+    }
+
+    public static int ReadClassesRec(IEnumerable<SourceNode> nodes)
+    {
+        int c = 0; 
+        foreach (var node in nodes)
+        {
+            if (node is FileNode fn)
+                c += fn.ReadClass();
+            c += ReadClassesRec(node.Nodes);
+        }
+        return c;
+    }
+}
+
+public class FileNode : SourceNode
+{
+    public PackageNode Pkg { get; }
+    public FileInfo File { get; }
+    public ClassInfo ClassInfo { get; }
+    public KScrParser.FileContext Decl { get; }
+    public List<string> Imports { get; }
+    public Core.Std.Class Cls { get; }
+
+    public FileNode(CompilerRuntime vm, CompilerContext ctx, PackageNode pkg, FileInfo file) : base(vm, ctx)
+    {
+        this.Pkg = pkg;
+        this.File = file;
+        this.ClassInfo = vm.FindClassInfo(file);
+        this.Decl = vm.MakeFileDecl(File);
+        this.Imports = vm.FindClassImports(Decl.imports());
+        this.Cls = Pkg.Package.GetOrCreateClass(vm, ClassInfo.Name, ClassInfo.Modifier, ClassInfo.ClassType)!;
+    }
+
+    public int ReadClass()
+    {
+        var classNode = CreateClassNode();
+        var c = classNode.ReadMembers();
+        Nodes.Add(classNode);
+        return c;
+    }
+
+    public MemberNode CreateClassNode()
+    {
+        if (Decl.classDecl().Length != 1)
+            throw new NotImplementedException("Unable to load more than one class from source file " + File.FullName);
+        var ctx = new CompilerContext { Parent = this.ctx, Class = Cls, Imports = this.Imports };
+        var kls = Decl.classDecl(0);
+        try
+        {
+            ctx.PushContext(Cls);
+            foreach (var type in kls.objectExtends()?.type() ?? new KScrParser.TypeContext[] { })
+                Cls.DeclaredSuperclasses.Add(ctx.FindType(vm, type.GetText())!.AsClassInstance(vm));
+            foreach (var type in kls.objectImplements()?.type() ?? new KScrParser.TypeContext[] { })
+                Cls.DeclaredInterfaces.Add(ctx.FindType(vm, type.GetText())!.AsClassInstance(vm));
+        }
+        finally
+        {
+            ctx.DropContext();
+        }
+
+        return new MemberNode(vm, ctx, Pkg)
+        {
+            MemberContext = kls,
+            Member = Cls
+        };
     }
 }
 
 public class MemberNode : SourceNode
 {
-    public MemberNode(RuntimeBase vm, CompilerContext ctx, PackageNode pkg, MemberNode? parent = null) : base(vm, ctx)
+    public MemberNode(CompilerRuntime vm, CompilerContext ctx, PackageNode pkg, MemberNode? parent = null) : base(vm, ctx)
     {
         Pkg = pkg;
         Parent = parent;
@@ -216,6 +260,17 @@ public class MemberNode : SourceNode
                 Type = VisitTypeInfo(param.type()),
                 Name = param.idPart().GetText()
             });
+        foreach (var super in context.subConstructorCalls()?.subConstructorCall() ?? Array.Empty<KScrParser.SubConstructorCallContext>())
+        {
+            var superType = ctx.FindType(vm, super.type().GetText())!;
+            ctor.SuperCalls.Add(new StatementComponent()
+            {
+                Type = StatementComponentType.Code,
+                CodeType = BytecodeType.ConstructorCall,
+                Arg = superType.FullDetailedName,
+                SubStatement = VisitArguments(super.arguments())
+            });
+        }
         return new MemberNode(vm, ctx, Pkg, this)
         {
             MemberContext = context,

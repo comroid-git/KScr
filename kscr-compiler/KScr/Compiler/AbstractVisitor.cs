@@ -16,13 +16,13 @@ namespace KScr.Compiler;
 
 public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
 {
-    protected AbstractVisitor(RuntimeBase vm, CompilerContext ctx)
+    protected AbstractVisitor(CompilerRuntime vm, CompilerContext ctx)
     {
         this.vm = vm;
         this.ctx = ctx;
     }
 
-    protected RuntimeBase vm { get; }
+    protected CompilerRuntime vm { get; }
     protected CompilerContext ctx { get; }
     protected ITypeInfo? RequestedType { get; init; }
 
@@ -70,19 +70,6 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             : gtd.def != null ? new TypeInfo { FullDetailedName = VisitTypeInfo(gtd.def).FullDetailedName }
             : null;
         return new TypeParameter(name, spec, target.AsClassInstance(vm)) { DefaultValue = def };
-    }
-
-    protected IClassMember VisitClassMember(KScrParser.MemberContext member)
-    {
-        return member.RuleIndex switch
-        {
-            KScrParser.RULE_methodDecl or KScrParser.RULE_constructorDecl or KScrParser.RULE_initDecl
-                or KScrParser.RULE_propertyDecl or KScrParser.RULE_member
-                => new ClassMemberVisitor(vm, ctx).Visit(member),
-            KScrParser.RULE_classDecl => new ClassVisitor(vm, ctx).Visit(member),
-            _ => throw new ArgumentOutOfRangeException(nameof(member.RuleIndex), member.RuleIndex,
-                "Invalid Rule for member: " + member)
-        };
     }
 
     protected ExecutableCode VisitCode(ParserRuleContext? code)

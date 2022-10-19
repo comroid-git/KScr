@@ -8,7 +8,7 @@ namespace KScr.Compiler.Class;
 
 public class ClassInfoVisitor : AbstractVisitor<ClassInfo>
 {
-    public ClassInfoVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+    public ClassInfoVisitor(CompilerRuntime vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 
@@ -23,37 +23,6 @@ public class ClassInfoVisitor : AbstractVisitor<ClassInfo>
             CanonicalName = $"{pkgName}.{name}",
             FullName = $"{pkgName}.{name}"
         };
-    }
-}
-
-public class ClassVisitor : AbstractVisitor<Core.Std.Class>
-{
-    public ClassVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
-    {
-    }
-
-    private Core.Std.Class cls => ctx.Class!.AsClass(vm);
-
-    public override Core.Std.Class VisitClassDecl(KScrParser.ClassDeclContext context)
-    {
-        if (context.genericTypeDefs() is { } defs)
-            foreach (var genTypeDef in defs.genericTypeDef())
-                if (cls.TypeParameters.All(x => x.Name != genTypeDef.idPart().GetText()))
-                    cls.TypeParameters.Add(VisitTypeParameter(genTypeDef));
-        if (context.objectExtends() is { } ext)
-            foreach (var extendsType in ext.type())
-                cls.DeclaredSuperclasses.Add(VisitTypeInfo(extendsType).AsClassInstance(vm));
-        if (context.objectImplements() is { } impl)
-            foreach (var implementsType in impl.type())
-                cls.DeclaredInterfaces.Add(VisitTypeInfo(implementsType).AsClassInstance(vm));
-
-        foreach (var each in context.member())
-        {
-            var member = VisitClassMember(each);
-            cls.DeclaredMembers[member.Name] = member;
-        }
-
-        return cls;
     }
 }
 

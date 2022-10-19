@@ -10,7 +10,7 @@ namespace KScr.Compiler.Code;
 
 public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 {
-    public ExpressionVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+    public ExpressionVisitor(CompilerRuntime vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 
