@@ -113,7 +113,7 @@ indexerDecl: LSQUAR type idPart (COMMA type idPart)* RSQUAR;
 indexerExpr: LSQUAR expr (COMMA expr)* RSQUAR;
 cast: LPAREN type COLON expr RPAREN;
 declaration: type idPart (ASSIGN expr)?;
-mutation: binaryop? ASSIGN expr;
+mutation: (binaryop | binaryop_late)? ASSIGN expr;
 call: idPart arguments;
 ctorCall: NEW type arguments;
 newArray: NEW type indexerExpr;
