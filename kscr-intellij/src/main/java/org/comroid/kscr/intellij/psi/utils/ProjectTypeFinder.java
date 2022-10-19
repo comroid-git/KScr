@@ -7,10 +7,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
-import org.comroid.kscr.intellij.KScrFileType;
 import org.comroid.kscr.intellij.KScrSourceFileType;
 import org.comroid.kscr.intellij.psi.*;
-import org.comroid.kscr.intellij.psi.types.JvmKScrClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
