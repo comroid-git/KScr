@@ -8,7 +8,7 @@ namespace KScr.Compiler.Code;
 
 public class CodeblockVisitor : AbstractVisitor<ExecutableCode>
 {
-    public CodeblockVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+    public CodeblockVisitor(CompilerRuntime vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 

@@ -10,7 +10,7 @@ namespace KScr.Compiler.Class;
 
 public class ClassMemberVisitor : AbstractVisitor<IClassMember>
 {
-    public ClassMemberVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+    public ClassMemberVisitor(CompilerRuntime vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 

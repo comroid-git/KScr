@@ -16,13 +16,13 @@ namespace KScr.Compiler;
 
 public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
 {
-    protected AbstractVisitor(RuntimeBase vm, CompilerContext ctx)
+    protected AbstractVisitor(CompilerRuntime vm, CompilerContext ctx)
     {
         this.vm = vm;
         this.ctx = ctx;
     }
 
-    protected RuntimeBase vm { get; }
+    protected CompilerRuntime vm { get; }
     protected CompilerContext ctx { get; }
     protected ITypeInfo? RequestedType { get; init; }
 

@@ -8,7 +8,7 @@ namespace KScr.Compiler.Class;
 
 public class ClassInfoVisitor : AbstractVisitor<ClassInfo>
 {
-    public ClassInfoVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+    public ClassInfoVisitor(CompilerRuntime vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 
@@ -28,7 +28,7 @@ public class ClassInfoVisitor : AbstractVisitor<ClassInfo>
 
 public class ClassVisitor : AbstractVisitor<Core.Std.Class>
 {
-    public ClassVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+    public ClassVisitor(CompilerRuntime vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 

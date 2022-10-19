@@ -10,7 +10,7 @@ namespace KScr.Compiler.Code;
 
 public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
 {
-    public TypeInfoVisitor(RuntimeBase vm, CompilerContext ctx) : base(vm, ctx)
+    public TypeInfoVisitor(CompilerRuntime vm, CompilerContext ctx) : base(vm, ctx)
     {
     }
 
