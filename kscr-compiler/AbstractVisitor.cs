@@ -6,7 +6,6 @@ using Antlr4.Runtime.Tree;
 using KScr.Antlr;
 using KScr.Compiler.Class;
 using KScr.Compiler.Code;
-using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;

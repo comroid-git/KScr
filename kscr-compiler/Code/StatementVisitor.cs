@@ -1,5 +1,4 @@
 using KScr.Antlr;
-using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
@@ -349,6 +348,6 @@ public class StatementVisitor : AbstractVisitor<Statement>
 
     public override Statement VisitStmtEmpty(KScrParser.StmtEmptyContext context)
     {
-        return new();
+        return new Statement();
     }
 }

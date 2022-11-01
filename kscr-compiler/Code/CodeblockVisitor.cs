@@ -1,5 +1,4 @@
 ﻿using KScr.Antlr;
-using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;

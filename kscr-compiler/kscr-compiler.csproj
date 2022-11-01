@@ -16,12 +16,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\kscr-bytecode\kscr-bytecode.csproj" />
+        <ProjectReference Include="..\kscr-bytecode\kscr-bytecode.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Antlr4.Runtime.Standard" Version="4.10.1" />
-        <PackageReference Include="Antlr4BuildTasks" Version="11.5.0" />
+        <PackageReference Include="Antlr4.Runtime.Standard" Version="4.10.1"/>
+        <PackageReference Include="Antlr4BuildTasks" Version="11.5.0"/>
     </ItemGroup>
 
     <ItemGroup>

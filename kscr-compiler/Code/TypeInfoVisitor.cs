@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using KScr.Antlr;
-using KScr.Core;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;

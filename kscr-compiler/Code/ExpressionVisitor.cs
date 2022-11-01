@@ -1,5 +1,4 @@
 ﻿using KScr.Antlr;
-using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
@@ -16,7 +15,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 
     public override StatementComponent VisitCheckInstanceof(KScrParser.CheckInstanceofContext context)
     {
-        return new()
+        return new StatementComponent
         {
             Type = StatementComponentType.Provider,
             CodeType = BytecodeType.Instanceof,
@@ -68,7 +67,6 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
     {
         var left = VisitExpression(context.left);
         if (context.mutation().binaryop() is { } op)
-        {
             return new StatementComponent
             {
                 Type = StatementComponentType.Operator,
@@ -78,7 +76,6 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
                 AltComponent = VisitExpression(context.mutation().expr()),
                 SourcefilePosition = ToSrcPos(context)
             };
-        }
 
         var right = VisitExpression(context.mutation());
         var actualType = left.OutputType(vm, ctx);
@@ -278,7 +275,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 
     public override StatementComponent VisitCast(KScrParser.CastContext context)
     {
-        return new()
+        return new StatementComponent
         {
             Type = StatementComponentType.Expression,
             CodeType = BytecodeType.Cast,
@@ -289,7 +286,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 
     public override StatementComponent VisitNewArray(KScrParser.NewArrayContext context)
     {
-        return new()
+        return new StatementComponent
         {
             Type = StatementComponentType.Provider,
             CodeType = BytecodeType.ArrayConstructor,
@@ -301,7 +298,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 
     public override StatementComponent VisitNewListedArray(KScrParser.NewListedArrayContext context)
     {
-        return new()
+        return new StatementComponent
         {
             Type = StatementComponentType.Provider,
             CodeType = BytecodeType.ArrayConstructor,
@@ -448,7 +445,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 
     public override StatementComponent VisitExprPipeListen(KScrParser.ExprPipeListenContext context)
     {
-        return new()
+        return new StatementComponent
         {
             Type = StatementComponentType.Code,
             CodeType = BytecodeType.Parentheses,
@@ -458,11 +455,11 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
 
     public override StatementComponent VisitTernary(KScrParser.TernaryContext context)
     {
-        return new()
+        return new StatementComponent
         {
             Type = StatementComponentType.Expression,
             CodeType = BytecodeType.StmtIf,
-            SubStatement = new Statement()
+            SubStatement = new Statement
             {
                 Type = StatementComponentType.Expression,
                 CodeType = BytecodeType.StmtCond,

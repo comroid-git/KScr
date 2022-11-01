@@ -77,12 +77,13 @@ public class PackageNode : SourceNode
 
     public static int ReadPackageMembersRec(IEnumerable<SourceNode> nodes)
     {
-        int c = 0;
+        var c = 0;
         foreach (var node in nodes.Where(x => x is PackageNode).Cast<PackageNode>())
         {
             c += node.ReadPackages();
             c += ReadPackageMembersRec(node.Nodes);
         }
+
         return c;
     }
 
@@ -95,63 +96,68 @@ public class PackageNode : SourceNode
             Nodes.Add(ForPackage(vm, ctx, dir, Package));
             c++;
         }
+
         return c;
     }
 
     private static int ReadFilesRec(IEnumerable<SourceNode> nodes)
     {
-        int c = 0;
+        var c = 0;
         foreach (var node in nodes.Where(x => x is PackageNode).Cast<PackageNode>())
         {
             c += node.ReadFiles();
             c += ReadFilesRec(node.Nodes);
         }
+
         return c;
     }
 
     public int ReadFiles()
     {
-        int c = 0;
-        foreach (var sub in Directory.EnumerateFiles(Path, '*' + RuntimeBase.SourceFileExt, SearchOption.TopDirectoryOnly))
+        var c = 0;
+        foreach (var sub in Directory.EnumerateFiles(Path, '*' + RuntimeBase.SourceFileExt,
+                     SearchOption.TopDirectoryOnly))
         {
             var file = new FileInfo(sub);
             Nodes.Add(new FileNode(vm, ctx, this, file));
             c++;
         }
+
         return c;
     }
 
     public static int ReadClassesRec(IEnumerable<SourceNode> nodes)
     {
-        int c = 0; 
+        var c = 0;
         foreach (var node in nodes)
         {
             if (node is FileNode fn)
                 c += fn.ReadClass();
             c += ReadClassesRec(node.Nodes);
         }
+
         return c;
     }
 }
 
 public class FileNode : SourceNode
 {
+    public FileNode(CompilerRuntime vm, CompilerContext ctx, PackageNode pkg, FileInfo file) : base(vm, ctx)
+    {
+        Pkg = pkg;
+        File = file;
+        ClassInfo = vm.FindClassInfo(file);
+        Decl = vm.MakeFileDecl(File);
+        Imports = vm.FindClassImports(Decl.imports());
+        Cls = Pkg.Package.GetOrCreateClass(vm, ClassInfo.Name, ClassInfo.Modifier, ClassInfo.ClassType)!;
+    }
+
     public PackageNode Pkg { get; }
     public FileInfo File { get; }
     public ClassInfo ClassInfo { get; }
     public KScrParser.FileContext Decl { get; }
     public List<string> Imports { get; }
     public Core.Std.Class Cls { get; }
-
-    public FileNode(CompilerRuntime vm, CompilerContext ctx, PackageNode pkg, FileInfo file) : base(vm, ctx)
-    {
-        this.Pkg = pkg;
-        this.File = file;
-        this.ClassInfo = vm.FindClassInfo(file);
-        this.Decl = vm.MakeFileDecl(File);
-        this.Imports = vm.FindClassImports(Decl.imports());
-        this.Cls = Pkg.Package.GetOrCreateClass(vm, ClassInfo.Name, ClassInfo.Modifier, ClassInfo.ClassType)!;
-    }
 
     public int ReadClass()
     {
@@ -165,7 +171,7 @@ public class FileNode : SourceNode
     {
         if (Decl.classDecl().Length != 1)
             throw new NotImplementedException("Unable to load more than one class from source file " + File.FullName);
-        var ctx = new CompilerContext { Parent = this.ctx, Class = Cls, Imports = this.Imports };
+        var ctx = new CompilerContext { Parent = this.ctx, Class = Cls, Imports = Imports };
         var kls = Decl.classDecl(0);
         try
         {
@@ -190,7 +196,8 @@ public class FileNode : SourceNode
 
 public class MemberNode : SourceNode
 {
-    public MemberNode(CompilerRuntime vm, CompilerContext ctx, PackageNode pkg, MemberNode? parent = null) : base(vm, ctx)
+    public MemberNode(CompilerRuntime vm, CompilerContext ctx, PackageNode pkg, MemberNode? parent = null) : base(vm,
+        ctx)
     {
         Pkg = pkg;
         Parent = parent;
@@ -260,10 +267,11 @@ public class MemberNode : SourceNode
                 Type = VisitTypeInfo(param.type()),
                 Name = param.idPart().GetText()
             });
-        foreach (var super in context.subConstructorCalls()?.subConstructorCall() ?? Array.Empty<KScrParser.SubConstructorCallContext>())
+        foreach (var super in context.subConstructorCalls()?.subConstructorCall() ??
+                              Array.Empty<KScrParser.SubConstructorCallContext>())
         {
             var superType = ctx.FindType(vm, super.type().GetText())!;
-            ctor.SuperCalls.Add(new StatementComponent()
+            ctor.SuperCalls.Add(new StatementComponent
             {
                 Type = StatementComponentType.Code,
                 CodeType = BytecodeType.ConstructorCall,
@@ -271,6 +279,7 @@ public class MemberNode : SourceNode
                 SubStatement = VisitArguments(super.arguments())
             });
         }
+
         return new MemberNode(vm, ctx, Pkg, this)
         {
             MemberContext = context,

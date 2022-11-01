@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using KScr.Antlr;
-using KScr.Core;
+﻿using KScr.Antlr;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
 

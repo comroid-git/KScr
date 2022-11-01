@@ -160,7 +160,7 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         returnType = vm.FindType(ReadString(stream, strings));
         srcPos = Load<SourcefilePosition>(vm, strings, stream, pkg, cls);
         var parameters = ReadArray<MethodParameter>(vm, stream, strings, pkg, cls);
-        StatementComponent[]? supers = name == Method.ConstructorName
+        var supers = name == Method.ConstructorName
             ? ReadArray<StatementComponent>(vm, stream, strings, pkg, cls)
             : null;
         var body = Load<ExecutableCode>(vm, strings, stream, pkg, cls);
