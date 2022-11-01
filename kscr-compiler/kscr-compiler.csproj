@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <RootNamespace></RootNamespace>
+        <RootNamespace>KScr.Compiler</RootNamespace>
         <Nullable>enable</Nullable>
         <Company>comroid</Company>
         <AssemblyVersion>0.3.1</AssemblyVersion>
@@ -21,6 +21,25 @@
 
     <ItemGroup>
         <PackageReference Include="Antlr4.Runtime.Standard" Version="4.10.1" />
+        <PackageReference Include="Antlr4BuildTasks" Version="11.5.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Antlr4 Include="../grammar/KScrLexer.g4">
+            <Generator>MSBuild:Compile</Generator>
+            <Package>KScr.Antlr</Package>
+            <Listener>False</Listener>
+            <Visitor>True</Visitor>
+        </Antlr4>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Antlr4 Include="../grammar/KScrParser.g4">
+            <Generator>MSBuild:Compile</Generator>
+            <Package>KScr.Antlr</Package>
+            <Listener>False</Listener>
+            <Visitor>True</Visitor>
+        </Antlr4>
     </ItemGroup>
 
 </Project>
