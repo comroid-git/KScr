@@ -4,6 +4,7 @@ using System.Linq;
 using KScr.Core.Bytecode;
 using KScr.Core.Std;
 using KScr.Core.Store;
+using KScr.Core.Util;
 
 namespace KScr.Core.Model;
 
@@ -73,12 +74,12 @@ public interface IClass : IClassInfo, IClassMember, IPackageMember
     new MemberModifier Modifier { get; }
     Class BaseClass { get; }
     ClassRef SelfRef { get; }
-    IEnumerable<IClassMember> ClassMembers => DeclaredMembers.Values.Concat(InheritedMembers);
+    IEnumerable<IClassMember> ClassMembers => DeclaredMembers.Values.SelectMany(x => x).Concat(InheritedMembers);
 
     IEnumerable<IClassMember> InheritedMembers =>
         Inheritors.Where(it => it != null).SelectMany(it => it.ClassMembers);
 
-    IDictionary<string, IClassMember> DeclaredMembers { get; }
+    Dictionary<string, MemberFootprintContainer> DeclaredMembers { get; }
     IEnumerable<IClassInstance> Inheritors => Superclasses.Concat(Interfaces);
     IEnumerable<IClassInstance> Superclasses { get; }
     IEnumerable<IClassInstance> Interfaces { get; }
