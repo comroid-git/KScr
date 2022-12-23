@@ -14,11 +14,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj"/>
+        <ProjectReference Include="..\kscr-compiler\kscr-compiler.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="0.19.6"/>
+        <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="0.19.7" />
     </ItemGroup>
 
 </Project>
