@@ -6,7 +6,7 @@ using static KScr.Test.TestUtil;
 
 namespace KScr.Test;
 
-[Parallelizable(ParallelScope.Children)]
+[Parallelizable(ParallelScope.None)]
 public class OperatorTest
 {
     public static readonly Random rng = new();
