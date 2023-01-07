@@ -37,6 +37,11 @@ public sealed class Program
         var (baseModule, exported) = ExtractModules(cmd);
 
         SortModulesByCoDependencies(exported);
+        
+        foreach (var module in exported)
+        {
+            // TODO build the modules
+        }
     }
     
     private class CoDepNode
