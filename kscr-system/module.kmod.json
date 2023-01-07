@@ -1,0 +1,13 @@
+﻿{
+  "project": {
+    "domain": "org.comroid",
+    "group": "kscr",
+    "id": "system"
+  },
+  "build": {
+    "base_package": "org.comroid.kscr",
+    "sources": "src/",
+    "resources": "res/",
+    "output": "../kscr-runtime/bin/net6.0/std/"
+  }
+}
