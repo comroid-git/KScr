@@ -2,7 +2,7 @@
   <configuration default="false" name="Test Build - build" type="DotNetProject" factoryName=".NET Project">
     <option name="EXE_PATH" value="$PROJECT_DIR$/kscr-build/bin/net6.0/kbuild.exe" />
     <option name="PROGRAM_PARAMETERS" value="build" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/examples/modular" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/examples/modular/testing" />
     <option name="PASS_PARENT_ENVS" value="1" />
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
     <option name="USE_MONO" value="0" />

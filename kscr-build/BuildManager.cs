@@ -2,6 +2,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Aspose.Zip;
 using Aspose.Zip.Saving;
 using comroid.csapi.common;
@@ -26,8 +27,8 @@ public sealed class DependencyManager
     public static void PublishToLocalRepository(Module module)
     {
         var dir = Path.Combine(LocalRepositoryDir, string.Join(Path.DirectorySeparatorChar, module.Project.Strings()));
-        var desc = Path.Combine(dir, KScrBuild.ModuleFile);
-        var lib = Path.Combine(dir, KScrBuild.ModuleLibFile);
+        var desc = Path.Combine(dir, RuntimeBase.ModuleFile);
+        var lib = Path.Combine(dir, RuntimeBase.ModuleLibFile);
 
         if (!Directory.Exists(dir))
             Directory.CreateDirectory(dir);
@@ -68,52 +69,70 @@ public sealed class DependencyManager
 
     public static DirectoryInfo? Resolve(Module module, DependencyInfo dep)
     {
-        // todo: this code needs testing
-        var urlPath = string.Join("/", dep.Strings()) + '/';
-
-        if (Directory.Exists(Path.Combine(LocalRepositoryDir, urlPath)) &&
-            new FileInfo(Path.Combine(LocalRepositoryDir, urlPath, "location")) is { Exists: true } link &&
-            new DirectoryInfo(File.ReadAllText(link.FullName).Trim()) is { Exists: true } dir)
-            return dir; // handle as project link
-
-        if (Directory.Exists(Path.Combine(LibrariesDir, urlPath)) &&
-            new FileInfo(Path.Combine(LibrariesDir, urlPath, KScrBuild.ModuleFile)) is { Exists: true } desc &&
-            JsonSerializer.Deserialize<ModuleInfo>(File.OpenRead(desc.FullName)) is { } mod)
-            return ResolveModule(module, mod, urlPath) ??
-                   Log<DependencyManager>.At<DirectoryInfo?>(LogLevel.Warning,
-                       $"Could not resolve dependency {dep}");
-        foreach (var repo in module.Repositories)
+        Exception? ex = null;
+        try
         {
-            var moduleUrl = CombineUrl(repo.Url, urlPath);
-            var response =
-                http.Send(new HttpRequestMessage(HttpMethod.Get, CombineUrl(moduleUrl, KScrBuild.ModuleFile)));
-            switch (response.StatusCode)
+            var useLatest = new[] { '+' }.Any(dep.Version.Contains);
+            var urlPath = string.Join("/", useLatest ? dep.Strings()[..^1] : dep.Strings()) + '/';
+            foreach (var repo in new[] { LocalRepositoryDir, LibrariesDir })
             {
-                case HttpStatusCode.OK:
-                    var uncached = JsonSerializer.Deserialize<ModuleInfo>(response.Content.ReadAsStream())!;
-                    return ResolveModule(module, uncached, urlPath, moduleUrl) ??
-                           Log<DependencyManager>.At<DirectoryInfo?>(LogLevel.Warning,
-                               $"Could not resolve dependency {dep}");
-                case HttpStatusCode.NotFound:
-                    Log<DependencyManager>.At(LogLevel.Trace,
-                        $"Could not resolve dependency {dep} in repository {repo}");
-                    continue;
-                default:
-                    Log<DependencyManager>.At(LogLevel.Error, $"Unexpected response: {response.StatusCode}");
-                    break;
+                if (Directory.Exists(Path.Combine(repo, urlPath)))
+                { // handle as project link
+                    if (useLatest)
+                    {
+                        var name = Directory.EnumerateDirectories(Path.Combine(repo, urlPath))
+                            .Select(path => new DirectoryInfo(path))
+                            .Where(dir => Regex.IsMatch(dir.Name, "\\d+\\.\\d+(\\.\\d+)?(\\.\\d+)?"))
+                            .MinBy(dir => new Version(dir.Name))?.Name;
+                        if (name != null)
+                            urlPath = CombineUrl(urlPath, name);
+                    }
+
+                    var descFile = repo + urlPath + Path.DirectorySeparatorChar + RuntimeBase.ModuleFile;
+                    if (new FileInfo(descFile) is { Exists: true } desc&&
+                        JsonSerializer.Deserialize<ModuleInfo>(File.OpenRead(desc.FullName)) is { } mod)
+                        return ResolveModule(module, mod, urlPath) ??
+                               Log<DependencyManager>.At<DirectoryInfo?>(LogLevel.Warning,
+                                   $"Could not resolve dependency {dep}");
+                }
+            }
+
+            foreach (var repo in module.Repositories)
+            {
+                var moduleUrl = CombineUrl(repo.Url, urlPath);
+                var response =
+                    http.Send(new HttpRequestMessage(HttpMethod.Get, CombineUrl(moduleUrl, RuntimeBase.ModuleFile)));
+                switch (response.StatusCode)
+                {
+                    case HttpStatusCode.OK:
+                        var uncached = JsonSerializer.Deserialize<ModuleInfo>(response.Content.ReadAsStream())!;
+                        return ResolveModule(module, uncached, urlPath, moduleUrl) ??
+                               Log<DependencyManager>.At<DirectoryInfo?>(LogLevel.Warning,
+                                   $"Could not resolve dependency {dep}");
+                    case HttpStatusCode.NotFound:
+                        Log<DependencyManager>.At(LogLevel.Trace,
+                            $"Could not resolve dependency {dep} in repository {repo}");
+                        continue;
+                    default:
+                        Log<DependencyManager>.At(LogLevel.Error, $"Unexpected response: {response.StatusCode}");
+                        break;
+                }
             }
         }
-
-        Log<DependencyManager>.At(LogLevel.Warning, $"Could not resolve dependency {dep}");
+        catch (Exception e)
+        {
+            ex = e;
+        }
+        Log<DependencyManager>.At(LogLevel.Warning, $"Could not resolve dependency {dep} {(ex == null ? string.Empty : ";\r\n" + ex)}");
         return null;
     }
 
-    private static DirectoryInfo? ResolveModule(Module project, ModuleInfo mod, string? urlPath = null,
+    private static DirectoryInfo? ResolveModule(Module project, ModuleInfo mod, string urlPath,
         string? url = null)
     {
         foreach (var dependency in mod.Dependencies ?? ArraySegment<DependencyInfo>.Empty)
             Resolve(project, dependency);
-        if (urlPath != null && url != null)
+        if (url != null)
         {
             // need to cache the module
             var response = http.Send(new HttpRequestMessage(HttpMethod.Get,
@@ -129,8 +148,11 @@ public sealed class DependencyManager
             Log<DependencyManager>.At(LogLevel.Error,
                 $"Unexpected response when resolving dependency {mod.Project}: {response.StatusCode}");
         }
-
-        return null;
+        return new[] { LocalRepositoryDir, LibrariesDir }
+                .Select(repo => repo + urlPath)
+                .Where(Directory.Exists)
+                .Select(path => new DirectoryInfo(path))
+                .FirstOrDefault();
     }
 
     #endregion

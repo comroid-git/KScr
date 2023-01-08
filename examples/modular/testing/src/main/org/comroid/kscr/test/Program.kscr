@@ -1,0 +1,7 @@
+﻿package org.comroid.kscr.test;
+
+public class Program {
+    public static void main() {
+        stdio <<- "Hello, world";
+    }
+}

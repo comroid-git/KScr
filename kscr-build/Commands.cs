@@ -31,3 +31,9 @@ public class CmdPublish : CmdBase
 {
     public DirectoryInfo? Dir { get; set; }
 }
+
+[Verb("run")]
+public class CmdRun : CmdBase
+{
+    public DirectoryInfo? Dir { get; set; }
+}

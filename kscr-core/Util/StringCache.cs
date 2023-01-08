@@ -53,13 +53,11 @@ public sealed class StringCache
 
     public void Write(DirectoryInfo dir)
     {
-        Write(MakeFile(dir));
+        Write(MakeFile(dir).OpenWrite());
     }
 
-    public void Write(FileInfo file)
+    public void Write(Stream stream)
     {
-        Stream stream = new FileStream(file.FullName, FileMode.Create);
-
         stream.Write(BitConverter.GetBytes(_strings.Count));
         stream.Write(NewLineBytes);
         stream.Flush();
@@ -76,47 +74,38 @@ public sealed class StringCache
         stream.Close();
     }
 
-    public void Load(FileInfo file)
+    public void Load(Stream stream)
     {
-        if (!file.Exists)
-        {
-            Log<StringCache>.At(LogLevel.Warning, "Empty StringCache loaded");
-        }
-        else
-        {
-            Stream stream = new FileStream(file.FullName, FileMode.Open);
-            //stream = new GZipStream(stream, CompressionMode.Decompress);
-            // ReSharper disable once NotAccessedVariable
-            int i = 0, c;
-            byte[] buf;
+        // ReSharper disable once NotAccessedVariable
+        int i = 0, c;
+        byte[] buf;
 
+        i += stream.Read(buf = new byte[4]);
+        c = BitConverter.ToInt32(buf);
+        i += stream.Read(buf = new byte[NewLineBytes.Length]);
+        while (c-- > 0)
+        {
             i += stream.Read(buf = new byte[4]);
-            c = BitConverter.ToInt32(buf);
+            var l = BitConverter.ToInt32(buf);
+            i += stream.Read(buf = new byte[l]);
+            var value = RuntimeBase.Encoding.GetString(buf);
             i += stream.Read(buf = new byte[NewLineBytes.Length]);
-            while (c-- > 0)
-            {
-                i += stream.Read(buf = new byte[4]);
-                var l = BitConverter.ToInt32(buf);
-                i += stream.Read(buf = new byte[l]);
-                var value = RuntimeBase.Encoding.GetString(buf);
-                i += stream.Read(buf = new byte[NewLineBytes.Length]);
 
-                _strings.Add(value);
-            }
-
-            stream.Close();
+            _strings.Add(value);
         }
+
+        stream.Close();
     }
 
     public static StringCache Read(DirectoryInfo dir)
     {
-        return Read(MakeFile(dir));
+        return Read(MakeFile(dir).OpenRead());
     }
 
-    public static StringCache Read(FileInfo file)
+    public static StringCache Read(Stream stream)
     {
         var strings = new StringCache();
-        strings.Load(file);
+        strings.Load(stream);
         return strings;
     }
 

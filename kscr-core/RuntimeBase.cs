@@ -435,4 +435,8 @@ public abstract class RuntimeBase : IBytecodePort
             }
         }
     }
+
+    public const string ModulesFile = $"modules{RuntimeBase.ModuleFileExt}.json";
+    public const string ModuleFile = $"module{RuntimeBase.ModuleFileExt}.json";
+    public const string ModuleLibFile = $"lib{RuntimeBase.ModuleFileExt}";
 }

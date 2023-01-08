@@ -1,7 +1,8 @@
 ﻿ {
   "project": {
     "basePackage": "+testing",
-    "id": "testing"
+    "id": "testing",
+    "version": "0.1.0"
   },
   "build": {
     "pre": "runBeforeBuild",
@@ -12,12 +13,18 @@
       "domain": "org.comroid",
       "group": "kscr",
       "id": "common",
-      "scope": "implementation"
+      "scope": 3
     },
     {
-      "domain": "org.jetbrains",
+      "domain": "org.comroid",
+      "group": "kscr",
+      "id": "system",
+      "scope": 3
+    },
+    {
+      "domain": "org.comroid",
       "group": "annotations",
-      "scope": "compile"
+      "scope": 1
     }
   ]
 }

@@ -35,8 +35,7 @@ public class Module
             var cmd = new CmdCompile()
             {
                 Args = ArraySegment<string>.Empty,
-                Classpath = Dependencies.Select(dep =>
-                    DependencyManager.Resolve(this, dep) ?? throw new Exception("Unable to continue with build")),
+                Classpath = Dependencies.Select(dep => DependencyManager.Resolve(this, dep)).Where(x => x != null)!,
                 Output = new DirectoryInfo(ModulesInfo?.Build.Output ?? Build.Output ?? "build/classes/"),
                 PkgBase = ModulesInfo?.Build.BasePackage ?? Build.BasePackage,
                 Source = ModulesInfo?.Build.Sources ?? Build.Sources ?? "src/main/",
@@ -53,7 +52,7 @@ public class Module
             var compileTime = KScrStarter.CompileSource(cmd, cmd.PkgBase);
             if (KScrStarter.VM.CompilerErrors.Count > 0)
                 foreach (var error in KScrStarter.VM.CompilerErrors)
-                    Log<Module>.At(LogLevel.Error, "Compiler Error:\n" + error);
+                    Log<Module>.At(LogLevel.Error, "Compiler Error:\r\n" + error);
             var ioTime = KScrStarter.WriteClasses(cmd);
             Log<Module>.At(LogLevel.Info, $"Build {Notation} succeeded; {KScrStarter.IOTimeString(compileTime, ioTime: ioTime)}");
             Environment.CurrentDirectory = oldwkdir;

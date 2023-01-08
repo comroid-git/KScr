@@ -14,8 +14,8 @@ public sealed class ModuleInfo
     public IEnumerable<DependencyInfo>? Dependencies { get; set; }
     [JsonPropertyName("publishing")]
     public PublishingInfo Publishing { get; set; } = new();
-    [JsonPropertyName("isCachedLibrary")]
-    public bool IsCachedLibrary { get; set; } = false;
+    [JsonPropertyName("mainClassName")]
+    public string? MainClassName { get; set; }
 
     public string Notation => Project.ToString();
     public override string ToString() =>
