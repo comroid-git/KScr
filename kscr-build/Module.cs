@@ -28,26 +28,20 @@ public class Module
 
     public void RunBuild()
     {
-        try
+        Log<Module>.WithExceptionLogger(() =>
         {
             var cmd = new CmdCompile()
             {
                 Args = ArraySegment<string>.Empty,
                 Classpath = ArraySegment<DirectoryInfo>.Empty,
-                Confirm = Build.CompilerArgs?.Contains("--confirm") ?? false,
-                Debug = Build.CompilerArgs?.Contains("--debug") ?? false,
                 Output = new DirectoryInfo(Build.Output ?? "build/classes/"),
                 PkgBase = Build.BasePackage,
                 Source = Build.Sources ?? "src/main/",
-                System = Build.CompilerArgs?.Contains("--system") ?? false,
+                System = Build.BasePackage == "org.comroid.kscr"
             };
             KScrStarter.HandleCompile(cmd);
             Log<Module>.At(LogLevel.Info, $"Build {Notation} succeeded");
-        }
-        catch (Exception e)
-        {
-            Log<Module>.At(LogLevel.Fatal, $"Build {Notation} failed with exception:\n{e}");
-        }
+        }, $"Build {Notation} failed with exception");
     }
     
     public override string ToString() =>

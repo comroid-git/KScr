@@ -8,7 +8,9 @@ public sealed class ModuleInfo
     public ProjectInfo Project { get; set; } = new();
     [JsonPropertyName("build")]
     public BuildInfo Build { get; set; } = new();
+    [JsonPropertyName("repositories")]
     public IEnumerable<RepositoryInfo>? Repositories { get; set; }
+    [JsonPropertyName("dependencies")]
     public IEnumerable<DependencyInfo>? Dependencies { get; set; }
 
     public string Notation => Project.ToString();
@@ -72,8 +74,6 @@ public sealed class BuildInfo
     public string? Resources { get; set; }
     [JsonPropertyName("output")]
     public string? Output { get; set; }
-    [JsonPropertyName("compiler_args")]
-    public string? CompilerArgs { get; set; }
     [JsonPropertyName("pre")]
     public string? Pre { get; set; }
     [JsonPropertyName("post")]
