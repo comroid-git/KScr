@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Antlr4.Runtime;
+using comroid.csapi.common;
 using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
@@ -45,7 +46,7 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>
             else throw new FatalException("Invalid Node to revisit: " + node);
 
         if (!rec)
-            Debug.WriteLine($"[NodeCompiler] Revisited {c} members");
+            Log<CompilerRuntime>.At(LogLevel.Debug, $"Revisited {c} members");
         return c;
     }
 }
@@ -69,10 +70,10 @@ public class PackageNode : SourceNode
         pc += ReadPackageMembersRec(Nodes);
         fc += ReadFilesRec(Nodes);
         mc += ReadClassesRec(Nodes);
-        Debug.WriteLine($"[NodeCompiler] Loaded {pc} packages");
-        Debug.WriteLine($"[NodeCompiler] Loaded {fc} files");
-        Debug.WriteLine($"[NodeCompiler] Loaded {mc} members");
-        Debug.WriteLine($"[NodeCompiler] Loaded {pc + fc + mc} nodes");
+        Log<CompilerRuntime>.At(LogLevel.Debug, $"Loaded {pc} packages");
+        Log<CompilerRuntime>.At(LogLevel.Debug, $"Loaded {fc} files");
+        Log<CompilerRuntime>.At(LogLevel.Debug, $"Loaded {mc} members");
+        Log<CompilerRuntime>.At(LogLevel.Debug, $"Loaded {pc + fc + mc} nodes");
     }
 
     public static int ReadPackageMembersRec(IEnumerable<SourceNode> nodes)

@@ -357,7 +357,8 @@ public abstract class RuntimeBase : IBytecodePort
             return kls!.CreateInstance(this, owner as Class, tParams.Cast<ITypeInfo>().ToArray());
         }
 
-        return ClassStore.FindType(this, package ?? Package.RootPackage, name)?.DefaultInstance;
+        return (package ?? Package.RootPackage).GetClass(this, name.Split("."))?.DefaultInstance 
+               ?? ClassStore.FindType(this, package ?? Package.RootPackage, name)?.DefaultInstance;
     }
 
     public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)

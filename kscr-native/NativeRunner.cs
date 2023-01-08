@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
+using comroid.csapi.common;
 using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
@@ -18,18 +19,19 @@ public class NativeRunner : INativeRunner
     public NativeRunner()
     {
         // load all NativeImpl annotated members
-        Debug.WriteLine("[NativeRunner] Loading native implementations...");
+        Log<NativeRunner>.At(LogLevel.Debug, "Loading native implementations...");
 
         // load system assembly
-        LoadNativeAssembly(Path.Combine(RuntimeBase.SdkHome.FullName, "kscr-system.dll"));
+        var loaded = LoadNativeAssembly(Path.Combine(RuntimeBase.SdkHome.FullName, "kscr-system.dll"));
+        Log<NativeRunner>.At(LogLevel.Debug, $"Processed {loaded} types from assembly kscr-system.dll");
 
         var dir = new DirectoryInfo(Path.Combine(RuntimeBase.SdkHome.FullName, "native"));
         if (!dir.Exists)
             dir.Create();
         foreach (var assemblyPath in dir.EnumerateFiles("*.dll", SearchOption.AllDirectories))
         {
-            var loaded = LoadNativeAssembly(assemblyPath.FullName);
-            Debug.WriteLine($"[NativeRunner] Processed {loaded} types from assembly {assemblyPath}");
+            loaded = LoadNativeAssembly(assemblyPath.FullName);
+            Log<NativeRunner>.At(LogLevel.Debug, $"Processed {loaded} types from assembly {assemblyPath}");
         }
     }
 

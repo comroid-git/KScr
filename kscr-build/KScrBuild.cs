@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using CommandLine;
 using comroid.csapi.common;
+using KScr.Runtime;
 
 namespace KScr.Build;
 
@@ -9,10 +10,18 @@ public sealed class KScrBuild
     public const string ModulesFile = "modules.kmod.json";
     public const string ModuleFile = "module.kmod.json";
 
-    public static void Main(string[] args) => Parser.Default.ParseArguments<CmdBuild, CmdDependencies, CmdInfo>(args)
+    static KScrBuild()
+    {
+        ILog.BaseLogger.FullNames = false;
+        
+        // initialize KScrStarter class
+        KScrStarter.IOTimeString();
+    }
+
+    public static void Main(string[] args) => Log<KScrBuild>.WithExceptionLogger(() => Parser.Default.ParseArguments<CmdBuild, CmdDependencies, CmdInfo>(args)
         .WithParsed<CmdBuild>(RunBuild)
         .WithParsed<CmdDependencies>(PrintDependencies)
-        .WithParsed<CmdInfo>(PrintInfo);
+        .WithParsed<CmdInfo>(PrintInfo), "Build failed with unhandled exception");
 
     private static (ModuleInfo baseModule, List<Module> exported) ExtractModules(CmdBase cmd)
     {
@@ -21,18 +30,18 @@ public sealed class KScrBuild
         var modulesInfo = modulesFile == null
             ? Log<KScrBuild>.At<ModuleInfo>(LogLevel.Config, $"No {ModulesFile} was found in {dir.FullName}")
             : JsonSerializer.Deserialize<ModuleInfo>(File.ReadAllText(modulesFile.FullName)) ??
-              throw new Exception("Unable to parse " + ModulesFile);
+              throw new Exception($"Unable to parse {ModulesFile} in {dir.FullName}");
         if (modulesInfo != null)
-            Log<KScrBuild>.At(LogLevel.Info, $"Found Module root {dir.FullName} as Project {modulesInfo.Project}");
+            Log<KScrBuild>.At(LogLevel.Config, $"Found Module root {dir.FullName} as Project {modulesInfo.Project}");
         else modulesInfo = new ModuleInfo();
         List<Module> exported = new();
         foreach (var moduleFile in dir.EnumerateFiles(ModuleFile, SearchOption.AllDirectories))
         {
             var moduleInfo = JsonSerializer.Deserialize<ModuleInfo>(File.ReadAllText(moduleFile.FullName)) ??
-                             throw new Exception("Unable to parse " + ModuleFile + " for module " + moduleFile.Directory!.Name);
+                             throw new Exception($"Unable to parse {ModuleFile} in module {moduleFile.Directory!.FullName}");
             var module = new Module(modulesInfo, moduleInfo, moduleFile.Directory!);
             exported.Add(module);
-            Log<KScrBuild>.At(LogLevel.Info, $"Found {module}");
+            Log<KScrBuild>.At(LogLevel.Config, $"Found {module} at {moduleFile.FullName}");
         }
         return (modulesInfo, exported);
     }

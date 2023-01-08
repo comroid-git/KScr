@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using comroid.csapi.common;
 using KScr.Core.Bytecode;
 using KScr.Core.Std;
 
@@ -79,7 +80,7 @@ public sealed class StringCache
     {
         if (!file.Exists)
         {
-            Debug.WriteLine("[StringCache] Warning: Empty StringCache loaded");
+            Log<StringCache>.At(LogLevel.Warning, "Empty StringCache loaded");
         }
         else
         {

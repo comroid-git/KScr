@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using comroid.csapi.common;
 using KScr.Core;
 using KScr.Core.Std;
 using KScr.Core.Store;
@@ -47,7 +48,7 @@ public class TestUtil
         sw.Write(code);
         sw.Close();
 
-        Debug.WriteLine($"Running {testName} in test dir {testDir}");
+        Log<TestUtil>.At(LogLevel.Info, $"Running {testName} in test dir {testDir}");
 
         var cmd = new CmdExecute
         {
@@ -67,7 +68,7 @@ public class TestUtil
         if (stack[StackOutput.Omg]?.Value is Numeric num)
             RuntimeBase.ExitCode = num.IntValue;
 
-        Debug.WriteLine(
+        Log<TestUtil>.At(LogLevel.Info, 
             $"Test compilation took {(double)compileTime / 1000:#,##0.00}ms, execution took {(double)executeTime / 1000:#,##0.00}ms");
 
         return (RuntimeBase.ExitCode, outw.ToString());

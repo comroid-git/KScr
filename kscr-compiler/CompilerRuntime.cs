@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Antlr4.Runtime;
+using comroid.csapi.common;
 using KScr.Antlr;
 using KScr.Bytecode;
 using KScr.Compiler.Class;
@@ -34,7 +35,7 @@ public class CompilerRuntime : BytecodeRuntime
                 { Parent = ctx, Class = FindClassInfo(src), Imports = FindClassImports(decl.imports()) };
             node = new FileNode(this, ctx, new PackageNode(this, ctx, src.DirectoryName!, pkg), src).CreateClassNode();
             var mc = (node as MemberNode)!.ReadMembers();
-            Debug.WriteLine($"[NodeCompiler] Loaded {mc} members");
+            Log<CompilerRuntime>.At(LogLevel.Debug, $"Loaded {mc} members");
         }
         else if (Directory.Exists(source))
         {
