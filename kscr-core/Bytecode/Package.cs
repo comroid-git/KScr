@@ -52,7 +52,9 @@ public sealed class Package : AbstractPackageMember
                 var file = new FileInfo(Path.Combine(dir.FullName, (member.Name.Contains("<")
                     ? member.Name.Substring(0, member.Name.IndexOf("<", StringComparison.Ordinal))
                     : member.Name) + ".kbin"));
-                vm.Write(FStream(vm, file, FileMode.Create), strings, cls);
+                var fStream = FStream(vm, file, FileMode.Create);
+                vm.Write(fStream, strings, cls);
+                fStream.Dispose();
             }
             else
             {
@@ -83,9 +85,11 @@ public sealed class Package : AbstractPackageMember
 
         foreach (var cls in dir.EnumerateFiles("*.kbin"))
         {
-            var kls = vm.Load<Class>(vm, strings, FStream(vm, cls, FileMode.Open), it,
+            var fStream = FStream(vm, cls, FileMode.Open);
+            var kls = vm.Load<Class>(vm, strings, fStream, it,
                 null); //Class.Read(vm, strings, cls, it);
             //it.Members[kls.Name] = kls;
+            fStream.Dispose();
         }
 
         return it;

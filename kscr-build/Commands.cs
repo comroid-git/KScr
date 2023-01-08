@@ -8,8 +8,8 @@ public interface CmdBase
     public DirectoryInfo? Dir { get; set; }
 }
 
-[Verb("build")]
-public class CmdBuild : CmdBase
+[Verb("info")]
+public class CmdInfo : CmdBase
 {
     public DirectoryInfo? Dir { get; set; }
 }
@@ -20,8 +20,14 @@ public class CmdDependencies : CmdBase
     public DirectoryInfo? Dir { get; set; }
 }
 
-[Verb("info")]
-public class CmdInfo : CmdBase
+[Verb("build")]
+public class CmdBuild : CmdBase
+{
+    public DirectoryInfo? Dir { get; set; }
+}
+
+[Verb("publish")]
+public class CmdPublish : CmdBase
 {
     public DirectoryInfo? Dir { get; set; }
 }

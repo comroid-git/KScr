@@ -1,14 +1,15 @@
 ﻿using System.Text.Json;
 using CommandLine;
 using comroid.csapi.common;
-using KScr.Runtime;
+using KScr.Core;
 
 namespace KScr.Build;
 
 public sealed class KScrBuild
 {
-    public const string ModulesFile = "modules.kmod.json";
-    public const string ModuleFile = "module.kmod.json";
+    public const string ModulesFile = $"modules{RuntimeBase.ModuleFileExt}.json";
+    public const string ModuleFile = $"module{RuntimeBase.ModuleFileExt}.json";
+    public const string ModuleLibFile = $"lib{RuntimeBase.ModuleFileExt}";
 
     static KScrBuild()
     {
@@ -17,15 +18,33 @@ public sealed class KScrBuild
 
     public static void Main(string[] args)
     {
-        Log<KScrBuild>.WithExceptionLogger(() => Parser.Default.ParseArguments<CmdBuild, CmdDependencies, CmdInfo>(args)
-            .WithParsed<CmdBuild>(RunBuild)
-            .WithParsed<CmdDependencies>(PrintDependencies)
-            .WithParsed<CmdInfo>(PrintInfo), "Build failed with unhandled exception");
+        Log<KScrBuild>.WithExceptionLogger(() => Parser.Default.ParseArguments<CmdInfo, CmdDependencies, CmdBuild, CmdPublish>(args)
+                .WithParsed<CmdInfo>(PrintInfo)
+                .WithParsed<CmdDependencies>(PrintDependencies)
+                .WithParsed<CmdBuild>(RunBuild)
+                .WithParsed<CmdPublish>(RunPublish), "Build failed with unhandled exception");
     }
 
-    private static (ModuleInfo baseModule, List<Module> exported) ExtractModules(CmdBase cmd)
+    private static void RunPublish(CmdPublish cmd)
     {
-        var dir = cmd.Dir ?? new DirectoryInfo(Directory.GetCurrentDirectory());
+        var (baseModule, exported) = ExtractModules(cmd);
+        foreach (var module in exported)
+        {
+            var desc = baseModule?.Publishing ?? module.ModuleInfo.Publishing;
+            foreach (var repo in desc.Repositories ?? ArraySegment<RepositoryInfo>.Empty)
+            {
+                if (repo.Url is not "local" and not "localhost")
+                    throw new NotImplementedException("External Publishing is not supported yet");
+
+                module.RunBuild();
+                DependencyManager.PublishToLocalRepository(module);
+            }
+        }
+    }
+
+    private static (ModuleInfo? baseModule, List<Module> exported) ExtractModules(CmdBase cmd)
+    {
+        var dir = cmd.Dir ?? new DirectoryInfo(Environment.CurrentDirectory);
         var modulesFile = dir.GetFiles(ModulesFile).FirstOrDefault();
         var modulesInfo = modulesFile == null
             ? Log<KScrBuild>.At<ModuleInfo>(LogLevel.Config, $"No {ModulesFile} was found in {dir.FullName}")
@@ -33,7 +52,6 @@ public sealed class KScrBuild
               throw new Exception($"Unable to parse {ModulesFile} in {dir.FullName}");
         if (modulesInfo != null)
             Log<KScrBuild>.At(LogLevel.Config, $"Found Module root {dir.FullName} as Project {modulesInfo.Project}");
-        else modulesInfo = new ModuleInfo();
         List<Module> exported = new();
         foreach (var moduleFile in dir.EnumerateFiles(ModuleFile, SearchOption.AllDirectories))
         {

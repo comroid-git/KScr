@@ -12,6 +12,8 @@ public sealed class ModuleInfo
     public IEnumerable<RepositoryInfo>? Repositories { get; set; }
     [JsonPropertyName("dependencies")]
     public IEnumerable<DependencyInfo>? Dependencies { get; set; }
+    [JsonPropertyName("publishing")]
+    public PublishingInfo Publishing { get; set; } = new();
     [JsonPropertyName("isCachedLibrary")]
     public bool IsCachedLibrary { get; set; } = false;
 
@@ -20,17 +22,8 @@ public sealed class ModuleInfo
         $"Module {Project} ({Repositories?.Count() ?? 0} repositories; {Dependencies?.Count() ?? 0} dependencies)";
 }
 
-public sealed class ProjectInfo
+public sealed class ProjectInfo : DependencyInfo
 {
-    [JsonPropertyName("domain")]
-    public string? Domain { get; set; }
-    [JsonPropertyName("group")]
-    public string? Group { get; set; }
-    [JsonPropertyName("id")]
-    public string? Id { get; set; }
-    [JsonPropertyName("version")]
-    public string? Version { get; set; }
-
     public static ProjectInfo operator +(ProjectInfo inherit, ProjectInfo @override) => new()
     {
         Domain = @override.Domain ?? inherit.Domain,
@@ -38,6 +31,9 @@ public sealed class ProjectInfo
         Id = @override.Id ?? inherit.Id,
         Version = @override.Version ?? inherit.Version
     };
+
+    public override DepScope? Scope => DepScope.api;
+    public override IEnumerable<DependencyInfo>? Exclude => ArraySegment<DependencyInfo>.Empty;
 
     public override string ToString()
     {
@@ -94,17 +90,27 @@ public sealed class BuildInfo
     };
 }
 
+public sealed class PublishingInfo
+{
+    [JsonPropertyName("repositories")]
+    public IEnumerable<RepositoryInfo>? Repositories { get; set; }
+}
+
 public sealed class RepositoryInfo
 {
     [JsonPropertyName("name")]
-    public string Name { get; set; } = null!;
+    public string? Name { get; set; } = null!;
     [JsonPropertyName("url")]
     public string Url { get; set; } = null!;
+    [JsonPropertyName("username")]
+    public string? Username { get; set; } = null;
+    [JsonPropertyName("password")]
+    public string? Password { get; set; } = null;
 
     public override string ToString() => $"{Name} ({Url})";
 }
 
-public sealed class DependencyInfo
+public class DependencyInfo
 {
     [Flags]
     public enum DepScope : byte
@@ -116,17 +122,17 @@ public sealed class DependencyInfo
     }
     
     [JsonPropertyName("domain")]
-    public string? Domain { get; set; }
+    public virtual string? Domain { get; set; }
     [JsonPropertyName("group")]
-    public string? Group { get; set; }
+    public virtual string? Group { get; set; }
     [JsonPropertyName("id")]
-    public string? Id { get; set; }
+    public virtual string? Id { get; set; }
     [JsonPropertyName("version")]
-    public string Version { get; set; } = "+";
+    public virtual string Version { get; set; } = "+";
     [JsonPropertyName("scope")]
-    public DepScope? Scope { get; set; } = DepScope.implementation;
+    public virtual DepScope? Scope { get; set; } = DepScope.implementation;
     [JsonPropertyName("exclude")]
-    public IEnumerable<DependencyInfo>? Exclude { get; set; }
+    public virtual IEnumerable<DependencyInfo>? Exclude { get; set; }
 
     public string Notation => new ProjectInfo()
     {
