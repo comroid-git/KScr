@@ -25,7 +25,7 @@ public class FatalException :
 #if DEBUG
     System.Exception
 #else
-InternalException
+    RuntimeException
 #endif
 {
     public FatalException(string? message) : base(message)

@@ -299,7 +299,7 @@ public sealed class Stack
                     // ReSharper disable once PossibleIntendedRethrow
                 //    throw ex;
 #pragma warning restore CA2200
-                throw new StackTraceException(CallLocation, _local, new InternalException(null, ex), $"Fatal internal {ex.GetType().Name}: {ex.Message}");
+                throw new StackTraceException(CallLocation, _local, new RuntimeException(null, ex), $"Fatal internal {ex.GetType().Name}: {ex.Message}");
             }
 #endif
         finally
