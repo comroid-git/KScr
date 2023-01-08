@@ -86,7 +86,7 @@ public class KScrStarter
         return HandleExit(RuntimeBase.MainStack.State, RuntimeBase.MainStack.Omg?.Value, compileTime, executeTime, ioTime, RuntimeBase.ConfirmExit);
     }
 
-    private static void CopyProps(IGenericCmd cmd)
+    public static void CopyProps(IGenericCmd cmd)
     {
         RuntimeBase.Encoding = Encoding.GetEncoding(cmd.Encoding ?? "ASCII");
         RuntimeBase.ConfirmExit = cmd.Confirm;
@@ -99,14 +99,14 @@ public class KScrStarter
         }
     }
 
-    private static void LoadStdPackage()
+    public static void LoadStdPackage()
     {
         // load std package
         //VM.Load(StdPackageLocation);
         Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
     }
 
-    private static long LoadClasspath(IClasspathCmd cmd)
+    public static long LoadClasspath(IClasspathCmd cmd)
     {
         // load classpath packages
         if (cmd.Classpath.Count(dir => dir.Exists) == 0)

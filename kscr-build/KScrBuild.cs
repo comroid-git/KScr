@@ -13,15 +13,15 @@ public sealed class KScrBuild
     static KScrBuild()
     {
         ILog.BaseLogger.FullNames = false;
-        
-        // initialize KScrStarter class
-        KScrStarter.IOTimeString();
     }
 
-    public static void Main(string[] args) => Log<KScrBuild>.WithExceptionLogger(() => Parser.Default.ParseArguments<CmdBuild, CmdDependencies, CmdInfo>(args)
-        .WithParsed<CmdBuild>(RunBuild)
-        .WithParsed<CmdDependencies>(PrintDependencies)
-        .WithParsed<CmdInfo>(PrintInfo), "Build failed with unhandled exception");
+    public static void Main(string[] args)
+    {
+        Log<KScrBuild>.WithExceptionLogger(() => Parser.Default.ParseArguments<CmdBuild, CmdDependencies, CmdInfo>(args)
+            .WithParsed<CmdBuild>(RunBuild)
+            .WithParsed<CmdDependencies>(PrintDependencies)
+            .WithParsed<CmdInfo>(PrintInfo), "Build failed with unhandled exception");
+    }
 
     private static (ModuleInfo baseModule, List<Module> exported) ExtractModules(CmdBase cmd)
     {

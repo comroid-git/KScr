@@ -30,17 +30,32 @@ public class Module
     {
         Log<Module>.WithExceptionLogger(() =>
         {
+            var oldwkdir = Environment.CurrentDirectory;
+            Log<KScrBuild>.At(LogLevel.Debug, $"Set working Directory for module: {Environment.CurrentDirectory = RootDir.FullName}");
             var cmd = new CmdCompile()
             {
                 Args = ArraySegment<string>.Empty,
-                Classpath = ArraySegment<DirectoryInfo>.Empty,
-                Output = new DirectoryInfo(Build.Output ?? "build/classes/"),
-                PkgBase = Build.BasePackage,
-                Source = Build.Sources ?? "src/main/",
-                System = Build.BasePackage == "org.comroid.kscr"
+                Classpath = ArraySegment<DirectoryInfo>.Empty, // todo: include dependencies
+                Output = new DirectoryInfo(ModulesInfo?.Build.Output ?? Build.Output ?? "build/classes/"),
+                PkgBase = ModulesInfo?.Build.BasePackage ?? Build.BasePackage,
+                Source = ModulesInfo?.Build.Sources ?? Build.Sources ?? "src/main/",
+                System = (ModulesInfo?.Build.BasePackage ?? Build.BasePackage) == "org.comroid.kscr"
             };
-            KScrStarter.HandleCompile(cmd);
-            Log<Module>.At(LogLevel.Info, $"Build {Notation} succeeded");
+            KScrStarter.CopyProps(cmd);
+            if (!cmd.System)
+            {
+                KScrStarter.LoadStdPackage();
+                KScrStarter.LoadClasspath(cmd);
+            }
+
+            Log<Module>.At(LogLevel.Config, $"Compiling source '{cmd.Source}' into '{cmd.Output}'...");
+            var compileTime = KScrStarter.CompileSource(cmd, cmd.PkgBase);
+            if (KScrStarter.VM.CompilerErrors.Count > 0)
+                foreach (var error in KScrStarter.VM.CompilerErrors)
+                    Log<Module>.At(LogLevel.Error, "Compiler Error:\n" + error);
+            var ioTime = KScrStarter.WriteClasses(cmd);
+            Log<Module>.At(LogLevel.Info, $"Build {Notation} succeeded; {KScrStarter.IOTimeString(compileTime, ioTime: ioTime)}");
+            Environment.CurrentDirectory = oldwkdir;
         }, $"Build {Notation} failed with exception");
     }
     
