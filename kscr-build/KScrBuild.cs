@@ -12,6 +12,9 @@ public sealed class KScrBuild
 {
     static KScrBuild()
     {
+#if RELEASE
+        ILog.BaseLogger.Level = LogLevel.Config;
+#endif
         ILog.BaseLogger.FullNames = false;
     }
 
