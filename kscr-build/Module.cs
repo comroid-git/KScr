@@ -1,4 +1,7 @@
-﻿namespace KScr.Build;
+﻿using comroid.csapi.common;
+using KScr.Runtime;
+
+namespace KScr.Build;
 
 public class Module
 {
@@ -22,6 +25,31 @@ public class Module
         (first ?? ArraySegment<T>.Empty).Concat(second ?? ArraySegment<T>.Empty);
 
     public string Notation => Project.ToString();
+
+    public void RunBuild()
+    {
+        try
+        {
+            var cmd = new CmdCompile()
+            {
+                Args = ArraySegment<string>.Empty,
+                Classpath = ArraySegment<DirectoryInfo>.Empty,
+                Confirm = Build.CompilerArgs?.Contains("--confirm") ?? false,
+                Debug = Build.CompilerArgs?.Contains("--debug") ?? false,
+                Output = new DirectoryInfo(Build.Output ?? "build/classes/"),
+                PkgBase = Build.BasePackage,
+                Source = Build.Sources ?? "src/main/",
+                System = Build.CompilerArgs?.Contains("--system") ?? false,
+            };
+            KScrStarter.HandleCompile(cmd);
+            Log<Module>.At(LogLevel.Info, $"Build {Notation} succeeded");
+        }
+        catch (Exception e)
+        {
+            Log<Module>.At(LogLevel.Fatal, $"Build {Notation} failed with exception:\n{e}");
+        }
+    }
+    
     public override string ToString() =>
         $"Module {Project} ({Repositories.Count()} repositories; {Dependencies.Count()} dependencies)";
 }

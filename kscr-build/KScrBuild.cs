@@ -1,9 +1,10 @@
-﻿using CommandLine;
-using Newtonsoft.Json;
+﻿using System.Text.Json;
+using CommandLine;
+using comroid.csapi.common;
 
 namespace KScr.Build;
 
-public sealed class Program
+public sealed class KScrBuild
 {
     public const string ModulesFile = "modules.kmod.json";
     public const string ModuleFile = "module.kmod.json";
@@ -16,18 +17,22 @@ public sealed class Program
     private static (ModuleInfo baseModule, List<Module> exported) ExtractModules(CmdBase cmd)
     {
         var dir = cmd.Dir ?? new DirectoryInfo(Directory.GetCurrentDirectory());
-        var modulesFile = dir.GetFiles(ModulesFile)[0];
-        var modulesInfo = JsonConvert.DeserializeObject<ModuleInfo>(File.ReadAllText(modulesFile.FullName)) ??
-                      throw new Exception("Unable to parse " + ModulesFile);
-        Console.WriteLine($"Found Module root {dir.FullName} as Project {modulesInfo.Project}");
+        var modulesFile = dir.GetFiles(ModulesFile).FirstOrDefault();
+        var modulesInfo = modulesFile == null
+            ? Log<KScrBuild>.At<ModuleInfo>(LogLevel.Config, $"No {ModulesFile} was found in {dir.FullName}")
+            : JsonSerializer.Deserialize<ModuleInfo>(File.ReadAllText(modulesFile.FullName)) ??
+              throw new Exception("Unable to parse " + ModulesFile);
+        if (modulesInfo != null)
+            Log<KScrBuild>.At(LogLevel.Info, $"Found Module root {dir.FullName} as Project {modulesInfo.Project}");
+        else modulesInfo = new ModuleInfo();
         List<Module> exported = new();
         foreach (var moduleFile in dir.EnumerateFiles(ModuleFile, SearchOption.AllDirectories))
         {
-            var moduleInfo = JsonConvert.DeserializeObject<ModuleInfo>(File.ReadAllText(moduleFile.FullName)) ??
-                         throw new Exception("Unable to parse " + ModuleFile + " for module " + moduleFile.Directory!.Name);
-            var module = new Module(modulesInfo, moduleInfo, dir);
+            var moduleInfo = JsonSerializer.Deserialize<ModuleInfo>(File.ReadAllText(moduleFile.FullName)) ??
+                             throw new Exception("Unable to parse " + ModuleFile + " for module " + moduleFile.Directory!.Name);
+            var module = new Module(modulesInfo, moduleInfo, moduleFile.Directory!);
             exported.Add(module);
-            Console.WriteLine($"Found {module}");
+            Log<KScrBuild>.At(LogLevel.Info, $"Found {module}");
         }
         return (modulesInfo, exported);
     }
@@ -39,9 +44,7 @@ public sealed class Program
         SortModulesByCoDependencies(exported);
         
         foreach (var module in exported)
-        {
-            // TODO build the modules
-        }
+            module.RunBuild();
     }
     
     private class CoDepNode

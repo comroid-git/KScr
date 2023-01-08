@@ -1,16 +1,14 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace KScr.Build;
 
 public sealed class ModuleInfo
 {
-    [JsonProperty]
+    [JsonPropertyName("project")]
     public ProjectInfo Project { get; set; } = new();
-    [JsonProperty]
+    [JsonPropertyName("build")]
     public BuildInfo Build { get; set; } = new();
-    [JsonProperty]
     public IEnumerable<RepositoryInfo>? Repositories { get; set; }
-    [JsonProperty]
     public IEnumerable<DependencyInfo>? Dependencies { get; set; }
 
     public string Notation => Project.ToString();
@@ -20,13 +18,13 @@ public sealed class ModuleInfo
 
 public sealed class ProjectInfo
 {
-    [JsonProperty]
+    [JsonPropertyName("domain")]
     public string? Domain { get; set; }
-    [JsonProperty]
+    [JsonPropertyName("group")]
     public string? Group { get; set; }
-    [JsonProperty]
+    [JsonPropertyName("id")]
     public string? Id { get; set; }
-    [JsonProperty]
+    [JsonPropertyName("version")]
     public string? Version { get; set; }
 
     public static ProjectInfo operator +(ProjectInfo inherit, ProjectInfo @override) => new()
@@ -66,17 +64,19 @@ public sealed class ProjectInfo
 
 public sealed class BuildInfo
 {
-    [JsonProperty]
+    [JsonPropertyName("base_package")]
     public string? BasePackage { get; set; }
-    [JsonProperty]
+    [JsonPropertyName("sources")]
     public string? Sources { get; set; }
-    [JsonProperty]
+    [JsonPropertyName("resources")]
     public string? Resources { get; set; }
-    [JsonProperty]
+    [JsonPropertyName("output")]
     public string? Output { get; set; }
-    [JsonProperty]
+    [JsonPropertyName("compiler_args")]
+    public string? CompilerArgs { get; set; }
+    [JsonPropertyName("pre")]
     public string? Pre { get; set; }
-    [JsonProperty]
+    [JsonPropertyName("post")]
     public string? Post { get; set; }
 
     public static BuildInfo operator +(BuildInfo inherit, BuildInfo @override) => new()
@@ -94,9 +94,9 @@ public sealed class BuildInfo
 
 public sealed class RepositoryInfo
 {
-    [JsonProperty(Required = Required.Always)]
+    [JsonPropertyName("name")]
     public string Name { get; set; } = null!;
-    [JsonProperty(Required = Required.Always)]
+    [JsonPropertyName("url")]
     public string Url { get; set; } = null!;
 
     public override string ToString() => $"{Name} ({Url})";
@@ -107,23 +107,23 @@ public sealed class DependencyInfo
     [Flags]
     public enum DepScope : byte
     {
-        Compile = 0x1,
-        Runtime = 0x2,
-        Implementation = Compile | Runtime,
-        Api = 0x4
+        compile = 0x1,
+        runtime = 0x2,
+        implementation = compile | runtime,
+        api = 0x4
     }
     
-    [JsonProperty]
+    [JsonPropertyName("domain")]
     public string? Domain { get; set; }
-    [JsonProperty]
+    [JsonPropertyName("group")]
     public string? Group { get; set; }
-    [JsonProperty]
+    [JsonPropertyName("id")]
     public string? Id { get; set; }
-    [JsonProperty]
+    [JsonPropertyName("version")]
     public string Version { get; set; } = "+";
-    [JsonProperty]
-    public DepScope? Scope { get; set; } = DepScope.Implementation;
-    [JsonProperty]
+    [JsonPropertyName("scope")]
+    public DepScope? Scope { get; set; } = DepScope.implementation;
+    [JsonPropertyName("exclude")]
     public IEnumerable<DependencyInfo>? Exclude { get; set; }
 
     public string Notation => new ProjectInfo()
