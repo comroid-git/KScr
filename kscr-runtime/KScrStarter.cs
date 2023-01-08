@@ -13,7 +13,7 @@ using KScr.Core.Util;
 
 namespace KScr.Runtime;
 
-public class Program
+public class KScrStarter
 {
     public static readonly KScrRuntime VM;
 
@@ -23,63 +23,67 @@ public class Program
     private static readonly string
         StdPackageLocation = Path.Combine(RuntimeBase.SdkHome.FullName, "std");
 
-    static Program()
+    static KScrStarter()
     {
         VM = new KScrRuntime();
         VM.Initialize();
     }
 
-    public static int Main(params string[] args)
+    public static void HandleCompile(CmdCompile cmd)
+    {
+        CopyProps(cmd);
+        if (!cmd.System)
+        {
+            LoadStdPackage();
+            LoadClasspath(cmd);
+        }
+
+        compileTime = CompileSource(cmd, cmd.PkgBase);
+        if (VM.CompilerErrors.Count > 0) return;
+        ioTime = WriteClasses(cmd);
+    }
+
+    public static void HandleExecute(CmdExecute cmd)
+    {
+        CopyProps(cmd);
+        LoadStdPackage();
+        LoadClasspath(cmd);
+
+        compileTime = CompileSource(cmd, cmd.PkgBase);
+        if (VM.CompilerErrors.Count > 0) return;
+        if (cmd.Output != null) ioTime = WriteClasses(cmd);
+        executeTime = Execute(out _);
+    }
+
+    public static void HandleParsed(CmdRun cmd)
     {
         var stack = RuntimeBase.MainStack;
-        long compileTime = -1, executeTime = -1, ioTime = -1;
+        CopyProps(cmd);
+        LoadStdPackage();
 
+        ioTime = LoadClasspath(cmd);
+        VM.LateInitializeNonPrimitives(stack);
+        executeTime = Execute(out stack);
+    }
+
+    public static void HandleConfig(CmdConfig cmd)
+    {
+        if (cmd.Install) Installer.CheckInstallation();
+    }
+
+
+    private static long compileTime = -1, executeTime = -1, ioTime = -1;
+    public static int Main(params string[] args)
+    {
         Parser.Default.ParseArguments<CmdCompile, CmdExecute, CmdRun, CmdConfig>(args)
-            .WithParsed<CmdCompile>(cmd =>
-            {
-                CopyProps(cmd);
-                if (!cmd.System)
-                {
-                    LoadStdPackage();
-                    LoadClasspath(cmd);
-                }
-
-                compileTime = CompileSource(cmd, cmd.PkgBase);
-                if (VM.CompilerErrors.Count > 0)
-                    return;
-                ioTime = WriteClasses(cmd);
-            })
-            .WithParsed<CmdExecute>(cmd =>
-            {
-                CopyProps(cmd);
-                LoadStdPackage();
-                LoadClasspath(cmd);
-
-                compileTime = CompileSource(cmd, cmd.PkgBase);
-                if (VM.CompilerErrors.Count > 0)
-                    return;
-                if (cmd.Output != null)
-                    ioTime = WriteClasses(cmd);
-                executeTime = Execute(out stack);
-            })
-            .WithParsed<CmdRun>(cmd =>
-            {
-                CopyProps(cmd);
-                LoadStdPackage();
-
-                ioTime = LoadClasspath(cmd);
-                VM.LateInitializeNonPrimitives(stack);
-                executeTime = Execute(out stack);
-            })
-            .WithParsed<CmdConfig>(cmd =>
-            {
-                if (cmd.Install)
-                    Installer.CheckInstallation();
-            });
+            .WithParsed<CmdCompile>(HandleCompile)
+            .WithParsed<CmdExecute>(HandleExecute)
+            .WithParsed<CmdRun>(HandleParsed)
+            .WithParsed<CmdConfig>(HandleConfig);
 
         HandleErrors();
 
-        return HandleExit(stack.State, stack.Omg?.Value, compileTime, executeTime, ioTime, RuntimeBase.ConfirmExit);
+        return HandleExit(RuntimeBase.MainStack.State, RuntimeBase.MainStack.Omg?.Value, compileTime, executeTime, ioTime, RuntimeBase.ConfirmExit);
     }
 
     private static void CopyProps(IGenericCmd cmd)
@@ -123,7 +127,7 @@ public class Program
         return compileTime;
     }
 
-    private static long WriteClasses<TC>(TC cmd) where TC : ISourcesCmd, IOutputCmd
+    public static long WriteClasses<TC>(TC cmd) where TC : ISourcesCmd, IOutputCmd
     {
         var ioTime = RuntimeBase.UnixTime();
         WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput), new[] { cmd.Source }.SelectMany(path =>
@@ -238,21 +242,28 @@ public class Program
         }
     }
 
-    private static int HandleExit(State state, IObject? result, long compileTime = -1, long executeTime = -1,
-        long ioTime = -1, bool pressToExit = false)
+    public static string IOTimeString(long compileTime = -1, long executeTime = -1, long ioTime = -1)
     {
+        var str = string.Empty;
         if (compileTime != -1)
-            Console.Write($"Compile took {(double)compileTime / 1000:#,##0.00}ms");
+            str += $"Compile took {(double)compileTime / 1000:#,##0.00}ms";
         if (compileTime != -1 && (ioTime != -1 || executeTime != -1))
-            Console.Write("; ");
+            str += "; ";
         if (ioTime != -1)
-            Console.Write($"Read/Write took {(double)ioTime / 1000:#,##0.00}ms");
+            str += $"Read/Write took {(double)ioTime / 1000:#,##0.00}ms";
         if (ioTime != -1 && executeTime != -1)
-            Console.Write("; ");
+            str += "; ";
         if (executeTime != -1)
-            Console.Write($"Execute took {(double)executeTime / 1000:#,##0.00}ms");
+            str += $"Execute took {(double)executeTime / 1000:#,##0.00}ms";
         if (compileTime != -1 || executeTime != -1)
-            Console.WriteLine();
+            str += '\n';
+        return str;
+    }
+
+    private static int HandleExit(State state, IObject? result, long compileTime = -1, long executeTime = -1,
+        long ioTime = -1, bool pressToExit = false){
+        
+        Console.Write(IOTimeString(compileTime, executeTime, ioTime));
 
         switch (state)
         {

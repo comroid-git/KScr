@@ -29,7 +29,7 @@ public class TestUtil
             TestNo[testName] = 0;
         testName += ++TestNo[testName];
 
-        var vm = Program.VM;
+        var vm = KScrStarter.VM;
         if (!code.Contains("main()"))
             code = "\npublic static void main() {\n" + code + "\n" +
                    "}";
@@ -57,12 +57,12 @@ public class TestUtil
             PkgBase = testPkg,
             Source = srcFile
         };
-        var compileTime = Program.CompileSource(cmd, testPkg);
+        var compileTime = KScrStarter.CompileSource(cmd, testPkg);
         RuntimeBase.ExtraArgs = Array.Empty<string>();
         var outw = new StringWriter();
         var outb = Console.Out;
         Console.SetOut(outw);
-        var executeTime = Program.Execute(out var stack, $"{testPkg}.{testName}");
+        var executeTime = KScrStarter.Execute(out var stack, $"{testPkg}.{testName}");
         Console.SetOut(outb);
         if (stack[StackOutput.Omg]?.Value is Numeric num)
             RuntimeBase.ExitCode = num.IntValue;
