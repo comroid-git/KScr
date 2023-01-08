@@ -20,12 +20,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\c#\csapi\common\common.csproj" />
         <ProjectReference Include="..\kscr-runtime\kscr-runtime.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.9.1" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta1" />
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
