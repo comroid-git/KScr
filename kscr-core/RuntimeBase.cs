@@ -33,9 +33,13 @@ public enum State : uint
 
 public abstract class RuntimeBase : IBytecodePort
 {
+    public const string JsonExt = ".json";
     public const string SourceFileExt = ".kscr";
     public const string BinaryFileExt = ".kbin";
     public const string ModuleFileExt = ".kmod";
+    public const string ModuleFile = "module" + ModuleFileExt + JsonExt;
+    public const string ModulesFile = "modules" + ModuleFileExt + JsonExt;
+    public const string ModuleLibFile = "lib" + ModuleFileExt;
     public static Encoding Encoding = Encoding.ASCII;
 
     public static readonly SourcefilePosition
@@ -217,12 +221,6 @@ public abstract class RuntimeBase : IBytecodePort
     public long NextObjId(string name)
     {
         return CombineHash(NextObjId(), name);
-    }
-
-    public static long UnixTime()
-    {
-        var epochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        return (DateTime.UtcNow - epochStart).Ticks / 10;
     }
 
     private static DirectoryInfo GetSdkHome()
@@ -435,8 +433,4 @@ public abstract class RuntimeBase : IBytecodePort
             }
         }
     }
-
-    public const string ModulesFile = $"modules{RuntimeBase.ModuleFileExt}.json";
-    public const string ModuleFile = $"module{RuntimeBase.ModuleFileExt}.json";
-    public const string ModuleLibFile = $"lib{RuntimeBase.ModuleFileExt}";
 }

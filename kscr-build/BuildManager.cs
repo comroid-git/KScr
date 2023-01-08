@@ -27,15 +27,12 @@ public sealed class DependencyManager
     public static void PublishToLocalRepository(Module module)
     {
         var dir = Path.Combine(LocalRepositoryDir, string.Join(Path.DirectorySeparatorChar, module.Project.Strings()));
-        var desc = Path.Combine(dir, RuntimeBase.ModuleFile);
-        var lib = Path.Combine(dir, RuntimeBase.ModuleLibFile);
 
         if (!Directory.Exists(dir))
             Directory.CreateDirectory(dir);
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-        module.SaveToFile(lib);
-        module.Project.SaveToFile(desc);
+        module.SaveToFiles(dir);
         
         Log<DependencyManager>.At(LogLevel.Info, $"Published {module.Notation} to local repository");
     }

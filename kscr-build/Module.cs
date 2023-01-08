@@ -19,7 +19,7 @@ public class Module
     }
 
     public ProjectInfo Project => ModulesInfo != null ? ModulesInfo.Project + ModuleInfo.Project : ModuleInfo.Project;
-    public BuildInfo Build => ModulesInfo != null ? ModulesInfo.Build + ModuleInfo.Build : ModuleInfo.Build;
+    public BuildInfo Build => ModulesInfo != null ? ModulesInfo.Build + ModuleInfo.Build : ModuleInfo.Build ;
     public IEnumerable<RepositoryInfo> Repositories => Concat(ModulesInfo?.Repositories ?? ArraySegment<RepositoryInfo>.Empty, ModuleInfo.Repositories);
     public IEnumerable<DependencyInfo> Dependencies => Concat(ModulesInfo?.Dependencies ?? ArraySegment<DependencyInfo>.Empty, ModuleInfo.Dependencies);
 
@@ -55,30 +55,39 @@ public class Module
             if (KScrStarter.VM.CompilerErrors.Count > 0)
                 foreach (var error in KScrStarter.VM.CompilerErrors)
                     Log<Module>.At(LogLevel.Error, "Compiler Error:\r\n" + error);
-            var ioTime = KScrStarter.WriteClasses(cmd);
+            var ioTime = KScrStarter.WriteClasses(cmd); 
+            ioTime += DebugUtil.Measure(() => SaveToFiles());
             Log<Module>.At(LogLevel.Info, $"Build {Notation} succeeded; {KScrStarter.IOTimeString(compileTime, ioTime: ioTime)}");
             Environment.CurrentDirectory = oldwkdir;
         }, $"Build {Notation} failed with exception");
     }
 
-    public void SaveToFile(string lib)
+    public void SaveToFiles(string dir = null!)
     {
+        dir ??= Build.Output!;
         // Create FileStream for output ZIP archive
-        using var zipFile = File.Open(lib, FileMode.Create);
+        using var zipFile = File.Open(Path.Combine(dir, RuntimeBase.ModuleLibFile), FileMode.Create);
         using var archive = new Archive();
-        var close = new Container();
+        using var close = new Container();
+        var moduleFile = new FileInfo(Path.Combine(dir, RuntimeBase.ModuleFile));
+        Project.SaveToFile(moduleFile.FullName);
         foreach (var file in Directory
-                     .EnumerateFiles(Build.Output!, "*" + RuntimeBase.BinaryFileExt,
-                         SearchOption.AllDirectories).Select(file => new FileInfo(file)))
+                     .EnumerateFiles(Build.Output!, "*" + RuntimeBase.BinaryFileExt, SearchOption.AllDirectories)
+                     .Select(file => (FileSystemInfo)new FileInfo(file))
+                     .Append(moduleFile))
         {
-            var src = File.Open(file.FullName, FileMode.Open, FileAccess.Read);
-            close.Add(src);
+            var isModuleFile = file.Name == RuntimeBase.ModuleFile;
+            var data = !isModuleFile ? File.Open(file.FullName, FileMode.Open, FileAccess.Read) : moduleFile.OpenRead();
+            close.Add(data);
+
             // Add file to the archive
-            var relativePath = Path.GetRelativePath(Build.Output!, file.FullName);
+            var relativePath = isModuleFile
+                ? Path.GetRelativePath(dir, file.FullName)
+                : Path.GetRelativePath(Build.Output!, file.FullName);
             Log<DependencyManager>.At(LogLevel.Trace, $"Adding {file.FullName} to archive at path {relativePath}");
-            archive.CreateEntry(relativePath, src);
+            archive.CreateEntry(relativePath, data);
         }
-        // ZIP file
+        // ZIP file + cleanup
         archive.Save(zipFile);
         close.Dispose();
     }

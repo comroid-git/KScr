@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 using CommandLine;
 using comroid.csapi.common;
 using KScr.Core;
@@ -16,6 +17,7 @@ public sealed class KScrBuild
         ILog.BaseLogger.Level = LogLevel.Config;
 #endif
         ILog.BaseLogger.FullNames = false;
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     }
 
     public static void Main(string[] args)
@@ -87,7 +89,7 @@ public sealed class KScrBuild
 
         SortModulesByCoDependencies(exported);
         
-        foreach (var module in exported)
+        foreach (var module in exported) 
             module.RunBuild();
     }
     

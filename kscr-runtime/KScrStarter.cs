@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using CommandLine;
+using comroid.csapi.common;
 using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
@@ -111,31 +112,26 @@ public class KScrStarter
         // load classpath packages
         if (cmd.Classpath.Count(dir => dir.Exists) == 0)
             return -1;
-        var ioTime = RuntimeBase.UnixTime();
-        foreach (var classpath in cmd.Classpath.Where(dir => dir.Exists))
-            //VM.Load(classpath.FullName);
-            Package.ReadAll(VM, classpath);
-        ioTime = RuntimeBase.UnixTime() - ioTime;
-        return ioTime;
+        return DebugUtil.Measure(() =>
+        {
+            foreach (var classpath in cmd.Classpath.Where(dir => dir.Exists))
+                //VM.Load(classpath.FullName);
+                Package.ReadAll(VM, classpath);
+        });
     }
 
     public static long CompileSource(ISourcesCmd cmd, string? basePackage = null)
     {
-        var compileTime = RuntimeBase.UnixTime();
-        VM.CompileSource(cmd.Source, basePackage);
-        compileTime = RuntimeBase.UnixTime() - compileTime;
-        return compileTime;
+        return DebugUtil.Measure(() => VM.CompileSource(cmd.Source, basePackage));
     }
 
     public static long WriteClasses<TC>(TC cmd) where TC : ISourcesCmd, IOutputCmd
     {
-        var ioTime = RuntimeBase.UnixTime();
-        WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput), new[] { cmd.Source }.SelectMany(path =>
-            Directory.Exists(path)
-                ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories)
-                : new[] { new FileInfo(path) }));
-        ioTime = RuntimeBase.UnixTime() - ioTime;
-        return ioTime;
+        return DebugUtil.Measure(() =>
+            WriteClasses(cmd.Output ?? new DirectoryInfo(DefaultOutput), new[] { cmd.Source }.SelectMany(path =>
+                Directory.Exists(path)
+                    ? new DirectoryInfo(path).EnumerateFiles("*.kscr", SearchOption.AllDirectories)
+                    : new[] { new FileInfo(path) })));
     }
 
     private static void WriteClasses(DirectoryInfo output, IEnumerable<FileInfo> sources)
@@ -147,9 +143,9 @@ public class KScrStarter
 
     public static long Execute(out Stack stack, string? mainClassName = null)
     {
-        var executeTime = RuntimeBase.UnixTime();
+        var executeTime = DebugUtil.UnixTime();
         stack = VM.Execute(mainClassName);
-        executeTime = RuntimeBase.UnixTime() - executeTime;
+        executeTime = DebugUtil.UnixTime() - executeTime;
         return executeTime;
     }
 
