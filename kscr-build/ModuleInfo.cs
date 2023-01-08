@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace KScr.Build;
 
@@ -59,6 +60,11 @@ public sealed class ProjectInfo : DependencyInfo
             str += Version;
         }
         return str;
+    }
+
+    public void SaveToFile(string file)
+    {
+        File.WriteAllText(file, JsonSerializer.Serialize(this, typeof(DependencyInfo)));
     }
 }
 

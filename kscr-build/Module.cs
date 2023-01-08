@@ -1,4 +1,6 @@
-﻿using comroid.csapi.common;
+﻿using Aspose.Zip;
+using comroid.csapi.common;
+using KScr.Core;
 using KScr.Runtime;
 
 namespace KScr.Build;
@@ -58,7 +60,29 @@ public class Module
             Environment.CurrentDirectory = oldwkdir;
         }, $"Build {Notation} failed with exception");
     }
-    
+
+    public void SaveToFile(string lib)
+    {
+        // Create FileStream for output ZIP archive
+        using var zipFile = File.Open(lib, FileMode.Create);
+        using var archive = new Archive();
+        var close = new Container();
+        foreach (var file in Directory
+                     .EnumerateFiles(Build.Output!, "*" + RuntimeBase.BinaryFileExt,
+                         SearchOption.AllDirectories).Select(file => new FileInfo(file)))
+        {
+            var src = File.Open(file.FullName, FileMode.Open, FileAccess.Read);
+            close.Add(src);
+            // Add file to the archive
+            var relativePath = Path.GetRelativePath(Build.Output!, file.FullName);
+            Log<DependencyManager>.At(LogLevel.Trace, $"Adding {file.FullName} to archive at path {relativePath}");
+            archive.CreateEntry(relativePath, src);
+        }
+        // ZIP file
+        archive.Save(zipFile);
+        close.Dispose();
+    }
+
     public override string ToString() =>
         $"Module {Project} ({Repositories.Count()} repositories; {Dependencies.Count()} dependencies)";
 }

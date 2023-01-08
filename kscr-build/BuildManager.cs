@@ -34,27 +34,9 @@ public sealed class DependencyManager
             Directory.CreateDirectory(dir);
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-        // Create FileStream for output ZIP archive
-        using var zipFile = File.Open(lib, FileMode.Create);
-        using var archive = new Archive();
-        var close = new Container();
-        foreach (var file in Directory
-                     .EnumerateFiles(module.Build.Output!, "*" + RuntimeBase.BinaryFileExt,
-                         SearchOption.AllDirectories).Select(file => new FileInfo(file)))
-        {
-            var src = File.Open(file.FullName, FileMode.Open, FileAccess.Read);
-            close.Add(src);
-            // Add file to the archive
-            var relativePath = Path.GetRelativePath(module.Build.Output!, file.FullName);
-            Log<DependencyManager>.At(LogLevel.Trace, $"Adding {file.FullName} to archive at path {relativePath}");
-            archive.CreateEntry(relativePath, src);
-        }
-        // ZIP file
-        archive.Save(zipFile);
-        close.Dispose();
-
-        var data = JsonSerializer.Serialize(module.Project, typeof(DependencyInfo));
-        File.WriteAllText(desc, data);
+        module.SaveToFile(lib);
+        module.Project.SaveToFile(desc);
+        
         Log<DependencyManager>.At(LogLevel.Info, $"Published {module.Notation} to local repository");
     }
 
