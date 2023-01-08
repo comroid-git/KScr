@@ -9,5 +9,6 @@
     "sources": "src/",
     "resources": "res/",
     "output": "../kscr-runtime/bin/net6.0/std/"
+    "compiler_args": "--system"
   }
 }
