@@ -66,7 +66,9 @@ public class Module
     {
         dir ??= Build.Output!;
         // Create FileStream for output ZIP archive
-        using var zipFile = File.Open(Path.Combine(dir, RuntimeBase.ModuleLibFile), FileMode.Create);
+        var lib = Path.Combine(dir, RuntimeBase.ModuleLibFile);
+        Log<Module>.At(LogLevel.Debug, $"Writing module {Notation} to file {lib}");
+        using var zipFile = File.Open(lib, FileMode.Create);
         using var archive = new Archive();
         using var close = new Container();
         var moduleFile = new FileInfo(Path.Combine(dir, RuntimeBase.ModuleFile));
