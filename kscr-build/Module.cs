@@ -35,7 +35,8 @@ public class Module
             var cmd = new CmdCompile()
             {
                 Args = ArraySegment<string>.Empty,
-                Classpath = ArraySegment<DirectoryInfo>.Empty, // todo: include dependencies
+                Classpath = Dependencies.Select(dep =>
+                    DependencyManager.Resolve(this, dep) ?? throw new Exception("Unable to continue with build")),
                 Output = new DirectoryInfo(ModulesInfo?.Build.Output ?? Build.Output ?? "build/classes/"),
                 PkgBase = ModulesInfo?.Build.BasePackage ?? Build.BasePackage,
                 Source = ModulesInfo?.Build.Sources ?? Build.Sources ?? "src/main/",

@@ -12,6 +12,8 @@ public sealed class ModuleInfo
     public IEnumerable<RepositoryInfo>? Repositories { get; set; }
     [JsonPropertyName("dependencies")]
     public IEnumerable<DependencyInfo>? Dependencies { get; set; }
+    [JsonPropertyName("isCachedLibrary")]
+    public bool IsCachedLibrary { get; set; } = false;
 
     public string Notation => Project.ToString();
     public override string ToString() =>
@@ -141,4 +143,11 @@ public sealed class DependencyInfo
         Id = Id,
         Version = Version
     }.ToString();
+
+    public string[] Strings() => 
+        (Domain?.Split('.') ?? ArraySegment<string>.Empty)
+        .Concat(Group?.Split('.') ?? ArraySegment<string>.Empty)
+        .Concat(Id?.Split('.') ?? ArraySegment<string>.Empty)
+        .Append(Version)
+        .ToArray();
 }
