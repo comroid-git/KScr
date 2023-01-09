@@ -62,7 +62,6 @@ public abstract class RuntimeBase : IBytecodePort
     }
 
     public abstract ObjectStore ObjectStore { get; }
-    public abstract ClassStore ClassStore { get; }
     public abstract INativeRunner? NativeRunner { get; }
     public abstract IDictionary<BytecodeVersion, IBytecodePort> BytecodePorts { get; }
 
@@ -344,19 +343,16 @@ public abstract class RuntimeBase : IBytecodePort
         {
             // create instance
             var canonicalName = name.Substring(0, name.IndexOf('<'));
-            var kls = ClassStore.FindType(this,
-                canonicalName.Contains('.') ? package ?? Package.RootPackage : Package.RootPackage, canonicalName);
+            var kls = Package.RootPackage.GetClass(canonicalName) 
+                      ?? throw new RuntimeException("Class not found: " + canonicalName);
             var tParams = new List<TypeParameter>();
-            kls = ClassStore.FindType(this,
-                canonicalName.Contains('.') ? package ?? Package.RootPackage : Package.RootPackage, canonicalName);
             var split = name.Substring(name.IndexOf('<') + 1, name.IndexOf('>') - name.IndexOf('<') - 1).Split(", ");
             for (var i = 0; i < split.Length; i++)
                 tParams.Add(new TypeParameter(split[i]));
             return kls!.CreateInstance(this, owner as Class, tParams.Cast<ITypeInfo>().ToArray());
         }
 
-        return (package ?? Package.RootPackage).GetClass(this, name.Split("."))?.DefaultInstance 
-               ?? ClassStore.FindType(this, package ?? Package.RootPackage, name)?.DefaultInstance;
+        return (package ?? Package.RootPackage).GetClass(name.Split("."))?.DefaultInstance;
     }
 
     public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)

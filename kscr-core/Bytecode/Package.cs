@@ -83,7 +83,7 @@ public sealed class Package : AbstractPackageMember
                 if (entry.Name == StringCache.FileName)
                     continue;
                 var names = entry.FullName.StripExtension(RuntimeBase.BinaryFileExt).Replace('\\', '/').Split("/");
-                var pkg = RootPackage.GetPackage(vm, names[..^1])!;
+                var pkg = RootPackage.GetPackage(names[..^1])!;
                 using var fStream = entry.Open();
                 var kls = vm.Load<Class>(vm, strings, fStream, pkg, null);
                 Log<Package>.At(LogLevel.Trace, $"Loaded class {kls.CanonicalName} from library {lib.FullName}");
@@ -152,7 +152,7 @@ public sealed class Package : AbstractPackageMember
         return pkg;
     }
 
-    public Class? GetOrCreateClass(RuntimeBase vm, string name, MemberModifier mod = MemberModifier.None,
+    public Class? GetOrCreateClass(string name, RuntimeBase vm = null!, MemberModifier mod = MemberModifier.None,
         ClassType type = ClassType.Class)
     {
         if (PackageMembers.TryGetValue(name, out var pm) && pm is Class cls)
@@ -164,7 +164,7 @@ public sealed class Package : AbstractPackageMember
         return cls;
     }
 
-    public Package? GetPackage(RuntimeBase vm, params string[] names)
+    public Package? GetPackage(params string[] names)
     {
         var pkg = names.Length > 1 ? RootPackage : this;
         for (var i = 0; i < names.Length; i++)
@@ -172,8 +172,13 @@ public sealed class Package : AbstractPackageMember
         return pkg;
     }
 
-    public Class? GetClass(RuntimeBase vm, params string[] names)
+    public Class? GetClass(string name)
     {
-        return GetPackage(vm, names[..^1])?.GetOrCreateClass(vm, names[^1]);
+        return GetClass(name.Split("."));
+    }
+
+    public Class? GetClass(string[] names)
+    {
+        return GetPackage(names[..^1])?.GetOrCreateClass(names[^1]);
     }
 }

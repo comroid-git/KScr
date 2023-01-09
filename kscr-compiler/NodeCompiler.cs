@@ -150,7 +150,7 @@ public class FileNode : SourceNode
         ClassInfo = vm.FindClassInfo(file);
         Decl = vm.MakeFileDecl(File);
         Imports = vm.FindClassImports(Decl.imports());
-        Cls = Pkg.Package.GetOrCreateClass(vm, ClassInfo.Name, ClassInfo.Modifier, ClassInfo.ClassType)!;
+        Cls = Pkg.Package.GetOrCreateClass(ClassInfo.Name, vm, ClassInfo.Modifier, ClassInfo.ClassType)!;
     }
 
     public PackageNode Pkg { get; }

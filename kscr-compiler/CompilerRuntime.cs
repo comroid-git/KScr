@@ -18,7 +18,6 @@ public class CompilerRuntime : BytecodeRuntime
     private readonly ConcurrentDictionary<string, KScrParser.FileContext> _fileDecls = new();
     public override INativeRunner? NativeRunner => null;
     public override ObjectStore ObjectStore => null!;
-    public override ClassStore ClassStore { get; } = new();
 
     public void CompileSource(string source, string? basePackage = null)
     {

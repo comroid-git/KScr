@@ -214,9 +214,7 @@ public sealed class Class : AbstractPackageMember, IClass
         else if (Name == "void") ;
         else if (Name == "object") DeclaredInterfaces.Add(VoidType.DefaultInstance);
         else if (Name != "object") DeclaredSuperclasses.Add(ObjectType.DefaultInstance);
-
-
-        vm.ClassStore.Add(this);
+        
         DefaultInstance = GetInstance(vm, TypeParameters
             .Cast<ITypeParameter?>()
             .Select(tp => tp?.SpecializationTarget)
@@ -618,7 +616,7 @@ public sealed class Class : AbstractPackageMember, IClass
         public void Initialize(RuntimeBase vm)
         {
             if (_initialized) return;
-            SelfRef = vm.ClassStore.Add(this)!;
+            SelfRef = new ClassRef(this);
             _initialized = true;
         }
 
