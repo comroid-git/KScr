@@ -72,7 +72,8 @@ public sealed class KScrBuild
         if (modulesInfo != null)
             Log<KScrBuild>.At(LogLevel.Config, $"Found Module root {dir.FullName} as Project {modulesInfo.Project}");
         List<Module> exported = new();
-        foreach (var moduleFile in dir.EnumerateFiles(RuntimeBase.ModuleFile, SearchOption.AllDirectories))
+        foreach (var moduleFile in dir.EnumerateFiles(RuntimeBase.ModuleFile, SearchOption.AllDirectories)
+                     .Where(file => !Path.GetRelativePath(dir.FullName, file.FullName).StartsWith("build" + Path.DirectorySeparatorChar))) 
         {
             var moduleInfo = JsonSerializer.Deserialize<ModuleInfo>(File.ReadAllText(moduleFile.FullName)) ??
                              throw new Exception($"Unable to parse {RuntimeBase.ModuleFile} in module {moduleFile.Directory!.FullName}");
@@ -231,7 +232,7 @@ public sealed class KScrBuild
     }
         
     public static string Md5Path(FileSystemInfo path) => Path.Combine("build", "checksums",
-        (path.FullName.Contains("build")
+        (path.FullName.StartsWith("build" + Path.DirectorySeparatorChar)
             ? Path.GetRelativePath(Path.Combine(Environment.CurrentDirectory, "build"), path.FullName)
-            : path.FullName).TrimEnd(Path.DirectorySeparatorChar) + ".md5");
+            : path.Name).TrimEnd(Path.DirectorySeparatorChar) + ".md5");
 }

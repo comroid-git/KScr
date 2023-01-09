@@ -87,9 +87,9 @@ public class Module
         Log<Module>.At(LogLevel.Debug, $"Writing module {Notation} to file {lib.FullName}");
         if (lib.Exists)
             lib.Delete();
-        using var zipFile = lib.OpenWrite();
-        using var archive = new Archive();
-        using var close = new Container();
+        var zipFile = lib.OpenWrite(); 
+        var archive = new Archive();
+        var close = new Container(){archive,zipFile};
         var moduleFile = new FileInfo(Path.Combine(dir, RuntimeBase.ModuleFile));
         Project.SaveToFile(moduleFile.FullName);
         foreach (var file in Directory
@@ -110,8 +110,8 @@ public class Module
         }
         // ZIP file + cleanup
         archive.Save(zipFile);
-        lib.UpdateMd5(KScrBuild.Md5Path);
         close.Dispose();
+        lib.UpdateMd5(KScrBuild.Md5Path);
     }
 
     public override string ToString() =>
