@@ -3,12 +3,10 @@
 public abstract class Plugin : TaskContainer
 {
     public string Name { get; }
-    public HashSet<string> DependsOn { get; }
 
-    public Plugin(string name, params string[] dependsOn)
+    public Plugin(string name)
     {
         Name = name;
-        DependsOn = new HashSet<string>(dependsOn);
     }
 
     public void Apply(Module module) => module.Parents.Add(this);
@@ -16,39 +14,50 @@ public abstract class Plugin : TaskContainer
 
 public class BuildPlugin : Plugin
 {
-    private class BuildTask : ProjTask {}
+    private class BuildTask : ProjTask
+    {
+        public BuildTask() : base("build", TaskCategory.Build)
+        {
+        }
 
-    public BuildPlugin() : base("build")
+        public override void Execute(TaskManager manager, Module module)
+        {
+            module.RunBuild();
+            module.SaveToFiles();
+        }
+    }
+
+    public BuildPlugin(string? name = null) : base(name ?? "build")
     {
         Add(new BuildTask());
     }
 }
 
-public class DistPlugin : Plugin
+public class DistPlugin : BuildPlugin
 {
     private class DistTask : ProjTask {}
 
-    public DistPlugin() : base("dist", "build")
+    public DistPlugin(string? name = null) : base(name ?? "dist")
     {
         Add(new DistTask());
     }
 }
 
-public class LibraryPlugin : Plugin
+public class LibraryPlugin : DistPlugin
 {
     private class PublishTask : ProjTask {}
 
-    public LibraryPlugin() : base("library", "dist")
+    public LibraryPlugin(string? name = null) : base(name ?? "library")
     {
         Add(new PublishTask());
     }
 }
 
-public class ApplicationPlugin : Plugin
+public class ApplicationPlugin : DistPlugin
 {
     private class RunTask : ProjTask {}
 
-    public ApplicationPlugin() : base("application", "dist")
+    public ApplicationPlugin(string? name = null) : base(name ?? "application")
     {
         Add(new RunTask());
     }

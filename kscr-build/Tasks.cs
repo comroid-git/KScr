@@ -27,7 +27,8 @@ public abstract class TaskContainer : HashSet<ProjTask>
         TaskManager.Instance.Concat(this)
             .Concat(Parents.SelectMany(it => it))
             .Concat((IEnumerable<ProjTask>?)secondary ?? ArraySegment<ProjTask>.Empty)
-            .Where(task => category == null || task.Category == category);
+            .Where(task => category == null || task.Category == category)
+            .DistinctBy(task => task.Name);
 
     public ProjTask? Task(string name, TaskContainer? secondary = null) =>
         Tasks(secondary: secondary).FirstOrDefault(task => task.Name == name);
@@ -70,6 +71,11 @@ public sealed class TaskManager : TaskContainer
     private TaskManager()
     {
         Add(new TasksTask());
+    }
+    
+    public void Run(params string[] tasks)
+    {
+        Tasks()
     }
 
     private class TasksTask : ProjTask

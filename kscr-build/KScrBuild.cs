@@ -22,6 +22,7 @@ public sealed class KScrBuild
 
     public static void Main(string[] args)
     {
+        /*
         Log<KScrBuild>.WithExceptionLogger(() => Parser.Default.ParseArguments<CmdInfo, CmdDependencies, CmdBuild, CmdPublish, CmdRun>(args)
                 .WithParsed<CmdInfo>(PrintInfo)
                 .WithParsed<CmdDependencies>(PrintDependencies)
@@ -29,6 +30,7 @@ public sealed class KScrBuild
                 .WithParsed<CmdPublish>(RunPublish)
                 .WithParsed<CmdRun>(RunRun)
             , "Build failed with unhandled exception");
+            */
     }
 
     private static void RunRun(CmdRun cmd)
@@ -61,7 +63,7 @@ public sealed class KScrBuild
         }
     }
 
-    private static (ModuleInfo? baseModule, List<Module> exported) ExtractModules(CmdBase cmd)
+    internal static (ModuleInfo? baseModule, List<Module> exported) ExtractModules(CmdBase cmd)
     {
         var dir = cmd.Dir ?? new DirectoryInfo(Environment.CurrentDirectory);
         var modulesFile = dir.GetFiles(RuntimeBase.ModulesFile).FirstOrDefault();
@@ -114,7 +116,7 @@ public sealed class KScrBuild
         }
     }
 
-    private static void SortModulesByCoDependencies(List<Module> exported)
+    internal static void SortModulesByCoDependencies(List<Module> exported)
     {
         CoDepNode? parent = null;
         foreach (var module in exported)
