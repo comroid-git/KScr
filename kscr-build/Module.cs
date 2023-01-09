@@ -64,17 +64,17 @@ public class Module
 
     public void SaveToFiles(string dir = null!)
     {
-        dir ??= Build.Output!;
+        dir ??= Build.Output ?? Path.Combine(Environment.CurrentDirectory, "build/classes/");
         // Create FileStream for output ZIP archive
-        var lib = Path.Combine(dir, RuntimeBase.ModuleLibFile);
-        Log<Module>.At(LogLevel.Debug, $"Writing module {Notation} to file {lib}");
-        using var zipFile = File.Open(lib, FileMode.Create);
+        var lib = new FileInfo(Build.OutputLib ?? Path.Combine(dir, RuntimeBase.ModuleLibFile));
+        Log<Module>.At(LogLevel.Debug, $"Writing module {Notation} to file {lib.FullName}");
+        using var zipFile = lib.OpenWrite();
         using var archive = new Archive();
         using var close = new Container();
         var moduleFile = new FileInfo(Path.Combine(dir, RuntimeBase.ModuleFile));
         Project.SaveToFile(moduleFile.FullName);
         foreach (var file in Directory
-                     .EnumerateFiles(Build.Output!, "*" + RuntimeBase.BinaryFileExt, SearchOption.AllDirectories)
+                     .EnumerateFiles(dir, "*" + RuntimeBase.BinaryFileExt, SearchOption.AllDirectories)
                      .Select(file => (FileSystemInfo)new FileInfo(file))
                      .Append(moduleFile))
         {
@@ -85,7 +85,7 @@ public class Module
             // Add file to the archive
             var relativePath = isModuleFile
                 ? Path.GetRelativePath(dir, file.FullName)
-                : Path.GetRelativePath(Build.Output!, file.FullName);
+                : Path.GetRelativePath(Build.Output ?? dir, file.FullName);
             Log<DependencyManager>.At(LogLevel.Trace, $"Adding {file.FullName} to archive at path {relativePath}");
             archive.CreateEntry(relativePath, data);
         }

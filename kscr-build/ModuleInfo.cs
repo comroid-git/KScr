@@ -78,6 +78,8 @@ public sealed class BuildInfo
     public string? Resources { get; set; }
     [JsonPropertyName("output")]
     public string? Output { get; set; }
+    [JsonPropertyName("outputLib")]
+    public string? OutputLib { get; set; }
     [JsonPropertyName("pre")]
     public string? Pre { get; set; }
     [JsonPropertyName("post")]

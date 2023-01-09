@@ -9,7 +9,7 @@
     "base_package": "org.comroid.kscr",
     "sources": "src/",
     "resources": "res/",
-    "output": "../kscr-build/bin/net6.0/std/"
+    "outputLib": "../kscr-build/bin/net6.0/std.kmod"
   },
   "publishing": {
     "repositories": [
