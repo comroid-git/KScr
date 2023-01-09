@@ -22,7 +22,7 @@ public class KScrStarter
         DefaultOutput = Path.Combine(Directory.GetCurrentDirectory(), "build", "compile");
 
     private static readonly string
-        StdPackageLocation = Path.Combine(RuntimeBase.SdkHome.FullName, "std");
+        StdPackageLocation = Path.Combine(RuntimeBase.SdkHome.FullName, "std.kmod");
 
     static KScrStarter()
     {
@@ -104,7 +104,7 @@ public class KScrStarter
     {
         // load std package
         //VM.Load(StdPackageLocation);
-        Package.ReadAll(VM, new DirectoryInfo(StdPackageLocation));
+        Package.ReadAll(VM, new FileInfo(StdPackageLocation));
     }
 
     public static long LoadClasspath(IClasspathCmd cmd)

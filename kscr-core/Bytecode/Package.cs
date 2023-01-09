@@ -66,10 +66,10 @@ public sealed class Package : AbstractPackageMember
             strings.Write(dir);
     }
 
-    public static void ReadAll(RuntimeBase vm, DirectoryInfo dir)
+    public static void ReadAll(RuntimeBase vm, FileSystemInfo path)
     {
         StringCache strings;
-        if (new FileInfo(Path.Combine(dir.FullName, RuntimeBase.ModuleLibFile)) is { Exists: true } lib)
+        if ((path as FileInfo ?? new FileInfo(Path.Combine(path.FullName, RuntimeBase.ModuleLibFile))) is { Exists: true } lib)
         {
             using var zip = new ZipArchive(lib.OpenRead());
             if (zip.GetEntry(StringCache.FileName)?.Open() is { } stream)
@@ -91,8 +91,9 @@ public sealed class Package : AbstractPackageMember
         }
         else
         {
-            strings = StringCache.Read(dir);
-            foreach (var sub in dir.EnumerateDirectories())
+            var dir = path as DirectoryInfo;
+            strings = StringCache.Read(dir!);
+            foreach (var sub in dir!.EnumerateDirectories())
                 Read(vm, strings, sub);
         }
     }

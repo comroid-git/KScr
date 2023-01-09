@@ -34,6 +34,7 @@ public class Module
         {
             var oldwkdir = Environment.CurrentDirectory;
             Log<KScrBuild>.At(LogLevel.Debug, $"Set working Directory for module: {Environment.CurrentDirectory = RootDir.FullName}");
+
             var cmd = new CmdCompile()
             {
                 Args = ArraySegment<string>.Empty,
@@ -43,6 +44,14 @@ public class Module
                 Source = ModulesInfo?.Build.Sources ?? Build.Sources ?? "src/main/",
                 System = (ModulesInfo?.Build.BasePackage ?? Build.BasePackage) == "org.comroid.kscr"
             };
+
+            long compileTime = -1, ioTime = -1;
+            if (cmd.Output.IsUpToDate(KScrBuild.Md5Path))
+            {
+                Log<Module>.At(LogLevel.Config, $"Build {Notation} not necessary; output dir is up-to-date");
+                goto skipBuild;
+            }
+
             KScrStarter.CopyProps(cmd);
             if (!cmd.System)
             {
@@ -51,12 +60,15 @@ public class Module
             }
 
             Log<Module>.At(LogLevel.Config, $"Compiling source '{cmd.Source}' into '{cmd.Output}'...");
-            var compileTime = KScrStarter.CompileSource(cmd, cmd.PkgBase);
+            compileTime = KScrStarter.CompileSource(cmd, cmd.PkgBase);
             if (KScrStarter.VM.CompilerErrors.Count > 0)
                 foreach (var error in KScrStarter.VM.CompilerErrors)
                     Log<Module>.At(LogLevel.Error, "Compiler Error:\r\n" + error);
-            var ioTime = KScrStarter.WriteClasses(cmd); 
+            ioTime = KScrStarter.WriteClasses(cmd);
+            
+            skipBuild:
             ioTime += DebugUtil.Measure(() => SaveToFiles());
+            cmd.Output.UpdateMd5(KScrBuild.Md5Path);
             Log<Module>.At(LogLevel.Info, $"Build {Notation} succeeded; {KScrStarter.IOTimeString(compileTime, ioTime: ioTime)}");
             Environment.CurrentDirectory = oldwkdir;
         }, $"Build {Notation} failed with exception");
@@ -67,7 +79,14 @@ public class Module
         dir ??= Build.Output ?? Path.Combine(Environment.CurrentDirectory, "build/classes/");
         // Create FileStream for output ZIP archive
         var lib = new FileInfo(Build.OutputLib ?? Path.Combine(dir, RuntimeBase.ModuleLibFile));
+        if (lib.IsUpToDate(KScrBuild.Md5Path))
+        {
+            Log<Module>.At(LogLevel.Config, $"Create Package {Notation} not necessary; output library is up-to-date");
+            return;
+        }
         Log<Module>.At(LogLevel.Debug, $"Writing module {Notation} to file {lib.FullName}");
+        if (lib.Exists)
+            lib.Delete();
         using var zipFile = lib.OpenWrite();
         using var archive = new Archive();
         using var close = new Container();
@@ -91,6 +110,7 @@ public class Module
         }
         // ZIP file + cleanup
         archive.Save(zipFile);
+        lib.UpdateMd5(KScrBuild.Md5Path);
         close.Dispose();
     }
 

@@ -229,4 +229,9 @@ public sealed class KScrBuild
                 Console.WriteLine($" - {repository}");
         }
     }
+        
+    public static string Md5Path(FileSystemInfo path) => Path.Combine("build", "checksums",
+        (path.FullName.Contains("build")
+            ? Path.GetRelativePath(Path.Combine(Environment.CurrentDirectory, "build"), path.FullName)
+            : path.FullName).TrimEnd(Path.DirectorySeparatorChar) + ".md5");
 }
