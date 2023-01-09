@@ -13,6 +13,7 @@
         <FileVersion>10</FileVersion>
         <LangVersion>latest</LangVersion>
         <IsPackable>false</IsPackable>
+        <ApplicationIcon>..\docs\img\kscr-icon.ico</ApplicationIcon>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -27,6 +28,12 @@
     <ItemGroup>
         <PackageReference Include="Aspose.Zip" Version="22.12.0" />
         <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\docs\img\kscr-icon.ico">
+        <Link>kscr-icon.ico</Link>
+      </None>
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
