@@ -5,7 +5,7 @@ using KScr.Runtime;
 
 namespace KScr.Build;
 
-public class Module
+public class Module : TaskContainer
 {
     public readonly ModuleInfo? ModulesInfo;
     public readonly ModuleInfo ModuleInfo;
