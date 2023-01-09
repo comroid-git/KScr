@@ -4,8 +4,14 @@ namespace KScr.Build;
 
 public interface CmdBase
 {
-    [Option]
+    [Value(0, Required = false)]
     public DirectoryInfo? Dir { get; set; }
+}
+
+public interface IRebuildCmd
+{
+    [Option('r', "rebuild", Default = false)]
+    public bool Rebuild { get; set; }
 }
 
 [Verb("info")]
@@ -21,9 +27,10 @@ public class CmdDependencies : CmdBase
 }
 
 [Verb("build")]
-public class CmdBuild : CmdBase
+public class RebuildCmdBuild : CmdBase, IRebuildCmd
 {
     public DirectoryInfo? Dir { get; set; }
+    public bool Rebuild { get; set; }
 }
 
 [Verb("publish")]
@@ -33,7 +40,8 @@ public class CmdPublish : CmdBase
 }
 
 [Verb("run")]
-public class CmdRun : CmdBase
+public class RebuildCmdRun : CmdBase, IRebuildCmd
 {
     public DirectoryInfo? Dir { get; set; }
+    public bool Rebuild { get; set; }
 }

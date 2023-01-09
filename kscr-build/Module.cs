@@ -7,6 +7,7 @@ namespace KScr.Build;
 
 public class Module
 {
+    private readonly Log log;
     public readonly ModuleInfo? ModulesInfo;
     public readonly ModuleInfo ModuleInfo;
     public readonly DirectoryInfo RootDir;
@@ -16,6 +17,7 @@ public class Module
         ModulesInfo = modulesInfo;
         ModuleInfo = moduleInfo;
         RootDir = rootDir;
+        log = new Log(Notation);
     }
 
     public ProjectInfo Project => ModulesInfo != null ? ModulesInfo.Project + ModuleInfo.Project : ModuleInfo.Project;
@@ -30,10 +32,9 @@ public class Module
 
     public void RunBuild()
     {
-        Log<Module>.WithExceptionLogger(() =>
+        log.RunWithExceptionLogger(() =>
         {
-            var oldwkdir = Environment.CurrentDirectory;
-            Log<KScrBuild>.At(LogLevel.Debug, $"Set working Directory for module: {Environment.CurrentDirectory = RootDir.FullName}");
+            (var oldwkdir, Environment.CurrentDirectory) = (Environment.CurrentDirectory, RootDir.FullName);
 
             var cmd = new CmdCompile()
             {
@@ -46,9 +47,9 @@ public class Module
             };
 
             long compileTime = -1, ioTime = -1;
-            if (cmd.Output.IsUpToDate(KScrBuild.Md5Path))
+            if (!KScrBuild.Rebuild && cmd.Output.IsUpToDate(KScrBuild.Md5Path))
             {
-                Log<Module>.At(LogLevel.Config, $"Build {Notation} not necessary; output dir is up-to-date");
+                log.At(LogLevel.Config, $"Build {Notation} not necessary; output dir is up-to-date");
                 goto skipBuild;
             }
 
@@ -59,17 +60,17 @@ public class Module
                 KScrStarter.LoadClasspath(cmd);
             }
 
-            Log<Module>.At(LogLevel.Config, $"Compiling source '{cmd.Source}' into '{cmd.Output}'...");
+            log.At(LogLevel.Config, $"Compiling source '{cmd.Source}' into '{cmd.Output}'...");
             compileTime = KScrStarter.CompileSource(cmd, cmd.PkgBase);
             if (KScrStarter.VM.CompilerErrors.Count > 0)
                 foreach (var error in KScrStarter.VM.CompilerErrors)
-                    Log<Module>.At(LogLevel.Error, "Compiler Error:\r\n" + error);
+                    log.At(LogLevel.Error, "Compiler Error:\r\n" + error);
             ioTime = KScrStarter.WriteClasses(cmd);
             
             skipBuild:
             ioTime += DebugUtil.Measure(() => SaveToFiles());
             cmd.Output.UpdateMd5(KScrBuild.Md5Path);
-            Log<Module>.At(LogLevel.Info, $"Build {Notation} succeeded; {KScrStarter.IOTimeString(compileTime, ioTime: ioTime)}");
+            log.At(LogLevel.Info, $"Build {Notation} succeeded; {KScrStarter.IOTimeString(compileTime, ioTime: ioTime)}");
             Environment.CurrentDirectory = oldwkdir;
         }, $"Build {Notation} failed with exception");
     }
@@ -79,12 +80,12 @@ public class Module
         dir ??= Build.Output ?? Path.Combine(Environment.CurrentDirectory, "build/classes/");
         // Create FileStream for output ZIP archive
         var lib = new FileInfo(Build.OutputLib ?? Path.Combine(dir, RuntimeBase.ModuleLibFile));
-        if (lib.IsUpToDate(KScrBuild.Md5Path))
+        if (!KScrBuild.Rebuild && lib.IsUpToDate(KScrBuild.Md5Path))
         {
-            Log<Module>.At(LogLevel.Config, $"Create Package {Notation} not necessary; output library is up-to-date");
+            log.At(LogLevel.Config, $"Create Package {Notation} not necessary; output library is up-to-date");
             return;
         }
-        Log<Module>.At(LogLevel.Debug, $"Writing module {Notation} to file {lib.FullName}");
+        log.At(LogLevel.Debug, $"Writing module {Notation} to file {lib.FullName}");
         if (lib.Exists)
             lib.Delete();
         var zipFile = lib.OpenWrite(); 

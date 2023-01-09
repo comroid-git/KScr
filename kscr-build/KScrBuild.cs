@@ -22,18 +22,19 @@ public sealed class KScrBuild
 
     public static void Main(string[] args)
     {
-        Log<KScrBuild>.WithExceptionLogger(() => Parser.Default.ParseArguments<CmdInfo, CmdDependencies, CmdBuild, CmdPublish, CmdRun>(args)
+        Log<KScrBuild>.Get().RunWithExceptionLogger(() => Parser.Default.ParseArguments<CmdInfo, CmdDependencies, RebuildCmdBuild, CmdPublish, RebuildCmdRun>(args)
                 .WithParsed<CmdInfo>(PrintInfo)
                 .WithParsed<CmdDependencies>(PrintDependencies)
-                .WithParsed<CmdBuild>(RunBuild)
+                .WithParsed<RebuildCmdBuild>(RunBuild)
                 .WithParsed<CmdPublish>(RunPublish)
-                .WithParsed<CmdRun>(RunRun)
+                .WithParsed<RebuildCmdRun>(RunRun)
             , "Build failed with unhandled exception");
     }
 
-    private static void RunRun(CmdRun cmd)
+    private static void RunRun(RebuildCmdRun rebuildCmd)
     {
-        var (baseModule, exported) = ExtractModules(cmd);
+        ApplyCmd(rebuildCmd);
+        var (baseModule, exported) = ExtractModules(rebuildCmd);
 
         foreach (var module in exported) 
             module.RunBuild();
@@ -84,16 +85,21 @@ public sealed class KScrBuild
         return (modulesInfo, exported);
     }
 
-    private static void RunBuild(CmdBuild cmd)
+    private static void RunBuild(RebuildCmdBuild rebuildCmd)
     {
-        var (baseModule, exported) = ExtractModules(cmd);
+        ApplyCmd(rebuildCmd);
+        var (baseModule, exported) = ExtractModules(rebuildCmd);
 
         SortModulesByCoDependencies(exported);
         
         foreach (var module in exported) 
             module.RunBuild();
     }
-    
+
+    private static void ApplyCmd(IRebuildCmd cmd) => Rebuild = cmd.Rebuild;
+
+    public static bool Rebuild { get; private set; }
+
     private class CoDepNode
     { 
         internal readonly Module Module;
