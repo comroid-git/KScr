@@ -89,7 +89,6 @@ public sealed class ClassStore
             return Classes[name];
         if (package.GetClass(vm, name.Split('.')) is { } x)
             return x;
-        ;
         return package.GetOrCreateClass(vm, name);
-    }
+     }
 }

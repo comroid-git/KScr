@@ -2,6 +2,7 @@
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using comroid.csapi.common;
 using KScr.Core.Model;
 using KScr.Core.Std;
 using KScr.Core.Util;
@@ -52,7 +53,9 @@ public sealed class Package : AbstractPackageMember
                 var file = new FileInfo(Path.Combine(dir.FullName, (member.Name.Contains("<")
                     ? member.Name.Substring(0, member.Name.IndexOf("<", StringComparison.Ordinal))
                     : member.Name) + ".kbin"));
-                vm.Write(FStream(vm, file, FileMode.Create), strings, cls);
+                var fStream = FStream(vm, file, FileMode.Create);
+                vm.Write(fStream, strings, cls);
+                fStream.Dispose();
             }
             else
             {
@@ -63,11 +66,36 @@ public sealed class Package : AbstractPackageMember
             strings.Write(dir);
     }
 
-    public static void ReadAll(RuntimeBase vm, DirectoryInfo dir, StringCache? strings = null)
+    public static void ReadAll(RuntimeBase vm, FileSystemInfo path)
     {
-        strings ??= StringCache.Read(dir);
-        foreach (var sub in dir.EnumerateDirectories())
-            Read(vm, strings, sub);
+        StringCache strings;
+        if ((path as FileInfo ?? new FileInfo(Path.Combine(path.FullName, RuntimeBase.ModuleLibFile))) is { Exists: true } lib)
+        {
+            using var zip = new ZipArchive(lib.OpenRead());
+            if (zip.GetEntry(StringCache.FileName)?.Open() is { } stream)
+            {
+                strings = StringCache.Read(stream);
+                stream.Dispose();
+            }
+            else throw new System.Exception("Library contains no String cache");
+            foreach (var entry in zip.Entries)
+            {
+                if (entry.Name == StringCache.FileName)
+                    continue;
+                var names = entry.FullName.StripExtension(RuntimeBase.BinaryFileExt).Replace('\\', '/').Split("/");
+                var pkg = RootPackage.GetPackage(vm, names[..^1])!;
+                using var fStream = entry.Open();
+                var kls = vm.Load<Class>(vm, strings, fStream, pkg, null);
+                Log<Package>.At(LogLevel.Trace, $"Loaded class {kls.CanonicalName} from library {lib.FullName}");
+            }
+        }
+        else
+        {
+            var dir = path as DirectoryInfo;
+            strings = StringCache.Read(dir!);
+            foreach (var sub in dir!.EnumerateDirectories())
+                Read(vm, strings, sub);
+        }
     }
 
     public static Package Read(RuntimeBase vm, StringCache strings, DirectoryInfo dir, Package? parent = null)
@@ -83,9 +111,9 @@ public sealed class Package : AbstractPackageMember
 
         foreach (var cls in dir.EnumerateFiles("*.kbin"))
         {
-            var kls = vm.Load<Class>(vm, strings, FStream(vm, cls, FileMode.Open), it,
-                null); //Class.Read(vm, strings, cls, it);
-            //it.Members[kls.Name] = kls;
+            using var fStream = FStream(vm, cls, FileMode.Open);
+            var kls = vm.Load<Class>(vm, strings, fStream, it, null);
+            Log<Package>.At(LogLevel.Trace, $"Loaded class {kls.CanonicalName} from file {cls.FullName}");
         }
 
         return it;
@@ -136,11 +164,16 @@ public sealed class Package : AbstractPackageMember
         return cls;
     }
 
-    public Class? GetClass(RuntimeBase vm, string[] names)
+    public Package? GetPackage(RuntimeBase vm, params string[] names)
     {
         var pkg = names.Length > 1 ? RootPackage : this;
-        for (var i = 0; i < names.Length - 1; i++)
+        for (var i = 0; i < names.Length; i++)
             pkg = pkg.GetOrCreatePackage(names[i]);
-        return pkg.GetOrCreateClass(vm, names[^1]);
+        return pkg;
+    }
+
+    public Class? GetClass(RuntimeBase vm, params string[] names)
+    {
+        return GetPackage(vm, names[..^1])?.GetOrCreateClass(vm, names[^1]);
     }
 }

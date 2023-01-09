@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using comroid.csapi.common;
+using KScr.Compiler;
 using Microsoft.Win32;
 using static KScr.Core.RuntimeBase;
 
@@ -173,15 +175,15 @@ public static class Installer
 
     private static void Dump(string ext)
     {
-        Debug.WriteLine("1" + FileExtentionInfo(AssocStr.Command, ext), "Command");
-        Debug.WriteLine("2" + FileExtentionInfo(AssocStr.DDEApplication, ext), "DDEApplication");
-        Debug.WriteLine("3" + FileExtentionInfo(AssocStr.DDEIfExec, ext), "DDEIfExec");
-        Debug.WriteLine("4" + FileExtentionInfo(AssocStr.DDETopic, ext), "DDETopic");
-        Debug.WriteLine("5" + FileExtentionInfo(AssocStr.Executable, ext), "Executable");
-        Debug.WriteLine("6" + FileExtentionInfo(AssocStr.FriendlyAppName, ext), "FriendlyAppName");
-        Debug.WriteLine("7" + FileExtentionInfo(AssocStr.FriendlyDocName, ext), "FriendlyDocName");
-        Debug.WriteLine("8" + FileExtentionInfo(AssocStr.NoOpen, ext), "NoOpen");
-        Debug.WriteLine("9" + FileExtentionInfo(AssocStr.ShellNewValue, ext), "ShellNewValue");
+        Log<KScrStarter>.At(LogLevel.Debug, "1" + FileExtentionInfo(AssocStr.Command, ext)+ "Command");
+        Log<KScrStarter>.At(LogLevel.Debug, "2" + FileExtentionInfo(AssocStr.DDEApplication, ext)+ "DDEApplication");
+        Log<KScrStarter>.At(LogLevel.Debug, "3" + FileExtentionInfo(AssocStr.DDEIfExec, ext)+ "DDEIfExec");
+        Log<KScrStarter>.At(LogLevel.Debug, "4" + FileExtentionInfo(AssocStr.DDETopic, ext)+ "DDETopic");
+        Log<KScrStarter>.At(LogLevel.Debug, "5" + FileExtentionInfo(AssocStr.Executable, ext)+ "Executable");
+        Log<KScrStarter>.At(LogLevel.Debug, "6" + FileExtentionInfo(AssocStr.FriendlyAppName, ext)+ "FriendlyAppName");
+        Log<KScrStarter>.At(LogLevel.Debug, "7" + FileExtentionInfo(AssocStr.FriendlyDocName, ext)+ "FriendlyDocName");
+        Log<KScrStarter>.At(LogLevel.Debug, "8" + FileExtentionInfo(AssocStr.NoOpen, ext)+ "NoOpen");
+        Log<KScrStarter>.At(LogLevel.Debug, "9" + FileExtentionInfo(AssocStr.ShellNewValue, ext)+ "ShellNewValue");
     }
 
 

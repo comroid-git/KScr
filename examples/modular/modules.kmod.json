@@ -1,0 +1,14 @@
+﻿{
+  "project": {
+    "basePackage": "org.comroid.kscr",
+    "domain": "org.comroid",
+    "group": "kscr",
+    "version": "0.1.0"
+  },
+  "repositories": [
+    {
+      "name": "comroid KScr Repository",
+      "url": "https://repo.kscr.comroid.org"
+    }
+  ]
+}

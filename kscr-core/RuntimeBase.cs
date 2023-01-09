@@ -33,9 +33,13 @@ public enum State : uint
 
 public abstract class RuntimeBase : IBytecodePort
 {
+    public const string JsonExt = ".json";
     public const string SourceFileExt = ".kscr";
     public const string BinaryFileExt = ".kbin";
     public const string ModuleFileExt = ".kmod";
+    public const string ModuleFile = "module" + ModuleFileExt + JsonExt;
+    public const string ModulesFile = "modules" + ModuleFileExt + JsonExt;
+    public const string ModuleLibFile = "lib" + ModuleFileExt;
     public static Encoding Encoding = Encoding.ASCII;
 
     public static readonly SourcefilePosition
@@ -219,12 +223,6 @@ public abstract class RuntimeBase : IBytecodePort
         return CombineHash(NextObjId(), name);
     }
 
-    public static long UnixTime()
-    {
-        var epochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        return (DateTime.UtcNow - epochStart).Ticks / 10;
-    }
-
     private static DirectoryInfo GetSdkHome()
     {
         //return new FileInfo(Assembly.Location).Directory!;
@@ -357,7 +355,8 @@ public abstract class RuntimeBase : IBytecodePort
             return kls!.CreateInstance(this, owner as Class, tParams.Cast<ITypeInfo>().ToArray());
         }
 
-        return ClassStore.FindType(this, package ?? Package.RootPackage, name)?.DefaultInstance;
+        return (package ?? Package.RootPackage).GetClass(this, name.Split("."))?.DefaultInstance 
+               ?? ClassStore.FindType(this, package ?? Package.RootPackage, name)?.DefaultInstance;
     }
 
     public ITypeInfo FindTypeInfo(string identifier, Class inClass, Package inPackage)

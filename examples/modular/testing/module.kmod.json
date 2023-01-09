@@ -1,0 +1,30 @@
+﻿ {
+  "project": {
+    "basePackage": "+testing",
+    "id": "testing",
+    "version": "0.1.0"
+  },
+  "build": {
+    "pre": "runBeforeBuild",
+    "post": "runAfterBuild"
+  },
+  "dependencies": [
+    {
+      "domain": "org.comroid",
+      "group": "kscr",
+      "id": "common",
+      "scope": 3
+    },
+    {
+      "domain": "org.comroid",
+      "group": "kscr",
+      "id": "system",
+      "scope": 3
+    },
+    {
+      "domain": "org.comroid",
+      "group": "annotations",
+      "scope": 1
+    }
+  ]
+}

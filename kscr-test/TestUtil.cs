@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using comroid.csapi.common;
 using KScr.Core;
 using KScr.Core.Std;
 using KScr.Core.Store;
@@ -29,7 +30,7 @@ public class TestUtil
             TestNo[testName] = 0;
         testName += ++TestNo[testName];
 
-        var vm = Program.VM;
+        var vm = KScrStarter.VM;
         if (!code.Contains("main()"))
             code = "\npublic static void main() {\n" + code + "\n" +
                    "}";
@@ -47,7 +48,7 @@ public class TestUtil
         sw.Write(code);
         sw.Close();
 
-        Debug.WriteLine($"Running {testName} in test dir {testDir}");
+        Log<TestUtil>.At(LogLevel.Info, $"Running {testName} in test dir {testDir}");
 
         var cmd = new CmdExecute
         {
@@ -57,17 +58,17 @@ public class TestUtil
             PkgBase = testPkg,
             Source = srcFile
         };
-        var compileTime = Program.CompileSource(cmd, testPkg);
+        var compileTime = KScrStarter.CompileSource(cmd, testPkg);
         RuntimeBase.ExtraArgs = Array.Empty<string>();
         var outw = new StringWriter();
         var outb = Console.Out;
         Console.SetOut(outw);
-        var executeTime = Program.Execute(out var stack, $"{testPkg}.{testName}");
+        var executeTime = KScrStarter.Execute(out var stack, $"{testPkg}.{testName}");
         Console.SetOut(outb);
         if (stack[StackOutput.Omg]?.Value is Numeric num)
             RuntimeBase.ExitCode = num.IntValue;
 
-        Debug.WriteLine(
+        Log<TestUtil>.At(LogLevel.Info, 
             $"Test compilation took {(double)compileTime / 1000:#,##0.00}ms, execution took {(double)executeTime / 1000:#,##0.00}ms");
 
         return (RuntimeBase.ExitCode, outw.ToString());

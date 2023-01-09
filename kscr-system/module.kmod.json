@@ -1,0 +1,21 @@
+﻿{
+  "project": {
+    "domain": "org.comroid",
+    "group": "kscr",
+    "id": "system",
+    "version": "1.0.0"
+  },
+  "build": {
+    "base_package": "org.comroid.kscr",
+    "sources": "src/",
+    "resources": "res/",
+    "outputLib": "../kscr-build/bin/net6.0/std.kmod"
+  },
+  "publishing": {
+    "repositories": [
+      {
+        "url": "localhost"
+      }
+    ]
+  }
+}

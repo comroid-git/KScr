@@ -1,0 +1,25 @@
+﻿{
+  "mainClassName": "org.comroid.kscr.test.Program",
+  "project": {
+    "basePackage": "+common",
+    "id": "common",
+    "version": "0.1.0"
+  },
+  "dependencies": [
+    {
+      "domain": "org.comroid",
+      "group": "kscr",
+      "id": "testing",
+      "scope": 3
+    },
+    {
+      "domain": "org.comroid",
+      "group": "kscr",
+      "exclude": [
+        {
+          "id": "common"
+        }
+      ]
+    }
+  ]
+}
