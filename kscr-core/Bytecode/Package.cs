@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using comroid.csapi.common;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Std;
 using KScr.Core.Util;
@@ -23,12 +24,14 @@ public sealed class Package : AbstractPackageMember
     {
     }
 
-    public Method FindEntrypoint()
+    public static Method FindEntrypoint(string? mainClassName = null)
     {
-        return All().Where(it => it is Class).Cast<Class>()
-            .Where(it => it.DeclaredMembers.ContainsKey("main"))
-            .Select(it => (it.DeclaredMembers["main"] as Method)!)
-            .First(it => it.IsStatic());
+        return (mainClassName != null
+                   ? new[] { RootPackage.GetClass(mainClassName)! }.Where(x => x != null)
+                   : RootPackage.All().Where(it => it is Class).Cast<Class>()
+                       .Where(it => it.DeclaredMembers.ContainsKey("main")))
+               .Select(it => (it.DeclaredMembers["main"] as Method)!).FirstOrDefault(it => it.IsStatic())
+               ?? throw new FatalException("Loaded classes contain no main() method definition");
     }
 
     public void Write(RuntimeBase vm, DirectoryInfo dir, ClassInfo[]? names = null, StringCache? strings = null,

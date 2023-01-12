@@ -42,7 +42,7 @@ public sealed class KScrBuild
         if (exported.Select(mod => mod.ModuleInfo).Append(baseModule)
                 .FirstOrDefault(mod => mod?.MainClassName != null) is { } mod)
             KScrStarter.Execute(out _, mod.MainClassName);
-        else Package.RootPackage.FindEntrypoint()?.Invoke(KScrStarter.VM, RuntimeBase.MainStack);
+        else Package.FindEntrypoint()?.Invoke(KScrStarter.VM, RuntimeBase.MainStack);
     }
 
     private static void RunPublish(CmdPublish cmd)

@@ -262,7 +262,7 @@ public abstract class RuntimeBase : IBytecodePort
         Method method;
         if (mainClassName == null)
         {
-            method = Package.RootPackage.FindEntrypoint();
+            method = Package.FindEntrypoint();
         }
         else
         {
