@@ -22,13 +22,17 @@ public sealed class KScrBuild
 
     public static void Main(string[] args)
     {
-        Log<KScrBuild>.Get().RunWithExceptionLogger(() => Parser.Default.ParseArguments<CmdInfo, CmdDependencies, RebuildCmdBuild, CmdPublish, RebuildCmdRun>(args)
-                .WithParsed<CmdInfo>(PrintInfo)
-                .WithParsed<CmdDependencies>(PrintDependencies)
-                .WithParsed<RebuildCmdBuild>(RunBuild)
-                .WithParsed<CmdPublish>(RunPublish)
-                .WithParsed<RebuildCmdRun>(RunRun)
-            , "Build failed with unhandled exception");
+        Parser.Default.ParseArguments<CmdInfo, CmdDependencies, RebuildCmdBuild, CmdPublish, RebuildCmdRun>(args)
+            .WithParsed<CmdInfo>(cmd => Log<KScrBuild>.Get()
+                .WrapWithExceptionLogger<CmdInfo>(PrintInfo, "Info failed with unhandled Exception")(cmd))
+            .WithParsed<CmdDependencies>(cmd => Log<KScrBuild>.Get()
+                .WrapWithExceptionLogger<CmdDependencies>(PrintDependencies, "Dependencies failed with unhandled Exception")(cmd))
+            .WithParsed<RebuildCmdBuild>(cmd => Log<KScrBuild>.Get()
+                .WrapWithExceptionLogger<RebuildCmdBuild>(RunBuild, "Build failed with unhandled Exception")(cmd))
+            .WithParsed<CmdPublish>(cmd => Log<KScrBuild>.Get()
+                .WrapWithExceptionLogger<CmdPublish>(RunPublish, "Publish failed with unhandled Exception")(cmd))
+            .WithParsed<RebuildCmdRun>(cmd => Log<KScrBuild>.Get()
+                .WrapWithExceptionLogger<RebuildCmdRun>(RunRun, "Run failed with unhandled Exception")(cmd));
     }
 
     private static void RunRun(RebuildCmdRun rebuildCmd)
@@ -39,10 +43,18 @@ public sealed class KScrBuild
         foreach (var module in exported) 
             module.RunBuild();
 
-        if (exported.Select(mod => mod.ModuleInfo).Append(baseModule)
+        if (new[] { baseModule }.Concat(exported.Select(mod => mod.ModuleInfo))
                 .FirstOrDefault(mod => mod?.MainClassName != null) is { } mod)
+        {
+            Log<Module>.At(LogLevel.Info, $"Executing module {mod.Notation}...");
             KScrStarter.Execute(out _, mod.MainClassName);
-        else Package.FindEntrypoint()?.Invoke(KScrStarter.VM, RuntimeBase.MainStack);
+        }
+        else
+        {
+            var findEntrypoint = Package.FindEntrypoint(baseModule?.MainClassName);
+            Log<Module>.At(LogLevel.Info, $"Executing module {baseModule!.Notation}...");
+            findEntrypoint.Invoke(KScrStarter.VM, RuntimeBase.MainStack);
+        }
     }
 
     private static void RunPublish(CmdPublish cmd)
@@ -74,7 +86,7 @@ public sealed class KScrBuild
             Log<KScrBuild>.At(LogLevel.Config, $"Found Module root {dir.FullName} as Project {modulesInfo.Project}");
         List<Module> exported = new();
         foreach (var moduleFile in dir.EnumerateFiles(RuntimeBase.ModuleFile, SearchOption.AllDirectories)
-                     .Where(file => !Path.GetRelativePath(dir.FullName, file.FullName).StartsWith("build" + Path.DirectorySeparatorChar))) 
+                     .Where(file => !file.FullName.Contains(Path.Combine("build","classes")))) 
         {
             var moduleInfo = JsonSerializer.Deserialize<ModuleInfo>(File.ReadAllText(moduleFile.FullName)) ??
                              throw new Exception($"Unable to parse {RuntimeBase.ModuleFile} in module {moduleFile.Directory!.FullName}");

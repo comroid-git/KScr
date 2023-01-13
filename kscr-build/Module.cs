@@ -40,7 +40,7 @@ public class Module
             {
                 Args = ArraySegment<string>.Empty,
                 Classpath = Dependencies.Select(dep => DependencyManager.Resolve(this, dep)).Where(x => x != null)!,
-                Output = new DirectoryInfo(ModulesInfo?.Build.Output ?? Build.Output ?? "build/classes/"),
+                Output = new DirectoryInfo(Path.Combine(ModulesInfo?.Build.Output ?? Build.Output ?? Path.Combine(Environment.CurrentDirectory, "build"), "classes")),
                 PkgBase = ModulesInfo?.Build.BasePackage ?? Build.BasePackage,
                 Source = ModulesInfo?.Build.Sources ?? Build.Sources ?? "src/main/",
                 System = (ModulesInfo?.Build.BasePackage ?? Build.BasePackage) == "org.comroid.kscr"
@@ -72,12 +72,12 @@ public class Module
             cmd.Output.UpdateMd5(KScrBuild.Md5Path);
             log.At(LogLevel.Info, $"Build {Notation} succeeded; {KScrStarter.IOTimeString(compileTime, ioTime: ioTime)}");
             Environment.CurrentDirectory = oldwkdir;
-        }, $"Build {Notation} failed with exception");
+        }, $"Build {Notation} failed with exception", LogLevel.Error);
     }
 
     public void SaveToFiles(string dir = null!)
     {
-        dir ??= Build.Output ?? Path.Combine(Environment.CurrentDirectory, "build/classes/");
+        dir ??= Path.Combine(Build.Output ?? Path.Combine(Environment.CurrentDirectory, "build"), "classes");
         // Create FileStream for output ZIP archive
         var lib = new FileInfo(Build.OutputLib ?? Path.Combine(dir, RuntimeBase.ModuleLibFile));
         if (!KScrBuild.Rebuild && lib.IsUpToDate(KScrBuild.Md5Path))

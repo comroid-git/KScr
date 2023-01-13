@@ -6,7 +6,8 @@
   },
   "build": {
     "pre": "runBeforeBuild",
-    "post": "runAfterBuild"
+    "post": "runAfterBuild",
+    "mainClassName": "org.comroid.kscr.test.Program"
   },
   "dependencies": [
     {
