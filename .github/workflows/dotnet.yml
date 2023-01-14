@@ -36,4 +36,4 @@ jobs:
       run: dotnet test --no-build --verbosity normal
       working-directory: kscr-test/
       env:
-        KSCR_HOME: kscr-build/bin/net6.0
+        KSCR_HOME: ../../../../kscr-build/bin/net6.0
