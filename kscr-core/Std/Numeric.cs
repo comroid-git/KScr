@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Numerics;
+using System.Text;
 using System.Text.RegularExpressions;
 using KScr.Core.Exception;
 using KScr.Core.Model;
@@ -10,40 +14,45 @@ namespace KScr.Core.Std;
 
 public enum NumericMode
 {
-    Byte,
-    Short,
     Int,
-    Long,
+    IntN,
     Float,
     Double
 }
 
-public sealed class Numeric : NativeObj
+public class Numeric : NativeObj
 {
     public static readonly Regex NumberRegex = new(@"([\d]+(i|l|f|d|s|b)?)([.,]([\d]+)(f|d))?");
-
-    public static Numeric Zero;
-
-    public static Numeric One;
-
-    private static readonly ConcurrentDictionary<decimal, Numeric> Cache = new();
-
-    private readonly bool _constant;
-
-    private readonly uint _objId;
-
-    internal Numeric(RuntimeBase vm, bool constant = false) : base(vm)
+    public static readonly Numeric Zero = new(0)
     {
-        _constant = constant;
-        _objId = vm.NextObjId();
+        Mutable = false,
+        Bytes = BitConverter.GetBytes((byte)0),
+        Mode = NumericMode.Int
+    };
+    public static readonly Numeric One = new(1)
+    {
+        Mutable = false,
+        Bytes = BitConverter.GetBytes((byte)1),
+        Mode = NumericMode.Int
+    };
+
+    protected virtual bool _constant { get; }
+
+    private Numeric(byte value) : base((uint)(value + 1))
+    {
     }
 
-    public NumericMode Mode { get; internal set; } = NumericMode.Short;
-    public byte[] Bytes { get; internal set; } = BitConverter.GetBytes((short)0);
-    public byte ByteValue => GetAs<byte>();
-    public short ShortValue => GetAs<short>();
-    public int IntValue => GetAs<int>();
-    public long LongValue => GetAs<long>();
+    internal Numeric(RuntimeBase vm, bool constant = false) : base(vm.NextObjId())
+    {
+        _constant = constant;
+    }
+
+    [Obsolete]
+    public bool Mutable => !_constant;
+
+    public NumericMode Mode { get; protected set; } = NumericMode.Int;
+    public byte[] Bytes { get; protected set; } = BitConverter.GetBytes((short)0);
+    public IntN IntNValue => GetAs<IntN>();
     public float FloatValue => GetAs<float>();
     public double DoubleValue => GetAs<double>();
     public string StringValue => GetAs<string>();
@@ -71,7 +80,7 @@ public sealed class Numeric : NativeObj
                 stack[StackOutput.Default] = String.Instance(vm, StringValue);
                 break;
             case "ExitCode":
-                stack[StackOutput.Default] = Constant(vm, IntValue);
+                stack[StackOutput.Default] = Constant(vm, GetAs<int>());
                 break;
             case "equals":
                 if (args[0] is not Numeric other)
@@ -86,10 +95,7 @@ public sealed class Numeric : NativeObj
                 delta = (Constant(vm, 0.001).Value as Numeric)!;
                 stack[StackOutput.Default] = Mode switch
                 {
-                    NumericMode.Byte => ByteValue == other.ByteValue,
-                    NumericMode.Short => ShortValue == other.ShortValue,
                     NumericMode.Int => IntValue == other.IntValue,
-                    NumericMode.Long => LongValue == other.LongValue,
                     NumericMode.Float => Math.Abs(FloatValue - other.FloatValue) < delta.FloatValue,
                     NumericMode.Double => Math.Abs(DoubleValue - other.DoubleValue) < delta.DoubleValue,
                     _ => throw new ArgumentOutOfRangeException()
@@ -110,10 +116,7 @@ public sealed class Numeric : NativeObj
     {
         return Mode switch
         {
-            NumericMode.Byte => CreateKey(LongValue),
-            NumericMode.Short => CreateKey(LongValue),
             NumericMode.Int => CreateKey(LongValue),
-            NumericMode.Long => CreateKey(LongValue),
             NumericMode.Float => CreateKey(FloatValue),
             NumericMode.Double => CreateKey(DoubleValue),
             _ => throw new ArgumentOutOfRangeException()
@@ -244,20 +247,23 @@ public sealed class Numeric : NativeObj
 
     private T GetAs<T>()
     {
-        var type = typeof(T);
+        switch (Mode, typeof(T).Name)
+        {
+            case (NumericMode.Int, "byte"):
+            case (NumericMode.IntN, "byte"):
+            case (NumericMode.Float, "byte"):
+            case (NumericMode.Double, "byte"):
+                break;
+        }
 
         if (type == typeof(byte))
         {
-            if (Mode == NumericMode.Byte)
-                return (T)(object)Bytes[0];
             switch (Mode)
             {
-                case NumericMode.Short:
-                    return (T)(object)(byte)ShortValue;
                 case NumericMode.Int:
-                    return (T)(object)(byte)IntValue;
-                case NumericMode.Long:
-                    return (T)(object)(byte)LongValue;
+                    return (T)(object)(byte)IntNValue.IntValue;
+                case NumericMode.IntN:
+                    return (T)(object)
                 case NumericMode.Float:
                     return (T)(object)(byte)FloatValue;
                 case NumericMode.Double:
@@ -632,31 +638,6 @@ public sealed class Numeric : NativeObj
         return rev;
     }
 
-    public override string ToString()
-    {
-        return ToString(0);
-    }
-
-    public static string CreateKey(string num)
-    {
-        return "num:" + num;
-    }
-
-    public static string CreateKey(long num)
-    {
-        return CreateKey(num.ToString());
-    }
-
-    public static string CreateKey(float num)
-    {
-        return CreateKey(num.ToString(CultureInfo.InvariantCulture));
-    }
-
-    public static string CreateKey(double num)
-    {
-        return CreateKey(num.ToString(CultureInfo.InvariantCulture));
-    }
-
     public IObjectRef Sqrt(RuntimeBase vm)
     {
         switch (Mode)
@@ -727,5 +708,140 @@ public sealed class Numeric : NativeObj
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    public override string ToString()
+    {
+        return ToString(0);
+    }
+
+    public static string CreateKey(string num)
+    {
+        return "num:" + num;
+    }
+
+    public static string CreateKey(long num)
+    {
+        return CreateKey(num.ToString());
+    }
+
+    public static string CreateKey(float num)
+    {
+        return CreateKey(num.ToString(CultureInfo.InvariantCulture));
+    }
+
+    public static string CreateKey(double num)
+    {
+        return CreateKey(num.ToString(CultureInfo.InvariantCulture));
+    }
+}
+
+public sealed class IntN : Numeric
+{
+    public const int NSteps = 8;
+    //private static readonly ConcurrentDictionary<decimal, IntN> Cache = new();
+    private static readonly Dictionary<int, IClassInstance> _clsInsts = new();
+    private readonly IClassInstance _clsInst;
+
+    public int N
+    {
+        get => Bytes.Length * NSteps;
+        set
+        {
+            var arr = new byte[value / NSteps];
+            Bytes.CopyTo(arr, 0);
+            Bytes = arr;
+        }
+    }
+
+    public IntN(RuntimeBase vm, int n = 32) : base(vm)
+    {
+        if (n / 8 > chars.Length)
+            throw new FatalException($"n too large: {n} ({n / 8})");
+        N = n;
+        Bytes = new byte[(int)Math.Ceiling((double)n / 8)];
+        _clsInst = GetClsInst(vm, n);
+    }
+
+    private byte[] Bits
+    {
+        get
+        {
+            byte[] bits = new byte[N];
+            for (int i = 0; i < N; i++)
+                bits[i] = (byte)((Bytes[i / 8] & (1 << i % 8 - 1)) != 0 ? 1 : 0);
+            bits = bits.Reverse().ToArray();
+            return bits;
+        }
+    }
+
+    public byte ByteValue
+    {
+        get => Bytes[0];
+        set => Set(new[] { value });
+    }
+
+    public short ShortValue
+    {
+        get => BitConverter.ToInt16(Bytes);
+        set => Set(BitConverter.GetBytes(value));
+    }
+
+    public int IntValue
+    {
+        get => BitConverter.ToInt32(Bytes);
+        set => Set(BitConverter.GetBytes(value));
+    }
+
+    public long LongValue
+    {
+        get => BitConverter.ToInt64(Bytes);
+        set => Set(BitConverter.GetBytes(value));
+    }
+
+    public BigInteger BigIntValue
+    {
+        get => new(Bytes);
+        set => Set(value.ToByteArray());
+    }
+
+    public new string StringValue(byte radix = 10)
+    {
+        var str = Convert.ToString(LongValue, radix);
+        return radix switch
+        {
+            2 => "0b" + str,
+            8 => "0o" + str,
+            10 => str,
+            16 => "0x" + str,
+            _ => "0_" + str
+        };
+    }
+
+    private void Set(byte[] bytes)
+    {
+        if (bytes.Length > N)
+            throw new ArgumentOutOfRangeException(nameof(bytes.Length), bytes.Length, "Set value too large");
+        Array.Fill(Bytes, (byte)0);
+        Array.Copy(bytes, 0, Bytes, N - bytes.Length, bytes.Length);
+    }
+
+    public override IClassInstance Type => _clsInst;
+
+    public override string ToString(short variant) => StringValue((byte)(variant == 0 ? 10 : variant));
+
+    public Stack Invoke(RuntimeBase vm, Stack stack, string member, params IObject?[] args)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override string GetKey() => $"int<{N}>: {StringValue(16)}";
+
+    private IClassInstance GetClsInst(RuntimeBase vm, int n)
+    {
+        if (_clsInsts.ContainsKey(n))
+            return _clsInsts[n];
+        return _clsInsts[n] = Class.IntType.CreateInstance(vm, Class.IntType,
+            new TypeParameter(N.ToString(), TypeParameterSpecializationType.N));
     }
 }
