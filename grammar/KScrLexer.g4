@@ -151,9 +151,9 @@ RREQARROW: '=>>';
 //RBOXARROW: '|>';
 //DBOXARROW: '<|>';
 
-ID: LETTER (DIGIT | LETTER)*;
-DIGIT: [0-9];
-LETTER: [a-zA-Z_$£#];
+fragment ID: LETTER (DIGIT | LETTER)*;
+fragment DIGIT: [0-9];
+fragment LETTER: [a-zA-Z_$£#];
 
 SING_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN);
 WS: [ \n\r\t] -> channel(HIDDEN);

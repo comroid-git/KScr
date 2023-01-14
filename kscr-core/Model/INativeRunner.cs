@@ -15,9 +15,9 @@ public abstract class NativeObj : IObject
 {
     private readonly uint _internalId;
 
-    public NativeObj(RuntimeBase vm)
+    public NativeObj(uint internalId)
     {
-        _internalId = vm.NextObjId();
+        _internalId = internalId;
     }
 
     public long ObjectId => RuntimeBase.CombineHash(_internalId, Type.FullDetailedName);
