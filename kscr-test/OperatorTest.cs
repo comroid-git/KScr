@@ -26,7 +26,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     [NonParallelizable]
     public void TestStrPlus()
     {
@@ -41,7 +41,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestIntPlus()
     {
         var a = rng.Next() % TestScale;
@@ -53,7 +53,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestIntMinus()
     {
         var a = rng.Next() % TestScale;
@@ -65,7 +65,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestIntMultiply()
     {
         var a = rng.Next() % TestScale;
@@ -77,7 +77,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestIntDivide()
     {
         var a = rng.Next() % TestScale;
@@ -89,7 +89,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestIntModulus()
     {
         var a = rng.Next() % TestScale;
@@ -101,7 +101,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestLongPlus()
     {
         var a = rng.NextInt64() % TestScale;
@@ -114,7 +114,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestLongMinus()
     {
         var a = rng.NextInt64() % TestScale;
@@ -127,7 +127,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestLongMultiply()
     {
         var a = rng.NextInt64() % TestScale;
@@ -140,7 +140,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestLongDivide()
     {
         var a = rng.NextInt64() % TestScale;
@@ -153,7 +153,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestLongModulus()
     {
         var a = rng.NextInt64() % TestScale;
@@ -166,7 +166,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestFloatPlus()
     {
         float a = rng.NextInt64() % TestScale;
@@ -179,7 +179,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestFloatMinus()
     {
         float a = rng.NextInt64() % TestScale;
@@ -192,7 +192,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestFloatMultiply()
     {
         float a = rng.NextInt64() % TestScale;
@@ -205,7 +205,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestFloatDivide()
     {
         float a = rng.NextInt64() % TestScale;
@@ -218,7 +218,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestFloatModulus()
     {
         float a = rng.NextInt64() % TestScale;
@@ -231,7 +231,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestDoublePlus()
     {
         var a = rng.NextDouble() % TestScale;
@@ -244,7 +244,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestDoubleMinus()
     {
         var a = rng.NextDouble() % TestScale;
@@ -257,7 +257,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestDoubleMultiply()
     {
         var a = rng.NextDouble() % TestScale;
@@ -270,7 +270,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestDoubleDivide()
     {
         var a = rng.NextDouble() % TestScale;
@@ -283,7 +283,7 @@ public class OperatorTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestDoubleModulus()
     {
         var a = rng.NextDouble() % TestScale;

@@ -12,12 +12,7 @@ namespace KScr.Test;
 
 public class TestUtil
 {
-    public const int TestScale
-#if DEBUG
-        = 128;
-#else
-            = 512;
-#endif
+    public const int TestScale = byte.MaxValue;
     public const int TestTimeout = 2000;
     public static readonly Guid TestID = Guid.NewGuid();
     public static Dictionary<string, int> TestNo = new();

@@ -25,7 +25,7 @@ public class StatementTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestReturn()
     {
         var desiredCode = rng.Next() % TestScale;
@@ -37,7 +37,7 @@ public class StatementTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestThrow()
     {
         var desiredCode = rng.Next() % TestScale;
@@ -57,7 +57,7 @@ public class StatementTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestDeclaration()
     {
         var desired = rng.Next() % TestScale;
@@ -72,7 +72,7 @@ public class StatementTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestIf()
     {
         var desired = rng.Next() % TestScale;
@@ -86,7 +86,7 @@ public class StatementTest
     }
 
     [Test]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     public void TestIfElse()
     {
         var desired = rng.Next() % TestScale;
@@ -101,7 +101,7 @@ public class StatementTest
 
     [Test]
     [Timeout(TestTimeout)]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     [NonParallelizable]
     public void TestFor()
     {
@@ -121,7 +121,7 @@ public class StatementTest
 
     [Test]
     [Timeout(TestTimeout)]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     [NonParallelizable]
     public void TestForEach()
     {
@@ -141,7 +141,7 @@ public class StatementTest
 
     [Test]
     [Timeout(TestTimeout)]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     [NonParallelizable]
     public void TestWhile()
     {
@@ -162,7 +162,7 @@ public class StatementTest
 
     [Test]
     [Timeout(TestTimeout)]
-    [Repeat(TestScale / 16)]
+    [Repeat(TestScale)]
     [NonParallelizable]
     public void TestDoWhile()
     {
