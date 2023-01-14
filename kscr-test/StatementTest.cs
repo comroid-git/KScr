@@ -1,5 +1,8 @@
 using System;
 using System.IO;
+using System.Threading;
+using KScr.Core.Exception;
+using KScr.Core.Std;
 using NUnit.Framework;
 using static KScr.Test.TestUtil;
 
@@ -44,16 +47,10 @@ public class StatementTest
         if (desiredCode < 10)
             desiredCode = TestScale;
 
-        var writer = new StringWriter();
-        Console.SetOut(writer);
         var result = RunSourcecode("TestThrow", $"throw {desiredCode};");
-        var expectedOut = "";
-
+        
         Console.WriteLine($"test: ExitCode == {desiredCode}");
         Assert.AreEqual(desiredCode, result.exitCode);
-        Assert.IsTrue(writer.ToString().StartsWith(expectedOut),
-            $"Expected output was:\n{expectedOut}\nActual Output was \n{writer}");
-        Assert.Pass();
     }
 
     [Test]

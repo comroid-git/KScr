@@ -267,6 +267,10 @@ public abstract class RuntimeBase : IBytecodePort
             stack = method.Invoke(this, stack,
                 args: ExtraArgs.Select(str => String.Instance(this, str)[this, stack, 0]).ToArray());
         }
+        catch (RuntimeException)
+        {
+            return stack;
+        }
         catch (StackTraceException stc)
         {
             stc.PrintStackTrace();
