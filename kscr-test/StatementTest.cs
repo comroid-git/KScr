@@ -1,9 +1,6 @@
 using System;
 using System.IO;
-using System.Threading;
-using KScr.Core.Exception;
 using KScr.Core.Std;
-using KScr.Runtime;
 using NUnit.Framework;
 using static KScr.Test.TestUtil;
 
