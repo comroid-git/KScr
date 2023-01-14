@@ -2,7 +2,8 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
 name: .NET
-
+run-name: Test Integrity
+        
 on:
   push:
     branches: [ "master" ]
@@ -11,18 +12,27 @@ on:
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
+      name: Git Checkout
+    - uses: sudosubin/git-clone-action@v1.0.1
+      name: Git Clone Action
+      with:
+        repository: comroid-git/csapi
+        path: ../c#/csapi/
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+    - name: Build Solution
+      run: dotnet build
+    - name: Build STD Package
+      run: dotnet run --project ../kscr-build build --r
+      working-directory: kscr-system/
+      env:
+        KSCR_HOME: ../kscr-build/bin/net6.0
+    - name: Run Tests
+      run: dotnet test kscr-test/kscr-test.csproj --no-build --verbosity normal
+      env:
+        KSCR_HOME: kscr-build/bin/net6.0
