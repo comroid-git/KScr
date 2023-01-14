@@ -128,7 +128,7 @@ public class Statement : IBytecode, IStatement<StatementComponent>
         finally
         {
             if (!caught)
-                CatchFinally?.AltComponent?.InnerCode!.Evaluate(vm, stack);
+                CatchFinally?.AltComponent?.InnerCode?.Evaluate(vm, stack);
         }
 
         return stack;
@@ -292,6 +292,8 @@ public class StatementComponent : IBytecode, IStatementComponent
                 if (SubComponent == null || (SubComponent.Type & StatementComponentType.Expression) == 0)
                     throw new FatalException("Invalid return statement; no Expression found");
                 SubComponent.Evaluate(vm, stack.Output()).Copy(output: Alp | Omg);
+                if (stack[Omg]?[vm, stack, 0] is Numeric { Mode: NumericMode.Int } num)
+                    RuntimeBase.ExitCode = num.IntValue;
                 stack.State = State.Return;
                 break;
             case (StatementComponentType.Code, BytecodeType.Throw):
