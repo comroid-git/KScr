@@ -17,7 +17,7 @@ public class TestUtil
     public static readonly Guid TestID = Guid.NewGuid();
     public static Dictionary<string, int> TestNo = new();
 
-    public static (int exitCode, string output) RunSourcecode(string testName, string code)
+    public static (int exitCode, string output, IObject value) RunSourcecode(string testName, string code)
     {
         const string testPkg = "org.comroid.kscr.test";
 
@@ -66,6 +66,6 @@ public class TestUtil
         Log<TestUtil>.At(LogLevel.Info, 
             $"Test compilation took {(double)compileTime / 1000:#,##0.00}ms, execution took {(double)executeTime / 1000:#,##0.00}ms");
 
-        return (RuntimeBase.ExitCode, outw.ToString());
+        return (RuntimeBase.ExitCode, outw.ToString(), stack[StackOutput.Omg]?.Value);
     }
 }
