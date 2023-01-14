@@ -35,10 +35,8 @@ public class OperatorTest
         var b = rng.Next() % TestScale;
         int buf;
 
-        var writer = new StringWriter();
-        Console.SetOut(writer);
-        var code = RunSourcecode("TestStrPlus", $"stdio << \"{a}\" + \"{b}\";");
-        Assert.IsTrue(writer.ToString().Replace("\r\n", "\n").StartsWith($"{a}{b}"), $"{a}{b} != {writer.ToString()}");
+        var result = RunSourcecode("TestStrPlus", $"return \"{a}\" + \"{b}\";");
+        Assert.IsTrue(result.value.ToString()!.Replace("\r\n", "\n").StartsWith($"{a}{b}"), $"{a}{b} != {result.value}");
     }
 
     [Test]
