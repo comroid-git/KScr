@@ -306,8 +306,6 @@ public sealed class Stack
         {
             if (State == State.Return)
             {
-                if (this[StackOutput.Omg]?.Value is Numeric { Mode: NumericMode.Int } num)
-                    RuntimeBase.ExitCode = num.IntValue;
                 this[Default] = Omg ?? vm.ConstantVoid;
             }
             else if (State == State.Throw)
