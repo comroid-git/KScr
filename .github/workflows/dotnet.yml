@@ -24,12 +24,14 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
+    - name: Build Solution
+      run: dotnet build -c Release
     - name: Build STD Package
-      run: dotnet run -c Release --project ../kscr-build build --r
+      run: dotnet run --no-build --project ../kscr-build build --r
       working-directory: kscr-system/
       env:
         KSCR_HOME: ../kscr-build/bin/net6.0
     - name: Run Tests
-      run: dotnet test -c Release --verbosity normal
+      run: dotnet test --no-build --verbosity normal
       env:
         KSCR_HOME: ../../../../kscr-build/bin/net6.0
