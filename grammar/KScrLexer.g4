@@ -69,7 +69,7 @@ VAR: 'var';
 
 // literals
 NUMLIT
-    : DIGIT+ ((DOT DIGIT+ ('f'? | 'd'))? | ('l' | 'i' | 's' | 'b')?)
+    : DIGIT+ (((DOT DIGIT+)? ('f'? | 'd'))? | ('l' | 'i' | 's' | 'b')?)
     | '0' ('x' | 'b') (DIGIT | [AaBbCcDdEeFf])+
     ;
 STRLIT: QUOTE (ESCAPE_QUOTE | (~[\r\n"]))*? (QUOTE);
