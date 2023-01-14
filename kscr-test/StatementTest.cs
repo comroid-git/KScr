@@ -50,7 +50,7 @@ public class StatementTest
         var result = RunSourcecode("TestThrow", $"throw {desiredCode};");
         
         Console.WriteLine($"test: ExitCode == {desiredCode}");
-        Assert.AreEqual(desiredCode, (result.value as Numeric)!.IntValue);
+        Assert.AreEqual(desiredCode, result.exitCode);
     }
 
     [Test]
