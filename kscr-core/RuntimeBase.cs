@@ -89,8 +89,8 @@ public abstract class RuntimeBase : IBytecodePort
     public static bool CompileSystem { get; set; }
     public CompressionType CompressionType { get; set; } = CompressionType.None;
     public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
-    public static int ExitCode { get; set; } = 0;
-    public static string? ExitMessage { get; set; } = null;
+    public static int ExitCode { get; set; }
+    public static string? ExitMessage { get; set; }
     public BytecodeVersion BytecodeVersion => BytecodeVersion.Current;
 
     public void Write(Stream stream, StringCache strings, IBytecode bytecode)

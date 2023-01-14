@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using KScr.Core;
 using KScr.Core.Std;
 using NUnit.Framework;
 using static KScr.Test.TestUtil;
@@ -18,6 +19,8 @@ public class OperatorTest
     {
         //Program.VM.Clear();
         bakWrt = Console.Out;
+
+        RuntimeBase.ExitCode = 0;
     }
 
     [TearDown]
@@ -48,7 +51,7 @@ public class OperatorTest
         int buf;
 
         var result = RunSourcecode("TestIntPlus", $"return {a} + {b};");
-        Assert.AreEqual(a + b, buf = result.exitCode, $"{a} + {b} == {a + b} != {buf}");
+        Assert.AreEqual(a + b, buf = (result.value as Numeric)!.IntValue, $"{a} + {b} == {a + b} != {buf}");
     }
 
     [Test]
@@ -60,7 +63,7 @@ public class OperatorTest
         int buf;
 
         var result = RunSourcecode("TestIntMinus", $"return {a} - {b};");
-        Assert.AreEqual(a - b, buf = result.exitCode, $"{a} - {b} == {a - b} != {buf}");
+        Assert.AreEqual(a - b, buf = (result.value as Numeric)!.IntValue, $"{a} - {b} == {a - b} != {buf}");
     }
 
     [Test]
@@ -72,7 +75,7 @@ public class OperatorTest
         int buf;
 
         var result = RunSourcecode("TestIntMultiply", $"return {a} * {b};");
-        Assert.AreEqual(a * b, buf = result.exitCode, $"{a} * {b} == {a * b} != {buf}");
+        Assert.AreEqual(a * b, buf = (result.value as Numeric)!.IntValue, $"{a} * {b} == {a * b} != {buf}");
     }
 
     [Test]
@@ -83,8 +86,8 @@ public class OperatorTest
         var b = rng.Next() % TestScale + 1;
         int buf;
 
-        var result = RunSourcecode("TestIntDivide", $"return {a} / {b};");
-        Assert.AreEqual(a / b, buf = result.exitCode, $"{a} / {b} == {a / b} != {buf}");
+        (int exitCode, string output, IObject value) result = RunSourcecode("TestIntDivide", $"return {a} / {b};");
+        Assert.AreEqual(a / b, buf = (result.value as Numeric)!.IntValue, $"{a} / {b} == {a / b} != {buf}");
     }
 
     [Test]
@@ -96,7 +99,7 @@ public class OperatorTest
         int buf;
 
         var result = RunSourcecode("TestIntModulus", $"return {a} % {b};");
-        Assert.AreEqual(a % b, buf = result.exitCode, $"{a} % {b} == {a % b} != {buf}");
+        Assert.AreEqual(a % b, buf = (result.value as Numeric)!.IntValue, $"{a} % {b} == {a % b} != {buf}");
     }
 
     [Test]
@@ -109,7 +112,7 @@ public class OperatorTest
 
         var result = RunSourcecode("TestLongPlus",
             $"return {a.ToString(CultureInfo.InvariantCulture)}l + {b.ToString(CultureInfo.InvariantCulture)}l;");
-        Assert.AreEqual(a + b, buf = result.exitCode, $"{a} + {b} == {a + b} != {buf}");
+        Assert.AreEqual(a + b, buf = (result.value as Numeric)!.LongValue, $"{a} + {b} == {a + b} != {buf}");
     }
 
     [Test]
@@ -122,7 +125,7 @@ public class OperatorTest
 
         var result = RunSourcecode("TestLongMinus",
             $"return {a.ToString(CultureInfo.InvariantCulture)}l - {b.ToString(CultureInfo.InvariantCulture)}l;");
-        Assert.AreEqual(a - b, buf = result.exitCode, $"{a} - {b} == {a - b} != {buf}");
+        Assert.AreEqual(a - b, buf = (result.value as Numeric)!.LongValue, $"{a} - {b} == {a - b} != {buf}");
     }
 
     [Test]
@@ -135,7 +138,7 @@ public class OperatorTest
 
         var result = RunSourcecode("TestLongMultiply",
             $"return {a.ToString(CultureInfo.InvariantCulture)}l * {b.ToString(CultureInfo.InvariantCulture)}l;");
-        Assert.AreEqual(a * b, buf = result.exitCode, $"{a} * {b} == {a * b} != {buf}");
+        Assert.AreEqual(a * b, buf = (result.value as Numeric)!.LongValue, $"{a} * {b} == {a * b} != {buf}");
     }
 
     [Test]
@@ -148,7 +151,7 @@ public class OperatorTest
 
         var result = RunSourcecode("TestLongDivide",
             $"return {a.ToString(CultureInfo.InvariantCulture)}l / {b.ToString(CultureInfo.InvariantCulture)}l;");
-        Assert.AreEqual(a / b, buf = result.exitCode, $"{a} / {b} == {a / b} != {buf}");
+        Assert.AreEqual(a / b, buf = (result.value as Numeric)!.LongValue, $"{a} / {b} == {a / b} != {buf}");
     }
 
     [Test]
@@ -161,7 +164,7 @@ public class OperatorTest
 
         var result = RunSourcecode("TestLongModulus",
             $"return {a.ToString(CultureInfo.InvariantCulture)}l % {b.ToString(CultureInfo.InvariantCulture)}l;");
-        Assert.AreEqual(a % b, buf = result.exitCode, $"{a} % {b} == {a % b} != {buf}");
+        Assert.AreEqual(a % b, buf = (result.value as Numeric)!.LongValue, $"{a} % {b} == {a % b} != {buf}");
     }
 
     [Test]

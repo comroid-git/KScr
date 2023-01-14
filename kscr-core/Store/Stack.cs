@@ -306,6 +306,8 @@ public sealed class Stack
         {
             if (State == State.Return)
             {
+                if (this[StackOutput.Omg]?.Value is Numeric { Mode: NumericMode.Int } num)
+                    RuntimeBase.ExitCode = num.IntValue;
                 this[Default] = Omg ?? vm.ConstantVoid;
             }
             else if (State == State.Throw)
@@ -320,10 +322,10 @@ public sealed class Stack
                     || Omg.Value is not { } throwable)
                     throw new FatalException(
                         "Value is not instanceof Throwable: " + Omg.Value.ToString(0));
-                RuntimeBase.ExitCode =
-                    (throwable.InvokeNative(vm, Output(), "ExitCode").Copy(output: StackOutput.Alp)![vm, this, 0] as
-                        Numeric)!
-                    .IntValue;
+                RuntimeBase.ExitCode = this[StackOutput.Omg]?.Value is Numeric { Mode: NumericMode.Int } num
+                    ? num.IntValue
+                    : (throwable.InvokeNative(vm, Output(), "ExitCode").Copy(output: StackOutput.Alp)![vm, this, 0] as
+                        Numeric)!.IntValue;
                 RuntimeBase.ExitMessage =
                     throwable.InvokeNative(vm, Output(), "Message").Copy(output: StackOutput.Bet)![vm, this, 0]
                         .ToString(0);

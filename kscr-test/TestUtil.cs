@@ -60,11 +60,8 @@ public class TestUtil
         Console.SetOut(outw);
         var executeTime = KScrStarter.Execute(out var stack, $"{testPkg}.{testName}");
         Console.SetOut(outb);
-        if (stack[StackOutput.Omg]?.Value is Numeric num)
-            RuntimeBase.ExitCode = num.IntValue;
 
-        Log<TestUtil>.At(LogLevel.Info, 
-            $"Test compilation took {(double)compileTime / 1000:#,##0.00}ms, execution took {(double)executeTime / 1000:#,##0.00}ms");
+        Log<TestUtil>.At(LogLevel.Info, $"{testName} complete; {KScrStarter.IOTimeString(compileTime, executeTime)}");
 
         return (RuntimeBase.ExitCode, outw.ToString(), stack[StackOutput.Omg]?.Value);
     }
