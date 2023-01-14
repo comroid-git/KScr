@@ -36,7 +36,7 @@ public class StatementTest
             desiredCode = TestScale;
 
         var result = RunSourcecode("TestReturn", $"return {desiredCode};");
-        Assert.AreEqual(desiredCode, result.exitCode);
+        Assert.AreEqual(desiredCode, (result.value as Numeric)!.IntValue);
     }
 
     [Test]
@@ -50,7 +50,7 @@ public class StatementTest
         var result = RunSourcecode("TestThrow", $"throw {desiredCode};");
         
         Console.WriteLine($"test: ExitCode == {desiredCode}");
-        Assert.AreEqual(desiredCode, result.exitCode);
+        Assert.AreEqual(desiredCode, (result.value as Numeric)!.IntValue);
     }
 
     [Test]
@@ -65,7 +65,7 @@ public class StatementTest
         Console.SetOut(writer);
         var result = RunSourcecode("TestDeclaration", $"public static int main() {{ int x = {desired}; return x; }}");
 
-        Assert.AreEqual(desired, result.exitCode);
+        Assert.AreEqual(desired, (result.value as Numeric)!.IntValue);
     }
 
     [Test]
@@ -79,7 +79,7 @@ public class StatementTest
         var result = RunSourcecode("TestIf",
             $"public static int main() {{ int x = {desired}; if (x > 8) return x; return x * 2; }}");
 
-        Assert.AreEqual(desired > 8 ? desired : desired * 2, result.exitCode);
+        Assert.AreEqual(desired > 8 ? desired : desired * 2, (result.value as Numeric)!.IntValue);
     }
 
     [Test]
@@ -93,7 +93,7 @@ public class StatementTest
         var result = RunSourcecode("TestIfElse",
             $"public static int main() {{ int x = {desired}; if (x % 2) {{ return x; }} else return x * 2; throw x; }}");
 
-        Assert.AreEqual(desired % 2 > 0 ? desired : desired * 2, result.exitCode);
+        Assert.AreEqual(desired % 2 > 0 ? desired : desired * 2, (result.value as Numeric)!.IntValue);
     }
 
     [Test]
