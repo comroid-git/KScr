@@ -62,6 +62,9 @@ public abstract class AbstractBytecodeAdapter : IBytecodePort
             case StatementComponent comp:
                 WriteComponent(stream, strings, comp);
                 break;
+            case TypeParameter param:
+                WriteTypeParameters(stream, strings, param);
+                break;
             case LiteralBytecode<byte> b:
                 Write(stream, b.Value);
                 break;
@@ -93,6 +96,7 @@ public abstract class AbstractBytecodeAdapter : IBytecodePort
     protected abstract void WriteCode(Stream stream, StringCache strings, ExecutableCode code);
     protected abstract void WriteStatement(Stream stream, StringCache strings, Statement stmt);
     protected abstract void WriteComponent(Stream stream, StringCache strings, StatementComponent comp);
+    protected abstract void WriteTypeParameters(Stream stream, StringCache strings, TypeParameter param);
 
     private void Write(Stream stream, byte[] bytes, BytecodeElementType type)
     {
@@ -193,6 +197,10 @@ public abstract class AbstractBytecodeAdapter : IBytecodePort
                 ValidateBRT<StatementComponent, T>();
                 return (T)(object)ReadComponent(vm, stream, strings, pkg,
                     cls ?? throw new NullReferenceException("Class cannot be null"));
+            case BytecodeElementType.TypeParameter:
+                ValidateBRT<TypeParameter, T>();
+                return (T)(object)ReadTypeParameter(vm, stream, strings, pkg,
+                    cls ?? throw new NullReferenceException("Class cannot be null"));
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, "Unknown bytecode type");
         }
@@ -218,6 +226,9 @@ public abstract class AbstractBytecodeAdapter : IBytecodePort
         Class cls);
 
     protected abstract StatementComponent ReadComponent(RuntimeBase vm, Stream stream, StringCache strings, Package pkg,
+        Class cls);
+
+    protected abstract TypeParameter ReadTypeParameter(RuntimeBase vm, Stream stream, StringCache strings, Package pkg,
         Class cls);
 
     private byte[] Read(Stream stream, int len, BytecodeElementType type)

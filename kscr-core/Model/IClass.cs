@@ -144,7 +144,7 @@ public interface ITypeParameter : ITypeParameterInstance
     ITypeInfo? DefaultValue { get; init; }
 }
 
-public enum TypeParameterSpecializationType
+public enum TypeParameterSpecializationType : byte
 {
     Extends,
     Super,

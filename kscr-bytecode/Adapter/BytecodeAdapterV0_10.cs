@@ -1,4 +1,5 @@
-﻿using KScr.Core;
+﻿using System.Reflection;
+using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
@@ -40,6 +41,7 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         Write(stream, strings,
             cls.DeclaredInterfaces.Select(it => it.FullDetailedName).Select(IBytecode.String).ToArray());
         Write(stream, strings, cls.DeclaredMembers.Values.Where(x => x is not DummyMethod).ToArray());
+        Write(stream, strings, cls.TypeParameters.ToArray());
     }
 
     protected override Class ReadClass(RuntimeBase vm, Stream stream, StringCache strings, Package pkg)
@@ -59,10 +61,12 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
         var superclasses = ReadArray<string>(vm, stream, strings, pkg, cls).Select(x => vm.FindType(x));
         var interfaces = ReadArray<string>(vm, stream, strings, pkg, cls).Select(x => vm.FindType(x));
         var members = ReadArray<IClassMember>(vm, stream, strings, pkg, cls);
+        var tParams = ReadArray<TypeParameter>(vm, stream, strings, pkg, cls);
         foreach (var import in imports) cls.Imports.Add(import);
         foreach (var superclass in superclasses) cls.DeclaredSuperclasses.Add(superclass);
         foreach (var iface in interfaces) cls.DeclaredInterfaces.Add(iface);
         foreach (var member in members) cls.DeclaredMembers[member.Name] = member;
+        foreach (var tParam in tParams) cls.TypeParameters.Add(tParam);
         cls.Initialize(vm);
         return cls;
     }
@@ -345,6 +349,25 @@ public class BytecodeAdapterV0_10 : AbstractBytecodeAdapter
             InnerCode = innerCode,
             SourcefilePosition = srcPos
         };
+    }
+
+    #endregion
+
+    #region Type Parameter
+    
+    protected override void WriteTypeParameters(Stream stream, StringCache strings, TypeParameter param)
+    {
+        Write(stream, strings, param.Name);
+        Write(stream, (byte)param.Specialization);
+        Write(stream, strings, param.SpecializationTarget.FullDetailedName);
+    }
+
+    protected override TypeParameter ReadTypeParameter(RuntimeBase vm, Stream stream, StringCache strings, Package pkg, Class cls)
+    {
+        var name = ReadString(stream, strings);
+        var spec = (TypeParameterSpecializationType)ReadByte(stream);
+        var target = vm.FindType(ReadString(stream, strings), pkg, cls);
+        return new TypeParameter(name, spec, target);
     }
 
     #endregion

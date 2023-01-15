@@ -627,7 +627,7 @@ public sealed class Class : AbstractPackageMember, IClass
     }
 }
 
-public sealed class TypeParameter : ITypeParameter
+public sealed class TypeParameter : ITypeParameter, IBytecode
 {
     private TypeParameterSpecializationType _specialization;
 
@@ -718,4 +718,6 @@ public sealed class TypeParameter : ITypeParameter
                 .First(x => x.TypeParameter.Name == TypeParameter.Name).TargetType.FullName, owner: usingClass)!;
         }
     }
+
+    public BytecodeElementType ElementType => BytecodeElementType.TypeParameter;
 }
