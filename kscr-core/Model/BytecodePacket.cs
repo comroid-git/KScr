@@ -50,7 +50,7 @@ public enum BytecodeType : uint
     ArrayConstructor = 0x0088_0000 | Expression,
 
     ParameterExpression = 0x0100_0000,
-    StdioExpression = 0x0200_0000,
+    SystemioExpression = 0x0200_0000,
     EndlExpression = 0x1200_0000,
     TypeExpression = 0x0400_0000,
     ConstructorCall = 0x0800_0000,

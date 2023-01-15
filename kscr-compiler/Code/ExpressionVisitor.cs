@@ -2,7 +2,7 @@
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
-using KScr.Core.Std;
+using KScr.Core.System;
 using KScr.Core.Store;
 
 namespace KScr.Compiler.Code;
@@ -216,7 +216,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             SourcefilePosition = ToSrcPos(context)
         };
         var rtrn = comp.OutputType(vm, ctx);
-        if (!Core.Std.Class.ThrowableType.CanHold(rtrn.AsClass(vm)))
+        if (!Core.System.Class.ThrowableType.CanHold(rtrn.AsClass(vm)))
             throw new CompilerException(ToSrcPos(context.expr()), CompilerErrorMessage.InvalidType, ctx.Class,
                 rtrn.FullDetailedName, "Expected derivate of Throwable");
         return comp;
@@ -382,12 +382,12 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         };
     }
 
-    public override StatementComponent VisitVarLitStdio(KScrParser.VarLitStdioContext context)
+    public override StatementComponent VisitVarLitSystemio(KScrParser.VarLitSystemioContext context)
     {
         return new StatementComponent
         {
             Type = StatementComponentType.Expression,
-            CodeType = BytecodeType.StdioExpression,
+            CodeType = BytecodeType.SystemioExpression,
             SourcefilePosition = ToSrcPos(context)
         };
     }

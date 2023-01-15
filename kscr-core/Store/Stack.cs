@@ -4,7 +4,7 @@ using System.Linq;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
-using KScr.Core.Std;
+using KScr.Core.System;
 using static KScr.Core.Store.StackOutput;
 
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
@@ -120,7 +120,7 @@ public sealed class Stack
     {
         get => (adr == Default ? _output : adr) switch
         {
-            Default => throw new System.Exception("Invalid State"),
+            Default => throw new global::System.Exception("Invalid State"),
             None => This,
             StackOutput.Alp => _refs[0] ?? _parent?[StackOutput.Alp],
             StackOutput.Bet => _refs[1] ?? _parent?[StackOutput.Bet],
@@ -316,7 +316,7 @@ public sealed class Stack
                     throw new RuntimeException("No Message Provided", IObject.Null);
                 }
 
-                if (!Std.Class.ThrowableType.CanHold(Omg.Value.Type)
+                if (!System.Class.ThrowableType.CanHold(Omg.Value.Type)
                     || Omg.Value is not { } throwable)
                     throw new FatalException(
                         "Value is not instanceof Throwable: " + Omg.Value.ToString(0));

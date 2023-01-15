@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
-using KScr.Core.Std;
+using KScr.Core.System;
 using KScr.Core.Store;
 
 namespace KScr.Core.Exception;
 
-public class RuntimeException : System.Exception
+public class RuntimeException : global::System.Exception
 {
     internal readonly IObject Obj;
 
@@ -14,7 +14,7 @@ public class RuntimeException : System.Exception
         Obj = obj ?? IObject.Null;
     }
 
-    public RuntimeException(string? message, System.Exception? innerException) : base(
+    public RuntimeException(string? message, global::System.Exception? innerException) : base(
         message ?? innerException?.Message, innerException)
     {
         Obj = IObject.Null;
@@ -23,7 +23,7 @@ public class RuntimeException : System.Exception
 
 public class FatalException :
 #if DEBUG
-    System.Exception
+    global::System.Exception
 #else
     RuntimeException
 #endif
@@ -32,7 +32,7 @@ public class FatalException :
     {
     }
 
-    public FatalException(string? message, System.Exception? innerException) : base(message ?? innerException?.Message,
+    public FatalException(string? message, global::System.Exception? innerException) : base(message ?? innerException?.Message,
         innerException)
     {
     }
@@ -44,7 +44,7 @@ public interface IStackTrace
     string Message { get; }
 }
 
-public class StackTraceException : System.Exception, IStackTrace
+public class StackTraceException : global::System.Exception, IStackTrace
 {
     public StackTraceException(CallLocation srcPos, string local, RuntimeException innerCause,
         string? message = null)

@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using comroid.csapi.common;
 using KScr.Core.Bytecode;
-using KScr.Core.Std;
+using KScr.Core.System;
 
 namespace KScr.Core.Util;
 
@@ -35,7 +35,7 @@ public sealed class StringCache
             var id = ++_index;
             _strings.Add(str);
             if (_strings[id] != str)
-                throw new System.Exception("invalid state");
+                throw new global::System.Exception("invalid state");
             return id;
         }
     }
@@ -48,7 +48,7 @@ public sealed class StringCache
             return pkg.PackageMembers.Values.SelectMany(GetAllClasses);
         if (mem is Class cls)
             return new[] { cls };
-        throw new System.Exception("invalid state");
+        throw new global::System.Exception("invalid state");
     }
 
     public void Write(DirectoryInfo dir)

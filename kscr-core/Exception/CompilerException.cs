@@ -40,7 +40,7 @@ public sealed class CompilerErrorMessage
     }
 }
 
-public class CompilerException : System.Exception, IStackTrace
+public class CompilerException : global::System.Exception, IStackTrace
 {
     public CompilerException(SourcefilePosition srcPos, CompilerErrorMessage errorMessage,
         params object?[] messageArgs /* expected, actual */) : base(errorMessage.Format(messageArgs))

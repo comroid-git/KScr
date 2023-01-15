@@ -4,7 +4,7 @@ using CommandLine;
 using comroid.csapi.common;
 using KScr.Core;
 using KScr.Core.Bytecode;
-using KScr.Core.Std;
+using KScr.Core.System;
 using KScr.Runtime;
 
 namespace KScr.Build;

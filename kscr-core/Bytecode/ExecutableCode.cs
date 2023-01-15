@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using KScr.Core.Model;
-using KScr.Core.Std;
+using KScr.Core.System;
 using KScr.Core.Store;
 
 namespace KScr.Core.Bytecode;

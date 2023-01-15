@@ -3,7 +3,7 @@ using System.Linq;
 using KScr.Core.Model;
 using KScr.Core.Store;
 
-namespace KScr.Core.Std;
+namespace KScr.Core.System;
 
 [Obsolete]
 public sealed class Tuple : NativeObj

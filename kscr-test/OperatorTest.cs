@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.IO;
 using KScr.Core;
-using KScr.Core.Std;
+using KScr.Core.System;
 using NUnit.Framework;
 using static KScr.Test.TestUtil;
 
@@ -234,65 +234,65 @@ public class OperatorTest
 
     [Test]
     [Repeat(TestScale)]
-    public void TestDoublePlus()
+    public void TesystemoublePlus()
     {
         var a = rng.NextDouble() % TestScale;
         var b = rng.NextDouble() % TestScale;
         double buf;
 
-        var result = RunSourcecode("TestDoublePlus",
+        var result = RunSourcecode("TesystemoublePlus",
             $"return {a.ToString(CultureInfo.InvariantCulture)}d + {b.ToString(CultureInfo.InvariantCulture)}d;");
         Assert.AreEqual(a + b, buf = (result.value as Numeric)!.DoubleValue, $"{a} + {b} == {a + b} != {buf}");
     }
 
     [Test]
     [Repeat(TestScale)]
-    public void TestDoubleMinus()
+    public void TesystemoubleMinus()
     {
         var a = rng.NextDouble() % TestScale;
         var b = rng.NextDouble() % TestScale;
         double buf;
 
-        var result = RunSourcecode("TestDoubleMinus",
+        var result = RunSourcecode("TesystemoubleMinus",
             $"return {a.ToString(CultureInfo.InvariantCulture)}d - {b.ToString(CultureInfo.InvariantCulture)}d;");
         Assert.AreEqual(a - b, buf = (result.value as Numeric)!.DoubleValue, $"{a} - {b} == {a - b} != {buf}");
     }
 
     [Test]
     [Repeat(TestScale)]
-    public void TestDoubleMultiply()
+    public void TesystemoubleMultiply()
     {
         var a = rng.NextDouble() % TestScale;
         var b = rng.NextDouble() % TestScale;
         double buf;
 
-        var result = RunSourcecode("TestDoubleMultiply",
+        var result = RunSourcecode("TesystemoubleMultiply",
             $"return {a.ToString(CultureInfo.InvariantCulture)}d * {b.ToString(CultureInfo.InvariantCulture)}d;");
         Assert.AreEqual(a * b, buf = (result.value as Numeric)!.DoubleValue, $"{a} * {b} == {a * b} != {buf}");
     }
 
     [Test]
     [Repeat(TestScale)]
-    public void TestDoubleDivide()
+    public void TesystemoubleDivide()
     {
         var a = rng.NextDouble() % TestScale;
         var b = rng.NextDouble() % TestScale + 1;
         double buf;
 
-        var result = RunSourcecode("TestDoubleDivide",
+        var result = RunSourcecode("TesystemoubleDivide",
             $"return {a.ToString(CultureInfo.InvariantCulture)}d / {b.ToString(CultureInfo.InvariantCulture)}d;");
         Assert.AreEqual(a / b, buf = (result.value as Numeric)!.DoubleValue, $"{a} / {b} == {a / b} != {buf}");
     }
 
     [Test]
     [Repeat(TestScale)]
-    public void TestDoubleModulus()
+    public void TesystemoubleModulus()
     {
         var a = rng.NextDouble() % TestScale;
         var b = rng.NextDouble() % TestScale + 1;
         double buf;
 
-        var result = RunSourcecode("TestDoubleModulus",
+        var result = RunSourcecode("TesystemoubleModulus",
             $"return {a.ToString(CultureInfo.InvariantCulture)}d % {b.ToString(CultureInfo.InvariantCulture)}d;");
         Assert.AreEqual(a % b, buf = (result.value as Numeric)!.DoubleValue, $"{a} % {b} == {a % b} != {buf}");
     }

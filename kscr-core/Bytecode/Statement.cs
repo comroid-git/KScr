@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using KScr.Core.Exception;
 using KScr.Core.Model;
-using KScr.Core.Std;
+using KScr.Core.System;
 using KScr.Core.Store;
 using static KScr.Core.Store.StackOutput;
-using Range = KScr.Core.Std.Range;
-using String = KScr.Core.Std.String;
+using Range = KScr.Core.System.Range;
+using String = KScr.Core.System.String;
 
 // ReSharper disable VariableHidesOuterVariable
 
@@ -241,12 +241,12 @@ public class StatementComponent : IBytecode, IStatementComponent
                 }
                 else
                 {
-                    throw new System.Exception("Invalid state; not a method or property");
+                    throw new global::System.Exception("Invalid state; not a method or property");
                 }
 
                 break;
-            case (StatementComponentType.Expression, BytecodeType.StdioExpression):
-                stack[Default] = vm.StdioRef;
+            case (StatementComponentType.Expression, BytecodeType.SystemioExpression):
+                stack[Default] = vm.SystemioRef;
                 break;
             case (StatementComponentType.Expression, BytecodeType.EndlExpression):
                 stack[Default] = String.Instance(vm, Environment.NewLine);
@@ -612,7 +612,7 @@ public class StatementComponent : IBytecode, IStatementComponent
                     throw new CompilerException(SourcefilePosition, CompilerErrorMessage.SymbolNotFound, Arg,
                         symbols.CurrentContext(vm));
                 break;
-            case (StatementComponentType.Expression, BytecodeType.StdioExpression):
+            case (StatementComponentType.Expression, BytecodeType.SystemioExpression):
                 rtrn = Class.PipeType.GetInstance(vm, Class.StringType);
                 break;
             case (StatementComponentType.Expression, BytecodeType.Undefined):

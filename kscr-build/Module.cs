@@ -56,7 +56,7 @@ public class Module
             KScrStarter.CopyProps(cmd);
             if (!cmd.System)
             {
-                KScrStarter.LoadStdPackage();
+                KScrStarter.LoadSystemPackage();
                 KScrStarter.LoadClasspath(cmd);
             }
 

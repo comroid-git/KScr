@@ -6,7 +6,7 @@ using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
-using KScr.Core.Std;
+using KScr.Core.System;
 using KScr.Core.Store;
 using static KScr.Core.Store.StackOutput;
 

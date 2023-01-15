@@ -8,7 +8,7 @@ using comroid.csapi.common;
 using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Model;
-using KScr.Core.Std;
+using KScr.Core.System;
 using KScr.Core.Store;
 using KScr.Core.Util;
 
@@ -22,7 +22,7 @@ public class KScrStarter
         DefaultOutput = Path.Combine(Directory.GetCurrentDirectory(), "build", "compile");
 
     private static readonly string
-        StdPackageLocation = Path.Combine(RuntimeBase.SdkHome.FullName, "std.kmod");
+        SystemLibLocation = Path.Combine(RuntimeBase.SdkHome.FullName, "system.kmod");
 
     static KScrStarter()
     {
@@ -35,7 +35,7 @@ public class KScrStarter
         CopyProps(cmd);
         if (!cmd.System)
         {
-            LoadStdPackage();
+            LoadSystemPackage();
             LoadClasspath(cmd);
         }
 
@@ -47,7 +47,7 @@ public class KScrStarter
     public static void HandleExecute(CmdExecute cmd)
     {
         CopyProps(cmd);
-        LoadStdPackage();
+        LoadSystemPackage();
         LoadClasspath(cmd);
 
         compileTime = CompileSource(cmd, cmd.PkgBase);
@@ -60,7 +60,7 @@ public class KScrStarter
     {
         var stack = RuntimeBase.MainStack;
         CopyProps(cmd);
-        LoadStdPackage();
+        LoadSystemPackage();
 
         ioTime = LoadClasspath(cmd);
         VM.LateInitializeNonPrimitives(stack);
@@ -100,11 +100,11 @@ public class KScrStarter
         }
     }
 
-    public static void LoadStdPackage()
+    public static void LoadSystemPackage()
     {
-        // load std package
-        //VM.Load(StdPackageLocation);
-        Package.ReadAll(VM, new FileInfo(StdPackageLocation));
+        // load system package
+        //VM.Load(SystemPackageLocation);
+        Package.ReadAll(VM, new FileInfo(SystemLibLocation));
     }
 
     public static long LoadClasspath(IClasspathCmd cmd)
@@ -175,13 +175,13 @@ public class KScrStarter
         return comp;
     }
 
-    private static void StdIoMode()
+    private static void SystemIoMode()
     {
-        throw new NotImplementedException("StdIoMode currently not supported");
+        throw new NotImplementedException("SystemIoMode currently not supported");
 
         /*
-        Console.WriteLine("Entering StdIoMode - Only Expressions are allowed");
-        VM.StdIoMode = true;
+        Console.WriteLine("Entering SystemIoMode - Only Expressions are allowed");
+        VM.SystemIoMode = true;
 
         var compiler = new StatementCompiler();
         var contextBase = new CompilerContext();
@@ -202,7 +202,7 @@ public class KScrStarter
                     continue;
             }
 
-            string code = "stdio << " + expr + ';';
+            string code = "systemio << " + expr + ';';
 
             long compileTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             var tokens = new TokenContext(new Tokenizer().Tokenize(Directory.GetCurrentDirectory(), code));

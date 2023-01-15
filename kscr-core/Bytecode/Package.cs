@@ -5,7 +5,7 @@ using System.Linq;
 using comroid.csapi.common;
 using KScr.Core.Exception;
 using KScr.Core.Model;
-using KScr.Core.Std;
+using KScr.Core.System;
 using KScr.Core.Util;
 
 namespace KScr.Core.Bytecode;
@@ -80,7 +80,7 @@ public sealed class Package : AbstractPackageMember
                 strings = StringCache.Read(stream);
                 stream.Dispose();
             }
-            else throw new System.Exception("Library contains no String cache");
+            else throw new global::System.Exception("Library contains no String cache");
             foreach (var entry in zip.Entries)
             {
                 if (entry.Name == StringCache.FileName)

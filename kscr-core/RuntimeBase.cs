@@ -9,11 +9,11 @@ using System.Text;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
-using KScr.Core.Std;
+using KScr.Core.System;
 using KScr.Core.Store;
 using KScr.Core.Util;
 using static KScr.Core.Store.StackOutput;
-using String = KScr.Core.Std.String;
+using String = KScr.Core.System.String;
 
 namespace KScr.Core;
 
@@ -80,9 +80,9 @@ public abstract class RuntimeBase : IBytecodePort
     public IObjectRef ConstantTrue =>
         ComputeObject(MainStack, VariableContext.Absolute, Numeric.One.GetKey(), () => Numeric.One);
 
-    public ObjectRef StdioRef { get; private set; }
+    public ObjectRef SystemioRef { get; private set; }
 
-    public bool StdIoMode { get; set; } = false;
+    public bool SystemIoMode { get; set; } = false;
     public static bool ConfirmExit { get; set; }
     public static bool DebugMode { get; set; }
     public static string[] ExtraArgs { get; set; }
@@ -194,7 +194,7 @@ public abstract class RuntimeBase : IBytecodePort
         Class.IntType.LateInitialize(this, MainStack);
         Class.NumericType.LateInitialize(this, MainStack);
 
-        StdioRef = new StandardIORef(this);
+        SystemioRef = new StandardIORef(this);
 
         Initialized = true;
     }
@@ -233,7 +233,7 @@ public abstract class RuntimeBase : IBytecodePort
             .Select(path => new DirectoryInfo(path))
             .Where(dir => dir.Exists)
             .FirstOrDefault(dir => dir.EnumerateFiles("*.exe")
-                .Any(f => f.Name == "kscr.exe")) ?? throw new System.Exception("KScr Home not found in PATH");
+                .Any(f => f.Name == "kscr.exe")) ?? throw new global::System.Exception("KScr Home not found in PATH");
     }
 
     public void Clear()
@@ -372,8 +372,8 @@ public abstract class RuntimeBase : IBytecodePort
 
     public sealed class StandardIORef : ObjectRef
     {
-        private readonly StdioReader _reader = new();
-        private readonly StdioWriter _writer = new();
+        private readonly SystemioReader _reader = new();
+        private readonly SystemioWriter _writer = new();
 
         public StandardIORef(RuntimeBase vm) : base(Class.PipeType.CreateInstance(vm, Class.PipeType, Class.StringType))
         {
@@ -382,16 +382,16 @@ public abstract class RuntimeBase : IBytecodePort
         public override IEvaluable? ReadAccessor
         {
             get => _reader;
-            set => throw new FatalException("Cannot reassign stdio ReadAccessor");
+            set => throw new FatalException("Cannot reassign systemio ReadAccessor");
         }
 
         public override IEvaluable? WriteAccessor
         {
             get => _writer;
-            set => throw new FatalException("Cannot reassign stdio WriteAccessor");
+            set => throw new FatalException("Cannot reassign systemio WriteAccessor");
         }
 
-        private sealed class StdioWriter : IEvaluable
+        private sealed class SystemioWriter : IEvaluable
         {
             public Stack Evaluate(RuntimeBase vm, Stack stack)
             {
@@ -401,7 +401,7 @@ public abstract class RuntimeBase : IBytecodePort
             }
         }
 
-        private sealed class StdioReader : IEvaluable
+        private sealed class SystemioReader : IEvaluable
         {
             public Stack Evaluate(RuntimeBase vm, Stack stack)
             {

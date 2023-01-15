@@ -9,7 +9,7 @@ using KScr.Compiler.Code;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
-using KScr.Core.Std;
+using KScr.Core.System;
 
 namespace KScr.Compiler;
 
@@ -55,12 +55,12 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             : TypeParameterSpecializationType.Extends;
         var target = spec switch
         {
-            TypeParameterSpecializationType.List => Core.Std.Class.Sequencable.CreateInstance(vm,
-                Core.Std.Class.Sequencable,
-                Core.Std.Class.ObjectType),
-            TypeParameterSpecializationType.N => Core.Std.Class.NumericIntType,
+            TypeParameterSpecializationType.List => Core.System.Class.Sequencable.CreateInstance(vm,
+                Core.System.Class.Sequencable,
+                Core.System.Class.ObjectType),
+            TypeParameterSpecializationType.N => Core.System.Class.NumericIntType,
             TypeParameterSpecializationType.Extends => gtd.ext == null
-                ? Core.Std.Class.ObjectType.DefaultInstance
+                ? Core.System.Class.ObjectType.DefaultInstance
                 : VisitTypeInfo(gtd.ext!),
             TypeParameterSpecializationType.Super => VisitTypeInfo(gtd.sup!),
             _ => throw new ArgumentOutOfRangeException()
@@ -88,7 +88,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
 
     protected StatementComponent VisitExpression(ParserRuleContext expr, ITypeInfo? requestedType = null)
     {
-        requestedType ??= Core.Std.Class.VoidType; // todo Remove
+        requestedType ??= Core.System.Class.VoidType; // todo Remove
         return new ExpressionVisitor(vm, ctx) { RequestedType = requestedType }.Visit(expr);
     }
 
@@ -174,7 +174,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         {
             foreach (var paramDecl in context.tupleExpr().typedExpr())
             {
-                var pType = paramDecl.type() != null ? VisitTypeInfo(paramDecl.type()) : Core.Std.Class.VoidType;
+                var pType = paramDecl.type() != null ? VisitTypeInfo(paramDecl.type()) : Core.System.Class.VoidType;
                 sym.Add(ctx.RegisterSymbol(paramDecl.expr().GetText(), pType));
                 args.Main.Add(new StatementComponent
                 {

@@ -2,7 +2,7 @@
 using KScr.Antlr;
 using KScr.Core.Exception;
 using KScr.Core.Model;
-using KScr.Core.Std;
+using KScr.Core.System;
 using static KScr.Core.Exception.CompilerErrorMessage;
 
 namespace KScr.Compiler.Code;
@@ -35,7 +35,7 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
         var args = new List<ITypeInfo>();
         foreach (var type in context.genericTypeUses().type())
             args.Add(Visit(type));
-        if (raw is Core.Std.Class cls || (raw is IClassInstance inst && (cls = inst.BaseClass) != null))
+        if (raw is Core.System.Class cls || (raw is IClassInstance inst && (cls = inst.BaseClass) != null))
             return cls.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
         throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.rawType().GetText());
     }
@@ -46,34 +46,34 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
         if (raw == null)
             throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.rawType().GetText());
         if (context.genericTypeUses() == null)
-            return Core.Std.Class.ArrayType.CreateInstance(vm, ctx.Class!.AsClass(vm), raw);
+            return Core.System.Class.ArrayType.CreateInstance(vm, ctx.Class!.AsClass(vm), raw);
         var args = new List<ITypeInfo>();
         foreach (var type in context.genericTypeUses().type())
             args.Add(Visit(type));
-        if (raw is Core.Std.Class cls || (raw is IClassInstance inst && (cls = inst.BaseClass) != null))
-            return Core.Std.Class.ArrayType.CreateInstance(vm, ctx.Class!.AsClass(vm),
+        if (raw is Core.System.Class cls || (raw is IClassInstance inst && (cls = inst.BaseClass) != null))
+            return Core.System.Class.ArrayType.CreateInstance(vm, ctx.Class!.AsClass(vm),
                 cls.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray()));
         throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.rawType().GetText());
     }
 
     public override ITypeInfo VisitTypeLitObject(KScrParser.TypeLitObjectContext context)
     {
-        return Core.Std.Class.ObjectType;
+        return Core.System.Class.ObjectType;
     }
 
     public override ITypeInfo VisitTypeLitVoid(KScrParser.TypeLitVoidContext context)
     {
-        return Core.Std.Class.VoidType;
+        return Core.System.Class.VoidType;
     }
 
     public override ITypeInfo VisitTypeLitArray(KScrParser.TypeLitArrayContext context)
     {
-        return Core.Std.Class.ArrayType;
+        return Core.System.Class.ArrayType;
     }
 
     public override ITypeInfo VisitTypeLitTuple(KScrParser.TypeLitTupleContext context)
     {
-        return Core.Std.Class.TupleType;
+        return Core.System.Class.TupleType;
     }
 
     public override ITypeInfo VisitNumTypeLitTuple(KScrParser.NumTypeLitTupleContext context)
@@ -82,7 +82,7 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
 
         var intN = context.Start.Type == KScrLexer.INT;
         if (context.Start.Type == KScrLexer.NUMIDENT && context.genericTypeUses() == null)
-            return Core.Std.Class.NumericType;
+            return Core.System.Class.NumericType;
         if (context.genericTypeUses() is { n: { } n })
         {
             if (intN)
@@ -107,47 +107,47 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
 
         if (intN)
             // is int<n> type
-            return Core.Std.Class.IntType.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
-        return Core.Std.Class.TupleType.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
+            return Core.System.Class.IntType.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
+        return Core.System.Class.TupleType.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
     }
 
     public override ITypeInfo VisitNumTypeLitByte(KScrParser.NumTypeLitByteContext context)
     {
-        return Core.Std.Class.NumericByteType;
+        return Core.System.Class.NumericByteType;
     }
 
     public override ITypeInfo VisitNumTypeLitShort(KScrParser.NumTypeLitShortContext context)
     {
-        return Core.Std.Class.NumericShortType;
+        return Core.System.Class.NumericShortType;
     }
 
     public override ITypeInfo VisitNumTypeLitInt(KScrParser.NumTypeLitIntContext context)
     {
-        return Core.Std.Class.NumericIntType;
+        return Core.System.Class.NumericIntType;
     }
 
     public override ITypeInfo VisitNumTypeLitLong(KScrParser.NumTypeLitLongContext context)
     {
-        return Core.Std.Class.NumericLongType;
+        return Core.System.Class.NumericLongType;
     }
 
     public override ITypeInfo VisitNumTypeLitFloat(KScrParser.NumTypeLitFloatContext context)
     {
-        return Core.Std.Class.NumericFloatType;
+        return Core.System.Class.NumericFloatType;
     }
 
     public override ITypeInfo VisitNumTypeLitDouble(KScrParser.NumTypeLitDoubleContext context)
     {
-        return Core.Std.Class.NumericDoubleType;
+        return Core.System.Class.NumericDoubleType;
     }
 
     public override ITypeInfo VisitTypeLitType(KScrParser.TypeLitTypeContext context)
     {
-        return Core.Std.Class.TypeType;
+        return Core.System.Class.TypeType;
     }
 
     public override ITypeInfo VisitTypeLitEnum(KScrParser.TypeLitEnumContext context)
     {
-        return Core.Std.Class.EnumType;
+        return Core.System.Class.EnumType;
     }
 }

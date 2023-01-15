@@ -3,7 +3,7 @@ using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
 
-namespace KScr.Core.Std;
+namespace KScr.Core.System;
 
 public interface IObject
 {

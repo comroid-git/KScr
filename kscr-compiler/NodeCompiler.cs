@@ -35,7 +35,7 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>
             if (node is PackageNode pkg)
                 c += RevisitRec(pkg.Nodes, true);
             else if (node is MemberNode mem)
-                if (mem.Member is Core.Std.Class cls)
+                if (mem.Member is Core.System.Class cls)
                     c += mem.Nodes.Where(x => x is MemberNode)
                         .Cast<MemberNode>()
                         .Select(x => x.RevisitCode())
@@ -158,7 +158,7 @@ public class FileNode : SourceNode
     public ClassInfo ClassInfo { get; }
     public KScrParser.FileContext Decl { get; }
     public List<string> Imports { get; }
-    public Core.Std.Class Cls { get; }
+    public Core.System.Class Cls { get; }
 
     public int ReadClass()
     {
@@ -253,7 +253,7 @@ public class MemberNode : SourceNode
         {
             MemberContext = context,
             Member = new Method(Utils.ToSrcPos(context.memberBlock()), ContainingClass(), Method.StaticInitializerName,
-                Core.Std.Class.VoidType, MemberModifier.PSF),
+                Core.System.Class.VoidType, MemberModifier.PSF),
             UncompiledCode = context.memberBlock()
         };
     }
@@ -370,9 +370,9 @@ public class MemberNode : SourceNode
         return this;
     }
 
-    private Core.Std.Class ContainingClass()
+    private Core.System.Class ContainingClass()
     {
-        if (Member is Core.Std.Class cls)
+        if (Member is Core.System.Class cls)
             return cls;
         return Parent!.ContainingClass();
     }

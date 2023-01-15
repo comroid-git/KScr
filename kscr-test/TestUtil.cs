@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using comroid.csapi.common;
 using KScr.Core;
-using KScr.Core.Std;
+using KScr.Core.System;
 using KScr.Core.Store;
 using KScr.Runtime;
 
@@ -31,11 +31,11 @@ public class TestUtil
                    "}";
         code = $"package {testPkg};\npublic class {testName} {{\n{code}\n}}";
 
-        var testDir = Path.Combine(Path.GetTempPath(), "kscr-test-" + TestID);
-        Directory.CreateDirectory(testDir);
-        var srcDir = Path.Combine(testDir, "src");
+        var tesystemir = Path.Combine(Path.GetTempPath(), "kscr-test-" + TestID);
+        Directory.CreateDirectory(tesystemir);
+        var srcDir = Path.Combine(tesystemir, "src");
         Directory.CreateDirectory(srcDir);
-        var buildDir = Path.Combine(testDir, "build");
+        var buildDir = Path.Combine(tesystemir, "build");
         Directory.CreateDirectory(buildDir);
         var srcFile = Path.Combine(srcDir, testName + RuntimeBase.SourceFileExt);
         var fs = File.Create(srcFile);
@@ -43,7 +43,7 @@ public class TestUtil
         sw.Write(code);
         sw.Close();
 
-        Log<TestUtil>.At(LogLevel.Info, $"Running {testName} in test dir {testDir}");
+        Log<TestUtil>.At(LogLevel.Info, $"Running {testName} in test dir {tesystemir}");
 
         var cmd = new CmdExecute
         {

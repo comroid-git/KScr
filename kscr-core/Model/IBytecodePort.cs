@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using KScr.Core.Bytecode;
-using KScr.Core.Std;
+using KScr.Core.System;
 using KScr.Core.Util;
 
 namespace KScr.Core.Model;
