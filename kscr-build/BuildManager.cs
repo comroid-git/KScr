@@ -41,7 +41,7 @@ public sealed class DependencyManager
 
     private static string CombineUrl(params string[] arr)
     {
-        return arr.Aggregate(string.Empty, (left, right) => left.EndsWith('/') ? left + right : left + '/' + right);
+        return arr.Aggregate(string.Empty, (left, right) => left == string.Empty ? right : left.EndsWith('/') ? left + right : left + '/' + right);
     }
 
     #region Resolving

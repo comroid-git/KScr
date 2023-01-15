@@ -49,9 +49,10 @@ public class Module
             long compileTime = -1, ioTime = -1;
             if (!KScrBuild.Rebuild && cmd.Output.IsUpToDate(KScrBuild.Md5Path))
             {
-                log.At(LogLevel.Config, $"Build {Notation} not necessary; output dir is up-to-date");
+                log.At(LogLevel.Config, $"Build not necessary; output dir is up-to-date");
                 goto skipBuild;
             }
+            else log.At(LogLevel.Info, $"Building module...");
 
             KScrStarter.CopyProps(cmd);
             if (!cmd.System)
@@ -63,8 +64,12 @@ public class Module
             log.At(LogLevel.Config, $"Compiling source '{cmd.Source}' into '{cmd.Output}'...");
             compileTime = KScrStarter.CompileSource(cmd, cmd.PkgBase);
             if (KScrStarter.VM.CompilerErrors.Count > 0)
+            {
                 foreach (var error in KScrStarter.VM.CompilerErrors)
                     log.At(LogLevel.Error, "Compiler Error:\r\n" + error);
+                throw new Exception("There were Compiler Errors");
+            }
+
             ioTime = KScrStarter.WriteClasses(cmd);
             
             skipBuild:
@@ -72,7 +77,7 @@ public class Module
             cmd.Output.UpdateMd5(KScrBuild.Md5Path);
             log.At(LogLevel.Info, $"Build {Notation} succeeded; {KScrStarter.IOTimeString(compileTime, ioTime: ioTime)}");
             Environment.CurrentDirectory = oldwkdir;
-        }, $"Build {Notation} failed with exception", LogLevel.Error);
+        }, $"Build failed with exception", LogLevel.Error);
     }
 
     public void SaveToFiles(string dir = null!)

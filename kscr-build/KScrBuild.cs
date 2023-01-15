@@ -86,7 +86,7 @@ public sealed class KScrBuild
             Log<KScrBuild>.At(LogLevel.Config, $"Found Module root {dir.FullName} as Project {modulesInfo.Project}");
         List<Module> exported = new();
         foreach (var moduleFile in dir.EnumerateFiles(RuntimeBase.ModuleFile, SearchOption.AllDirectories)
-                     .Where(file => !file.FullName.EndsWith(Path.Combine("build", RuntimeBase.ModuleFile)))) 
+                     .Where(file => !file.FullName.EndsWith(Path.Combine("build", "classes", RuntimeBase.ModuleFile)))) 
         {
             var moduleInfo = JsonSerializer.Deserialize<ModuleInfo>(File.ReadAllText(moduleFile.FullName)) ??
                              throw new Exception($"Unable to parse {RuntimeBase.ModuleFile} in module {moduleFile.Directory!.FullName}");
