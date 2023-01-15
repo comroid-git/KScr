@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using comroid.csapi.common;
 
 namespace KScr.Build;
 
@@ -136,11 +137,13 @@ public class DependencyInfo
     [JsonPropertyName("id")]
     public virtual string? Id { get; set; }
     [JsonPropertyName("version")]
-    public virtual string Version { get; set; } = "+";
+    public virtual string Version { get; set; } = WildcardVersion.Wildcard.ToString();
     [JsonPropertyName("scope")]
     public virtual DepScope? Scope { get; set; } = DepScope.implementation;
     [JsonPropertyName("exclude")]
     public virtual IEnumerable<DependencyInfo>? Exclude { get; set; }
+
+    public WildcardVersion GetVersion() => new(Version);
 
     public string Notation => new ProjectInfo()
     {

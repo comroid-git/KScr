@@ -117,4 +117,13 @@ public class Module
 
     public override string ToString() =>
         $"Module {Project} ({Repositories.Count()} repositories; {Dependencies.Count()} dependencies)";
+
+    public bool DependsOn(Module other) => Dependencies.Any(dep
+        => dep.Domain == other.Project.Domain
+           // and group equal
+           && dep.Group == other.Project.Group
+           // and id equal
+           && dep.Id == other.Project.Id
+           // and versions compatible
+           && dep.GetVersion() >= Project.GetVersion());
 }

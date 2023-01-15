@@ -9,12 +9,6 @@
     {
       "domain": "org.comroid",
       "group": "kscr",
-      "id": "testing",
-      "scope": 3
-    },
-    {
-      "domain": "org.comroid",
-      "group": "kscr",
       "exclude": [
         {
           "id": "common"

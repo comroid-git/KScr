@@ -102,7 +102,7 @@ public sealed class KScrBuild
         ApplyCmd(rebuildCmd);
         var (baseModule, exported) = ExtractModules(rebuildCmd);
 
-        SortModulesByCoDependencies(exported);
+        SortModules(ref exported);
         
         foreach (var module in exported) 
             module.RunBuild();
@@ -111,65 +111,6 @@ public sealed class KScrBuild
     private static void ApplyCmd(IRebuildCmd cmd) => Rebuild = cmd.Rebuild;
 
     public static bool Rebuild { get; private set; }
-
-    private class CoDepNode
-    { 
-        internal readonly Module Module;
-        internal readonly List<CoDepNode> Children = new();
-        internal CoDepNode? Parent { get; set; }
-
-        public CoDepNode(Module module)
-        {
-            Module = module;
-        }
-
-        internal CoDepNode FindAnywhere(Module dep)
-        {
-            if (Parent?.Module.Notation == dep.Notation)
-                return Parent;
-            if (Children.FirstOrDefault(x => x.Module.Notation == dep.Notation) is { } child)
-                return child;
-            return new CoDepNode(dep);
-        }
-    }
-
-    private static void SortModulesByCoDependencies(List<Module> exported)
-    {
-        CoDepNode? parent = null;
-        foreach (var module in exported)
-        {
-            var buf = new CoDepNode(module);
-            if (parent == null)
-                parent = buf;
-        }
-
-        // todo fixme: should throw circular dependency error in current state
-        CheckCircular_Rec(ArraySegment<string>.Empty, parent);
-        
-        while (parent.Parent != null)
-            parent = parent.Parent;
-        exported.Clear();
-        exported.Add(parent.Module);
-        AddCoDeps_Rec(exported, parent);
-    }
-
-    private static void CheckCircular_Rec(IEnumerable<string> above, CoDepNode node)
-    {
-        if (node.Children.Any(x => above.Contains(x.Module.Notation)))
-            throw new Exception("Circular dependency detected");
-        var above_ = above.Append(node.Module.Notation).ToArray();
-        foreach (var child in node.Children) 
-            CheckCircular_Rec(above_, child);
-    }
-
-    private static void AddCoDeps_Rec(List<Module> exported, CoDepNode node)
-    {
-        foreach (var coDepNode in node.Children)
-        {
-            exported.Add(coDepNode.Module);
-            AddCoDeps_Rec(exported, coDepNode);
-        }
-    }
 
     private static void PrintDependencies(CmdDependencies cmd)
     {
@@ -190,13 +131,18 @@ public sealed class KScrBuild
     {
         var (baseModule, exported) = ExtractModules(cmd);
 
-        SortModulesByCoDependencies(exported);
+        SortModules(ref exported);
         PrintModuleInfo(baseModule, true);
         foreach (var module in exported)
         {
             Console.WriteLine();
             PrintModuleInfo(module.ModuleInfo);
         }
+    }
+
+    private static void SortModules(ref List<Module> exported)
+    {
+        exported.Sort((left, right) => left.DependsOn(right) ? 1 : -1);
     }
 
     private static void PrintModuleInfo(ModuleInfo module, bool isBaseModule = false)
