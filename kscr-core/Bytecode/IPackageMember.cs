@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using comroid.csapi.common;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 
@@ -12,6 +13,7 @@ public interface IPackageMember : IModifierContainer
     public IDictionary<string, IPackageMember> PackageMembers { get; }
     public bool IsRoot { get; }
     public Package? Package { get; }
+    [ByteData(0)]
     public string Name { get; }
     public string FullName { get; }
     public IPackageMember GetMember(string name);
@@ -47,7 +49,6 @@ public abstract class AbstractPackageMember : IPackageMember
     public Package? Package { get; }
 
     public virtual string Name => _name;
-
     public MemberModifier Modifier { get; protected set; }
 
     public string FullName => Package?.FullName +

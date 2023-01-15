@@ -9,7 +9,7 @@ using KScr.Core.System;
 
 namespace KScr.Core.Util;
 
-public sealed class StringCache
+public sealed class StringCache : IStringCache
 {
     public const string FileName = "strings" + RuntimeBase.BinaryFileExt;
 
@@ -40,7 +40,7 @@ public sealed class StringCache
         }
     }
 
-    public string? this[int id] => _strings[id];
+    public string this[int id] => _strings[id];
 
     private static IEnumerable<Class> GetAllClasses(IPackageMember mem)
     {

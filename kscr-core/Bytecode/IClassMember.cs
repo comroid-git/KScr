@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using comroid.csapi.common;
 using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.System;
@@ -16,6 +18,7 @@ public enum ClassMemberType : byte
 public interface IClassMember : IInvokable, IModifierContainer, IBytecode
 {
     public Class Parent { get; }
+    [ByteData(0)]
     public string Name { get; }
     public string FullName { get; }
     public ClassMemberType MemberType { get; }

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using comroid.csapi.common;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
@@ -111,6 +112,7 @@ public sealed class Class : AbstractPackageMember, IClass
     public TypeParameter.Instance[] TypeParameterInstances { get; } = Array.Empty<TypeParameter.Instance>();
 
     public Class? Parent { get; init; } = null;
+    [ByteData(2)]
     public ClassMemberType MemberType => ClassMemberType.Class;
     public StatementComponent CatchFinally { get; set; }
     public SourcefilePosition SourceLocation { get; init; }

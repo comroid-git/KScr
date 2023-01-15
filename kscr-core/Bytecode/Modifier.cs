@@ -1,4 +1,5 @@
 ﻿using System;
+using comroid.csapi.common;
 
 namespace KScr.Core.Bytecode;
 
@@ -105,5 +106,6 @@ public static class ModifierMethods
 
 public interface IModifierContainer
 {
+    [ByteData(1)]
     public MemberModifier Modifier { get; }
 }
