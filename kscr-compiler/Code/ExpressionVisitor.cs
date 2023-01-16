@@ -382,7 +382,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         };
     }
 
-    public override StatementComponent VisitVarLitSystemio(KScrParser.VarLitSystemioContext context)
+    public override StatementComponent VisitVarLitStdio(KScrParser.VarLitStdioContext context)
     {
         return new StatementComponent
         {
