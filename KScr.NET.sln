@@ -29,6 +29,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Other", "Other", "{BCE9FFFF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "common", "..\c#\csapi\common\common.csproj", "{56EBD0C9-B584-465D-9AF9-D4EF342FBE88}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kscr.starter", "kscr.starter\kscr.starter.vcxproj", "{1897C227-0A4E-42E6-9B8D-057E91989327}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{56EBD0C9-B584-465D-9AF9-D4EF342FBE88}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{56EBD0C9-B584-465D-9AF9-D4EF342FBE88}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{56EBD0C9-B584-465D-9AF9-D4EF342FBE88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1897C227-0A4E-42E6-9B8D-057E91989327}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{1897C227-0A4E-42E6-9B8D-057E91989327}.Debug|Any CPU.Build.0 = Debug|Win32
+		{1897C227-0A4E-42E6-9B8D-057E91989327}.Release|Any CPU.ActiveCfg = Release|Win32
+		{1897C227-0A4E-42E6-9B8D-057E91989327}.Release|Any CPU.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -94,6 +100,7 @@ Global
 		File = Test Build - info.run.xml
 		File = Test Build - build.run.xml
 		File = Test Build - run.run.xml
+		File = Test Starter.run.xml
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8F75C3E7-3788-47DA-8313-4C7051D5D342} = {BCE9FFFF-7A44-4FFF-A877-A1C5076A2847}
@@ -106,5 +113,6 @@ Global
 		{DE278AE9-DBB8-491D-8E0F-A78A1089BD87} = {BCE9FFFF-7A44-4FFF-A877-A1C5076A2847}
 		{0BF0C0BB-B3A7-4013-BBB6-3689920B3305} = {30E315C1-FDAA-4F5E-8100-B5BB65D37B55}
 		{56EBD0C9-B584-465D-9AF9-D4EF342FBE88} = {BCE9FFFF-7A44-4FFF-A877-A1C5076A2847}
+		{1897C227-0A4E-42E6-9B8D-057E91989327} = {BCE9FFFF-7A44-4FFF-A877-A1C5076A2847}
 	EndGlobalSection
 EndGlobal

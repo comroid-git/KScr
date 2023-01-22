@@ -1,0 +1,28 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Test Starter" type="CppProject" factoryName="C++ Project">
+    <configuration_1>
+      <option name="CONFIGURATION" value="Debug" />
+      <option name="PLATFORM" value="Any CPU" />
+      <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/kscr.starter/kscr.starter.vcxproj" />
+      <option name="EXE_PATH" value="$(LocalDebuggerCommand)" />
+      <option name="PROGRAM_PARAMETERS" value="$(LocalDebuggerCommandArguments)" />
+      <option name="WORKING_DIRECTORY" value="$(SolutionDir)\examples\" />
+      <option name="PASS_PARENT_ENVS" value="1" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+    </configuration_1>
+    <configuration_2>
+      <option name="CONFIGURATION" value="Release" />
+      <option name="PLATFORM" value="Any CPU" />
+      <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/kscr.starter/kscr.starter.vcxproj" />
+      <option name="EXE_PATH" value="$(LocalDebuggerCommand)" />
+      <option name="PROGRAM_PARAMETERS" value="$(LocalDebuggerCommandArguments)" />
+      <option name="WORKING_DIRECTORY" value="$(LocalDebuggerWorkingDirectory)" />
+      <option name="PASS_PARENT_ENVS" value="1" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+    </configuration_2>
+    <option name="DEFAULT_PROJECT_PATH" value="$PROJECT_DIR$/kscr.starter/kscr.starter.vcxproj" />
+    <method v="2">
+      <option name="Build" />
+    </method>
+  </configuration>
+</component>
