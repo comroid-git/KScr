@@ -14,9 +14,9 @@ public sealed class KScrBuild
     static KScrBuild()
     {
 #if RELEASE
-        ILog.BaseLogger.Level = LogLevel.Config;
+        Log.Root.Level = LogLevel.Config;
 #endif
-        ILog.BaseLogger.FullNames = false;
+        Log.Root.FullNames = false;
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     }
 
