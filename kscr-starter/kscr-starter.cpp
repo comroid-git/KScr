@@ -42,7 +42,7 @@ fs::path* findSDK()
         {
             string res = *iter;
             fs::path here(res);
-            if (exists((here /= "kscr.exe")))
+            if (exists((here / "kscr.exe")))
                 return new fs::path(absolute(here));
         }
     }
@@ -120,7 +120,6 @@ int main(int argc, char* argv[])
 #endif
     
     sdkpath = findSDK();
-    sdkpath->remove_filename();
 #if _DEBUG
     cout << "SDK Path found: " << absolute(*sdkpath) << endl;
 #endif
