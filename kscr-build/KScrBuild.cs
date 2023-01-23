@@ -22,22 +22,43 @@ public sealed class KScrBuild
 
     public static void Main(string[] args)
     {
+        void ApplyCmdOptions(CmdBase cmd)
+        {
+            if (cmd is IRebuildCmd rbc)
+                Rebuild = rbc.Rebuild;
+            if (cmd.Quiet)
+                Log.Root.Level = LogLevel.Fatal;
+        }
         Parser.Default.ParseArguments<CmdInfo, CmdDependencies, RebuildCmdBuild, CmdPublish, RebuildCmdRun>(args)
-            .WithParsed<CmdInfo>(cmd => Log<KScrBuild>.Get()
-                .WrapWithExceptionLogger<CmdInfo>(PrintInfo, "Info failed with unhandled Exception")(cmd))
-            .WithParsed<CmdDependencies>(cmd => Log<KScrBuild>.Get()
-                .WrapWithExceptionLogger<CmdDependencies>(PrintDependencies, "Dependencies failed with unhandled Exception")(cmd))
-            .WithParsed<RebuildCmdBuild>(cmd => Log<KScrBuild>.Get()
-                .WrapWithExceptionLogger<RebuildCmdBuild>(RunBuild, "Build failed with unhandled Exception")(cmd))
-            .WithParsed<CmdPublish>(cmd => Log<KScrBuild>.Get()
-                .WrapWithExceptionLogger<CmdPublish>(RunPublish, "Publish failed with unhandled Exception")(cmd))
-            .WithParsed<RebuildCmdRun>(cmd => Log<KScrBuild>.Get()
-                .WrapWithExceptionLogger<RebuildCmdRun>(RunRun, "Run failed with unhandled Exception")(cmd));
+            .WithParsed<CmdInfo>(cmd =>
+            {
+                ApplyCmdOptions(cmd);
+                Log<KScrBuild>.Get().WrapWithExceptionLogger<CmdInfo>(PrintInfo, "Info failed with unhandled Exception")(cmd);
+            })
+            .WithParsed<CmdDependencies>(cmd =>
+            {
+                ApplyCmdOptions(cmd);
+                Log<KScrBuild>.Get().WrapWithExceptionLogger<CmdDependencies>(PrintDependencies, "Dependencies failed with unhandled Exception")(cmd);
+            })
+            .WithParsed<RebuildCmdBuild>(cmd =>
+            {
+                ApplyCmdOptions(cmd);
+                Log<KScrBuild>.Get().WrapWithExceptionLogger<RebuildCmdBuild>(RunBuild, "Build failed with unhandled Exception")(cmd);
+            })
+            .WithParsed<CmdPublish>(cmd =>
+            {
+                ApplyCmdOptions(cmd);
+                Log<KScrBuild>.Get().WrapWithExceptionLogger<CmdPublish>(RunPublish, "Publish failed with unhandled Exception")(cmd);
+            })
+            .WithParsed<RebuildCmdRun>(cmd =>
+            {
+                ApplyCmdOptions(cmd);
+                Log<KScrBuild>.Get().WrapWithExceptionLogger<RebuildCmdRun>(RunRun, "Run failed with unhandled Exception")(cmd);
+            });
     }
 
     private static void RunRun(RebuildCmdRun rebuildCmd)
     {
-        ApplyCmd(rebuildCmd);
         var (baseModule, exported) = ExtractModules(rebuildCmd);
 
         foreach (var module in exported) 
@@ -99,7 +120,6 @@ public sealed class KScrBuild
 
     private static void RunBuild(RebuildCmdBuild rebuildCmd)
     {
-        ApplyCmd(rebuildCmd);
         var (baseModule, exported) = ExtractModules(rebuildCmd);
 
         SortModules(ref exported);
@@ -107,8 +127,6 @@ public sealed class KScrBuild
         foreach (var module in exported) 
             module.RunBuild();
     }
-
-    private static void ApplyCmd(IRebuildCmd cmd) => Rebuild = cmd.Rebuild;
 
     public static bool Rebuild { get; private set; }
 

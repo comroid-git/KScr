@@ -6,6 +6,8 @@ public interface CmdBase
 {
     [Value(0, Required = false)]
     public DirectoryInfo? Dir { get; set; }
+    [Option('q', "quiet", Default = false)]
+    public bool Quiet { get; set; }
 }
 
 public interface IRebuildCmd
@@ -18,18 +20,21 @@ public interface IRebuildCmd
 public class CmdInfo : CmdBase
 {
     public DirectoryInfo? Dir { get; set; }
+    public bool Quiet { get; set; }
 }
 
 [Verb("dependencies")]
 public class CmdDependencies : CmdBase
 {
     public DirectoryInfo? Dir { get; set; }
+    public bool Quiet { get; set; }
 }
 
 [Verb("build")]
 public class RebuildCmdBuild : CmdBase, IRebuildCmd
 {
     public DirectoryInfo? Dir { get; set; }
+    public bool Quiet { get; set; }
     public bool Rebuild { get; set; }
 }
 
@@ -37,11 +42,13 @@ public class RebuildCmdBuild : CmdBase, IRebuildCmd
 public class CmdPublish : CmdBase
 {
     public DirectoryInfo? Dir { get; set; }
+    public bool Quiet { get; set; }
 }
 
 [Verb("run")]
 public class RebuildCmdRun : CmdBase, IRebuildCmd
 {
     public DirectoryInfo? Dir { get; set; }
+    public bool Quiet { get; set; }
     public bool Rebuild { get; set; }
 }
