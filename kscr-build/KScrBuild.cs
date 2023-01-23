@@ -27,7 +27,7 @@ public sealed class KScrBuild
             if (cmd is IRebuildCmd rbc)
                 Rebuild = rbc.Rebuild;
             if (cmd.Quiet)
-                Log.Root.Level = LogLevel.Fatal;
+                Log.Root.Level = LogLevel.Error;
         }
         Parser.Default.ParseArguments<CmdInfo, CmdDependencies, RebuildCmdBuild, CmdPublish, RebuildCmdRun>(args)
             .WithParsed<CmdInfo>(cmd =>
