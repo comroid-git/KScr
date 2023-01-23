@@ -293,7 +293,7 @@ public sealed class Stack
             throw stackTraceException;
         }
 #if !DEBUG
-            catch (System.Exception ex)
+            catch (global::System.Exception ex)
             {
                 //if (RuntimeBase.DebugMode)
                     // ReSharper disable once PossibleIntendedRethrow
