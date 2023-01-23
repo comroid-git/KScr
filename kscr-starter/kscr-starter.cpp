@@ -106,9 +106,9 @@ void runModules()
 #endif
     startup(NULL, "\"\""+ fs::absolute(*sdkpath / "kbuild.exe").string() + "\" run " + absolute(path).string()+"\""
 #if !_DEBUG
-                                                                                                               +" -q"
+        +" -q"
 #endif
-                                                                                                               );
+    );
 }
 void runBinaries()
 {
@@ -130,12 +130,9 @@ int main(int argc, char* argv[])
     cout << "SDK Path found: " << absolute(*sdkpath) << endl;
 #endif
     
-    if (argc == 1)
-    {
-        path = fs::current_path();
+    path = argc == 1 ? fs::current_path() : fs::path(argv[1]);
+    if (path.has_extension())
         path = path.remove_filename();
-    }
-    else path = fs::path(argv[1]);
 
     try
     {

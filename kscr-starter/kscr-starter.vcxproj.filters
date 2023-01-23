@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="kscr.starter.cpp">
+    <ClCompile Include="kscr_starter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
