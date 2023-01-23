@@ -51,25 +51,84 @@ fs::path* findSDK()
     return new fs::path(string(found));
 }
 
+
+void startup(LPCSTR lpApplicationName, string arg)
+{
+    // additional information
+    STARTUPINFOA si;
+    PROCESS_INFORMATION pi;
+
+    // set the size of the structures
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+    
+    char* args = static_cast<char*>(malloc(0));
+    strcpy(args, arg.c_str());
+
+#if _DEBUG
+    if (lpApplicationName != nullptr)
+        cout << "Using executable " << lpApplicationName << endl;
+#endif
+    // start the program up
+    system(args);
+    /*
+     * todo: do not use system() because it might interfere with some antivirus programs
+     *
+    auto success = CreateProcessA
+    (
+        lpApplicationName,   // the path
+        args,                // Command line
+        nullptr,                   // Process handle not inheritable
+        nullptr,                   // Thread handle not inheritable
+        TRUE,                  // Set handle inheritance to FALSE
+        0,     // (Opens file in a separate console when 'CREATE_NEW_CONSOLE')
+        nullptr,           // Use parent's environment block
+        nullptr,           // Use parent's starting directory 
+        &si,            // Pointer to STARTUPINFO structure
+        &pi           // Pointer to PROCESS_INFORMATION structure
+    );
+    
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    
+    // Close process and thread handles. 
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    if (!success)
+        throw std::exception("Could not start subprocess");
+    */
+}
 void runModules()
 {
-    cout << "Compiling and executing module " << absolute(path);
+#if _DEBUG
+    cout << "Compiling and executing module root " << absolute(path) << endl;
+#endif
+    startup(NULL, "\"\""+ fs::absolute(*sdkpath / "kbuild.exe").string() + "\" run " + absolute(path).string()+"\""
+#if !_DEBUG
+                                                                                                               +" -q"
+#endif
+                                                                                                               );
 }
 void runBinaries()
 {
-    cout << "Running binaries in directory " << absolute(path);
+#if _DEBUG
+    cout << "Running binaries in directory " << absolute(path) << endl;
+#endif
 }
 
 int main(int argc, char* argv[])
 {
-#if _WIN32
+#if _WIN32 & !_DEBUG
     // do not show console window (may not work right)
     ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
 #endif
     
     sdkpath = findSDK();
     sdkpath->remove_filename();
-    cout << "SDK Path found: " << absolute(*sdkpath);
+#if _DEBUG
+    cout << "SDK Path found: " << absolute(*sdkpath) << endl;
+#endif
     
     if (argc == 1)
     {
@@ -78,13 +137,19 @@ int main(int argc, char* argv[])
     }
     else path = fs::path(argv[1]);
 
-    if (exists(path / "module.kmod.json") || exists(path / "modules.kmod.json"))
-        runModules();
-    else
+    try
     {
-        for (const auto& entry : fs::directory_iterator(path))
-            std::cout << entry.path() << std::endl;
-        runBinaries();
+        if (exists(path / "module.kmod.json") || exists(path / "modules.kmod.json"))
+            runModules();
+        else
+        {
+            for (const auto& entry : fs::directory_iterator(path))
+                std::cout << entry.path() << std::endl;
+            runBinaries();
+        }
+    } catch (std::exception& e)
+    {
+        cout << "Internal error: " << e.what() << endl;
     }
 
     return 0;
