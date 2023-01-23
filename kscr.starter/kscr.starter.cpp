@@ -1,6 +1,7 @@
 #include <filesystem>
 #include <iostream>
 #include <regex>
+#include <Windows.h>
 
 using std::string;
 using std::cout;
@@ -15,7 +16,7 @@ const string os_pathSep(":");
 #endif
 const std::regex pathSepRgx(os_pathSep);
 
-fs::path* sdkpath;
+fs::path* sdkpath, path;
 
 #pragma warning(disable : 4996)
 
@@ -26,8 +27,8 @@ fs::path* downloadSDK()
 
 fs::path* findSDK()
 {
-    char* path = std::getenv("KSCR_HOME");
-    if (path == nullptr)
+    char* found = std::getenv("KSCR_HOME");
+    if (found == nullptr)
     {
         // search in PATH
         string env(std::getenv("PATH"));
@@ -45,20 +46,31 @@ fs::path* findSDK()
                 return new fs::path(absolute(here));
         }
     }
-    if (path == nullptr)
+    if (found == nullptr)
         return downloadSDK();
-    return new fs::path(string(path));
+    return new fs::path(string(found));
 }
 
-void runModules() {}
-void runBinaries() {}
+void runModules()
+{
+    cout << "Compiling and executing module " << absolute(path);
+}
+void runBinaries()
+{
+    cout << "Running binaries in directory " << absolute(path);
+}
 
 int main(int argc, char* argv[])
 {
+#if _WIN32
+    // do not show console window (may not work right)
+    ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+#endif
+    
     sdkpath = findSDK();
     sdkpath->remove_filename();
+    cout << "SDK Path found: " << absolute(*sdkpath);
     
-    fs::path path;
     if (argc == 1)
     {
         path = fs::current_path();
