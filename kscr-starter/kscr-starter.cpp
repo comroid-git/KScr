@@ -114,11 +114,6 @@ void runBinaries()
 
 int main(int argc, char* argv[])
 {
-#if _WIN32 & !_DEBUG
-    // do not show console window (may not work right)
-    ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
-#endif
-    
     sdkpath = findSDK();
 #if _DEBUG
     cout << "SDK Path found: " << absolute(*sdkpath) << endl;
