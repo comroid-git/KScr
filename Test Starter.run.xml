@@ -22,7 +22,7 @@
     </configuration_2>
     <option name="DEFAULT_PROJECT_PATH" value="$PROJECT_DIR$/kscr.starter/kscr.starter.vcxproj" />
     <method v="2">
-      <option name="Build" />
+      <option name="Build Solution" enabled="true" />
     </method>
   </configuration>
 </component>
