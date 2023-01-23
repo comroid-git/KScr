@@ -80,7 +80,7 @@ public abstract class RuntimeBase : IBytecodePort
     public IObjectRef ConstantTrue =>
         ComputeObject(MainStack, VariableContext.Absolute, Numeric.One.GetKey(), () => Numeric.One);
 
-    public ObjectRef SystemioRef { get; private set; }
+    public ObjectRef StdIoRef { get; private set; }
 
     public bool SystemIoMode { get; set; } = false;
     public static bool ConfirmExit { get; set; }
@@ -194,7 +194,7 @@ public abstract class RuntimeBase : IBytecodePort
         Class.IntType.LateInitialize(this, MainStack);
         Class.NumericType.LateInitialize(this, MainStack);
 
-        SystemioRef = new StandardIORef(this);
+        StdIoRef = new StandardIORef(this);
 
         Initialized = true;
     }
@@ -372,8 +372,8 @@ public abstract class RuntimeBase : IBytecodePort
 
     public sealed class StandardIORef : ObjectRef
     {
-        private readonly SystemioReader _reader = new();
-        private readonly SystemioWriter _writer = new();
+        private readonly StdIoReader _reader = new();
+        private readonly StdIoWriter _writer = new();
 
         public StandardIORef(RuntimeBase vm) : base(Class.PipeType.CreateInstance(vm, Class.PipeType, Class.StringType))
         {
@@ -391,7 +391,7 @@ public abstract class RuntimeBase : IBytecodePort
             set => throw new FatalException("Cannot reassign systemio WriteAccessor");
         }
 
-        private sealed class SystemioWriter : IEvaluable
+        private sealed class StdIoWriter : IEvaluable
         {
             public Stack Evaluate(RuntimeBase vm, Stack stack)
             {
@@ -401,7 +401,7 @@ public abstract class RuntimeBase : IBytecodePort
             }
         }
 
-        private sealed class SystemioReader : IEvaluable
+        private sealed class StdIoReader : IEvaluable
         {
             public Stack Evaluate(RuntimeBase vm, Stack stack)
             {

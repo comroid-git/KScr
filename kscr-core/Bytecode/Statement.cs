@@ -246,7 +246,7 @@ public class StatementComponent : IBytecode, IStatementComponent
 
                 break;
             case (StatementComponentType.Expression, BytecodeType.SystemioExpression):
-                stack[Default] = vm.SystemioRef;
+                stack[Default] = vm.StdIoRef;
                 break;
             case (StatementComponentType.Expression, BytecodeType.EndlExpression):
                 stack[Default] = String.Instance(vm, Environment.NewLine);
