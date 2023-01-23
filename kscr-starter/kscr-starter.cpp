@@ -71,10 +71,6 @@ void startup(LPCSTR lpApplicationName, string arg)
         cout << "Using executable " << lpApplicationName << endl;
 #endif
     // start the program up
-    system(args);
-    /*
-     * todo: do not use system() because it might interfere with some antivirus programs
-     *
     auto success = CreateProcessA
     (
         lpApplicationName,   // the path
@@ -97,14 +93,13 @@ void startup(LPCSTR lpApplicationName, string arg)
 
     if (!success)
         throw std::exception("Could not start subprocess");
-    */
 }
 void runModules()
 {
 #if _DEBUG
     cout << "Compiling and executing module root " << absolute(path) << endl;
 #endif
-    startup(NULL, "\"\""+ fs::absolute(*sdkpath / "kbuild.exe").string() + "\" run " + absolute(path).string()+"\""
+    startup(fs::absolute(*sdkpath / "kbuild.exe").string().c_str(), " run " + absolute(path).string()
 #if !_DEBUG
         +" -q"
 #endif
