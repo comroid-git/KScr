@@ -66,7 +66,7 @@ public class Module
             if (KScrStarter.VM.CompilerErrors.Count > 0)
             {
                 foreach (var error in KScrStarter.VM.CompilerErrors)
-                    log.At(LogLevel.Error, "Compiler Error:\r\n" + error);
+                    log.At(LogLevel.Error, "Compiler Error:\r\n" + error.Message);
                 throw new Exception("There were Compiler Errors");
             }
 
