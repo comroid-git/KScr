@@ -23,16 +23,13 @@ INTERFACE: 'interface';
 ENUM: 'enum';
 ANNOTATION: 'annotation';
 
-// class footprint modifiers
-EXTENDS: 'extends';
-IMPLEMENTS: 'implements';
-
 // common statements
 RETURN: 'return';
 THROW: 'throw';
 NEW: 'new';
 YIELD: 'yield';
 IS: 'is';
+WHERE: 'where';
 
 // complex statements
 MARK: 'mark';

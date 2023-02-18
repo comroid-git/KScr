@@ -1,0 +1,4 @@
+﻿package org.comroid.kscr.core;
+
+public class NullPointerException {
+}

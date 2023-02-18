@@ -1,0 +1,5 @@
+﻿package org.comroid.kscr.core;
+
+public interface Closeable {
+    void close();
+}

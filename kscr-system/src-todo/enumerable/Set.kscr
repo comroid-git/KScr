@@ -1,6 +1,6 @@
 package org.comroid.kscr.enumerable;
 
-public interface Set<T> extends List<T> {
+public interface Set<T> : List<T> {
     @Override
     protected bool canAdd(T value) {
         return !find(value);

@@ -1,0 +1,7 @@
+﻿package org.comroid.kscr.core;
+
+public native class array<T> : Sequencable<T> {
+    int Length { get; }
+
+    T this[int i];
+}

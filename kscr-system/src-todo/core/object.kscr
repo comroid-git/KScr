@@ -1,0 +1,6 @@
+﻿package org.comroid.kscr.core;
+
+public native class object : void {
+    public str toString(short variant = 0) => Type.Name + '#' + ID;
+    public byte equals(object other) => ID == other.ID;
+}

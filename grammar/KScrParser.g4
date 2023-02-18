@@ -46,10 +46,7 @@ rawType
     ;
 
 genericTypeDef: idPart elp=ELIPSES? (EXTENDS ext=type | SUPER sup=type)? (ASSIGN (defN=NUMLIT | def=type))?;
-genericTypeDefs: LESSER (NUMLIT | genericTypeDef) (COMMA genericTypeDef)* GREATER;
-
-objectExtends: EXTENDS type (COMMA type)*;
-objectImplements: IMPLEMENTS type (COMMA type)*;
+genericDefs: LESSER (NUMLIT | genericTypeDef) (COMMA genericTypeDef)* GREATER;
 
 parameter: FINAL? type idPart (ASSIGN expr)?;
 parameters: LPAREN (parameter (COMMA parameter)*)? RPAREN;
@@ -79,19 +76,19 @@ codeBlock
 initDecl: STATIC memberBlock;
 subConstructorCall: type arguments;
 subConstructorCalls: COLON subConstructorCall (COMMA subConstructorCall)*?;
-constructorDecl: annotation* modifiers type parameters subConstructorCalls? memberBlock;
-methodDecl: annotation* modifiers genericTypeDefs? type idPart parameters memberBlock;
-indexerMemberDecl: annotation* modifiers genericTypeDefs? type THIS indexerDecl propBlock;
+constructorDecl: annotation* modifiers memberCondition* type parameters subConstructorCalls? memberBlock;
+methodDecl: annotation* modifiers memberCondition* genericDefs? type idPart parameters genericSpecifiers? memberBlock;
+indexerMemberDecl: annotation* modifiers memberCondition* genericDefs? type THIS indexerDecl genericSpecifiers? propBlock;
 
-propGetter: GET memberBlock;
-propSetter: SET memberBlock;
-propInit: INIT memberBlock;
+propGetter: GET memberCondition* memberBlock;
+propSetter: SET memberCondition* memberBlock;
+propInit: INIT memberCondition* memberBlock;
 propBlock
     : memberBlock                                       #propComputed
     | LBRACE propGetter propSetter? propInit? RBRACE    #propAccessors
     | (ASSIGN expr)? SEMICOLON                          #propFieldStyle
     ;
-propertyDecl: annotation* modifiers type idPart propBlock;
+propertyDecl: annotation* modifiers memberCondition* type idPart propBlock;
 
 member
     : propertyDecl                  #memProp
@@ -101,8 +98,12 @@ member
     | methodDecl catchBlocks?       #memMtd
     | indexerMemberDecl             #memIdx
     ;
+memberCondition: WHERE condition=expr;
+genericSpecifier: idPart (superclassesDef | (ASSIGN (type | expr)) | superclassesDef (ASSIGN (type | expr)));
+genericSpecifiers: WHERE genericSpecifier (COMMA genericSpecifier)*;
+superclassesDef: COLON type (COMMA type)*;
 
-classDecl: annotation* modifiers classType idPart genericTypeDefs? objectExtends? objectImplements? (LBRACE member* RBRACE | SEMICOLON);
+classDecl: annotation* modifiers classType idPart genericDefs? superclassesDef? genericSpecifiers? (LBRACE member* RBRACE | SEMICOLON);
 
 file: packageDecl imports classDecl* EOF;
 
