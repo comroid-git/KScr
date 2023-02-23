@@ -505,34 +505,34 @@ public class StatementComponent : IBytecode, IStatementComponent
             case (StatementComponentType.Pipe, BytecodeType.Call):
                 if (SubComponent == null || (SubComponent.Type & StatementComponentType.Lambda) == 0)
                     throw new FatalException("Invalid pipe listener; no lambda found");
-                if (!Class.Sequence.CanHold(stack[Default]!.Value.Type) &&
-                    !Class.Sequencable.CanHold(stack[Default]!.Value.Type))
+                if (!Class.SequenceType.CanHold(stack[Default]!.Value.Type) &&
+                    !Class.SequencableType.CanHold(stack[Default]!.Value.Type))
                     throw new FatalException(
-                        $"Invalid type for pipe listener {stack[Default]!.Value.Type}; requires {Class.Sequencable}");
-                if (!Class.Sequence.CanHold(stack[Default]!.Value.Type))
-                    Class.Sequencable.DeclaredMembers["sequence"].Invoke(vm, stack.Output(), stack[Default]!.Value)
+                        $"Invalid type for pipe listener {stack[Default]!.Value.Type}; requires {Class.SequencableType}");
+                if (!Class.SequenceType.CanHold(stack[Default]!.Value.Type))
+                    Class.SequencableType.DeclaredMembers["sequence"].Invoke(vm, stack.Output(), stack[Default]!.Value)
                         .Copy(Omg, Alp);
 
-                if (Class.Sequence.DeclaredMembers["finite"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg]
+                if (Class.SequenceType.DeclaredMembers["finite"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg]
                     .ToBool())
                 {
                     // evaluate finite sequence
-                    len = (Class.Sequence.DeclaredMembers["length"]
+                    len = (Class.SequenceType.DeclaredMembers["length"]
                         .Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].Value as Numeric).IntValue;
                     var next = new ObjectRef(Class.VoidType.DefaultInstance, len);
 
                     for (var i = 0; i < len; i++)
                     {
-                        if (!Class.Sequence.DeclaredMembers["hasNext"]
+                        if (!Class.SequenceType.DeclaredMembers["hasNext"]
                                 .Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].ToBool())
                             throw new FatalException("Unexpected end of sequence");
-                        var it = Class.Sequence.DeclaredMembers["next"]
+                        var it = Class.SequenceType.DeclaredMembers["next"]
                             .Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg];
                         var res = stack.StepIntoLambda(vm, stack.Output(), SubComponent, it.Value);
                         next[vm, stack, i] = res!.Value;
                     }
 
-                    stack[Default] = new ObjectRef(Class.Sequence.DefaultInstance,
+                    stack[Default] = new ObjectRef(Class.SequenceType.DefaultInstance,
                         new DummySequence_Finite(vm, next.Type, next.Refs));
                     break;
                 } // evaluate infinite sequence

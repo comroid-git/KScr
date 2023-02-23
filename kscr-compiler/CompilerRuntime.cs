@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Antlr4.Runtime;
+using Antlr4.Runtime.Misc;
 using comroid.csapi.common;
 using KScr.Antlr;
 using KScr.Bytecode;
 using KScr.Compiler.Class;
+using KScr.Core;
 using KScr.Core.Bytecode;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
 
@@ -51,15 +54,23 @@ public class CompilerRuntime : BytecodeRuntime
 
     public KScrParser.FileContext MakeFileDecl(FileInfo file)
     {
-        return _fileDecls.GetOrAdd(file.FullName, path => MakeFileDecl(new AntlrFileStream(path)));
+        return _fileDecls.GetOrAdd(file.FullName, path => MakeFileDecl(new AntlrFileStream(path), path));
     }
 
-    public KScrParser.FileContext MakeFileDecl(BaseInputCharStream input)
+    public KScrParser.FileContext MakeFileDecl(BaseInputCharStream input, string detail)
     {
         var lexer = new KScrLexer(input);
         var tokens = new CommonTokenStream(lexer);
         var parser = new KScrParser(tokens);
-        return parser.file();
+        try
+        {
+            return parser.file();
+        }
+        catch (InputMismatchException imex)
+        {
+            throw new CompilerException(SystemSrcPos, CompilerErrorMessage.Invalid, detail, "source code",
+                imex.Message);
+        }
     }
 
     public List<string> FindClassImports(KScrParser.ImportsContext ctx)
@@ -72,7 +83,7 @@ public class CompilerRuntime : BytecodeRuntime
 
     public ClassInfo FindClassInfo(FileInfo file)
     {
-        var fileDecl = MakeFileDecl(new AntlrFileStream(file.FullName));
+        var fileDecl = MakeFileDecl(new AntlrFileStream(file.FullName), file.FullName);
         var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
         return new ClassInfoVisitor(this, new CompilerContext { Package = pkg }).Visit(fileDecl.classDecl(0));
     }

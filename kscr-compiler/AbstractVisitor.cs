@@ -55,8 +55,8 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             : TypeParameterSpecializationType.Extends;
         var target = spec switch
         {
-            TypeParameterSpecializationType.List => Core.System.Class.Sequencable.CreateInstance(vm,
-                Core.System.Class.Sequencable,
+            TypeParameterSpecializationType.List => Core.System.Class.SequencableType.CreateInstance(vm,
+                Core.System.Class.SequencableType,
                 Core.System.Class.ObjectType),
             TypeParameterSpecializationType.N => Core.System.Class.NumericIntType,
             TypeParameterSpecializationType.Extends => gtd.ext == null

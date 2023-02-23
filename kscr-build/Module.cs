@@ -77,7 +77,7 @@ public class Module
             cmd.Output.UpdateMd5(KScrBuild.Md5Path);
             log.At(LogLevel.Info, $"Build {Notation} succeeded; {KScrStarter.IOTimeString(compileTime, ioTime: ioTime)}");
             Environment.CurrentDirectory = oldwkdir;
-        }, $"Build failed with exception", LogLevel.Error);
+        }, "Build failed with exception", LogLevel.Error);
     }
 
     public void SaveToFiles(string dir = null!)

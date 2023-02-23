@@ -22,18 +22,20 @@ public sealed class Class : AbstractPackageMember, IClass
     public static readonly Class ObjectType;
     public static readonly Class EnumType;
     public static readonly Class PipeType;
+    public static readonly Class NullableType;
     public static readonly Class ArrayType;
     public static readonly Class TupleType;
     public static readonly Class StringType;
     public static readonly Class NumericType;
     public static readonly Class RangeType;
-    public static readonly Class Sequence;
-    public static readonly Class Sequencable;
+    public static readonly Class SequenceType;
+    public static readonly Class SequencableType;
     public static readonly Class CloseableType;
     public static readonly Class ThrowableType;
     public static readonly Class ExceptionType;
     public static readonly Class NullPointerExceptionType;
     public static readonly Class IntType;
+    public static Instance BoolType;
     public static Instance NumericByteType;
     public static Instance NumericShortType;
     public static Instance NumericIntType;
@@ -59,6 +61,9 @@ public sealed class Class : AbstractPackageMember, IClass
                 MemberModifier.Public | MemberModifier.Final | MemberModifier.Native,
                 ClassType.Interface)
             { TypeParameters = { new TypeParameter("T") } };
+        NullableType = new Class(LibCorePackage, "nullable", true,
+                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
+            { TypeParameters = { new TypeParameter("T") } };
         ArrayType = new Class(LibCorePackage, "array", true,
                 MemberModifier.Public | MemberModifier.Final | MemberModifier.Native)
             { TypeParameters = { new TypeParameter("T") } };
@@ -72,9 +77,9 @@ public sealed class Class : AbstractPackageMember, IClass
             { TypeParameters = { new TypeParameter("T") } };
         RangeType = new Class(LibCorePackage, "range", true,
             MemberModifier.Public | MemberModifier.Final | MemberModifier.Native);
-        Sequence = new Class(LibCorePackage, "Sequence", false, MemberModifier.Public, ClassType.Interface)
+        SequenceType = new Class(LibCorePackage, "Sequence", false, MemberModifier.Public, ClassType.Interface)
             { TypeParameters = { new TypeParameter("T") } };
-        Sequencable = new Class(LibCorePackage, "Sequencable", false, MemberModifier.Public, ClassType.Interface)
+        SequencableType = new Class(LibCorePackage, "Sequencable", false, MemberModifier.Public, ClassType.Interface)
             { TypeParameters = { new TypeParameter("T") } };
         ThrowableType = new Class(LibCorePackage, "Throwable", false, MemberModifier.Public, ClassType.Interface);
         ExceptionType = new Class(LibErrorPackage, "Exception", false, MemberModifier.Public);
@@ -407,8 +412,8 @@ public sealed class Class : AbstractPackageMember, IClass
             NumericByteType);
 
         // iterable methods
-        var sequence = new DummyMethod(Sequencable, "sequence", MemberModifier.Public | MemberModifier.Abstract,
-            Sequence.CreateInstance(vm, Sequencable, Sequencable.TypeParameters[0]));
+        var sequence = new DummyMethod(SequencableType, "sequence", MemberModifier.Public | MemberModifier.Abstract,
+            SequenceType.CreateInstance(vm, SequencableType, SequencableType.TypeParameters[0]));
 
         AddToClass(RangeType, start);
         AddToClass(RangeType, end);
@@ -416,34 +421,34 @@ public sealed class Class : AbstractPackageMember, IClass
         AddToClass(RangeType, accumulate);
         AddToClass(RangeType, decremental);
         AddToClass(RangeType, sequence);
-        RangeType.DeclaredInterfaces.Add(Sequencable.CreateInstance(vm, RangeType, NumericIntType));
+        RangeType.DeclaredInterfaces.Add(SequencableType.CreateInstance(vm, RangeType, NumericIntType));
 
         #endregion
 
         #region Sequence Class
 
-        var current = new DummyMethod(Sequence, "current", MemberModifier.Public | MemberModifier.Abstract,
-            Sequence.TypeParameters[0]);
-        var next = new DummyMethod(Sequence, "next", MemberModifier.Public | MemberModifier.Abstract,
-            Sequence.TypeParameters[0]);
-        var hasNext = new DummyMethod(Sequence, "hasNext", MemberModifier.Public | MemberModifier.Abstract,
+        var current = new DummyMethod(SequenceType, "current", MemberModifier.Public | MemberModifier.Abstract,
+            SequenceType.TypeParameters[0]);
+        var next = new DummyMethod(SequenceType, "next", MemberModifier.Public | MemberModifier.Abstract,
+            SequenceType.TypeParameters[0]);
+        var hasNext = new DummyMethod(SequenceType, "hasNext", MemberModifier.Public | MemberModifier.Abstract,
             NumericByteType);
-        var finite = new DummyMethod(Sequence, "finite", MemberModifier.Public, NumericByteType);
-        var seqLength = new DummyMethod(Sequence, "length", MemberModifier.Public, NumericIntType);
+        var finite = new DummyMethod(SequenceType, "finite", MemberModifier.Public, NumericByteType);
+        var seqLength = new DummyMethod(SequenceType, "length", MemberModifier.Public, NumericIntType);
 
-        AddToClass(Sequence, current);
-        AddToClass(Sequence, next);
-        AddToClass(Sequence, hasNext);
-        AddToClass(Sequence, finite);
-        AddToClass(Sequence, seqLength);
-        Sequence.DeclaredInterfaces.Add(VoidType.DefaultInstance);
+        AddToClass(SequenceType, current);
+        AddToClass(SequenceType, next);
+        AddToClass(SequenceType, hasNext);
+        AddToClass(SequenceType, finite);
+        AddToClass(SequenceType, seqLength);
+        SequenceType.DeclaredInterfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
         #region Sequencable Class
 
-        AddToClass(Sequencable, sequence);
-        Sequencable.DeclaredInterfaces.Add(VoidType.DefaultInstance);
+        AddToClass(SequencableType, sequence);
+        SequencableType.DeclaredInterfaces.Add(VoidType.DefaultInstance);
 
         #endregion
 
@@ -632,9 +637,18 @@ public sealed class TypeParameter : ITypeParameter, IBytecode
     private TypeParameterSpecializationType _specialization;
 
     public TypeParameter(string name, TypeParameterSpecializationType? specialization = null!,
-        IClass? specializationTarget = null!)
+        IClass? specializationTarget = null!) : this((object)name, specialization, specializationTarget)
     {
-        Name = name;
+    }
+
+    public TypeParameter(int n, IClass? specializationTarget = null!) : this(n, TypeParameterSpecializationType.N,
+        specializationTarget)
+    {
+    }
+
+    public TypeParameter(object name, TypeParameterSpecializationType? specialization = null!, IClass? specializationTarget = null!)
+    {
+        Name = name.ToString() ?? "undefined";
         Specialization = specialization ?? TypeParameterSpecializationType.Extends;
         SpecializationTarget = specializationTarget ?? Class.VoidType;
     }

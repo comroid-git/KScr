@@ -20,7 +20,7 @@ public interface IPackageMember : IModifierContainer
 
 public abstract class AbstractPackageMember : IPackageMember
 {
-    private protected string _name;
+    private protected readonly string _name;
 
     protected AbstractPackageMember() : this(null!, Package.RootPackageName,
         MemberModifier.Public | MemberModifier.Static)

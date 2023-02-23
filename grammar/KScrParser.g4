@@ -35,12 +35,41 @@ classType
 
 genericTypeUses: LESSER (n=NUMLIT | first=type) (COMMA type)* GREATER;
 
-type: rawType genericTypeUses? nullable=QUESTION? (indexerEmpty | ELIPSES)? nullableArray=QUESTION?;
-rawType
-    : primitiveTypeLit  #primitiveTypeUse
-    | idPart            #importedTypeName
-    | id                #staticTypeUse
+num: NUMIDENT           #numTypeLit
+    | BOOL              #numTypeLitBool
+    | BYTE              #numTypeLitByte
+    | SHORT             #numTypeLitShort
+    | INT               #numTypeLitInt
+    | LONG              #numTypeLitLong
+    | FLOAT             #numTypeLitFloat
+    | DOUBLE            #numTypeLitDouble
     ;
+primitiveTypeLit 
+    : OBJECT        #typeLitObject
+    | ARRAYIDENT    #typeLitArray
+    | TUPLEIDENT    #typeLitTuple
+    | num           #typeLitNum
+    | TYPE          #typeLitType
+    | ENUM          #typeLitEnum
+    | VOID          #typeLitVoid
+    ;
+primitiveLit
+    : THIS          #varThis
+    | SUPER         #varSuper
+    | NUMLIT        #varLitNum
+    | TRUE          #varLitTrue
+    | FALSE         #varLitFalse
+    | STRLIT        #varLitStr
+    | STDIOLIT      #varLitStdio
+    | ENDLLIT       #varLitEndl
+    | NULL          #varLitNull
+    ;
+rawType
+    : primitiveTypeLit
+    | idPart 
+    | id
+    ;
+type: rawType genericTypeUses? nullable=QUESTION? (indexerEmpty | ELIPSES)? nullableArray=QUESTION?;
 
 genericTypeDef: idPart elp=ELIPSES? (EXTENDS ext=type | SUPER sup=type)? (ASSIGN (defN=NUMLIT | def=type))?;
 genericDefs: LESSER (NUMLIT | genericTypeDef) (COMMA genericTypeDef)* GREATER;
@@ -73,23 +102,25 @@ codeBlock
 initDecl: STATIC memberBlock;
 subConstructorCall: (THIS | type) arguments;
 subConstructorCalls: COLON subConstructorCall (COMMA subConstructorCall)*?;
-constructorDecl: type parameters subConstructorCalls? memberBlock;
-methodDecl: genericDefs? type idPart parameters genericSpecifiers? memberBlock;
-indexerMemberDecl: genericDefs? type THIS indexerDecl genericSpecifiers? propBlock;
+constructorDecl: annotation* modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? 
+        type parameters subConstructorCalls? memberBlock;
+methodDecl: annotation* modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? 
+        genericDefs? type idPart parameters genericSpecifiers? memberBlock;
+indexerMemberDecl: annotation* modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? 
+        genericDefs? type THIS indexerDecl genericSpecifiers? propBlock;
 
-propGetter: GET memberQuery* memberBlock;
-propSetter: SET memberQuery* memberBlock;
-propInit: INIT memberQuery* memberBlock;
+propGetter: GET modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? memberBlock;
+propSetter: SET modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? memberBlock;
+propInit: INIT modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? memberBlock;
 propBlock
     : memberBlock                                       #propComputed
     | LBRACE propGetter propSetter? propInit? RBRACE    #propAccessors
     | (ASSIGN expr)? SEMICOLON                          #propFieldStyle
     ;
-propertyDecl: type idPart propBlock;
+propertyDecl: annotation* modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? 
+        type idPart propBlock;
 
-memberQuery: modifiers
-    | modifiers? WHERE condition=expr (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))?;
-memberDecl
+member
     : propertyDecl                                          #memProp
     | classDecl                                             #memCls
     | initDecl catchBlocks?                                 #memInit
@@ -98,7 +129,6 @@ memberDecl
     | indexerMemberDecl                                     #memIdx
     | idPart arguments? ASSIGN expr (COMMA | SEMICOLON?)    #memEnumConst
     ;
-member: annotation* memberQuery? modifiers? memberDecl;
 genericSpecifier: idPart (superclassesDef | (ASSIGN (type | expr)) | superclassesDef (ASSIGN (type | expr)));
 genericSpecifiers: WHERE genericSpecifier (COMMA genericSpecifier)*;
 superclassesDef: COLON type (COMMA type)*;
@@ -260,37 +290,4 @@ id: idPart (DOT idPart)*;
 idPart
     : ID
     | ANNOTATION
-    ;
-
-
-array: ARRAYIDENT genericTypeUses?;
-tuple: TUPLEIDENT genericTypeUses?;
-num: (NUMIDENT | INT)   #numTypeLitTuple
-    | BOOL              #numTypeLitBool
-    | BYTE              #numTypeLitByte
-    | SHORT             #numTypeLitShort
-    | INT               #numTypeLitInt
-    | LONG              #numTypeLitLong
-    | FLOAT             #numTypeLitFloat
-    | DOUBLE            #numTypeLitDouble
-    ;
-primitiveTypeLit 
-    : OBJECT        #typeLitObject
-    | array         #typeLitArray
-    | tuple         #typeLitTuple
-    | num           #typeLitNum
-    | TYPE          #typeLitType
-    | ENUM          #typeLitEnum
-    | VOID          #typeLitVoid
-    ;
-primitiveLit
-    : THIS          #varThis
-    | SUPER         #varSuper
-    | NUMLIT        #varLitNum
-    | TRUE          #varLitTrue
-    | FALSE         #varLitFalse
-    | STRLIT        #varLitStr
-    | STDIOLIT      #varLitStdio
-    | ENDLLIT       #varLitEndl
-    | NULL          #varLitNull
     ;

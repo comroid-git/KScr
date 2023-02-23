@@ -120,8 +120,15 @@ public class PackageNode : SourceNode
                      SearchOption.TopDirectoryOnly))
         {
             var file = new FileInfo(sub);
-            Nodes.Add(new FileNode(vm, ctx, this, file));
-            c++;
+            try
+            {
+                Nodes.Add(new FileNode(vm, ctx, this, file));
+                c++;
+            }
+            catch (CompilerException cex)
+            {
+                Log<CompilerRuntime>.At(LogLevel.Error, cex.Message);
+            }
         }
 
         return c;
@@ -177,10 +184,14 @@ public class FileNode : SourceNode
         try
         {
             ctx.PushContext(Cls);
-            foreach (var type in kls.objectExtends()?.type() ?? new KScrParser.TypeContext[] { })
-                Cls.DeclaredSuperclasses.Add(ctx.FindType(vm, type.GetText())!.AsClassInstance(vm));
-            foreach (var type in kls.objectImplements()?.type() ?? new KScrParser.TypeContext[] { })
-                Cls.DeclaredInterfaces.Add(ctx.FindType(vm, type.GetText())!.AsClassInstance(vm));
+            foreach (var type in kls.superclassesDef()?.type() ?? Array.Empty<KScrParser.TypeContext>())
+            {
+                var target = ctx.FindType(vm, type.GetText())!.AsClass(vm);
+                var instance = target.CreateInstance(vm, ctx.Class.AsClass(vm), type.genericTypeUses().GetGenericsUses(vm, ctx, target).ToArray());
+                if (target.ClassType == ClassType.Interface)
+                    Cls.DeclaredInterfaces.Add(instance);
+                else Cls.DeclaredSuperclasses.Add(instance);
+            }
         }
         finally
         {
