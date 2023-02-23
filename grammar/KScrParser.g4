@@ -20,10 +20,11 @@ modifier
     | STATIC        #modStatic
     | FINAL         #modFinal
     | ABSTRACT      #modAbstract
-    | SYNCHRONIZED  #modSyncronized
     | NATIVE        #modNative
+    | SERVE         #modServe
+    | SYNCHRONIZED  #modSyncronized
     ;
-modifiers: modifier*;
+modifiers: modifier+;
 
 classType
     : CLASS         #ctClass
@@ -34,15 +35,11 @@ classType
 
 genericTypeUses: LESSER (n=NUMLIT | first=type) (COMMA type)* GREATER;
 
-type
-    : idPart                                            #importedTypeName
-    | rawType genericTypeUses?                          #normalTypeUse
-    | rawType genericTypeUses? (indexerEmpty | ELIPSES)?     #arrayTypeUse
-    ;
-
+type: rawType genericTypeUses? nullable=QUESTION? (indexerEmpty | ELIPSES)? nullableArray=QUESTION?;
 rawType
-    : primitiveTypeLit
-    | id
+    : primitiveTypeLit  #primitiveTypeUse
+    | idPart            #importedTypeName
+    | id                #staticTypeUse
     ;
 
 genericTypeDef: idPart elp=ELIPSES? (EXTENDS ext=type | SUPER sup=type)? (ASSIGN (defN=NUMLIT | def=type))?;
@@ -60,7 +57,7 @@ memberExpr: REQARROW uniformBlock;
 lambdaBlock: RDASHARROW (uniformBlock | normalBlock);
 caseBlock
     : COLON statements BREAK SEMICOLON  #caseStmtBlock
-    | memberExpr COMMA                  #caseExprBlock
+    | REQARROW memberExpr COMMA                  #caseExprBlock
     ;
 memberBlock
     : normalBlock               #memberNormalBlock
@@ -74,44 +71,47 @@ codeBlock
     ;
 
 initDecl: STATIC memberBlock;
-subConstructorCall: type arguments;
+subConstructorCall: (THIS | type) arguments;
 subConstructorCalls: COLON subConstructorCall (COMMA subConstructorCall)*?;
-constructorDecl: annotation* modifiers memberCondition* type parameters subConstructorCalls? memberBlock;
-methodDecl: annotation* modifiers memberCondition* genericDefs? type idPart parameters genericSpecifiers? memberBlock;
-indexerMemberDecl: annotation* modifiers memberCondition* genericDefs? type THIS indexerDecl genericSpecifiers? propBlock;
+constructorDecl: type parameters subConstructorCalls? memberBlock;
+methodDecl: genericDefs? type idPart parameters genericSpecifiers? memberBlock;
+indexerMemberDecl: genericDefs? type THIS indexerDecl genericSpecifiers? propBlock;
 
-propGetter: GET memberCondition* memberBlock;
-propSetter: SET memberCondition* memberBlock;
-propInit: INIT memberCondition* memberBlock;
+propGetter: GET memberQuery* memberBlock;
+propSetter: SET memberQuery* memberBlock;
+propInit: INIT memberQuery* memberBlock;
 propBlock
     : memberBlock                                       #propComputed
     | LBRACE propGetter propSetter? propInit? RBRACE    #propAccessors
     | (ASSIGN expr)? SEMICOLON                          #propFieldStyle
     ;
-propertyDecl: annotation* modifiers memberCondition* type idPart propBlock;
+propertyDecl: type idPart propBlock;
 
-member
-    : propertyDecl                  #memProp
-    | classDecl                     #memCls
-    | initDecl catchBlocks?         #memInit
-    | constructorDecl catchBlocks?  #memCtor
-    | methodDecl catchBlocks?       #memMtd
-    | indexerMemberDecl             #memIdx
+memberQuery: modifiers
+    | modifiers? WHERE condition=expr (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))?;
+memberDecl
+    : propertyDecl                                          #memProp
+    | classDecl                                             #memCls
+    | initDecl catchBlocks?                                 #memInit
+    | constructorDecl catchBlocks?                          #memCtor
+    | methodDecl catchBlocks?                               #memMtd
+    | indexerMemberDecl                                     #memIdx
+    | idPart arguments? ASSIGN expr (COMMA | SEMICOLON?)    #memEnumConst
     ;
-memberCondition: WHERE condition=expr;
+member: annotation* memberQuery? modifiers? memberDecl;
 genericSpecifier: idPart (superclassesDef | (ASSIGN (type | expr)) | superclassesDef (ASSIGN (type | expr)));
 genericSpecifiers: WHERE genericSpecifier (COMMA genericSpecifier)*;
 superclassesDef: COLON type (COMMA type)*;
 
-classDecl: annotation* modifiers classType idPart genericDefs? superclassesDef? genericSpecifiers? (LBRACE member* RBRACE | SEMICOLON);
+classDecl: annotation* modifiers? classType idPart genericDefs? superclassesDef? genericSpecifiers? (LBRACE member* RBRACE | SEMICOLON);
 
 file: packageDecl imports classDecl* EOF;
 
 inferType: VOID | VAR;
 
-indexerEmpty: LSQUAR RSQUAR;
-indexerDecl: LSQUAR type idPart (COMMA type idPart)* RSQUAR;
-indexerExpr: LSQUAR expr (COMMA expr)* RSQUAR;
+indexerEmpty: LSQUAR COMMA* RSQUAR;
+indexerDecl: (LSQUAR|LPAREN) type idPart (COMMA type idPart)* (RSQUAR|RPAREN);
+indexerExpr: (LSQUAR|LPAREN) expr (COMMA expr)* (RSQUAR|RPAREN);
 cast: LPAREN type COLON expr RPAREN;
 declaration: type idPart (ASSIGN expr)?;
 mutation: (binaryop | binaryop_late)? ASSIGN expr;
@@ -121,7 +121,7 @@ newArray: NEW type indexerExpr;
 newListedArray: NEW type indexerEmpty LBRACE (expr (COMMA expr)*)? RBRACE;
 label: idPart COLON WS;
 lambda
-    : label? type COLON idPart        #methodRef
+    : label? (type COLON)? idPart        #methodRef
     | label? tupleExpr lambdaBlock    #lambdaExpr 
     ;
 
@@ -173,10 +173,8 @@ statement
     ;
 typedExpr: type? expr;
 expr
-    // simply a variable
-    : idPart                                                #varValue
     // operators
-    | prefixop expr                                         #opPrefix
+    : prefixop expr                                         #opPrefix
     | left=expr binaryop right=expr                         #opBinary
     | expr postfixop                                        #opPostfix
     // `is` keyword
@@ -187,6 +185,8 @@ expr
     | LPAREN expr RPAREN                                    #parens
     | cond=expr QUESTION left=expr COLON right=expr         #ternary
     | cast                                                  #exprCast
+    // simply a variable
+    | idPart                                                #varValue
     | newArray                                              #newArrayValue
     | newListedArray                                        #newListedArrayValue
     | primitiveLit                                          #nativeLitValue
@@ -205,6 +205,8 @@ expr
     | left=expr SHORTELIPSES right=expr                     #rangeInvoc
     // pipe operators
     | pipe=expr (RREQARROW lambda)+                         #exprPipeListen
+    | pipe=expr (RRDASHARROW expr)+                         #exprPipeRead
+    | pipe=expr (LLDASHARROW expr)+                         #exprPipeWrite
     // tuple expressions
     | tupleExpr                                             #exprTuple
     | left=expr binaryop_late right=expr                    #opBinaryLate
@@ -263,13 +265,14 @@ idPart
 
 array: ARRAYIDENT genericTypeUses?;
 tuple: TUPLEIDENT genericTypeUses?;
-num: (NUMIDENT | INT) genericTypeUses?  #numTypeLitTuple
-    | BYTE                              #numTypeLitByte
-    | SHORT                             #numTypeLitShort
-    | INT                               #numTypeLitInt
-    | LONG                              #numTypeLitLong
-    | FLOAT                             #numTypeLitFloat
-    | DOUBLE                            #numTypeLitDouble
+num: (NUMIDENT | INT)   #numTypeLitTuple
+    | BOOL              #numTypeLitBool
+    | BYTE              #numTypeLitByte
+    | SHORT             #numTypeLitShort
+    | INT               #numTypeLitInt
+    | LONG              #numTypeLitLong
+    | FLOAT             #numTypeLitFloat
+    | DOUBLE            #numTypeLitDouble
     ;
 primitiveTypeLit 
     : OBJECT        #typeLitObject

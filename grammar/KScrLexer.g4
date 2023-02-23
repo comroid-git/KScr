@@ -15,6 +15,7 @@ STATIC: 'static';
 FINAL: 'final';
 ABSTRACT: 'abstract';
 NATIVE: 'native';
+SERVE: 'serve';
 SYNCHRONIZED: 'synchronized';
 
 // class types
@@ -30,6 +31,7 @@ NEW: 'new';
 YIELD: 'yield';
 IS: 'is';
 WHERE: 'where';
+SELECT: 'select';
 
 // complex statements
 MARK: 'mark';
@@ -55,6 +57,7 @@ ARRAYIDENT: 'array';
 TUPLEIDENT: 'tuple';
 TYPE: 'type';
 NUMIDENT: 'num';
+BOOL: 'bool';
 BYTE: 'byte';
 SHORT: 'short';
 INT: 'int';

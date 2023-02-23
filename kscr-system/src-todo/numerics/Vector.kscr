@@ -2,7 +2,7 @@ package org.comroid.kscr.numerics;
 
 import org.comroid.kscr.numerics.Math;
 
-public class Vector<n, numtype> : numtype<n> where n = 3, numtype extends num = float {
+public class Vector<n, numtype> : numtype<n> where n = 3, numtype : num = float {
     where n >= 1 numtype X => this(0);
     where n >= 2 numtype Y => this(1);
     where n >= 3 numtype Z => this(2);
@@ -17,7 +17,7 @@ public class Vector<n, numtype> : numtype<n> where n = 3, numtype extends num = 
 
     public str toString(short variant) {
         str txt = "Vector" + n + "{";
-        fori (0, n)
+        foreach (i : 0..n)
             txt += this(i) + ", ";
         return txt.section(0, txt.length - 2) + "}";
     }
