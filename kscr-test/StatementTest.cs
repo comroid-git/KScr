@@ -39,7 +39,7 @@ public class StatementTest
 
     [Test]
     [Repeat(TestScale)]
-    public void Tesystemeclaration()
+    public void TestDeclaration()
     {
         var desired = rng.Next() % TestScale;
         if (desired < 10)
@@ -47,7 +47,7 @@ public class StatementTest
 
         var writer = new StringWriter();
         Console.SetOut(writer);
-        var result = RunSourcecode("Tesystemeclaration", $"public static int main() {{ int x = {desired}; return x; }}");
+        var result = RunSourcecode("TestDeclaration", $"public static int main() {{ int x = {desired}; return x; }}");
 
         Assert.AreEqual(desired, (result.value as Numeric)!.IntValue);
     }
@@ -87,7 +87,7 @@ public class StatementTest
         if (desiredLen < 10)
             desiredLen = TestScale;
 
-        var result = RunSourcecode("TestFor", $"for (int i = {desiredLen}; i; i -= 1) systemio <<- i;");
+        var result = RunSourcecode("TestFor", $"for (int i = {desiredLen}; i; i -= 1) stdio <<- i;");
         var expected = "";
         for (var i = desiredLen; i > 0; i -= 1)
             expected += i;
@@ -104,7 +104,7 @@ public class StatementTest
         if (desiredLen < 10)
             desiredLen = TestScale;
 
-        var result = RunSourcecode("TestForEach", $"foreach (i : 0..{desiredLen}) systemio <<- i;");
+        var result = RunSourcecode("TestForEach", $"foreach (i : 0..{desiredLen}) stdio <<- i;");
         var expected = "";
         for (var i = 0; i < desiredLen; i++)
             expected += i;
@@ -121,7 +121,7 @@ public class StatementTest
         if (desiredLen < 10)
             desiredLen = TestScale;
 
-        var result = RunSourcecode("TestWhile", $"int i = {desiredLen}; while (i--) systemio <<- i;");
+        var result = RunSourcecode("TestWhile", $"int i = {desiredLen}; while (i--) stdio <<- i;");
         var expected = "";
         var i = desiredLen;
         while (i-- > 0)
@@ -136,13 +136,13 @@ public class StatementTest
     [Timeout(TestTimeout)]
     [Repeat(TestScale)]
     [NonParallelizable]
-    public void TesystemoWhile()
+    public void TestDoWhile()
     {
         var desiredLen = rng.Next() % TestScale;
         if (desiredLen < 10)
             desiredLen = TestScale;
 
-        var result = RunSourcecode("TesystemoWhile", $"int i = {desiredLen}; do {{ systemio <<- i; }} while (i--);");
+        var result = RunSourcecode("TestDoWhile", $"int i = {desiredLen}; do {{ stdio <<- i; }} while (i--);");
         var expected = "";
         var i = desiredLen;
         do

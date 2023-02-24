@@ -1,0 +1,7 @@
+﻿package org.comroid.kscr.core;
+
+public native class enum<T> {
+    str Name { get; }
+
+    static List<T> values;
+}

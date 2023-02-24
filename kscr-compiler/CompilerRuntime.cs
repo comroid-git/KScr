@@ -1,23 +1,35 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Antlr4.Runtime;
 using comroid.csapi.common;
 using KScr.Antlr;
 using KScr.Bytecode;
 using KScr.Compiler.Class;
 using KScr.Core.Bytecode;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.Store;
 
 namespace KScr.Compiler;
 
-public class CompilerRuntime : BytecodeRuntime
+public class CompilerRuntime : BytecodeRuntime, IAntlrErrorListener<IToken>
 {
     private readonly ConcurrentDictionary<string, KScrParser.FileContext> _fileDecls = new();
+
     public override INativeRunner? NativeRunner => null;
     public override ObjectStore ObjectStore => null!;
+    private string location = string.Empty;
+
+    public void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol, int line,
+        int pos,
+        string msg, RecognitionException e)
+    {
+        CompilerErrors.Add(new CompilerException(offendingSymbol.ToSrcPos(location), CompilerErrorMessage.UnexpectedToken,
+            "", offendingSymbol.Text, msg));
+    }
 
     public void CompileSource(string source, string? basePackage = null)
     {
@@ -51,15 +63,23 @@ public class CompilerRuntime : BytecodeRuntime
 
     public KScrParser.FileContext MakeFileDecl(FileInfo file)
     {
-        return _fileDecls.GetOrAdd(file.FullName, path => MakeFileDecl(new AntlrFileStream(path)));
+        return _fileDecls.GetOrAdd(file.FullName, path => MakeFileDecl(new AntlrFileStream(path), path));
     }
 
-    public KScrParser.FileContext MakeFileDecl(BaseInputCharStream input)
+    public KScrParser.FileContext MakeFileDecl(BaseInputCharStream input, string detail)
     {
         var lexer = new KScrLexer(input);
         var tokens = new CommonTokenStream(lexer);
         var parser = new KScrParser(tokens);
-        return parser.file();
+        
+        parser.RemoveErrorListeners();
+        parser.AddErrorListener(this);
+        location = detail;
+        var file = parser.file();
+        
+        if (CompilerErrors.Count > 0)
+            throw new CompilerException(new SourcefilePosition { SourcefilePath = detail }, CompilerErrorMessage.Underlying);
+        return file;
     }
 
     public List<string> FindClassImports(KScrParser.ImportsContext ctx)
@@ -72,8 +92,16 @@ public class CompilerRuntime : BytecodeRuntime
 
     public ClassInfo FindClassInfo(FileInfo file)
     {
-        var fileDecl = MakeFileDecl(new AntlrFileStream(file.FullName));
+        var fileDecl = MakeFileDecl(new AntlrFileStream(file.FullName), file.FullName);
         var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
         return new ClassInfoVisitor(this, new CompilerContext { Package = pkg }).Visit(fileDecl.classDecl(0));
+    }
+
+    public void PrintCompilerErrors<L>() where L : class => PrintCompilerErrors(Log<L>.Get());
+    public void PrintCompilerErrors(Log log)
+    {
+        foreach (var error in CompilerErrors) 
+            log.At(LogLevel.Error, error.Message);
+        CompilerErrors.Clear();
     }
 }

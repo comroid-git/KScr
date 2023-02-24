@@ -2,6 +2,8 @@ parser grammar KScrParser;
 
 options { tokenVocab = KScrLexer; }
 
+file: packageDecl imports classDecl* EOF;
+
 // file-related
 packageDecl: PACKAGE id SEMICOLON;
 
@@ -20,10 +22,11 @@ modifier
     | STATIC        #modStatic
     | FINAL         #modFinal
     | ABSTRACT      #modAbstract
-    | SYNCHRONIZED  #modSyncronized
     | NATIVE        #modNative
+    | SERVE         #modServe
+    | SYNCHRONIZED  #modSyncronized
     ;
-modifiers: modifier*;
+modifiers: modifier+;
 
 classType
     : CLASS         #ctClass
@@ -34,22 +37,44 @@ classType
 
 genericTypeUses: LESSER (n=NUMLIT | first=type) (COMMA type)* GREATER;
 
-type
-    : idPart                                            #importedTypeName
-    | rawType genericTypeUses?                          #normalTypeUse
-    | rawType genericTypeUses? (indexerEmpty | ELIPSES)?     #arrayTypeUse
+num: NUMIDENT           #numTypeLit
+    | BOOL              #numTypeLitBool
+    | BYTE              #numTypeLitByte
+    | SHORT             #numTypeLitShort
+    | INT               #numTypeLitInt
+    | LONG              #numTypeLitLong
+    | FLOAT             #numTypeLitFloat
+    | DOUBLE            #numTypeLitDouble
     ;
-
+primitiveTypeLit 
+    : OBJECT        #typeLitObject
+    | ARRAYIDENT    #typeLitArray
+    | TUPLEIDENT    #typeLitTuple
+    | num           #typeLitNum
+    | TYPE          #typeLitType
+    | ENUM          #typeLitEnum
+    | VOID          #typeLitVoid
+    ;
+primitiveLit
+    : THIS          #varThis
+    | SUPER         #varSuper
+    | NUMLIT        #varLitNum
+    | TRUE          #varLitTrue
+    | FALSE         #varLitFalse
+    | STRLIT        #varLitStr
+    | STDIOLIT      #varLitStdio
+    | ENDLLIT       #varLitEndl
+    | NULL          #varLitNull
+    ;
 rawType
     : primitiveTypeLit
+    | idPart 
     | id
     ;
+type: rawType genericTypeUses? nullable=QUESTION? (indexerEmpty | ELIPSES)? nullableArray=QUESTION?;
 
 genericTypeDef: idPart elp=ELIPSES? (EXTENDS ext=type | SUPER sup=type)? (ASSIGN (defN=NUMLIT | def=type))?;
-genericTypeDefs: LESSER (NUMLIT | genericTypeDef) (COMMA genericTypeDef)* GREATER;
-
-objectExtends: EXTENDS type (COMMA type)*;
-objectImplements: IMPLEMENTS type (COMMA type)*;
+genericDefs: LESSER (NUMLIT | genericTypeDef) (COMMA genericTypeDef)* GREATER;
 
 parameter: FINAL? type idPart (ASSIGN expr)?;
 parameters: LPAREN (parameter (COMMA parameter)*)? RPAREN;
@@ -63,7 +88,7 @@ memberExpr: REQARROW uniformBlock;
 lambdaBlock: RDASHARROW (uniformBlock | normalBlock);
 caseBlock
     : COLON statements BREAK SEMICOLON  #caseStmtBlock
-    | memberExpr COMMA                  #caseExprBlock
+    | REQARROW memberExpr COMMA                  #caseExprBlock
     ;
 memberBlock
     : normalBlock               #memberNormalBlock
@@ -77,40 +102,46 @@ codeBlock
     ;
 
 initDecl: STATIC memberBlock;
-subConstructorCall: type arguments;
+subConstructorCall: (THIS | type) arguments;
 subConstructorCalls: COLON subConstructorCall (COMMA subConstructorCall)*?;
-constructorDecl: annotation* modifiers type parameters subConstructorCalls? memberBlock;
-methodDecl: annotation* modifiers genericTypeDefs? type idPart parameters memberBlock;
-indexerMemberDecl: annotation* modifiers genericTypeDefs? type THIS indexerDecl propBlock;
+constructorDecl: annotation* modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? 
+        type parameters subConstructorCalls? memberBlock;
+methodDecl: annotation* modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? 
+        genericDefs? type idPart parameters genericSpecifiers? memberBlock;
+indexerMemberDecl: annotation* modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? 
+        genericDefs? type THIS indexerDecl genericSpecifiers? propBlock;
 
-propGetter: GET memberBlock;
-propSetter: SET memberBlock;
-propInit: INIT memberBlock;
+propGetter: GET modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? memberBlock;
+propSetter: SET modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? memberBlock;
+propInit: INIT modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? memberBlock;
 propBlock
     : memberBlock                                       #propComputed
     | LBRACE propGetter propSetter? propInit? RBRACE    #propAccessors
     | (ASSIGN expr)? SEMICOLON                          #propFieldStyle
     ;
-propertyDecl: annotation* modifiers type idPart propBlock;
+propertyDecl: annotation* modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? 
+        type idPart propBlock;
 
 member
-    : propertyDecl                  #memProp
-    | classDecl                     #memCls
-    | initDecl catchBlocks?         #memInit
-    | constructorDecl catchBlocks?  #memCtor
-    | methodDecl catchBlocks?       #memMtd
-    | indexerMemberDecl             #memIdx
+    : propertyDecl                                          #memProp
+    | classDecl                                             #memCls
+    | initDecl catchBlocks?                                 #memInit
+    | constructorDecl catchBlocks?                          #memCtor
+    | methodDecl catchBlocks?                               #memMtd
+    | indexerMemberDecl                                     #memIdx
+    | idPart arguments? ASSIGN expr (COMMA | SEMICOLON?)    #memEnumConst
     ;
+genericSpecifier: idPart (superclassesDef | (ASSIGN (type | expr)) | superclassesDef (ASSIGN (type | expr)));
+genericSpecifiers: WHERE genericSpecifier (COMMA genericSpecifier)*;
+superclassesDef: COLON type (COMMA type)*;
 
-classDecl: annotation* modifiers classType idPart genericTypeDefs? objectExtends? objectImplements? (LBRACE member* RBRACE | SEMICOLON);
-
-file: packageDecl imports classDecl* EOF;
+classDecl: annotation* modifiers? classType idPart genericDefs? superclassesDef? genericSpecifiers? (LBRACE member* RBRACE | SEMICOLON);
 
 inferType: VOID | VAR;
 
-indexerEmpty: LSQUAR RSQUAR;
-indexerDecl: LSQUAR type idPart (COMMA type idPart)* RSQUAR;
-indexerExpr: LSQUAR expr (COMMA expr)* RSQUAR;
+indexerEmpty: LSQUAR COMMA* RSQUAR;
+indexerDecl: (LSQUAR) type idPart (COMMA type idPart)* (RSQUAR);
+indexerExpr: (LSQUAR) expr (COMMA expr)* (RSQUAR);
 cast: LPAREN type COLON expr RPAREN;
 declaration: type idPart (ASSIGN expr)?;
 mutation: (binaryop | binaryop_late)? ASSIGN expr;
@@ -120,7 +151,7 @@ newArray: NEW type indexerExpr;
 newListedArray: NEW type indexerEmpty LBRACE (expr (COMMA expr)*)? RBRACE;
 label: idPart COLON WS;
 lambda
-    : label? type COLON idPart        #methodRef
+    : label? (type COLON)? idPart        #methodRef
     | label? tupleExpr lambdaBlock    #lambdaExpr 
     ;
 
@@ -153,6 +184,9 @@ statement
     | left=expr mutation SEMICOLON                          #stmtAssign
     | left=tupleExpr ASSIGN right=tupleExpr                 #stmtAssignTuple
     | left=expr DOT idPart arguments?                       #stmtCallMember
+    | pipe=expr (RREQARROW lambda)+ SEMICOLON               #stmtPipeListen
+    | pipe=expr (RRDASHARROW expr)+ SEMICOLON               #stmtPipeRead
+    | pipe=expr (LLDASHARROW expr)+ SEMICOLON               #stmtPipeWrite
     | returnStatement SEMICOLON                             #stmtReturn
     | throwStatement SEMICOLON                              #stmtThrow
     | markStatement                                         #stmtMark
@@ -165,17 +199,12 @@ statement
     | forStatement catchBlocks?                             #stmtFor
     | foreachStatement catchBlocks?                         #stmtForeach
     | switchStatement catchBlocks?                          #stmtSwitch
-    | pipe=expr (RREQARROW lambda)+ SEMICOLON               #stmtPipeListen
-    | pipe=expr (RRDASHARROW expr)+ SEMICOLON               #stmtPipeRead
-    | pipe=expr (LLDASHARROW expr)+ SEMICOLON               #stmtPipeWrite
     | SEMICOLON                                             #stmtEmpty
     ;
 typedExpr: type? expr;
 expr
-    // simply a variable
-    : idPart                                                #varValue
     // operators
-    | prefixop expr                                         #opPrefix
+    : prefixop expr                                         #opPrefix
     | left=expr binaryop right=expr                         #opBinary
     | expr postfixop                                        #opPostfix
     // `is` keyword
@@ -186,6 +215,8 @@ expr
     | LPAREN expr RPAREN                                    #parens
     | cond=expr QUESTION left=expr COLON right=expr         #ternary
     | cast                                                  #exprCast
+    // simply a variable
+    | idPart                                                #varValue
     | newArray                                              #newArrayValue
     | newListedArray                                        #newListedArrayValue
     | primitiveLit                                          #nativeLitValue
@@ -204,6 +235,7 @@ expr
     | left=expr SHORTELIPSES right=expr                     #rangeInvoc
     // pipe operators
     | pipe=expr (RREQARROW lambda)+                         #exprPipeListen
+    | pipe=expr (RRDASHARROW expr)+                         #exprPipeRead
     // tuple expressions
     | tupleExpr                                             #exprTuple
     | left=expr binaryop_late right=expr                    #opBinaryLate
@@ -257,36 +289,4 @@ id: idPart (DOT idPart)*;
 idPart
     : ID
     | ANNOTATION
-    ;
-
-
-array: ARRAYIDENT genericTypeUses?;
-tuple: TUPLEIDENT genericTypeUses?;
-num: (NUMIDENT | INT) genericTypeUses?  #numTypeLitTuple
-    | BYTE                              #numTypeLitByte
-    | SHORT                             #numTypeLitShort
-    | INT                               #numTypeLitInt
-    | LONG                              #numTypeLitLong
-    | FLOAT                             #numTypeLitFloat
-    | DOUBLE                            #numTypeLitDouble
-    ;
-primitiveTypeLit 
-    : OBJECT        #typeLitObject
-    | array         #typeLitArray
-    | tuple         #typeLitTuple
-    | num           #typeLitNum
-    | TYPE          #typeLitType
-    | ENUM          #typeLitEnum
-    | VOID          #typeLitVoid
-    ;
-primitiveLit
-    : THIS          #varThis
-    | SUPER         #varSuper
-    | NUMLIT        #varLitNum
-    | TRUE          #varLitTrue
-    | FALSE         #varLitFalse
-    | STRLIT        #varLitStr
-    | STDIOLIT      #varLitStdio
-    | ENDLLIT       #varLitEndl
-    | NULL          #varLitNull
     ;

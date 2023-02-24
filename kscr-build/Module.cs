@@ -65,9 +65,9 @@ public class Module
             compileTime = KScrStarter.CompileSource(cmd, cmd.PkgBase);
             if (KScrStarter.VM.CompilerErrors.Count > 0)
             {
-                foreach (var error in KScrStarter.VM.CompilerErrors)
-                    log.At(LogLevel.Error, "Compiler Error:\r\n" + error.Message);
-                throw new Exception("There were Compiler Errors");
+                KScrStarter.VM.PrintCompilerErrors(log);
+                log.At(LogLevel.Warning, $"Build {Notation} could not finish due to unresolved compiler errors");
+                return;
             }
 
             ioTime = KScrStarter.WriteClasses(cmd);
@@ -77,7 +77,7 @@ public class Module
             cmd.Output.UpdateMd5(KScrBuild.Md5Path);
             log.At(LogLevel.Info, $"Build {Notation} succeeded; {KScrStarter.IOTimeString(compileTime, ioTime: ioTime)}");
             Environment.CurrentDirectory = oldwkdir;
-        }, $"Build failed with exception", LogLevel.Error);
+        }, "Build failed with exception", LogLevel.Error);
     }
 
     public void SaveToFiles(string dir = null!)

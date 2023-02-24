@@ -4,7 +4,7 @@ import org.comroid.kscr.core.Throwable;
 import org.comroid.kscr.core.Sequencable;
 import org.comroid.kscr.time.DateTime;
 
-public class PrintNumbers implements Throwable {
+public class PrintNumbers : Throwable {
     public static int StackSize => 64;
     public int StackValue => 48;
     // we can add a setter implementation here

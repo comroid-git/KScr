@@ -21,7 +21,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         this.ctx = ctx;
     }
 
-    protected CompilerRuntime vm { get; }
+    protected internal CompilerRuntime vm { get; }
     protected CompilerContext ctx { get; }
     protected ITypeInfo? RequestedType { get; init; }
 
@@ -37,7 +37,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
 
     protected new MemberModifier VisitModifiers(KScrParser.ModifiersContext mods)
     {
-        return new ModifierVisitor().Visit(mods);
+        return mods == null ? MemberModifier.None : new ModifierVisitor().Visit(mods);
     }
 
     protected Operator VisitOperator(ParserRuleContext op)
@@ -55,12 +55,12 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             : TypeParameterSpecializationType.Extends;
         var target = spec switch
         {
-            TypeParameterSpecializationType.List => Core.System.Class.Sequencable.CreateInstance(vm,
-                Core.System.Class.Sequencable,
-                Core.System.Class.ObjectType),
+            TypeParameterSpecializationType.List => Core.System.Class.SequencableType.CreateInstance(vm,
+                Core.System.Class.SequencableType,
+                Core.System.Class.VoidType),
             TypeParameterSpecializationType.N => Core.System.Class.NumericIntType,
             TypeParameterSpecializationType.Extends => gtd.ext == null
-                ? Core.System.Class.ObjectType.DefaultInstance
+                ? Core.System.Class.VoidType.DefaultInstance
                 : VisitTypeInfo(gtd.ext!),
             TypeParameterSpecializationType.Super => VisitTypeInfo(gtd.sup!),
             _ => throw new ArgumentOutOfRangeException()

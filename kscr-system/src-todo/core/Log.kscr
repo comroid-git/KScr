@@ -1,0 +1,61 @@
+﻿package org.comroid.kscr.core;
+
+import org.comroid.kscr.time.Time;
+
+public native class Log<T> : Named {
+    private static final Map<str, Log> cache;
+    static final Log Root = new Log();
+    Log Parent { get; }
+    type? Type { get; }
+    str Name { get; }
+    Level LogLevel = Level.Info;
+    pipe<str> Out = stdio;
+
+    where(T != void)
+    Log(type? t = null, Log? parent = null) : this(parent ?? Root, t ?? T);
+
+    Log(string name, Log? parent = null) : this(parent ?? Root, object, name);
+    private Log(Log? parent = null, type? t = null, string? name = null) {
+        this.Parent = parent ?? Root;
+        this.Type = t;
+        this.Name = name ?? type?.Name ?? "Logger";
+    }
+
+//  this method has a funny multiline footprint;
+//  1 - this method is available as a static method
+//  2 - when this expression is true (runtime check; throws UnsupportedOperationException if there is no fallback)
+//  3 - lambda to use as a getter for an instance to invoke the method upon; here a MethodGroup
+//  4 - a fallback value to use if there is no value (null check)
+//  in non-static invocations, this first line is ignored
+//  _____1______     _______2_____      __3__    ___4__
+    serve static where (T != void) select Get else Root
+    void At(Level level, str msg)
+//      oh look! a very funny method body. lets see what it does
+//      this is just a boolean expression to use as a pipe basis. the arrow belongs to the expression-style method syntax 
+            => LogLevel >= level
+//      invoke a pipe (boolean check); then emit a string into the pipe       // str.f() is a formatting method
+            ->> "<{0}> [{1} - {2}] {3}".f(Time.Now, level, Name, msg)
+//      and write the emitted string to a pipe<str>; in this case to Out
+            ->> Out;
+
+//  this method has another funny multiline footprint;
+//  1 - the condition under which this method can be called
+//  2 - a fallback value; in this case the fallback return value
+//      _______1_____    ___2__
+    where (T != void) else null
+    static Log<T>? Get() => cache[T.Name] ??= new Log<T>();
+
+    enum Level : byte {
+        All = 255,
+        
+        Trace = 255 * 7/8,
+        Debug = 255 * 3/4,
+        Config = 255 * 5/8, 
+        Info = 255 / 2,
+        Warn = 255 * 3/8,
+        Error = 255 * 1/4,
+        Fatal = 255 * 1/8,
+        
+        None = 0
+    }
+}

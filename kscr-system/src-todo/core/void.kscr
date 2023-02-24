@@ -1,0 +1,9 @@
+﻿package org.comroid.kscr.core;
+
+public native interface void {
+    native type Type { get; }
+    native long ID { get; }
+    
+    native str toString(short variant = 0);
+    native byte equals(void other);
+}

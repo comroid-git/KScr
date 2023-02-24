@@ -1,0 +1,4 @@
+﻿package org.comroid.kscr.core;
+
+public native class nullable<T> : T {
+}

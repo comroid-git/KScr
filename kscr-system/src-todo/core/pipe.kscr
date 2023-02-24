@@ -1,0 +1,10 @@
+﻿package org.comroid.kscr.core;
+
+public native interface pipe<T> {
+    native bool CanRead { get; }
+    native bool CanWrite { get; }
+    native bool IsFinite { get; }
+
+    native T read();
+    native void write(T value);
+}

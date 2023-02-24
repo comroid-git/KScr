@@ -15,6 +15,7 @@ STATIC: 'static';
 FINAL: 'final';
 ABSTRACT: 'abstract';
 NATIVE: 'native';
+SERVE: 'serve';
 SYNCHRONIZED: 'synchronized';
 
 // class types
@@ -23,16 +24,14 @@ INTERFACE: 'interface';
 ENUM: 'enum';
 ANNOTATION: 'annotation';
 
-// class footprint modifiers
-EXTENDS: 'extends';
-IMPLEMENTS: 'implements';
-
 // common statements
 RETURN: 'return';
 THROW: 'throw';
 NEW: 'new';
 YIELD: 'yield';
 IS: 'is';
+WHERE: 'where';
+SELECT: 'select';
 
 // complex statements
 MARK: 'mark';
@@ -58,6 +57,7 @@ ARRAYIDENT: 'array';
 TUPLEIDENT: 'tuple';
 TYPE: 'type';
 NUMIDENT: 'num';
+BOOL: 'bool';
 BYTE: 'byte';
 SHORT: 'short';
 INT: 'int';

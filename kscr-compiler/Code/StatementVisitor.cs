@@ -47,7 +47,7 @@ public class StatementVisitor : AbstractVisitor<Statement>
         var right = VisitExpression(context.mutation());
         var actualType = left.OutputType(vm, ctx);
         var varType = right.OutputType(vm, ctx);
-        if (!actualType.AsClass(vm).CanHold(varType.AsClass(vm)))
+        if (!actualType.AsClass(vm).IsAssignableFrom(varType.AsClass(vm)))
             throw new CompilerException(ToSrcPos(context.mutation().expr()), CompilerErrorMessage.CannotAssign,
                 actualType, varType);
         return new Statement

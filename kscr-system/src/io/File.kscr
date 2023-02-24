@@ -1,6 +1,6 @@
 package org.comroid.kscr.io;
 
-public class File implements pipe<str> {
+public class File : pipe<str> {
     public str RelativePath { get; }
     public str AbsolutePath { get; }
     public str Name { get; }
@@ -16,6 +16,6 @@ public class File implements pipe<str> {
 
     private static native str absPath(str path);
     private static native str name(str path);
-    private static native byte exists(str path);
-    private static native byte isDir(str path);
+    private static native bool exists(str path);
+    private static native bool isDir(str path);
 }

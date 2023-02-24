@@ -76,7 +76,7 @@ public class Statement : IBytecode, IStatement<StatementComponent>
                             var innerCause = trace.InnerCause.Obj;
                             foreach (var catchBlock in CatchFinally!.SubStatement!.Main
                                          .Where(x => x.Args.Select(t => vm.FindType(t))
-                                             .Any(x => x!.CanHold(innerCause.Type)))
+                                             .Any(x => x!.IsAssignableFrom(innerCause.Type)))
                                          .Select(x => (x.Arg, x.InnerCode)))
                                 stack.StepInside(vm, CatchFinally.SourcefilePosition, "catch", stack =>
                                 {
@@ -257,7 +257,7 @@ public class StatementComponent : IBytecode, IStatementComponent
             case (StatementComponentType.Expression, BytecodeType.Cast):
                 var targetType = vm.FindType(Arg)!;
                 var currentType = stack[Default]!.Value!.Type;
-                if (!targetType.CanHold(currentType))
+                if (!targetType.IsAssignableFrom(currentType))
                     throw new RuntimeException($"Cannot cast {currentType} to {targetType}");
                 // casting is implicitly evaluated by design
                 break;
@@ -505,34 +505,34 @@ public class StatementComponent : IBytecode, IStatementComponent
             case (StatementComponentType.Pipe, BytecodeType.Call):
                 if (SubComponent == null || (SubComponent.Type & StatementComponentType.Lambda) == 0)
                     throw new FatalException("Invalid pipe listener; no lambda found");
-                if (!Class.Sequence.CanHold(stack[Default]!.Value.Type) &&
-                    !Class.Sequencable.CanHold(stack[Default]!.Value.Type))
+                if (!Class.SequenceType.IsAssignableFrom(stack[Default]!.Value.Type) &&
+                    !Class.SequencableType.IsAssignableFrom(stack[Default]!.Value.Type))
                     throw new FatalException(
-                        $"Invalid type for pipe listener {stack[Default]!.Value.Type}; requires {Class.Sequencable}");
-                if (!Class.Sequence.CanHold(stack[Default]!.Value.Type))
-                    Class.Sequencable.DeclaredMembers["sequence"].Invoke(vm, stack.Output(), stack[Default]!.Value)
+                        $"Invalid type for pipe listener {stack[Default]!.Value.Type}; requires {Class.SequencableType}");
+                if (!Class.SequenceType.IsAssignableFrom(stack[Default]!.Value.Type))
+                    Class.SequencableType.DeclaredMembers["sequence"].Invoke(vm, stack.Output(), stack[Default]!.Value)
                         .Copy(Omg, Alp);
 
-                if (Class.Sequence.DeclaredMembers["finite"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg]
+                if (Class.SequenceType.DeclaredMembers["finite"].Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg]
                     .ToBool())
                 {
                     // evaluate finite sequence
-                    len = (Class.Sequence.DeclaredMembers["length"]
+                    len = (Class.SequenceType.DeclaredMembers["length"]
                         .Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].Value as Numeric).IntValue;
                     var next = new ObjectRef(Class.VoidType.DefaultInstance, len);
 
                     for (var i = 0; i < len; i++)
                     {
-                        if (!Class.Sequence.DeclaredMembers["hasNext"]
+                        if (!Class.SequenceType.DeclaredMembers["hasNext"]
                                 .Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg].ToBool())
                             throw new FatalException("Unexpected end of sequence");
-                        var it = Class.Sequence.DeclaredMembers["next"]
+                        var it = Class.SequenceType.DeclaredMembers["next"]
                             .Invoke(vm, stack.Output(), stack[Default]!.Value)[Omg];
                         var res = stack.StepIntoLambda(vm, stack.Output(), SubComponent, it.Value);
                         next[vm, stack, i] = res!.Value;
                     }
 
-                    stack[Default] = new ObjectRef(Class.Sequence.DefaultInstance,
+                    stack[Default] = new ObjectRef(Class.SequenceType.DefaultInstance,
                         new DummySequence_Finite(vm, next.Type, next.Refs));
                     break;
                 } // evaluate infinite sequence

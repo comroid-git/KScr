@@ -16,11 +16,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\kscr-native\kscr-native.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="src-todo"/>
+        <ProjectReference Include="..\kscr-native\kscr-native.csproj" />
     </ItemGroup>
 
 </Project>

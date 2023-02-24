@@ -1,0 +1,5 @@
+﻿package org.comroid.kscr.core;
+
+public native class str : array<char> {
+    native str f(void... args);
+}

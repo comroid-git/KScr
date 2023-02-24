@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Antlr4.Runtime.Tree;
 using KScr.Antlr;
 using KScr.Core.Exception;
 using KScr.Core.Model;
@@ -25,34 +28,66 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
         return ctx.FindType(vm, name) ?? vm.FindType(name) ?? (ITypeInfo)new TypeParameter(name);
     }
 
-    public override ITypeInfo VisitNormalTypeUse(KScrParser.NormalTypeUseContext context)
+    public override ITypeInfo VisitRawType(KScrParser.RawTypeContext context)
     {
-        var raw = VisitRawType(context.rawType());
-        if (raw == null)
-            throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.rawType().GetText());
-        if (context.genericTypeUses() == null)
-            return raw;
-        var args = new List<ITypeInfo>();
-        foreach (var type in context.genericTypeUses().type())
-            args.Add(Visit(type));
-        if (raw is Core.System.Class cls || (raw is IClassInstance inst && (cls = inst.BaseClass) != null))
-            return cls.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
-        throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.rawType().GetText());
+        var clsName = context.GetText();
+        ITypeInfo? it = ctx.Class?.TypeParameters.FirstOrDefault(x => x.Name == clsName);
+        it ??= ctx.FindType(vm, clsName);
+        if (it == null)
+            throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, clsName);
+        return it;
     }
 
-    public override ITypeInfo VisitArrayTypeUse(KScrParser.ArrayTypeUseContext context)
+    public override ITypeInfo VisitType(KScrParser.TypeContext context)
     {
         var raw = VisitRawType(context.rawType());
+        var arr = context.indexerEmpty() != null || context.ELIPSES() != null;
+
+        ITypeInfo It(Core.System.Class cls, IEnumerable<ITypeInfo>? args = null)
+        {
+            return cls.CreateInstance(vm, ctx.Class!.AsClass(vm), args?.ToArray() ?? Array.Empty<ITypeInfo>());
+        }
+
+        ITypeInfo Arr(ITypeInfo cls, IEnumerable<ITypeInfo>? args = null)
+        {
+            return It(Core.System.Class.ArrayType,
+                new[] { cls }.Concat(args ?? ArraySegment<ITypeInfo>.Empty).ToArray());
+        }
+
+        ITypeInfo Tup(int n, ITypeInfo cls, IEnumerable<ITypeInfo>? args = null)
+        {
+            return It(Core.System.Class.TupleType,
+                new[] { new TypeParameter(n, TypeParameterSpecializationType.N), cls }
+                    .Concat(args ?? ArraySegment<ITypeInfo>.Empty).ToArray());
+        }
+
+        ITypeInfo IntN(int n, IEnumerable<ITypeInfo>? args = null)
+        {
+            return Core.System.Class.IntType.CreateInstance(vm, Core.System.Class.IntType,
+                new[] { new TypeParameter(n, TypeParameterSpecializationType.N) }
+                    .Concat(args ?? ArraySegment<ITypeInfo>.Empty).ToArray());
+        }
+
+        // null check
         if (raw == null)
             throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.rawType().GetText());
-        if (context.genericTypeUses() == null)
-            return Core.System.Class.ArrayType.CreateInstance(vm, ctx.Class!.AsClass(vm), raw);
+        // handle array type
+        if (context.indexerEmpty() != null || context.ELIPSES() != null)
+            return arr ? Arr(raw) : raw;
+
+        // collect other type args
         var args = new List<ITypeInfo>();
-        foreach (var type in context.genericTypeUses().type())
+        foreach (var type in context.genericTypeUses()?.type() ?? ArraySegment<IParseTree>.Empty)
             args.Add(Visit(type));
+        // handle n -> tuple
+        if (context.genericTypeUses()?.n is { } n && raw.TypeParameters.Count > 0 && raw.TypeParameters[0].Name == "n")
+            return Tup(int.Parse(n.Text), It(raw.AsClass(vm)));
         if (raw is Core.System.Class cls || (raw is IClassInstance inst && (cls = inst.BaseClass) != null))
-            return Core.System.Class.ArrayType.CreateInstance(vm, ctx.Class!.AsClass(vm),
-                cls.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray()));
+            return arr ? Arr(cls, args) : It(cls, args);
+        // resolve type parameter
+        if (raw is TypeParameter tp && ctx.Class?.TypeParameters.FirstOrDefault(x => x.Name == tp.Name) is {} it)
+            return it;
+        // nothing else we can do :(
         throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.rawType().GetText());
     }
 
@@ -76,39 +111,14 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
         return Core.System.Class.TupleType;
     }
 
-    public override ITypeInfo VisitNumTypeLitTuple(KScrParser.NumTypeLitTupleContext context)
+    public override ITypeInfo VisitNumTypeLit(KScrParser.NumTypeLitContext context)
     {
-        var args = new List<ITypeInfo>();
+        return Core.System.Class.NumericType;
+    }
 
-        var intN = context.Start.Type == KScrLexer.INT;
-        if (context.Start.Type == KScrLexer.NUMIDENT && context.genericTypeUses() == null)
-            return Core.System.Class.NumericType;
-        if (context.genericTypeUses() is { n: { } n })
-        {
-            if (intN)
-                args.Add(new TypeInfo { Name = "n", DetailedName = n.Text });
-            else
-                throw new CompilerException(ToSrcPos(context.genericTypeUses()), UnexpectedToken,
-                    ctx.Class?.FullName, n.Text, "Int Literal expected");
-        }
-        else if (context.genericTypeUses() is { first: { } t })
-        {
-            args.Add(new TypeInfo { Name = "n", DetailedName = "1" });
-            args.Add(Visit(t));
-        }
-        else if (intN)
-        {
-            args.Add(new TypeInfo { Name = "n", DetailedName = "32" });
-        }
-
-        if (context.genericTypeUses() is { } genUse)
-            foreach (var t in genUse.type())
-                args.Add(Visit(t));
-
-        if (intN)
-            // is int<n> type
-            return Core.System.Class.IntType.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
-        return Core.System.Class.TupleType.CreateInstance(vm, ctx.Class!.AsClass(vm), args.ToArray());
+    public override ITypeInfo VisitNumTypeLitBool(KScrParser.NumTypeLitBoolContext context)
+    {
+        return Core.System.Class.BoolType;
     }
 
     public override ITypeInfo VisitNumTypeLitByte(KScrParser.NumTypeLitByteContext context)

@@ -89,7 +89,7 @@ public sealed class Package : AbstractPackageMember
                 var pkg = RootPackage.GetPackage(names[..^1])!;
                 using var fStream = entry.Open();
                 var kls = vm.Load<Class>(vm, strings, fStream, pkg, null);
-                Log<Package>.At(LogLevel.Trace, $"Loaded class {kls.CanonicalName} from library {lib.FullName}");
+                Log<Package>.At(LogLevel.Trace, $"Loaded class {kls.FullDetailedName} from library {lib.FullName}");
             }
         }
         else
@@ -116,7 +116,7 @@ public sealed class Package : AbstractPackageMember
         {
             using var fStream = FStream(vm, cls, FileMode.Open);
             var kls = vm.Load<Class>(vm, strings, fStream, it, null);
-            Log<Package>.At(LogLevel.Trace, $"Loaded class {kls.CanonicalName} from file {cls.FullName}");
+            Log<Package>.At(LogLevel.Trace, $"Loaded class {kls.FullDetailedName} from file {cls.FullName}");
         }
 
         return it;

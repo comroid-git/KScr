@@ -117,7 +117,7 @@ public sealed class Range : NativeObj
         {
             _range = range;
             ObjectId = vm.NextObjId(ToString(0));
-            Type = Class.Sequence.GetInstance(vm, Class.NumericIntType);
+            Type = Class.SequenceType.GetInstance(vm, Class.NumericIntType);
         }
 
         public long ObjectId { get; }

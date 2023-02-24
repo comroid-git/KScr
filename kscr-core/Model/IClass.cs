@@ -25,7 +25,7 @@ public interface ITypeInfo
     List<TypeParameter> TypeParameters { get; }
     string Name { get; }
     string FullName { get; }
-    string CanonicalName { get; }
+    string CanonicalName { get; set; }
     string FullDetailedName { get; }
     string DetailedName { get; }
 
@@ -63,7 +63,6 @@ public interface IClassInfo : ITypeInfo
     MemberModifier Modifier { get; }
     ClassType ClassType { get; }
     bool Primitive { get; }
-    bool CanHold(IClass? type);
 }
 
 public interface IClass : IClassInfo, IClassMember, IPackageMember
@@ -85,6 +84,8 @@ public interface IClass : IClassInfo, IClassMember, IPackageMember
     Class.Instance DefaultInstance { get; }
     Class.Instance GetInstance(RuntimeBase vm, params ITypeInfo[] typeParameters);
     Class.Instance CreateInstance(RuntimeBase vm, Class? owner = null, params ITypeInfo[] typeParameters);
+    bool IsAssignableFrom(IClass? type);
+    bool IsAssignableTo(IClass? type) => type?.IsAssignableFrom(this) ?? false;
 }
 
 public interface IClassInstance : IClass, IObject
@@ -106,7 +107,7 @@ public struct ClassInfo : IClassInfo
     public ClassType ClassType { get; }
     public string Name { get; }
     public string FullName { get; init; } = null!;
-    public string CanonicalName { get; init; } = null!;
+    public string CanonicalName { get; set; } = null!;
     public string FullDetailedName { get; init; } = null!;
     public string DetailedName { get; init; } = null!;
     public List<TypeParameter> TypeParameters { get; set; }

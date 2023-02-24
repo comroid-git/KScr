@@ -13,7 +13,7 @@ public class DummySequence_Finite : NativeObj
     public DummySequence_Finite(RuntimeBase vm, ITypeInfo t, params IObject[] values) : base(vm)
     {
         _values = values;
-        Type = Class.Sequence.CreateInstance(vm, Class.Sequence, t);
+        Type = Class.SequenceType.CreateInstance(vm, Class.SequenceType, t);
     }
 
     public override IClassInstance Type { get; }
@@ -58,7 +58,7 @@ public class DummySequence_Infinite : NativeObj
     {
         _sequence = sequence;
         _lambda = lambda;
-        Type = Class.Sequence.CreateInstance(vm, Class.Sequence, t);
+        Type = Class.SequenceType.CreateInstance(vm, Class.SequenceType, t);
     }
 
     public override IClassInstance Type { get; }
@@ -79,12 +79,12 @@ public class DummySequence_Infinite : NativeObj
                 stack[StackOutput.Default] = Numeric.Constant(vm, -1);
                 break;
             case "hasNext":
-                Class.Sequence.DeclaredMembers["hasNext"].Invoke(vm, stack.Output(), _sequence)
+                Class.SequenceType.DeclaredMembers["hasNext"].Invoke(vm, stack.Output(), _sequence)
                     .Copy(StackOutput.Omg, StackOutput.Alp | StackOutput.Omg);
                 break;
             case "next":
                 //todo Needs testing
-                var res = Class.Sequence.DeclaredMembers["next"].Invoke(vm, stack, _sequence)
+                var res = Class.SequenceType.DeclaredMembers["next"].Invoke(vm, stack, _sequence)
                     .Copy(StackOutput.Omg);
                 stack[StackOutput.Default] = stack.StepIntoLambda(vm, stack.Output(), _lambda, res!.Value);
                 break;

@@ -139,16 +139,11 @@ public abstract class RuntimeBase : IBytecodePort
             Mode = NumericMode.Byte
         };
 
-        Class.NumericByteType = new Class.Instance(this, Class.NumericType,
-            new Class(Class.LibCorePackage, "byte", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
-        Class.NumericShortType = new Class.Instance(this, Class.NumericType,
-            new Class(Class.LibCorePackage, "short", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
-        Class.NumericIntType = new Class.Instance(this, Class.NumericType, Class.IntType);
-        Class.NumericLongType = new Class.Instance(this, Class.NumericType,
-            new Class(Class.LibCorePackage, "long", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
+        Class.BoolType = Class.IntType.CreateInstance(this, Class.IntType, new TypeParameter(1, TypeParameterSpecializationType.N));
+        Class.NumericByteType = Class.IntType.CreateInstance(this, Class.IntType, new TypeParameter(8, TypeParameterSpecializationType.N));
+        Class.NumericShortType = Class.IntType.CreateInstance(this, Class.IntType, new TypeParameter(16, TypeParameterSpecializationType.N));
+        Class.NumericIntType = Class.IntType.CreateInstance(this, Class.IntType, new TypeParameter(32, TypeParameterSpecializationType.N));
+        Class.NumericLongType = Class.IntType.CreateInstance(this, Class.IntType, new TypeParameter(64, TypeParameterSpecializationType.N));
         Class.NumericFloatType = new Class.Instance(this, Class.NumericType,
             new Class(Class.LibCorePackage, "float", true,
                 MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
@@ -165,13 +160,16 @@ public abstract class RuntimeBase : IBytecodePort
         Class.TupleType.Initialize(this);
         Class.StringType.Initialize(this);
         Class.RangeType.Initialize(this);
-        Class.Sequencable.Initialize(this);
-        Class.Sequence.Initialize(this);
+        Class.SequencableType.Initialize(this);
+        Class.SequenceType.Initialize(this);
         Class.ThrowableType.Initialize(this);
         Class.NumericType.Initialize(this);
         Class.NumericByteType.Initialize(this);
         Class.NumericShortType.Initialize(this);
         Class.IntType.Initialize(this);
+        Class.BoolType.Initialize(this);
+        Class.NumericByteType.Initialize(this);
+        Class.NumericShortType.Initialize(this);
         Class.NumericIntType.Initialize(this);
         Class.NumericLongType.Initialize(this);
         Class.NumericFloatType.Initialize(this);
@@ -188,8 +186,8 @@ public abstract class RuntimeBase : IBytecodePort
         Class.TupleType.LateInitialize(this, MainStack);
         Class.StringType.LateInitialize(this, MainStack);
         Class.RangeType.LateInitialize(this, MainStack);
-        Class.Sequencable.LateInitialize(this, MainStack);
-        Class.Sequence.LateInitialize(this, MainStack);
+        Class.SequencableType.LateInitialize(this, MainStack);
+        Class.SequenceType.LateInitialize(this, MainStack);
         Class.ThrowableType.LateInitialize(this, MainStack);
         Class.IntType.LateInitialize(this, MainStack);
         Class.NumericType.LateInitialize(this, MainStack);
@@ -405,18 +403,18 @@ public abstract class RuntimeBase : IBytecodePort
         {
             public Stack Evaluate(RuntimeBase vm, Stack stack)
             {
-                if (stack[Default]!.Length != 1 || (!stack[Default].Type.CanHold(Class.StringType) &&
-                                                    !stack[Default].Type.CanHold(Class.NumericType)))
+                if (stack[Default]!.Length != 1 || (!stack[Default]!.Type.IsAssignableFrom(Class.StringType) &&
+                                                    !stack[Default]!.Type.IsAssignableFrom(Class.NumericType)))
                     throw new FatalException("Invalid reference to write string into: " + stack[Default]);
                 var txt = Console.ReadLine()!;
-                if (Numeric.NumberRegex.IsMatch(txt) && stack[Default].Type.CanHold(Class.NumericType))
+                if (Numeric.NumberRegex.IsMatch(txt) && stack[Default].Type.IsAssignableFrom(Class.NumericType))
                     txt = Numeric.Compile(vm, txt).Value.ToString(IObject.ToString_ParseableName);
                 else if (txt is "true" or "false")
                     txt = (txt is "true" ? vm.ConstantTrue.Value : vm.ConstantFalse.Value).ToString(
                         IObject.ToString_ParseableName);
                 else if (txt is "null")
                     txt = IObject.Null.ToString(IObject.ToString_ParseableName);
-                stack[Default].Value = String.Instance(vm, txt).Value;
+                stack[Default]!.WriteValue(vm, stack, String.Instance(vm, txt).Value);
                 return stack;
             }
         }
