@@ -184,6 +184,9 @@ statement
     | left=expr mutation SEMICOLON                          #stmtAssign
     | left=tupleExpr ASSIGN right=tupleExpr                 #stmtAssignTuple
     | left=expr DOT idPart arguments?                       #stmtCallMember
+    | pipe=expr (RREQARROW lambda)+ SEMICOLON               #stmtPipeListen
+    | pipe=expr (RRDASHARROW expr)+ SEMICOLON               #stmtPipeRead
+    | pipe=expr (LLDASHARROW expr)+ SEMICOLON               #stmtPipeWrite
     | returnStatement SEMICOLON                             #stmtReturn
     | throwStatement SEMICOLON                              #stmtThrow
     | markStatement                                         #stmtMark
@@ -196,9 +199,6 @@ statement
     | forStatement catchBlocks?                             #stmtFor
     | foreachStatement catchBlocks?                         #stmtForeach
     | switchStatement catchBlocks?                          #stmtSwitch
-    | pipe=expr (RREQARROW lambda)+ SEMICOLON               #stmtPipeListen
-    | pipe=expr (RRDASHARROW expr)+ SEMICOLON               #stmtPipeRead
-    | pipe=expr (LLDASHARROW expr)+ SEMICOLON               #stmtPipeWrite
     | SEMICOLON                                             #stmtEmpty
     ;
 typedExpr: type? expr;
@@ -236,7 +236,6 @@ expr
     // pipe operators
     | pipe=expr (RREQARROW lambda)+                         #exprPipeListen
     | pipe=expr (RRDASHARROW expr)+                         #exprPipeRead
-    | pipe=expr (LLDASHARROW expr)+                         #exprPipeWrite
     // tuple expressions
     | tupleExpr                                             #exprTuple
     | left=expr binaryop_late right=expr                    #opBinaryLate
