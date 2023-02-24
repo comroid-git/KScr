@@ -25,7 +25,7 @@ public interface ITypeInfo
     List<TypeParameter> TypeParameters { get; }
     string Name { get; }
     string FullName { get; }
-    string CanonicalName { get; }
+    string CanonicalName { get; set; }
     string FullDetailedName { get; }
     string DetailedName { get; }
 
@@ -107,7 +107,7 @@ public struct ClassInfo : IClassInfo
     public ClassType ClassType { get; }
     public string Name { get; }
     public string FullName { get; init; } = null!;
-    public string CanonicalName { get; init; } = null!;
+    public string CanonicalName { get; set; } = null!;
     public string FullDetailedName { get; init; } = null!;
     public string DetailedName { get; init; } = null!;
     public List<TypeParameter> TypeParameters { get; set; }

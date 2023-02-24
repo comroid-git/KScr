@@ -33,18 +33,25 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>
     {
         var c = 0;
         foreach (var node in nodes)
-            if (node is PackageNode pkg)
-                c += RevisitRec(pkg.Nodes, true);
-            else if (node is MemberNode mem)
-                if (mem.Member is Core.System.Class cls)
-                    c += mem.Nodes.Where(x => x is MemberNode)
-                        .Cast<MemberNode>()
-                        .Select(x => x.RevisitCode())
-                        .Sum();
-                else c += mem.RevisitCode();
-            else if (node is FileNode fil)
-                c += RevisitRec(fil.Nodes, true);
-            else throw new FatalException("Invalid Node to revisit: " + node);
+            try
+            {
+                if (node is PackageNode pkg)
+                    c += RevisitRec(pkg.Nodes, true);
+                else if (node is MemberNode mem)
+                    if (mem.Member is Core.System.Class cls)
+                        c += mem.Nodes.Where(x => x is MemberNode)
+                            .Cast<MemberNode>()
+                            .Select(x => x.RevisitCode())
+                            .Sum();
+                    else c += mem.RevisitCode();
+                else if (node is FileNode fil)
+                    c += RevisitRec(fil.Nodes, true);
+                else throw new FatalException("Invalid Node to revisit: " + node);
+            }
+            catch (CompilerException cex)
+            {
+                node.vm.CompilerErrors.Add(cex);
+            }
 
         if (!rec)
             Log<CompilerRuntime>.At(LogLevel.Debug, $"Revisited {c} members");
@@ -93,11 +100,16 @@ public class PackageNode : SourceNode
     {
         var c = 0;
         foreach (var sub in Directory.EnumerateDirectories(Path))
+            try
         {
             var dir = new DirectoryInfo(sub);
             Nodes.Add(ForPackage(vm, ctx, dir, Package));
             c++;
         }
+            catch (CompilerException cex)
+            {
+                vm.CompilerErrors.Add(cex);
+            }
 
         return c;
     }
@@ -119,21 +131,16 @@ public class PackageNode : SourceNode
         var c = 0;
         foreach (var sub in Directory.EnumerateFiles(Path, '*' + RuntimeBase.SourceFileExt,
                      SearchOption.TopDirectoryOnly))
-        {
-            var file = new FileInfo(sub);
             try
             {
+                var file = new FileInfo(sub);
                 Nodes.Add(new FileNode(vm, ctx, this, file));
                 c++;
             }
             catch (CompilerException cex)
-            {
-                if (cex.IsUnderlying)
-                    foreach (var error in vm.CompilerErrors)
-                        Log<CompilerRuntime>.At(LogLevel.Error, error.Message);
-                else Log<CompilerRuntime>.At(LogLevel.Error, cex.Message);
+            { 
+                vm.CompilerErrors.Add(cex);
             }
-        }
 
         return c;
     }
@@ -142,11 +149,16 @@ public class PackageNode : SourceNode
     {
         var c = 0;
         foreach (var node in nodes)
-        {
-            if (node is FileNode fn)
-                c += fn.ReadClass();
-            c += ReadClassesRec(node.Nodes);
-        }
+            try
+            {
+                if (node is FileNode fn)
+                    c += fn.ReadClass();
+                c += ReadClassesRec(node.Nodes);
+            }
+            catch (CompilerException cex)
+            {
+                node.vm.CompilerErrors.Add(cex);
+            }
 
         return c;
     }
@@ -196,7 +208,7 @@ public class FileNode : SourceNode
                     Cls.DeclaredInterfaces.Add(instance);
                 else Cls.DeclaredSuperclasses.Add(instance);
             }
-            foreach (var generic in kls.genericDefs().genericTypeDef() ?? Array.Empty<KScrParser.GenericTypeDefContext>())
+            foreach (var generic in kls.genericDefs()?.genericTypeDef() ?? Array.Empty<KScrParser.GenericTypeDefContext>())
             {
                 Cls.TypeParameters.Add(VisitTypeParameter(generic));
             }
@@ -236,10 +248,15 @@ public class MemberNode : SourceNode
         if (MemberContext is not KScrParser.ClassDeclContext cls)
             throw new NotSupportedException("Can read members only for Class node");
         foreach (var mem in cls.member())
-        {
-            Nodes.Add(Visit(mem));
-            c++;
-        }
+            try
+            {
+                Nodes.Add(Visit(mem));
+                c++;
+            }
+            catch (CompilerException cex)
+            {
+                vm.CompilerErrors.Add(cex);
+            }
 
         return c;
     }

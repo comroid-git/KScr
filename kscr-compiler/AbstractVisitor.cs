@@ -21,7 +21,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         this.ctx = ctx;
     }
 
-    protected CompilerRuntime vm { get; }
+    protected internal CompilerRuntime vm { get; }
     protected CompilerContext ctx { get; }
     protected ITypeInfo? RequestedType { get; init; }
 
@@ -37,7 +37,7 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
 
     protected new MemberModifier VisitModifiers(KScrParser.ModifiersContext mods)
     {
-        return new ModifierVisitor().Visit(mods);
+        return mods == null ? MemberModifier.None : new ModifierVisitor().Visit(mods);
     }
 
     protected Operator VisitOperator(ParserRuleContext op)

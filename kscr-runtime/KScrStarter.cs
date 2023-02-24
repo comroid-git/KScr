@@ -7,6 +7,7 @@ using CommandLine;
 using comroid.csapi.common;
 using KScr.Core;
 using KScr.Core.Bytecode;
+using KScr.Core.Exception;
 using KScr.Core.Model;
 using KScr.Core.System;
 using KScr.Core.Store;
@@ -122,7 +123,17 @@ public class KScrStarter
 
     public static long CompileSource(ISourcesCmd cmd, string? basePackage = null)
     {
-        return DebugUtil.Measure(() => VM.CompileSource(cmd.Source, basePackage));
+        return DebugUtil.Measure(() =>
+        {
+            try
+            {
+                VM.CompileSource(cmd.Source, basePackage);
+            }
+            catch (Exception e)
+            {
+                VM.CompilerErrors.Add(new CompilerException(RuntimeBase.SystemSrcPos, CompilerErrorMessage.Underlying, e.Message));
+            }
+        });
     }
 
     public static long WriteClasses<TC>(TC cmd) where TC : ISourcesCmd, IOutputCmd

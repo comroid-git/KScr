@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Antlr4.Runtime.Tree;
 using KScr.Antlr;
 using KScr.Core.Exception;
 using KScr.Core.Model;
@@ -77,10 +78,10 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
 
         // collect other type args
         var args = new List<ITypeInfo>();
-        foreach (var type in context.genericTypeUses().type())
+        foreach (var type in context.genericTypeUses()?.type() ?? ArraySegment<IParseTree>.Empty)
             args.Add(Visit(type));
         // handle n -> tuple
-        if (context.genericTypeUses().n is { } n)
+        if (context.genericTypeUses()?.n is { } n)
             return Tup(int.Parse(n.Text), It(raw.AsClass(vm)));
         if (raw is Core.System.Class cls || (raw is IClassInstance inst && (cls = inst.BaseClass) != null))
             return arr ? Arr(cls, args) : It(cls, args);

@@ -65,9 +65,9 @@ public class Module
             compileTime = KScrStarter.CompileSource(cmd, cmd.PkgBase);
             if (KScrStarter.VM.CompilerErrors.Count > 0)
             {
-                foreach (var error in KScrStarter.VM.CompilerErrors)
-                    log.At(LogLevel.Error, "Compiler Error:\r\n" + error.Message);
-                throw new Exception("There were Compiler Errors");
+                KScrStarter.VM.PrintCompilerErrors(log);
+                log.At(LogLevel.Error, $"Build {Notation} could not finish due to unresolved compiler errors");
+                return;
             }
 
             ioTime = KScrStarter.WriteClasses(cmd);

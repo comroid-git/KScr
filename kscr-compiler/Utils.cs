@@ -26,9 +26,9 @@ public static class Utils
     public static IEnumerable<ITypeInfo> GetGenericsUses(this KScrParser.GenericTypeUsesContext context,
         CompilerRuntime vm, CompilerContext ctx, Core.System.Class target)
     {
-        if (context.n is { } n)
+        if (context?.n is { } n)
             yield return new TypeParameter(int.Parse(n.Text));
-        var use = context.type() ?? Array.Empty<KScrParser.TypeContext>();
+        var use = context?.type() ?? Array.Empty<KScrParser.TypeContext>();
         for (var i = 0; i < use.Length; i++)
             yield return new TypeParameter(target.TypeParameters[i].Name, TypeParameterSpecializationType.Extends,
                 new TypeInfoVisitor(vm, ctx).Visit(use[i]).AsClass(vm));

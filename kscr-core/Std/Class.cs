@@ -2,6 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
@@ -145,7 +147,11 @@ public sealed class Class : AbstractPackageMember, IClass
     public Class BaseClass => this;
     public List<TypeParameter> TypeParameters { get; } = new();
 
-    public string CanonicalName => FullName;
+    public string CanonicalName
+    {
+        get => FullName;
+        set => throw new NotSupportedException();
+    }
 
     public string FullDetailedName => FullName + (TypeParameters.Count == 0
         ? string.Empty
@@ -172,9 +178,27 @@ public sealed class Class : AbstractPackageMember, IClass
 
     public Instance CreateInstance(RuntimeBase vm, Class? owner = null, params ITypeInfo[] typeParameters)
     {
-        if (typeParameters.Length != TypeParameters.Count)
-            throw new ArgumentException("Invalid typeParameter count");
-        var instance = new Instance(vm, this, owner, typeParameters);
+        var param = typeParameters;
+        if (typeParameters.Length < TypeParameters.Count)
+        {
+            //populate using defaults, else throw
+            param = new ITypeInfo[TypeParameters.Count];
+            typeParameters.CopyTo(param, 0);
+            for (var i = typeParameters.Length; i < param.Length; i++)
+            {
+                var tp = TypeParameters[i];
+                
+                param[i] = tp.DefaultValue!;
+            }
+            if (Regex.IsMatch(param[0]?.Name ?? string.Empty, "\\d+"))
+            {
+                param[0].CanonicalName = "n";
+                if (TypeParameters[0].Name != "n" /* n must not be specified explicitly in class for tuple usage */)
+                    // return tuple instance instead
+                    return TupleType.CreateInstance(vm, owner, param);
+            }
+        }
+        var instance = new Instance(vm, this, owner, param);
         instance.Initialize(vm);
         return instance;
     }
@@ -520,16 +544,21 @@ public sealed class Class : AbstractPackageMember, IClass
 
         public IPackageMember GetMember(string name)
         {
-            throw new NotImplementedException();
+            return BaseClass.GetMember(name);
         }
 
         public IPackageMember Add(IPackageMember member)
         {
-            throw new NotImplementedException();
+            return BaseClass.Add(member);
         }
 
         public SourcefilePosition SourceLocation { get; }
-        public string CanonicalName => BaseClass.CanonicalName;
+        public string CanonicalName
+        {
+            get => BaseClass.CanonicalName;
+            set => BaseClass.CanonicalName = value;
+        }
+
         public string FullDetailedName => BaseClass.Package?.FullName + '.' + DetailedName;
 
         public string DetailedName
@@ -540,7 +569,7 @@ public sealed class Class : AbstractPackageMember, IClass
                 return BaseClass.Name.Substring(0, indexOf == -1 ? BaseClass.Name.Length : indexOf)
                        + (TypeParameters.Count == 0
                            ? string.Empty
-                           : '<' + string.Join(", ", TypeParameterInstances.Select(t => t.TargetType.DetailedName)) +
+                           : '<' + string.Join(", ", TypeParameterInstances.Select(t => t.TargetType?.DetailedName)) +
                              '>');
             }
         }
@@ -656,7 +685,12 @@ public sealed class TypeParameter : ITypeParameter, IBytecode
 
     public string Name { get; }
     public string FullName => Name;
-    public string CanonicalName => Name;
+    public string CanonicalName
+    {
+        get => Specialization == TypeParameterSpecializationType.N ? "n" : Name;
+        set => throw new NotSupportedException();
+    }
+
     public string FullDetailedName => Name;
     public string DetailedName => Name;
     public List<TypeParameter> TypeParameters { get; } = new();
@@ -710,9 +744,14 @@ public sealed class TypeParameter : ITypeParameter, IBytecode
         public TypeParameterSpecializationType Specialization => TypeParameter.Specialization;
         public IClass SpecializationTarget => TypeParameter.SpecializationTarget;
 
-        public ITypeInfo TargetType { get; }
+        public ITypeInfo? TargetType { get; }
         public string Name => TypeParameter.Name;
-        public string CanonicalName => Name;
+        public string CanonicalName
+        {
+            get => TypeParameter.CanonicalName;
+            set => TypeParameter.CanonicalName = value;
+        }
+
         public string FullName => (TargetType as Class.Instance)?.FullName ?? TypeParameter.FullName;
 
         public string FullDetailedName =>

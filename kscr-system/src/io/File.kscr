@@ -1,6 +1,6 @@
 package org.comroid.kscr.io;
 
-public class File implements pipe<str> {
+public class File : pipe<str> {
     public str RelativePath { get; }
     public str AbsolutePath { get; }
     public str Name { get; }

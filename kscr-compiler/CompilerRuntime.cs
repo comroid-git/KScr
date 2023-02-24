@@ -96,4 +96,12 @@ public class CompilerRuntime : BytecodeRuntime, IAntlrErrorListener<IToken>
         var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
         return new ClassInfoVisitor(this, new CompilerContext { Package = pkg }).Visit(fileDecl.classDecl(0));
     }
+
+    public void PrintCompilerErrors<L>() where L : class => PrintCompilerErrors(Log<L>.Get());
+    public void PrintCompilerErrors(Log log)
+    {
+        foreach (var error in CompilerErrors) 
+            log.At(LogLevel.Error, error.Message);
+        CompilerErrors.Clear();
+    }
 }
