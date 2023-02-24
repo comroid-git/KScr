@@ -27,10 +27,6 @@ public class KScrStarter
 
     static KScrStarter()
     {
-#if RELEASE
-        Log.Root.Level = LogLevel.None;
-#endif
-
         VM = new KScrRuntime();
         VM.Initialize();
     }
