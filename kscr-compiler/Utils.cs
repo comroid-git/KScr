@@ -20,6 +20,9 @@ public static class Utils
         };
     }
 
+    public static SourcefilePosition ToSrcPos(this IToken token, string? clsName = null) => new()
+        { SourcefileLine = token.Line, SourcefileCursor = token.Column, SourcefilePath = clsName ?? "<unknown>" };
+
     public static IEnumerable<ITypeInfo> GetGenericsUses(this KScrParser.GenericTypeUsesContext context,
         CompilerRuntime vm, CompilerContext ctx, Core.System.Class target)
     {

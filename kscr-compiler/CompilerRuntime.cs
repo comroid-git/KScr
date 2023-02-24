@@ -1,14 +1,13 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Antlr4.Runtime;
-using Antlr4.Runtime.Misc;
 using comroid.csapi.common;
 using KScr.Antlr;
 using KScr.Bytecode;
 using KScr.Compiler.Class;
-using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
@@ -16,11 +15,21 @@ using KScr.Core.Store;
 
 namespace KScr.Compiler;
 
-public class CompilerRuntime : BytecodeRuntime
+public class CompilerRuntime : BytecodeRuntime, IAntlrErrorListener<IToken>
 {
     private readonly ConcurrentDictionary<string, KScrParser.FileContext> _fileDecls = new();
+
     public override INativeRunner? NativeRunner => null;
     public override ObjectStore ObjectStore => null!;
+    private string location = string.Empty;
+
+    public void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol, int line,
+        int pos,
+        string msg, RecognitionException e)
+    {
+        CompilerErrors.Add(new CompilerException(offendingSymbol.ToSrcPos(location), CompilerErrorMessage.UnexpectedToken,
+            "", offendingSymbol.Text, msg));
+    }
 
     public void CompileSource(string source, string? basePackage = null)
     {
@@ -62,15 +71,15 @@ public class CompilerRuntime : BytecodeRuntime
         var lexer = new KScrLexer(input);
         var tokens = new CommonTokenStream(lexer);
         var parser = new KScrParser(tokens);
-        try
-        {
-            return parser.file();
-        }
-        catch (InputMismatchException imex)
-        {
-            throw new CompilerException(SystemSrcPos, CompilerErrorMessage.Invalid, detail, "source code",
-                imex.Message);
-        }
+        
+        parser.RemoveErrorListeners();
+        parser.AddErrorListener(this);
+        location = detail;
+        var file = parser.file();
+        
+        if (CompilerErrors.Count > 0)
+            throw new CompilerException(new SourcefilePosition { SourcefilePath = detail }, CompilerErrorMessage.Underlying);
+        return file;
     }
 
     public List<string> FindClassImports(KScrParser.ImportsContext ctx)

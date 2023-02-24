@@ -10,6 +10,7 @@ using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;
 using KScr.Core.Model;
+using KScr.Core.System;
 
 namespace KScr.Compiler;
 
@@ -127,7 +128,10 @@ public class PackageNode : SourceNode
             }
             catch (CompilerException cex)
             {
-                Log<CompilerRuntime>.At(LogLevel.Error, cex.Message);
+                if (cex.IsUnderlying)
+                    foreach (var error in vm.CompilerErrors)
+                        Log<CompilerRuntime>.At(LogLevel.Error, error.Message);
+                else Log<CompilerRuntime>.At(LogLevel.Error, cex.Message);
             }
         }
 
@@ -191,6 +195,10 @@ public class FileNode : SourceNode
                 if (target.ClassType == ClassType.Interface)
                     Cls.DeclaredInterfaces.Add(instance);
                 else Cls.DeclaredSuperclasses.Add(instance);
+            }
+            foreach (var generic in kls.genericDefs().genericTypeDef() ?? Array.Empty<KScrParser.GenericTypeDefContext>())
+            {
+                Cls.TypeParameters.Add(VisitTypeParameter(generic));
             }
         }
         finally

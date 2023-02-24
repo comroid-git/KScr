@@ -80,7 +80,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
         var right = VisitExpression(context.mutation());
         var actualType = left.OutputType(vm, ctx);
         var varType = right.OutputType(vm, ctx);
-        if (!actualType.AsClass(vm).CanHold(varType.AsClass(vm)))
+        if (!actualType.AsClass(vm).IsAssignableFrom(varType.AsClass(vm)))
             throw new CompilerException(ToSrcPos(context.mutation().expr()), CompilerErrorMessage.CannotAssign,
                 actualType, varType);
         return new StatementComponent
@@ -165,7 +165,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             SourcefilePosition = ToSrcPos(context)
         };
         var rtrn = comp.OutputType(vm, ctx);
-        if (!RequestedType!.AsClass(vm).CanHold(rtrn.AsClass(vm)))
+        if (!RequestedType!.AsClass(vm).IsAssignableFrom(rtrn.AsClass(vm)))
             throw new CompilerException(ToSrcPos(context.type()), CompilerErrorMessage.InvalidType, ctx.Class,
                 rtrn.FullDetailedName, "Expected derivate of " + RequestedType);
         return comp;
@@ -199,7 +199,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
                 ctx.DropContext();
         }
 
-        if (!RequestedType!.AsClass(vm).CanHold(rtrn.AsClass(vm)))
+        if (!RequestedType!.AsClass(vm).IsAssignableFrom(rtrn.AsClass(vm)))
             throw new CompilerException(ToSrcPos(context.expr()), CompilerErrorMessage.InvalidType, ctx.Class,
                 rtrn.FullDetailedName, "Expected derivate of " + RequestedType);
         return expr;
@@ -216,7 +216,7 @@ public class ExpressionVisitor : AbstractVisitor<StatementComponent>
             SourcefilePosition = ToSrcPos(context)
         };
         var rtrn = comp.OutputType(vm, ctx);
-        if (!Core.System.Class.ThrowableType.CanHold(rtrn.AsClass(vm)))
+        if (!Core.System.Class.ThrowableType.IsAssignableFrom(rtrn.AsClass(vm)))
             throw new CompilerException(ToSrcPos(context.expr()), CompilerErrorMessage.InvalidType, ctx.Class,
                 rtrn.FullDetailedName, "Expected derivate of Throwable");
         return comp;

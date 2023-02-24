@@ -30,7 +30,8 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
     public override ITypeInfo VisitRawType(KScrParser.RawTypeContext context)
     {
         var clsName = context.GetText();
-        return ctx.FindType(vm, clsName)
+        return ctx.Class?.TypeParameters.FirstOrDefault(x => x.Name == clsName)
+               ?? ctx.FindType(vm, clsName)
                ?? throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, clsName);
     }
 

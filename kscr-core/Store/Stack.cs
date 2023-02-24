@@ -316,7 +316,7 @@ public sealed class Stack
                     throw new RuntimeException("No Message Provided", IObject.Null);
                 }
 
-                if (!System.Class.ThrowableType.CanHold(Omg.Value.Type)
+                if (!System.Class.ThrowableType.IsAssignableFrom(Omg.Value.Type)
                     || Omg.Value is not { } throwable)
                     throw new FatalException(
                         "Value is not instanceof Throwable: " + Omg.Value.ToString(0));

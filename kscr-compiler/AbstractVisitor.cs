@@ -57,10 +57,10 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         {
             TypeParameterSpecializationType.List => Core.System.Class.SequencableType.CreateInstance(vm,
                 Core.System.Class.SequencableType,
-                Core.System.Class.ObjectType),
+                Core.System.Class.VoidType),
             TypeParameterSpecializationType.N => Core.System.Class.NumericIntType,
             TypeParameterSpecializationType.Extends => gtd.ext == null
-                ? Core.System.Class.ObjectType.DefaultInstance
+                ? Core.System.Class.VoidType.DefaultInstance
                 : VisitTypeInfo(gtd.ext!),
             TypeParameterSpecializationType.Super => VisitTypeInfo(gtd.sup!),
             _ => throw new ArgumentOutOfRangeException()

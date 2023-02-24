@@ -403,11 +403,11 @@ public abstract class RuntimeBase : IBytecodePort
         {
             public Stack Evaluate(RuntimeBase vm, Stack stack)
             {
-                if (stack[Default]!.Length != 1 || (!stack[Default].Type.CanHold(Class.StringType) &&
-                                                    !stack[Default].Type.CanHold(Class.NumericType)))
+                if (stack[Default]!.Length != 1 || (!stack[Default].Type.IsAssignableFrom(Class.StringType) &&
+                                                    !stack[Default].Type.IsAssignableFrom(Class.NumericType)))
                     throw new FatalException("Invalid reference to write string into: " + stack[Default]);
                 var txt = Console.ReadLine()!;
-                if (Numeric.NumberRegex.IsMatch(txt) && stack[Default].Type.CanHold(Class.NumericType))
+                if (Numeric.NumberRegex.IsMatch(txt) && stack[Default].Type.IsAssignableFrom(Class.NumericType))
                     txt = Numeric.Compile(vm, txt).Value.ToString(IObject.ToString_ParseableName);
                 else if (txt is "true" or "false")
                     txt = (txt is "true" ? vm.ConstantTrue.Value : vm.ConstantFalse.Value).ToString(

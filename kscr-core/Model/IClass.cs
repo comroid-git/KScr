@@ -63,7 +63,6 @@ public interface IClassInfo : ITypeInfo
     MemberModifier Modifier { get; }
     ClassType ClassType { get; }
     bool Primitive { get; }
-    bool CanHold(IClass? type);
 }
 
 public interface IClass : IClassInfo, IClassMember, IPackageMember
@@ -85,6 +84,8 @@ public interface IClass : IClassInfo, IClassMember, IPackageMember
     Class.Instance DefaultInstance { get; }
     Class.Instance GetInstance(RuntimeBase vm, params ITypeInfo[] typeParameters);
     Class.Instance CreateInstance(RuntimeBase vm, Class? owner = null, params ITypeInfo[] typeParameters);
+    bool IsAssignableFrom(IClass? type);
+    bool IsAssignableTo(IClass? type) => type?.IsAssignableFrom(this) ?? false;
 }
 
 public interface IClassInstance : IClass, IObject

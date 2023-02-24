@@ -144,7 +144,7 @@ public class ObjectRef : IObjectRef
 
     public Stack ReadValue(RuntimeBase vm, Stack stack, IObject from)
     {
-        if (Value.ObjectId != 0 && Class.PipeType.CanHold(Value.Type))
+        if (Value.ObjectId != 0 && Class.PipeType.IsAssignableFrom(Value.Type))
             return Value.InvokeNative(vm, stack, "read", stack[StackOutput.Default].Value);
         return ReadAccessor!.Evaluate(vm, stack);
     }
@@ -153,7 +153,7 @@ public class ObjectRef : IObjectRef
     {
         if (Constant)
             throw new InvalidOperationException("ObjectRef is constant");
-        if (Value.ObjectId != 0 && Class.PipeType.CanHold(Value.Type))
+        if (Value.ObjectId != 0 && Class.PipeType.IsAssignableFrom(Value.Type))
             return Value.InvokeNative(vm, stack, "write", stack[StackOutput.Default].Value);
         return WriteAccessor!.Evaluate(vm, stack);
     }
@@ -208,7 +208,7 @@ public class ObjectRef : IObjectRef
 
     private void CheckTypeCompat(IClassInstance other)
     {
-        if (!Type.CanHold(other))
+        if (!Type.IsAssignableFrom(other))
             throw new FatalException("Invalid Type (" + other + ") assigned to reference of type " + Type);
     }
 

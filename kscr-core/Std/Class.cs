@@ -155,7 +155,8 @@ public sealed class Class : AbstractPackageMember, IClass
         ? string.Empty
         : '<' + string.Join(", ", TypeParameters) + '>');
 
-    public bool CanHold(IClass? type)
+    public bool IsAssignableTo(IClass? type) => type?.IsAssignableFrom(this) ?? false;
+    public bool IsAssignableFrom(IClass? type)
     {
         return Name == "void"
                || type?.BaseClass.Name == "void"
@@ -563,9 +564,9 @@ public sealed class Class : AbstractPackageMember, IClass
             return BaseClass.CreateInstance(vm, owner, typeParameters);
         }
 
-        public bool CanHold(IClass? type)
+        public bool IsAssignableFrom(IClass? type)
         {
-            return BaseClass.CanHold(type);
+            return BaseClass.IsAssignableFrom(type);
         }
 
         public bool Primitive => BaseClass.Primitive;
