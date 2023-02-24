@@ -16,6 +16,6 @@ public class File : pipe<str> {
 
     private static native str absPath(str path);
     private static native str name(str path);
-    private static native byte exists(str path);
-    private static native byte isDir(str path);
+    private static native bool exists(str path);
+    private static native bool isDir(str path);
 }

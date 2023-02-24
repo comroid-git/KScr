@@ -2,6 +2,8 @@ parser grammar KScrParser;
 
 options { tokenVocab = KScrLexer; }
 
+file: packageDecl imports classDecl* EOF;
+
 // file-related
 packageDecl: PACKAGE id SEMICOLON;
 
@@ -135,13 +137,11 @@ superclassesDef: COLON type (COMMA type)*;
 
 classDecl: annotation* modifiers? classType idPart genericDefs? superclassesDef? genericSpecifiers? (LBRACE member* RBRACE | SEMICOLON);
 
-file: packageDecl imports classDecl* EOF;
-
 inferType: VOID | VAR;
 
 indexerEmpty: LSQUAR COMMA* RSQUAR;
-indexerDecl: (LSQUAR|LPAREN) type idPart (COMMA type idPart)* (RSQUAR|RPAREN);
-indexerExpr: (LSQUAR|LPAREN) expr (COMMA expr)* (RSQUAR|RPAREN);
+indexerDecl: (LSQUAR) type idPart (COMMA type idPart)* (RSQUAR);
+indexerExpr: (LSQUAR) expr (COMMA expr)* (RSQUAR);
 cast: LPAREN type COLON expr RPAREN;
 declaration: type idPart (ASSIGN expr)?;
 mutation: (binaryop | binaryop_late)? ASSIGN expr;
