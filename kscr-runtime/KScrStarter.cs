@@ -131,7 +131,8 @@ public class KScrStarter
             }
             catch (Exception e)
             {
-                VM.CompilerErrors.Add(new CompilerException(RuntimeBase.SystemSrcPos, CompilerErrorMessage.Underlying, e.Message));
+                VM.CompilerErrors.Add(e as CompilerException ?? new CompilerException(RuntimeBase.SystemSrcPos,
+                    CompilerErrorMessage.UnderlyingDetail, e.GetType().Name + ": " + e.Message));
             }
         });
     }
@@ -191,7 +192,7 @@ public class KScrStarter
         throw new NotImplementedException("SystemIoMode currently not supported");
 
         /*
-        Console.WriteLine("Entering SystemIoMode - Only Expressions are allowed");
+        Log<KScrStarter>.At(LogLevel.Info, "Entering SystemIoMode - Only Expressions are allowed");
         VM.SystemIoMode = true;
 
         var compiler = new StatementCompiler();
@@ -233,19 +234,19 @@ public class KScrStarter
 
     private static void HandleResult(State state, IObject? result, long compileTime, long executeTime)
     {
-        Console.WriteLine($"State: {state.ToString()} - Compile: {compileTime}ms - Execute: {executeTime}ms");
-        //Console.WriteLine($"Type: {result?.Type} - Value: {result?.ToString(0)}");
+        Log<KScrStarter>.At(LogLevel.Info, $"State: {state.ToString()} - Compile: {compileTime}ms - Execute: {executeTime}ms");
+        //Log<KScrStarter>.At(LogLevel.Info, $"Type: {result?.Type} - Value: {result?.ToString(0)}");
     }
 
     private static void HandleErrors()
     {
-        if (VM.CompilerErrors.Count > 0)
+        var compilerErrorsCount = VM.CompilerErrors.Count;
+        if (compilerErrorsCount > 0)
         {
-            foreach (var compilerError in VM.CompilerErrors)
-                Console.Error.WriteLine(compilerError.Message);
-            var plural = VM.CompilerErrors.Count != 1;
-            Console.Error.WriteLine(
-                $"There {(plural ? "were" : "was")} {VM.CompilerErrors.Count} compilation error{(plural ? 's' : string.Empty)}.");
+            VM.PrintCompilerErrors<KScrStarter>();
+            var plural = compilerErrorsCount != 1;
+            Log<KScrStarter>.At(LogLevel.Warning,
+                $"There {(plural ? "were" : "was")} {compilerErrorsCount} compilation error{(plural ? 's' : string.Empty)}.");
         }
     }
 
@@ -270,32 +271,32 @@ public class KScrStarter
     private static int HandleExit(State state, IObject? result, long compileTime = -1, long executeTime = -1,
         long ioTime = -1, bool pressToExit = false){
         
-        Console.Write(IOTimeString(compileTime, executeTime, ioTime));
+        Log<KScrStarter>.At(LogLevel.Info, IOTimeString(compileTime, executeTime, ioTime));
+        var str = "";
 
         switch (state)
         {
             case State.Normal:
-                Console.Write("Program stopped ");
+                str += "Program stopped ";
                 break;
             case State.Return:
-                Console.Write("Program finished ");
+                str += "Program finished ";
                 break;
             case State.Throw:
-                Console.Write("Program failed ");
+                str += "Program failed ";
                 break;
         }
 
         if (result is Numeric num)
         {
             var rtn = num.IntValue;
-            Console.WriteLine($"with exit code {rtn} (0x{rtn:X8})");
+            Log<KScrStarter>.At(LogLevel.Info, $"with exit code {rtn} (0x{rtn:X8})");
             return rtn;
         }
 
-        Console.Write($"with exit code {RuntimeBase.ExitCode} (0x{RuntimeBase.ExitCode:X8})");
-        if (RuntimeBase.ExitMessage != null)
-            Console.WriteLine($" and message: {RuntimeBase.ExitMessage}");
-        else Console.WriteLine();
+        str += $"with exit code {RuntimeBase.ExitCode} (0x{RuntimeBase.ExitCode:X8})";
+        Log<KScrStarter>.At(LogLevel.Info,
+            RuntimeBase.ExitMessage != null ? str + $" and message: {RuntimeBase.ExitMessage}" : str);
 
         if (pressToExit)
             PressToExit();
@@ -304,7 +305,7 @@ public class KScrStarter
 
     private static void PressToExit()
     {
-        Console.WriteLine("Press any key to exit...");
+        Log<KScrStarter>.At(LogLevel.Info, "Press any key to exit...");
         Console.Read();
     }
 }

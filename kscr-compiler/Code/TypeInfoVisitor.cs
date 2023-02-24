@@ -31,9 +31,11 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
     public override ITypeInfo VisitRawType(KScrParser.RawTypeContext context)
     {
         var clsName = context.GetText();
-        return ctx.Class?.TypeParameters.FirstOrDefault(x => x.Name == clsName)
-               ?? ctx.FindType(vm, clsName)
-               ?? throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, clsName);
+        ITypeInfo? it = ctx.Class?.TypeParameters.FirstOrDefault(x => x.Name == clsName);
+        it ??= ctx.FindType(vm, clsName);
+        if (it == null)
+            throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, clsName);
+        return it;
     }
 
     public override ITypeInfo VisitType(KScrParser.TypeContext context)
@@ -72,19 +74,20 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
         // handle array type
         if (context.indexerEmpty() != null || context.ELIPSES() != null)
             return arr ? Arr(raw) : raw;
-        // handle int<n>
-        if (raw == Core.System.Class.IntType)
-            return IntN(int.Parse(context.genericTypeUses()?.n?.Text ?? "32"));
 
         // collect other type args
         var args = new List<ITypeInfo>();
         foreach (var type in context.genericTypeUses()?.type() ?? ArraySegment<IParseTree>.Empty)
             args.Add(Visit(type));
         // handle n -> tuple
-        if (context.genericTypeUses()?.n is { } n)
+        if (context.genericTypeUses()?.n is { } n && raw.TypeParameters.Count > 0 && raw.TypeParameters[0].Name == "n")
             return Tup(int.Parse(n.Text), It(raw.AsClass(vm)));
         if (raw is Core.System.Class cls || (raw is IClassInstance inst && (cls = inst.BaseClass) != null))
             return arr ? Arr(cls, args) : It(cls, args);
+        // resolve type parameter
+        if (raw is TypeParameter tp && ctx.Class?.TypeParameters.FirstOrDefault(x => x.Name == tp.Name) is {} it)
+            return it;
+        // nothing else we can do :(
         throw new CompilerException(ToSrcPos(context), TypeSymbolNotFound, context.rawType().GetText());
     }
 

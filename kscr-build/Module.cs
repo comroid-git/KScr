@@ -66,7 +66,7 @@ public class Module
             if (KScrStarter.VM.CompilerErrors.Count > 0)
             {
                 KScrStarter.VM.PrintCompilerErrors(log);
-                log.At(LogLevel.Error, $"Build {Notation} could not finish due to unresolved compiler errors");
+                log.At(LogLevel.Warning, $"Build {Notation} could not finish due to unresolved compiler errors");
                 return;
             }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using KScr.Core.Model;
 using KScr.Core.Store;
 
@@ -7,6 +8,7 @@ namespace KScr.Core.Exception;
 public sealed class CompilerErrorMessage
 {
     public static readonly CompilerErrorMessage Underlying = new("One or more errors occurred during compilation");
+    public static readonly CompilerErrorMessage UnderlyingDetail = new("An internal error occurred;"+Environment.NewLine+"\t\t{0}");
     
     public static readonly CompilerErrorMessage UnexpectedToken = new("Unexpected Token <{1}> in class {0};"+Environment.NewLine+"\t\t{2}");
     public static readonly CompilerErrorMessage InvalidToken = new("Invalid Token <{1}> in class {0};"+Environment.NewLine+"\t\t{2}");
@@ -58,5 +60,8 @@ public class CompilerException : global::System.Exception, IStackTrace
                                           : $"{Environment.NewLine}\t\tin file '{CallLoc.SourceName}' line {CallLoc.SourceRow} pos {CallLoc.SourceColumn}");
 
     public CallLocation CallLoc { get; }
-    public bool IsUnderlying => base.Message.StartsWith(CompilerErrorMessage.Underlying.Message);
+
+    public bool IsUnderlying 
+        => new[] { CompilerErrorMessage.Underlying.Message, CompilerErrorMessage.UnderlyingDetail.Message.Substring(0, 20) }
+            .Any(base.Message.StartsWith);
 }
