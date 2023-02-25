@@ -38,4 +38,8 @@ public class ExecutableCode : IBytecode, IStatement<Statement>, IEvaluable
         Main.ForEach(st => st.Clear());
         Main.Clear();
     }
+
+    public void Validate(RuntimeBase vm)
+    {
+    }
 }

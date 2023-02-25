@@ -27,6 +27,8 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
 
     protected override bool ShouldVisitNextChild(IRuleNode node, T currentResult)
     {
+        if (currentResult is IValidatable validatable)
+            validatable.Validate(vm);
         return currentResult == null;
     }
 

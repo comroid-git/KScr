@@ -61,14 +61,14 @@ public enum StatementComponentType : uint
     Lambda = 0x0F | Consumer | Emitter
 }
 
-public interface IStatement<SubType> : IEvaluable where SubType : IEvaluable
+public interface IStatement<SubType> : IEvaluable, IValidatable where SubType : IEvaluable
 {
     public List<SubType> Main { get; }
     public StatementComponentType Type { get; }
     public IClassInstance TargetType { get; }
 }
 
-public interface IStatementComponent : IEvaluable
+public interface IStatementComponent : IEvaluable, IValidatable
 {
     public StatementComponentType Type { get; }
     public BytecodeType CodeType { get; }

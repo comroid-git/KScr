@@ -143,12 +143,16 @@ public class Statement : IBytecode, IStatement<StatementComponent>
     {
         Main.Clear();
     }
+
+    public void Validate(RuntimeBase vm)
+    {
+    }
 }
 
 public class StatementComponent : IBytecode, IStatementComponent
 {
     public Statement Statement { get; set; } = null!;
-    public VariableContext VariableContext { get; set; }
+    public VariableContext VariableContext { get; set; }    
     public string Arg { get; set; } = string.Empty;
     public List<string> Args { get; set; } = new();
     public ulong ByteArg { get; set; }
@@ -686,5 +690,9 @@ public class StatementComponent : IBytecode, IStatementComponent
         if (!ignorePostComp && PostComponent != null)
             rtrn = PostComponent.OutputType(vm, symbols, this);
         return rtrn;
+    }
+
+    public void Validate(RuntimeBase vm)
+    {
     }
 }
