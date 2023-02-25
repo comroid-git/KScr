@@ -59,7 +59,7 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>, IValidatable
         return c;
     }
 
-    public abstract void Validate(RuntimeBase vm1);
+    public abstract void Validate(RuntimeBase _);
 }
 
 public class PackageNode : SourceNode
@@ -171,7 +171,7 @@ public class PackageNode : SourceNode
         return c;
     }
 
-    public override void Validate(RuntimeBase vm1)
+    public override void Validate(RuntimeBase _)
     {
         if (!Package.FullName.All(c => !char.IsLetter(c) || char.IsLower(c)))
             throw new CompilerException(RuntimeBase.SystemSrcPos, CompilerErrorMessage.InvalidName,
@@ -240,7 +240,7 @@ public class FileNode : SourceNode
         };
     }
 
-    public override void Validate(RuntimeBase vm1)
+    public override void Validate(RuntimeBase _)
     {
         // 1 validate constructors using all superconstructors
         if (Cls.DeclaredMembers.ContainsKey(Method.ConstructorName))
@@ -455,7 +455,7 @@ public class MemberNode : SourceNode
         return Parent!.ContainingClass();
     }
 
-    public override void Validate(RuntimeBase vm1)
+    public override void Validate(RuntimeBase _)
     {
         // 1 validate overriding member is constructor or matches supermember footprint
 
