@@ -43,7 +43,7 @@ public class CompilerRuntime : BytecodeRuntime, IAntlrErrorListener<IToken>
         {
             var decl = MakeFileDecl(src);
             ctx = new CompilerContext
-                { Parent = ctx, Class = FindClassInfo(src), Imports = FindClassImports(decl.imports()) };
+                { Parent = ctx, Class = FindClassInfo(decl), Imports = FindClassImports(decl.imports()) };
             node = new FileNode(this, ctx, new PackageNode(this, ctx, src.DirectoryName!, pkg), src).CreateClassNode();
             var mc = (node as MemberNode)!.ReadMembers();
             Log<CompilerRuntime>.At(LogLevel.Debug, $"Loaded {mc} members");
@@ -90,9 +90,8 @@ public class CompilerRuntime : BytecodeRuntime, IAntlrErrorListener<IToken>
         return yields;
     }
 
-    public ClassInfo FindClassInfo(FileInfo file)
+    public ClassInfo FindClassInfo(KScrParser.FileContext fileDecl)
     {
-        var fileDecl = MakeFileDecl(new AntlrFileStream(file.FullName), file.FullName);
         var pkg = Package.RootPackage.GetOrCreatePackage(fileDecl.packageDecl().id().GetText());
         return new ClassInfoVisitor(this, new CompilerContext { Package = pkg }).Visit(fileDecl.classDecl(0));
     }

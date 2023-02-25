@@ -150,7 +150,10 @@ public class KScrStarter
     {
         if (output.Exists)
             output.Delete(true);
-        Package.RootPackage.Write(VM, output, sources.Select(f => VM.FindClassInfo(f)).ToArray(), new StringCache());
+        Package.RootPackage.Write(VM, output, sources
+            .Select(VM.MakeFileDecl)
+            .Select(VM.FindClassInfo)
+            .ToArray(), new StringCache());
     }
 
     public static long Execute(out Stack stack, string? mainClassName = null)

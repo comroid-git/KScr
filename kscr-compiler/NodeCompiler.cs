@@ -170,8 +170,8 @@ public class FileNode : SourceNode
     {
         Pkg = pkg;
         File = file;
-        ClassInfo = vm.FindClassInfo(file);
         Decl = vm.MakeFileDecl(File);
+        ClassInfo = vm.FindClassInfo(Decl);
         Imports = vm.FindClassImports(Decl.imports());
         Cls = Pkg.Package.GetOrCreateClass(ClassInfo.Name, vm, ClassInfo.Modifier, ClassInfo.ClassType)!;
     }
