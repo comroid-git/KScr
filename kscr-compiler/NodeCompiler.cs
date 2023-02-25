@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -14,7 +15,7 @@ using KScr.Core.System;
 
 namespace KScr.Compiler;
 
-public abstract class SourceNode : AbstractVisitor<SourceNode>
+public abstract class SourceNode : AbstractVisitor<SourceNode>, IValidatable
 {
     public readonly List<SourceNode> Nodes = new();
 
@@ -57,6 +58,8 @@ public abstract class SourceNode : AbstractVisitor<SourceNode>
             Log<CompilerRuntime>.At(LogLevel.Debug, $"Revisited {c} members");
         return c;
     }
+
+    public abstract void Validate();
 }
 
 public class PackageNode : SourceNode
@@ -103,7 +106,9 @@ public class PackageNode : SourceNode
             try
         {
             var dir = new DirectoryInfo(sub);
-            Nodes.Add(ForPackage(vm, ctx, dir, Package));
+            var node = ForPackage(vm, ctx, dir, Package);
+            node.Validate();
+            Nodes.Add(node);
             c++;
         }
             catch (CompilerException cex)
@@ -134,7 +139,9 @@ public class PackageNode : SourceNode
             try
             {
                 var file = new FileInfo(sub);
-                Nodes.Add(new FileNode(vm, ctx, this, file));
+                var node = new FileNode(vm, ctx, this, file);
+                node.Validate();
+                Nodes.Add(node);
                 c++;
             }
             catch (CompilerException cex)
@@ -154,6 +161,7 @@ public class PackageNode : SourceNode
                 if (node is FileNode fn)
                     c += fn.ReadClass();
                 c += ReadClassesRec(node.Nodes);
+                node.Validate();
             }
             catch (CompilerException cex)
             {
@@ -161,6 +169,13 @@ public class PackageNode : SourceNode
             }
 
         return c;
+    }
+
+    public override void Validate()
+    {
+        if (!Package.FullName.All(c => !char.IsLetter(c) || char.IsLower(c)))
+            throw new CompilerException(RuntimeBase.SystemSrcPos, CompilerErrorMessage.InvalidName,
+                "package", Package.FullName, "must be lowercase");
     }
 }
 
@@ -224,6 +239,32 @@ public class FileNode : SourceNode
             Member = Cls
         };
     }
+
+    public override void Validate()
+    {
+        // 1 validate constructors using all superconstructors
+        if (Cls.DeclaredMembers.ContainsKey(Method.ConstructorName))
+        {
+            var ctor = (Cls.DeclaredMembers[Method.ConstructorName] as Method)!;
+            foreach (var error in Cls.Superclasses
+                         .Where(cls => cls.Name is not "object" and not "void")
+                         .Where(cls => !ctor.SuperCalls.Any(spr => spr.Arg.StartsWith(cls.CanonicalName)))
+                         .Select(missing => new CompilerException(ctor.SourceLocation,
+                             CompilerErrorMessage.ClassSuperTypeNotCalled, Cls, missing)))
+                vm.CompilerErrors.Add(error);
+        }
+        
+        // 2 validate class abstract or all abstract members implemented
+        if (!Cls.IsAbstract())
+            foreach (var error in ((IClass)Cls).InheritedMembers
+                     .Where(ModifierMethods.IsAbstract)
+                     .Where(mem => ((IClass)Cls).ClassMembers.All(x => x.Name != mem.Name))
+                     .Select(missing => new CompilerException(Cls.SourceLocation,
+                         CompilerErrorMessage.ClassAbstractMemberNotImplemented, Cls, missing)))
+                vm.CompilerErrors.Add(error);
+
+        // 3 validate used type parameters
+    }
 }
 
 public class MemberNode : SourceNode
@@ -250,7 +291,9 @@ public class MemberNode : SourceNode
         foreach (var mem in cls.member())
             try
             {
-                Nodes.Add(Visit(mem));
+                var node = Visit(mem);
+                node.Validate();
+                Nodes.Add(node);
                 c++;
             }
             catch (CompilerException cex)
@@ -411,5 +454,12 @@ public class MemberNode : SourceNode
         if (Member is Core.System.Class cls)
             return cls;
         return Parent!.ContainingClass();
+    }
+
+    public override void Validate()
+    {
+        // 1 validate overriding member is constructor or matches supermember footprint
+
+        // 2 validate used type parameters
     }
 }

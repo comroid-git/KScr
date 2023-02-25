@@ -13,6 +13,11 @@ using KScr.Core.System;
 
 namespace KScr.Compiler;
 
+public interface IValidatable
+{
+    void Validate();
+}
+
 public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
 {
     protected AbstractVisitor(CompilerRuntime vm, CompilerContext ctx)
@@ -27,6 +32,8 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
 
     protected override bool ShouldVisitNextChild(IRuleNode node, T currentResult)
     {
+        if (currentResult is IValidatable validatable)
+            validatable.Validate();
         return currentResult == null;
     }
 
