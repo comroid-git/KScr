@@ -75,10 +75,10 @@ public interface IClass : IClassInfo, IClassMember, IPackageMember
     IEnumerable<IClassMember> ClassMembers => DeclaredMembers.Values.Concat(InheritedMembers);
 
     IEnumerable<IClassMember> InheritedMembers =>
-        Inheritors.Where(it => it != null).SelectMany(it => it.ClassMembers);
+        InheritedTypes.Where(it => it != null).SelectMany(it => it.ClassMembers);
 
     IDictionary<string, IClassMember> DeclaredMembers { get; }
-    IEnumerable<IClassInstance> Inheritors => Superclasses.Concat(Interfaces);
+    IEnumerable<IClassInstance> InheritedTypes => Superclasses.Concat(Interfaces);
     IEnumerable<IClassInstance> Superclasses { get; }
     IEnumerable<IClassInstance> Interfaces { get; }
     Class.Instance DefaultInstance { get; }

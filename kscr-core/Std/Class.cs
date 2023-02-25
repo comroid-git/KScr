@@ -168,7 +168,7 @@ public sealed class Class : AbstractPackageMember, IClass
                || type?.BaseClass.Name == "void"
                || (Name == "int" && (type?.DetailedName.StartsWith("num") ?? false))
                || type?.BaseClass == BaseClass
-               || ((type?.BaseClass as IClass)?.Inheritors
+               || ((type?.BaseClass as IClass)?.InheritedTypes
                    .Where(x => x != null)
                    .Select(x => x.BaseClass)
                    .Any(super => super.FullName == FullName) ?? true);
