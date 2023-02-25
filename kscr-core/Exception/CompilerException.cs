@@ -13,6 +13,7 @@ public sealed class CompilerErrorMessage
     public static readonly CompilerErrorMessage UnexpectedToken = new("Unexpected Token <{1}> in class {0};"+Environment.NewLine+"\t\t{2}");
     public static readonly CompilerErrorMessage InvalidToken = new("Invalid Token <{1}> in class {0};"+Environment.NewLine+"\t\t{2}");
     public static readonly CompilerErrorMessage InvalidType = new("Invalid Type <{1}> in class {0};"+Environment.NewLine+"\t\t{2}");
+    public static readonly CompilerErrorMessage InvalidName = new("Invalid name for {0}: {1};"+Environment.NewLine+"\t\t{2}");
     public static readonly CompilerErrorMessage Invalid = new("Invalid {1} in class {0};"+Environment.NewLine+"\t\t{2}");
 
     public static readonly CompilerErrorMessage CannotAssign = new("Cannot assign {1} to {0}");
@@ -29,8 +30,10 @@ public sealed class CompilerErrorMessage
     public static readonly CompilerErrorMessage ClassInvalidMemberType =
         new("Invalid member Type {1} in class {0};"+Environment.NewLine+"\t\t{2}");
 
+    public static readonly CompilerErrorMessage ClassSuperTypeNotCalled =
+        new("Class {0} does not call its super type {1}");
     public static readonly CompilerErrorMessage ClassAbstractMemberNotImplemented =
-        new("Class {0} does not implement the following abstract members:\n{1}");
+        new("Class {0} is not abstract and does not implement abstract member {1}");
 
     public readonly string Message;
 
