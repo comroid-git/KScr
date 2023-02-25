@@ -309,6 +309,8 @@ public abstract class RuntimeBase : IBytecodePort
             else if (name.EndsWith("double>"))
                 return Class.NumericDoubleType;
             else return Class.NumericType.DefaultInstance;
+        if (name == "bool")
+            return Class.BoolType;
         if (name == "byte")
             return Class.NumericByteType;
         if (name == "short")
