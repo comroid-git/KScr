@@ -1,5 +1,6 @@
 ﻿{
   "project": {
+    "type": "library",
     "domain": "org.comroid",
     "id": "kscr",
     "version": "1.0.0"

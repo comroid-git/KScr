@@ -1,4 +1,6 @@
 ﻿using CommandLine;
+using KScr.Core;
+using KScr.Runtime;
 
 namespace KScr.Build;
 
@@ -43,6 +45,25 @@ public class CmdPublish : CmdBase
 {
     public DirectoryInfo? Dir { get; set; }
     public bool Quiet { get; set; }
+}
+
+[Verb("dist")]
+public class CmdDist : CmdBase, IRebuildCmd
+{
+    public DirectoryInfo? Dir { get; set; }
+    public bool Quiet { get; set; }
+    public bool Rebuild { get; set; }
+    [Option('t', "type")]
+    public DistType Type { get; set; }
+    [Option('o', "output")]
+    public FileInfo Output { get; set; }
+
+    public enum DistType
+    {
+        dir,
+        zip,
+        gz
+    }
 }
 
 [Verb("run")]
