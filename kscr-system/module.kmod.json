@@ -1,8 +1,7 @@
 ﻿{
   "project": {
     "domain": "org.comroid",
-    "group": "kscr",
-    "id": "system",
+    "id": "kscr",
     "version": "1.0.0"
   },
   "build": {
