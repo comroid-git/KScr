@@ -10,8 +10,9 @@ namespace KScr.Core.System;
 
 public enum NumericMode
 {
+    Bool,
     Byte,
-    Short,
+    Char,
     Int,
     Long,
     Float,
@@ -38,7 +39,7 @@ public sealed class Numeric : NativeObj
         _objId = vm.NextObjId();
     }
 
-    public NumericMode Mode { get; internal set; } = NumericMode.Short;
+    public NumericMode Mode { get; internal set; } = NumericMode.Char;
     public byte[] Bytes { get; internal set; } = BitConverter.GetBytes((short)0);
     public byte ByteValue => GetAs<byte>();
     public short ShortValue => GetAs<short>();
@@ -87,7 +88,7 @@ public sealed class Numeric : NativeObj
                 stack[StackOutput.Default] = Mode switch
                 {
                     NumericMode.Byte => ByteValue == other.ByteValue,
-                    NumericMode.Short => ShortValue == other.ShortValue,
+                    NumericMode.Char => ShortValue == other.ShortValue,
                     NumericMode.Int => IntValue == other.IntValue,
                     NumericMode.Long => LongValue == other.LongValue,
                     NumericMode.Float => Math.Abs(FloatValue - other.FloatValue) < delta.FloatValue,
@@ -111,7 +112,7 @@ public sealed class Numeric : NativeObj
         return Mode switch
         {
             NumericMode.Byte => CreateKey(LongValue),
-            NumericMode.Short => CreateKey(LongValue),
+            NumericMode.Char => CreateKey(LongValue),
             NumericMode.Int => CreateKey(LongValue),
             NumericMode.Long => CreateKey(LongValue),
             NumericMode.Float => CreateKey(FloatValue),
@@ -140,7 +141,7 @@ public sealed class Numeric : NativeObj
             var num = new Numeric(vm, true)
             {
                 Bytes = BitConverter.GetBytes(value),
-                Mode = NumericMode.Short
+                Mode = NumericMode.Char
             };
             return num;
         });
@@ -214,7 +215,7 @@ public sealed class Numeric : NativeObj
         else if (type == typeof(short))
         {
             Bytes = BitConverter.GetBytes((short)(object)value);
-            Mode = NumericMode.Short;
+            Mode = NumericMode.Char;
         }
         else if (type == typeof(int))
         {
@@ -252,7 +253,7 @@ public sealed class Numeric : NativeObj
                 return (T)(object)Bytes[0];
             switch (Mode)
             {
-                case NumericMode.Short:
+                case NumericMode.Char:
                     return (T)(object)(byte)ShortValue;
                 case NumericMode.Int:
                     return (T)(object)(byte)IntValue;
@@ -269,7 +270,7 @@ public sealed class Numeric : NativeObj
 
         if (type == typeof(short))
         {
-            if (Mode == NumericMode.Short)
+            if (Mode == NumericMode.Char)
                 return (T)(object)BitConverter.ToInt16(Bytes);
             switch (Mode)
             {
@@ -296,7 +297,7 @@ public sealed class Numeric : NativeObj
             {
                 case NumericMode.Byte:
                     return (T)(object)(int)ByteValue;
-                case NumericMode.Short:
+                case NumericMode.Char:
                     return (T)(object)(int)ShortValue;
                 case NumericMode.Long:
                     return (T)(object)(int)LongValue;
@@ -317,7 +318,7 @@ public sealed class Numeric : NativeObj
             {
                 case NumericMode.Byte:
                     return (T)(object)(long)ByteValue;
-                case NumericMode.Short:
+                case NumericMode.Char:
                     return (T)(object)(long)ShortValue;
                 case NumericMode.Int:
                     return (T)(object)(long)IntValue;
@@ -338,7 +339,7 @@ public sealed class Numeric : NativeObj
             {
                 case NumericMode.Byte:
                     return (T)(object)(float)ByteValue;
-                case NumericMode.Short:
+                case NumericMode.Char:
                     return (T)(object)(float)ShortValue;
                 case NumericMode.Int:
                     return (T)(object)(float)IntValue;
@@ -359,7 +360,7 @@ public sealed class Numeric : NativeObj
             {
                 case NumericMode.Byte:
                     return (T)(object)(double)ByteValue;
-                case NumericMode.Short:
+                case NumericMode.Char:
                     return (T)(object)(double)ShortValue;
                 case NumericMode.Int:
                     return (T)(object)(double)IntValue;
@@ -377,7 +378,7 @@ public sealed class Numeric : NativeObj
             {
                 case NumericMode.Byte:
                     return (T)(object)ByteValue.ToString();
-                case NumericMode.Short:
+                case NumericMode.Char:
                     return (T)(object)ShortValue.ToString();
                 case NumericMode.Int:
                     return (T)(object)IntValue.ToString();
@@ -481,7 +482,7 @@ public sealed class Numeric : NativeObj
         return Mode switch
         {
             NumericMode.Byte => ByteValue > right.ByteValue,
-            NumericMode.Short => ShortValue > right.ShortValue,
+            NumericMode.Char => ShortValue > right.ShortValue,
             NumericMode.Int => IntValue > right.IntValue,
             NumericMode.Long => LongValue > right.LongValue,
             NumericMode.Float => FloatValue > right.FloatValue,
@@ -497,7 +498,7 @@ public sealed class Numeric : NativeObj
         return Mode switch
         {
             NumericMode.Byte => ByteValue >= right.ByteValue,
-            NumericMode.Short => ShortValue >= right.ShortValue,
+            NumericMode.Char => ShortValue >= right.ShortValue,
             NumericMode.Int => IntValue >= right.IntValue,
             NumericMode.Long => LongValue >= right.LongValue,
             NumericMode.Float => FloatValue >= right.FloatValue,
@@ -513,7 +514,7 @@ public sealed class Numeric : NativeObj
         return Mode switch
         {
             NumericMode.Byte => ByteValue < right.ByteValue,
-            NumericMode.Short => ShortValue < right.ShortValue,
+            NumericMode.Char => ShortValue < right.ShortValue,
             NumericMode.Int => IntValue < right.IntValue,
             NumericMode.Long => LongValue < right.LongValue,
             NumericMode.Float => FloatValue < right.FloatValue,
@@ -529,7 +530,7 @@ public sealed class Numeric : NativeObj
         return Mode switch
         {
             NumericMode.Byte => ByteValue <= right.ByteValue,
-            NumericMode.Short => ShortValue <= right.ShortValue,
+            NumericMode.Char => ShortValue <= right.ShortValue,
             NumericMode.Int => IntValue <= right.IntValue,
             NumericMode.Long => LongValue <= right.LongValue,
             NumericMode.Float => FloatValue <= right.FloatValue,
@@ -545,7 +546,7 @@ public sealed class Numeric : NativeObj
         return Mode switch
         {
             NumericMode.Byte => Constant(vm, -ByteValue),
-            NumericMode.Short => Constant(vm, -ShortValue),
+            NumericMode.Char => Constant(vm, -ShortValue),
             NumericMode.Int => Constant(vm, -IntValue),
             NumericMode.Long => Constant(vm, -LongValue),
             NumericMode.Float => Constant(vm, -FloatValue),
@@ -559,7 +560,7 @@ public sealed class Numeric : NativeObj
         return Mode switch
         {
             NumericMode.Byte => Constant(vm, ByteValue + right.ByteValue),
-            NumericMode.Short => Constant(vm, ShortValue + right.ShortValue),
+            NumericMode.Char => Constant(vm, ShortValue + right.ShortValue),
             NumericMode.Int => Constant(vm, IntValue + right.IntValue),
             NumericMode.Long => Constant(vm, LongValue + right.LongValue),
             NumericMode.Float => Constant(vm, FloatValue + right.FloatValue),
@@ -573,7 +574,7 @@ public sealed class Numeric : NativeObj
         return Mode switch
         {
             NumericMode.Byte => Constant(vm, ByteValue - right.ByteValue),
-            NumericMode.Short => Constant(vm, ShortValue - right.ShortValue),
+            NumericMode.Char => Constant(vm, ShortValue - right.ShortValue),
             NumericMode.Int => Constant(vm, IntValue - right.IntValue),
             NumericMode.Long => Constant(vm, LongValue - right.LongValue),
             NumericMode.Float => Constant(vm, FloatValue - right.FloatValue),
@@ -587,7 +588,7 @@ public sealed class Numeric : NativeObj
         return Mode switch
         {
             NumericMode.Byte => Constant(vm, ByteValue * right.ByteValue),
-            NumericMode.Short => Constant(vm, ShortValue * right.ShortValue),
+            NumericMode.Char => Constant(vm, ShortValue * right.ShortValue),
             NumericMode.Int => Constant(vm, IntValue * right.IntValue),
             NumericMode.Long => Constant(vm, LongValue * right.LongValue),
             NumericMode.Float => Constant(vm, FloatValue * right.FloatValue),
@@ -601,7 +602,7 @@ public sealed class Numeric : NativeObj
         return Mode switch
         {
             NumericMode.Byte => Constant(vm, ByteValue / right.ByteValue),
-            NumericMode.Short => Constant(vm, ShortValue / right.ShortValue),
+            NumericMode.Char => Constant(vm, ShortValue / right.ShortValue),
             NumericMode.Int => Constant(vm, IntValue / right.IntValue),
             NumericMode.Long => Constant(vm, LongValue / right.LongValue),
             NumericMode.Float => Constant(vm, FloatValue / right.FloatValue),
@@ -615,7 +616,7 @@ public sealed class Numeric : NativeObj
         return Mode switch
         {
             NumericMode.Byte => Constant(vm, ByteValue % right.ByteValue),
-            NumericMode.Short => Constant(vm, ShortValue % right.ShortValue),
+            NumericMode.Char => Constant(vm, ShortValue % right.ShortValue),
             NumericMode.Int => Constant(vm, IntValue % right.IntValue),
             NumericMode.Long => Constant(vm, LongValue % right.LongValue),
             NumericMode.Float => Constant(vm, FloatValue % right.FloatValue),
@@ -662,7 +663,7 @@ public sealed class Numeric : NativeObj
         switch (Mode)
         {
             case NumericMode.Byte:
-            case NumericMode.Short:
+            case NumericMode.Char:
             case NumericMode.Int:
             case NumericMode.Long:
                 return Constant(vm, Math.Sqrt(LongValue));
@@ -680,7 +681,7 @@ public sealed class Numeric : NativeObj
         switch (Mode)
         {
             case NumericMode.Byte:
-            case NumericMode.Short:
+            case NumericMode.Char:
             case NumericMode.Int:
             case NumericMode.Long:
                 return Constant(vm, Math.Sin(LongValue));
@@ -698,7 +699,7 @@ public sealed class Numeric : NativeObj
         switch (Mode)
         {
             case NumericMode.Byte:
-            case NumericMode.Short:
+            case NumericMode.Char:
             case NumericMode.Int:
             case NumericMode.Long:
                 return Constant(vm, Math.Cos(LongValue));
@@ -716,7 +717,7 @@ public sealed class Numeric : NativeObj
         switch (Mode)
         {
             case NumericMode.Byte:
-            case NumericMode.Short:
+            case NumericMode.Char:
             case NumericMode.Int:
             case NumericMode.Long:
                 return Constant(vm, Math.Tan(LongValue));

@@ -1,5 +1,7 @@
 ﻿package org.comroid.kscr.core;
 
+import org.comroid.kscr.core.Sequencable;
+
 public native class range<numtype> : Sequencable<numtype> where numtype : num = int {
     native numtype Start { get; }
     native numtype End { get; }

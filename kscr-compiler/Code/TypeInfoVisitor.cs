@@ -118,7 +118,7 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
 
     public override ITypeInfo VisitNumTypeLitBool(KScrParser.NumTypeLitBoolContext context)
     {
-        return Core.System.Class.BoolType;
+        return Core.System.Class.NumericBoolType;
     }
 
     public override ITypeInfo VisitNumTypeLitByte(KScrParser.NumTypeLitByteContext context)
@@ -126,9 +126,9 @@ public class TypeInfoVisitor : AbstractVisitor<ITypeInfo>
         return Core.System.Class.NumericByteType;
     }
 
-    public override ITypeInfo VisitNumTypeLitShort(KScrParser.NumTypeLitShortContext context)
+    public override ITypeInfo VisitNumTypeLitChar(KScrParser.NumTypeLitCharContext context)
     {
-        return Core.System.Class.NumericShortType;
+        return Core.System.Class.NumericCharType;
     }
 
     public override ITypeInfo VisitNumTypeLitInt(KScrParser.NumTypeLitIntContext context)

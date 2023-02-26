@@ -1,6 +1,6 @@
 package org.comroid.kscr.enumerable;
 
-public interface Collection<K, T> extends Pipe<Entry<K, T>> {
+public interface Collection<K, T> : pipe<Entry<K, T>> {
     int Length;
 
     @Contract("null -> null")

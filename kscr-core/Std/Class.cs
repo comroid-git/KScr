@@ -28,6 +28,7 @@ public sealed class Class : AbstractPackageMember, IClass
     public static readonly Class ArrayType;
     public static readonly Class TupleType;
     public static readonly Class StringType;
+    public static readonly Class IntType;
     public static readonly Class NumericType;
     public static readonly Class RangeType;
     public static readonly Class SequenceType;
@@ -36,10 +37,14 @@ public sealed class Class : AbstractPackageMember, IClass
     public static readonly Class ThrowableType;
     public static readonly Class ExceptionType;
     public static readonly Class NullPointerExceptionType;
-    public static readonly Class IntType;
-    public static Instance BoolType;
+    public static Instance Int1Type;
+    public static Instance Int8Type;
+    public static Instance Int16Type;
+    public static Instance Int32Type;
+    public static Instance Int64Type;
+    public static Instance NumericBoolType;
     public static Instance NumericByteType;
-    public static Instance NumericShortType;
+    public static Instance NumericCharType;
     public static Instance NumericIntType;
     public static Instance NumericLongType;
     public static Instance NumericFloatType;
@@ -266,8 +271,9 @@ public sealed class Class : AbstractPackageMember, IClass
     {
         return mode switch
         {
+            NumericMode.Bool => NumericBoolType,
             NumericMode.Byte => NumericByteType,
-            NumericMode.Short => NumericShortType,
+            NumericMode.Char => NumericCharType,
             NumericMode.Int => NumericIntType,
             NumericMode.Long => NumericLongType,
             NumericMode.Float => NumericFloatType,
@@ -295,14 +301,14 @@ public sealed class Class : AbstractPackageMember, IClass
                 new()
                 {
                     Name = "variant",
-                    Type = NumericShortType
+                    Type = NumericCharType
                 }
             });
         var equals = new DummyMethod(
             ObjectType,
             "equals",
             MemberModifier.Public,
-            NumericByteType,
+            NumericBoolType,
             new List<MethodParameter>
             {
                 new()
@@ -411,7 +417,7 @@ public sealed class Class : AbstractPackageMember, IClass
             RangeType,
             "test",
             MemberModifier.Public | MemberModifier.Final,
-            NumericByteType,
+            NumericBoolType,
             new List<MethodParameter>
             {
                 new()
@@ -434,7 +440,7 @@ public sealed class Class : AbstractPackageMember, IClass
                 }
             });
         var decremental = new DummyMethod(RangeType, "decremental", MemberModifier.Public | MemberModifier.Final,
-            NumericByteType);
+            NumericBoolType);
 
         // iterable methods
         var sequence = new DummyMethod(SequencableType, "sequence", MemberModifier.Public | MemberModifier.Abstract,
@@ -457,8 +463,8 @@ public sealed class Class : AbstractPackageMember, IClass
         var next = new DummyMethod(SequenceType, "next", MemberModifier.Public | MemberModifier.Abstract,
             SequenceType.TypeParameters[0]);
         var hasNext = new DummyMethod(SequenceType, "hasNext", MemberModifier.Public | MemberModifier.Abstract,
-            NumericByteType);
-        var finite = new DummyMethod(SequenceType, "finite", MemberModifier.Public, NumericByteType);
+            NumericBoolType);
+        var finite = new DummyMethod(SequenceType, "finite", MemberModifier.Public, NumericBoolType);
         var seqLength = new DummyMethod(SequenceType, "length", MemberModifier.Public, NumericIntType);
 
         AddToClass(SequenceType, current);
@@ -717,10 +723,6 @@ public sealed class TypeParameter : ITypeParameter, IBytecode
         switch (Specialization)
         {
             case TypeParameterSpecializationType.Extends:
-            case TypeParameterSpecializationType.Super:
-                if (!SpecializationTarget.Equals(Class.VoidType))
-                    str += ' ' + Specialization.ToString().ToLower() + ' ' + SpecializationTarget;
-                break;
             case TypeParameterSpecializationType.List:
                 str += "...";
                 break;

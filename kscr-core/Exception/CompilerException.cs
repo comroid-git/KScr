@@ -8,13 +8,13 @@ namespace KScr.Core.Exception;
 public sealed class CompilerErrorMessage
 {
     public static readonly CompilerErrorMessage Underlying = new("One or more errors occurred during compilation");
-    public static readonly CompilerErrorMessage UnderlyingDetail = new("An internal error occurred;"+Environment.NewLine+"\t\t{0}");
+    public static readonly CompilerErrorMessage InternalError = new("An internal error occurred during compilation"+Environment.NewLine+"\t\t{0}");
     
-    public static readonly CompilerErrorMessage UnexpectedToken = new("Unexpected Token <{1}> in class {0};"+Environment.NewLine+"\t\t{2}");
-    public static readonly CompilerErrorMessage InvalidToken = new("Invalid Token <{1}> in class {0};"+Environment.NewLine+"\t\t{2}");
-    public static readonly CompilerErrorMessage InvalidType = new("Invalid Type <{1}> in class {0};"+Environment.NewLine+"\t\t{2}");
-    public static readonly CompilerErrorMessage InvalidName = new("Invalid name for {0}: {1};"+Environment.NewLine+"\t\t{2}");
-    public static readonly CompilerErrorMessage Invalid = new("Invalid {1} in class {0};"+Environment.NewLine+"\t\t{2}");
+    public static readonly CompilerErrorMessage UnexpectedToken = new("Unexpected Token <{1}> in class {0}"+Environment.NewLine+"\t\t{2}");
+    public static readonly CompilerErrorMessage InvalidToken = new("Invalid Token <{1}> in class {0}"+Environment.NewLine+"\t\t{2}");
+    public static readonly CompilerErrorMessage InvalidType = new("Invalid Type <{1}> in class {0}"+Environment.NewLine+"\t\t{2}");
+    public static readonly CompilerErrorMessage InvalidName = new("Invalid name for {0}: {1}"+Environment.NewLine+"\t\t{2}");
+    public static readonly CompilerErrorMessage Invalid = new("Invalid {1} in class {0}"+Environment.NewLine+"\t\t{2}");
 
     public static readonly CompilerErrorMessage CannotAssign = new("Cannot assign {1} to {0}");
 
@@ -65,6 +65,6 @@ public class CompilerException : global::System.Exception, IStackTrace
     public CallLocation CallLoc { get; }
 
     public bool IsUnderlying 
-        => new[] { CompilerErrorMessage.Underlying.Message, CompilerErrorMessage.UnderlyingDetail.Message.Substring(0, 20) }
+        => new[] { CompilerErrorMessage.Underlying.Message, CompilerErrorMessage.InternalError.Message.Substring(0, 20) }
             .Any(base.Message.StartsWith);
 }

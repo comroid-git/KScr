@@ -40,7 +40,7 @@ genericTypeUses: LESSER (n=NUMLIT | first=type) (COMMA type)* GREATER;
 num: NUMIDENT           #numTypeLit
     | BOOL              #numTypeLitBool
     | BYTE              #numTypeLitByte
-    | SHORT             #numTypeLitShort
+    | CHAR              #numTypeLitChar
     | INT               #numTypeLitInt
     | LONG              #numTypeLitLong
     | FLOAT             #numTypeLitFloat
@@ -73,7 +73,7 @@ rawType
     ;
 type: rawType genericTypeUses? nullable=QUESTION? (indexerEmpty | ELIPSES)? nullableArray=QUESTION?;
 
-genericTypeDef: idPart elp=ELIPSES? (EXTENDS ext=type | SUPER sup=type)? (ASSIGN (defN=NUMLIT | def=type))?;
+genericTypeDef: idPart elp=ELIPSES? (COLON ext=type)? (ASSIGN (defN=NUMLIT | def=type))?;
 genericDefs: LESSER (NUMLIT | genericTypeDef) (COMMA genericTypeDef)* GREATER;
 
 parameter: FINAL? type idPart (ASSIGN expr)?;
@@ -105,11 +105,11 @@ initDecl: STATIC memberBlock;
 subConstructorCall: (THIS | type) arguments;
 subConstructorCalls: COLON subConstructorCall (COMMA subConstructorCall)*?;
 constructorDecl: annotation* modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? 
-        type parameters subConstructorCalls? memberBlock;
+        STATIC? type parameters subConstructorCalls? memberBlock;
 methodDecl: annotation* modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? 
-        genericDefs? type idPart parameters genericSpecifiers? memberBlock;
+        STATIC? genericDefs? type idPart parameters genericSpecifiers? memberBlock;
 indexerMemberDecl: annotation* modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? 
-        genericDefs? type THIS indexerDecl genericSpecifiers? propBlock;
+        STATIC? genericDefs? type THIS indexerDecl genericSpecifiers? propBlock;
 
 propGetter: GET modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? memberBlock;
 propSetter: SET modifiers? (WHERE condition=expr)? (SELECT supplier=lambda)? (ELSE (NULL | fallback=lambda))? memberBlock;
@@ -135,7 +135,7 @@ genericSpecifier: idPart (superclassesDef | (ASSIGN (type | expr)) | superclasse
 genericSpecifiers: WHERE genericSpecifier (COMMA genericSpecifier)*;
 superclassesDef: COLON type (COMMA type)*;
 
-classDecl: annotation* modifiers? classType idPart genericDefs? superclassesDef? genericSpecifiers? (LBRACE member* RBRACE | SEMICOLON);
+classDecl: annotation* modifiers? classType (idPart|primitiveTypeLit) genericDefs? superclassesDef? genericSpecifiers? (LBRACE member* RBRACE | SEMICOLON);
 
 inferType: VOID | VAR;
 

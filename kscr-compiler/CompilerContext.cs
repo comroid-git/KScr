@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using comroid.csapi.common;
 using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;
@@ -86,6 +87,18 @@ public class CompilerContext : ISymbolValidator
             return Class;
         if (Imports.FirstOrDefault(n => n.EndsWith(name)) is { } imported)
             return vm.FindType(imported, Package);
+        if (Class?.TypeParameters.FirstOrDefault(tp => tp.Name == name) is { } tp)
+            return tp;
+        var genStart = name.IndexOf('<');
+        if (genStart != -1)
+        { // generic use; create instance
+            var genEnd = name.LastIndexOf('>');
+            var genWords = name.Substring(genStart + 1, genEnd - genStart - 1).Split(",");
+            var baseWord = name.Substring(0, genStart);
+            var genTypes = genWords.Select(s => s.Cleanup()).Select(s => FindType(vm, s));
+            var baseType = FindType(vm, baseWord);
+            return baseType!.AsClass(vm).CreateInstance(vm, Class!.AsClass(vm), genTypes.ToArray()!);
+        }
         return vm.FindType(name, _package, CurrentContext(vm));
     }
 

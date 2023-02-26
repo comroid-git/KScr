@@ -1,4 +1,4 @@
 package org.comroid.kscr.enumerable;
 
-public interface Matrix<K<n = 1>, V> : Collection<K, V> {
+public interface Matrix<K<n>, V> : Collection<K, V> where n = 1 {
 }

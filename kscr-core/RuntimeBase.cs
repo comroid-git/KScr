@@ -139,17 +139,25 @@ public abstract class RuntimeBase : IBytecodePort
             Mode = NumericMode.Byte
         };
 
-        Class.BoolType = Class.IntType.CreateInstance(this, Class.IntType, new TypeParameter(1, TypeParameterSpecializationType.N));
-        Class.NumericByteType = Class.IntType.CreateInstance(this, Class.IntType, new TypeParameter(8, TypeParameterSpecializationType.N));
-        Class.NumericShortType = Class.IntType.CreateInstance(this, Class.IntType, new TypeParameter(16, TypeParameterSpecializationType.N));
-        Class.NumericIntType = Class.IntType.CreateInstance(this, Class.IntType, new TypeParameter(32, TypeParameterSpecializationType.N));
-        Class.NumericLongType = Class.IntType.CreateInstance(this, Class.IntType, new TypeParameter(64, TypeParameterSpecializationType.N));
+        Class.Int1Type = Class.IntType.CreateInstance(this, Class.IntType,
+            new TypeParameter(1, TypeParameterSpecializationType.N));
+        Class.Int8Type = Class.IntType.CreateInstance(this, Class.IntType,
+            new TypeParameter(8, TypeParameterSpecializationType.N));
+        Class.Int16Type = Class.IntType.CreateInstance(this, Class.IntType,
+            new TypeParameter(16, TypeParameterSpecializationType.N));
+        Class.Int32Type = Class.IntType.CreateInstance(this, Class.IntType,
+            new TypeParameter(32, TypeParameterSpecializationType.N));
+        Class.Int64Type = Class.IntType.CreateInstance(this, Class.IntType,
+            new TypeParameter(64, TypeParameterSpecializationType.N));
+        Class.NumericBoolType = new Class.Instance(this, Class.NumericType, Class.Int1Type);
+        Class.NumericByteType = new Class.Instance(this, Class.NumericType, Class.Int8Type);
+        Class.NumericCharType = new Class.Instance(this, Class.NumericType, Class.Int16Type);
+        Class.NumericIntType = new Class.Instance(this, Class.NumericType, Class.Int32Type);
+        Class.NumericLongType = new Class.Instance(this, Class.NumericType, Class.Int64Type);
         Class.NumericFloatType = new Class.Instance(this, Class.NumericType,
-            new Class(Class.LibCorePackage, "float", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
+            new Class(Class.LibCorePackage, "float", true, MemberModifier.PSF));
         Class.NumericDoubleType = new Class.Instance(this, Class.NumericType,
-            new Class(Class.LibCorePackage, "double", true,
-                MemberModifier.Public | MemberModifier.Final | MemberModifier.Native));
+            new Class(Class.LibCorePackage, "double", true, MemberModifier.PSF));
 
         Class.VoidType.Initialize(this);
         Class.ObjectType.Initialize(this);
@@ -163,13 +171,16 @@ public abstract class RuntimeBase : IBytecodePort
         Class.SequencableType.Initialize(this);
         Class.SequenceType.Initialize(this);
         Class.ThrowableType.Initialize(this);
-        Class.NumericType.Initialize(this);
-        Class.NumericByteType.Initialize(this);
-        Class.NumericShortType.Initialize(this);
         Class.IntType.Initialize(this);
-        Class.BoolType.Initialize(this);
+        Class.Int1Type.Initialize(this);
+        Class.Int8Type.Initialize(this);
+        Class.Int16Type.Initialize(this);
+        Class.Int32Type.Initialize(this);
+        Class.Int64Type.Initialize(this);
+        Class.NumericType.Initialize(this);
+        Class.NumericBoolType.Initialize(this);
         Class.NumericByteType.Initialize(this);
-        Class.NumericShortType.Initialize(this);
+        Class.NumericCharType.Initialize(this);
         Class.NumericIntType.Initialize(this);
         Class.NumericLongType.Initialize(this);
         Class.NumericFloatType.Initialize(this);
@@ -299,7 +310,7 @@ public abstract class RuntimeBase : IBytecodePort
             if (name.EndsWith("byte>"))
                 return Class.NumericByteType;
             else if (name.EndsWith("short>"))
-                return Class.NumericShortType;
+                return Class.NumericCharType;
             else if (name.EndsWith("int>"))
                 return Class.NumericIntType;
             else if (name.EndsWith("long>"))
@@ -310,11 +321,11 @@ public abstract class RuntimeBase : IBytecodePort
                 return Class.NumericDoubleType;
             else return Class.NumericType.DefaultInstance;
         if (name == "bool")
-            return Class.BoolType;
+            return Class.Int1Type;
         if (name == "byte")
             return Class.NumericByteType;
         if (name == "short")
-            return Class.NumericShortType;
+            return Class.NumericCharType;
         if (name == "int")
             return Class.NumericIntType;
         if (name == "long")
@@ -335,8 +346,9 @@ public abstract class RuntimeBase : IBytecodePort
         {
             // create instance
             var canonicalName = name.Substring(0, name.IndexOf('<'));
-            var kls = Package.RootPackage.GetClass(canonicalName) 
-                      ?? throw new RuntimeException("Class not found: " + canonicalName);
+            var kls = Package.RootPackage.GetClass(canonicalName);
+            if (kls == null)
+                throw new RuntimeException("Class not found: " + canonicalName);
             var tParams = new List<TypeParameter>();
             var split = name.Substring(name.IndexOf('<') + 1, name.IndexOf('>') - name.IndexOf('<') - 1).Split(", ");
             for (var i = 0; i < split.Length; i++)

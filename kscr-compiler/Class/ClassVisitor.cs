@@ -15,7 +15,7 @@ public class ClassInfoVisitor : AbstractVisitor<ClassInfo>
         var pkgName = ctx.Package.FullName;
         var modifier = new ModifierVisitor().Visit(context.modifiers());
         var type = new ClassTypeVisitor().Visit(context.classType());
-        var name = context.idPart().GetText();
+        var name = context.primitiveTypeLit()?.GetText() ?? context.idPart().GetText();
         return new ClassInfo(modifier, type, name)
         {
             CanonicalName = $"{pkgName}.{name}",

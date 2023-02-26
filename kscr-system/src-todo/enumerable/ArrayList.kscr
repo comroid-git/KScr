@@ -1,7 +1,7 @@
 package org.comroid.kscr.enumerable;
 
-public class ArrayList<T> implements List<T> {
-    private Entry<int, T>[] array;
+public class ArrayList<T> : List<T> {
+    private Entry<int, T>[] arr;
     private int len;
 
     @Override
@@ -16,7 +16,7 @@ public class ArrayList<T> implements List<T> {
     public Entry<int, T>? getEntry(int key) {
         if (range.insideRange(key, 0..Length))
             throw new IndexOutOfBoundsException($"Index {key} is out of bounds (min={0}, max={Length-1})");
-        return array[key];
+        return arr[key];
     }
 
     @Override

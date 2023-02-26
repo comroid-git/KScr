@@ -35,7 +35,10 @@ public interface ITypeInfo
             return cls;
         if (this is Class.Instance inst)
             return inst.BaseClass;
-        return vm.FindType(CanonicalName)!.BaseClass;
+        if (this is ITypeParameterInstance tp)
+            return tp.TargetType.AsClass(vm);
+        var classInstance = vm.FindType(CanonicalName);
+        return classInstance!.BaseClass;
     }
 
     IClassInstance AsClassInstance(RuntimeBase vm)
@@ -148,7 +151,6 @@ public interface ITypeParameter : ITypeParameterInstance
 public enum TypeParameterSpecializationType : byte
 {
     Extends,
-    Super,
     List,
     N
 }

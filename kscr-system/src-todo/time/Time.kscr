@@ -1,5 +1,0 @@
-﻿package org.comroid.kscr.time;
-
-public class Time {
-    static Time Now => null; //todo
-}

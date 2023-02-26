@@ -53,8 +53,6 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
         var name = gtd.idPart().GetText();
         var spec = name == "n" ? TypeParameterSpecializationType.N
             : gtd.elp != null ? TypeParameterSpecializationType.List
-            : gtd.ext != null ? TypeParameterSpecializationType.Extends
-            : gtd.sup != null ? TypeParameterSpecializationType.Super
             : TypeParameterSpecializationType.Extends;
         var target = spec switch
         {
@@ -65,7 +63,6 @@ public abstract class AbstractVisitor<T> : KScrParserBaseVisitor<T>
             TypeParameterSpecializationType.Extends => gtd.ext == null
                 ? Core.System.Class.VoidType.DefaultInstance
                 : VisitTypeInfo(gtd.ext!),
-            TypeParameterSpecializationType.Super => VisitTypeInfo(gtd.sup!),
             _ => throw new ArgumentOutOfRangeException()
         };
         ITypeInfo? def = spec == TypeParameterSpecializationType.N ? new TypeInfo { Name = gtd.defN.Text }

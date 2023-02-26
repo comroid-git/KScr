@@ -1,6 +1,6 @@
 package org.comroid.kscr.enumerable;
 
-public interface List<T> extends Collection<int, T> {
+public interface List<T> : Collection<int, T> {
     bool add(T? value) {
         return canAdd(value) && set(Length, value) != value;
     }

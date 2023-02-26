@@ -1,6 +1,0 @@
-﻿package org.comroid.kscr.core;
-
-public interface Throwable {
-    str Message { get; }
-    int ExitCode { get; }
-}

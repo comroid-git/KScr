@@ -59,7 +59,7 @@ TYPE: 'type';
 NUMIDENT: 'num';
 BOOL: 'bool';
 BYTE: 'byte';
-SHORT: 'short';
+CHAR: 'char';
 INT: 'int';
 LONG: 'long';
 FLOAT: 'float';
@@ -72,6 +72,7 @@ NUMLIT
     : DIGIT+ (((DOT DIGIT+)? ('f'? | 'd'))? | ('l' | 'i' | 's' | 'b')?)
     | '0' ('x' | 'b') (DIGIT | [AaBbCcDdEeFf])+
     ;
+CHARLIT: TICK . .? TICK;
 STRLIT: QUOTE (ESCAPE_QUOTE | (~[\r\n"]))*? (QUOTE);
 STDIOLIT: 'stdio';
 ENDLLIT: 'endl';
@@ -106,6 +107,7 @@ TILDE: '~';
 
 ESCAPE_QUOTE: '\\"';
 QUOTE: '"';
+TICK: '\'';
 
 // operators
 AND: '&&';

@@ -1,7 +1,0 @@
-package org.comroid.kscr.core;
-
-public interface Sequence<T> : pipe<T> {
-    T Current { get; }
-
-    bool tryAdvance();
-}

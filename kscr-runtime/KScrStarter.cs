@@ -132,7 +132,7 @@ public class KScrStarter
             catch (Exception e)
             {
                 VM.CompilerErrors.Add(e as CompilerException ?? new CompilerException(RuntimeBase.SystemSrcPos,
-                    CompilerErrorMessage.UnderlyingDetail, e.GetType().Name + ": " + e.Message));
+                    CompilerErrorMessage.InternalError, e.ToString()));
             }
         });
     }

@@ -18,7 +18,7 @@ public class Vector<n, numtype> : numtype<n> where n = 3, numtype : num = float 
     public str toString(short variant) {
         str txt = "Vector" + n + "{";
         foreach (i : 0..n)
-            txt += this(i) + ", ";
+            txt += this[i] + ", ";
         return txt.section(0, txt.length - 2) + "}";
     }
 }
