@@ -8,7 +8,7 @@
     <name>KScr Language Support</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor email="kaleidox@comroid.org" url="https://comroid.org">comroid</vendor>
+    <vendor email="contact@comroid.org" url="https://comroid.org">comroid</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
@@ -25,18 +25,21 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <fileType name="KScr File"
-                  implementationClass="org.comroid.kscr.intellij.KScrSourceFileType"
-                  fieldName="FILE_TYPE"
+        <fileType name="KScr Source File"
+                  implementationClass="org.comroid.kscr.intellij.KScrFileType"
+                  fieldName="SOURCE"
                   language="KScr"
-                  extensions="kscr"
-        />
-        <fileType name="KScr File"
-                  implementationClass="org.comroid.kscr.intellij.KScrBinaryFileType"
-                  fieldName="FILE_TYPE"
+                  extensions="kscr"/>
+        <fileType name="KScr Binary File"
+                  implementationClass="org.comroid.kscr.intellij.KScrFileType"
+                  fieldName="BINARY"
                   language="KScr"
-                  extensions="kbin"
-        />
+                  extensions="kbin"/>
+        <fileType name="KScr Module File"
+                  implementationClass="org.comroid.kscr.intellij.KScrFileType"
+                  fieldName="MODULE"
+                  language="KScr"
+                  extensions="kmod"/>
 
         <moduleType id="kscr.module.type" implementationClass="org.comroid.kscr.intellij.sdk.module.KScrModuleType" />
         <moduleBuilder id="kscr.module.builder" builderClass="org.comroid.kscr.intellij.sdk.module.KScrModuleBuilder" />
