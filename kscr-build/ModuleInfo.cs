@@ -21,7 +21,7 @@ public sealed class ModuleInfo
 
     public string Notation => Project.ToString();
     public override string ToString() =>
-        $"Module {Project} ({Repositories?.Count() ?? 0} repositories; {Dependencies?.Count() ?? 0} dependencies)";
+        $"Module {Project.Type} {Project} ({Repositories?.Count() ?? 0} repositories; {Dependencies?.Count() ?? 0} dependencies)";
 }
 
 public sealed class ProjectInfo : DependencyInfo
@@ -33,6 +33,9 @@ public sealed class ProjectInfo : DependencyInfo
         Id = @override.Id ?? inherit.Id,
         Version = @override.Version ?? inherit.Version
     };
+    
+    [JsonPropertyName("type")]
+    public string Type { get; set; }
 
     public override DepScope? Scope => DepScope.api;
     public override IEnumerable<DependencyInfo>? Exclude => ArraySegment<DependencyInfo>.Empty;

@@ -11,6 +11,8 @@ namespace KScr.Build;
 
 public sealed class KScrBuild
 {
+    public static string BuildDir => Path.Combine(Environment.CurrentDirectory, "build");
+    
     static KScrBuild()
     {
 #if RELEASE
@@ -29,7 +31,7 @@ public sealed class KScrBuild
             if (cmd.Quiet)
                 Log.Root.Level = LogLevel.Error;
         }
-        Parser.Default.ParseArguments<CmdInfo, CmdDependencies, RebuildCmdBuild, CmdPublish, RebuildCmdRun>(args)
+        Parser.Default.ParseArguments<CmdInfo, CmdDependencies, RebuildCmdBuild, CmdPublish, CmdDist, RebuildCmdRun>(args)
             .WithParsed<CmdInfo>(cmd =>
             {
                 ApplyCmdOptions(cmd);
@@ -50,6 +52,11 @@ public sealed class KScrBuild
                 ApplyCmdOptions(cmd);
                 Log<KScrBuild>.Get().WrapWithExceptionLogger<CmdPublish>(RunPublish, "Publish failed with unhandled Exception")(cmd);
             })
+            .WithParsed<CmdDist>(cmd =>
+            {
+                ApplyCmdOptions(cmd);
+                Log<KScrBuild>.Get().WrapWithExceptionLogger<CmdDist>(RunDist, "Dist failed with unhandled Exception")(cmd);
+            })
             .WithParsed<RebuildCmdRun>(cmd =>
             {
                 ApplyCmdOptions(cmd);
@@ -64,7 +71,9 @@ public sealed class KScrBuild
         foreach (var module in exported) 
             module.RunBuild();
 
-        if (new[] { baseModule }.Concat(exported.Select(mod => mod.ModuleInfo))
+        if (new[] { baseModule }.Concat(exported
+                    .Where(mod => mod.ModuleInfo.Project.Type == "application")
+                    .Select(mod => mod.ModuleInfo))
                 .FirstOrDefault(mod => mod?.MainClassName != null) is { } mod)
         {
             Log<Module>.At(LogLevel.Info, $"Executing module {mod.Notation}...");
@@ -81,7 +90,7 @@ public sealed class KScrBuild
     private static void RunPublish(CmdPublish cmd)
     {
         var (baseModule, exported) = ExtractModules(cmd);
-        foreach (var module in exported)
+        foreach (var module in exported.Where(m => m.ModuleInfo.Project.Type == "library"))
         {
             var desc = baseModule?.Publishing ?? module.ModuleInfo.Publishing;
             foreach (var repo in desc.Repositories ?? ArraySegment<RepositoryInfo>.Empty)
@@ -93,6 +102,12 @@ public sealed class KScrBuild
                 DependencyManager.PublishToLocalRepository(module);
             }
         }
+    }
+
+    private static void RunDist(CmdDist cmd)
+    {
+        foreach (var module in ExtractModules(cmd).exported.Where(m => m.ModuleInfo.Project.Type == "application"))
+            module.BuildDist(cmd);
     }
 
     private static (ModuleInfo? baseModule, List<Module> exported) ExtractModules(CmdBase cmd)

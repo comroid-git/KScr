@@ -32,7 +32,7 @@ public sealed class DependencyManager
             Directory.CreateDirectory(dir);
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-        module.SaveToFiles(dir);
+        module.BuildLibAndDesc(dir);
         
         Log<DependencyManager>.At(LogLevel.Info, $"Published {module.Notation} to local repository");
     }
