@@ -41,19 +41,21 @@
                   language="KScr"
                   extensions="kmod"/>
 
+        <!--
         <moduleType id="kscr.module.type" implementationClass="org.comroid.kscr.intellij.sdk.module.KScrModuleType" />
         <moduleBuilder id="kscr.module.builder" builderClass="org.comroid.kscr.intellij.sdk.module.KScrModuleBuilder" />
+        -->
 
         <lang.syntaxHighlighterFactory language="KScr"
                                        implementationClass="org.comroid.kscr.intellij.parser.KScrSyntaxHighlighter"/>
 
-        <applicationConfigurable groupId="language"
+        <!--<applicationConfigurable groupId="language"
                                  id="preferences.language.kScr"
                                  displayName="KScr"
-                                 instance="org.comroid.kscr.intellij.sdk.config.KScrLanguageConfiguration"/>
+                                 instance="org.comroid.kscr.intellij.sdk.config.KScrLanguageConfiguration"/>-->
 
-        <lang.parserDefinition language="KScr"
-                               implementationClass="org.comroid.kscr.intellij.parser.KScrParserDefinition"/>
+        <!--<lang.parserDefinition language="KScr"
+                               implementationClass="org.comroid.kscr.intellij.parser.KScrParserDefinition"/>-->
         <!--
                 <lang.refactoringSupport language="KScr"
                                          implementationClass="org.comroid.kscr.intellij.refactoring.KScrRefactoringSupport"/>
@@ -65,15 +67,10 @@
                                 implementationClass="org.comroid.kscr.intellij.refactoring.KScrCommenter"/>
                 <lang.findUsagesProvider language="KScr"
                                          implementationClass="org.comroid.kscr.intellij.refactoring.KScrFindUsagesProvider"/>
--->
-        <completion.contributor language="KScr"
-                                implementationClass="org.comroid.kscr.intellij.completion.KScrKeywordContributor"/>
+        -->
+        <!--<completion.contributor language="KScr"
+                                implementationClass="org.comroid.kscr.intellij.completion.KScrKeywordContributor"/>-->
 
-        <completion.contributor language="KScr"
-                                implementationClass="org.comroid.kscr.intellij.completion.KScrTypeContributor"/>
-
-        <completion.contributor language="KScr"
-                                implementationClass="org.comroid.kscr.intellij.completion.KScrExpressionContributor"/>
         <!--
                         <codeInsight.inlayProvider language="KScr"
                                                    implementationClass="org.comroid.kscr.intellij.presentation.KScrImplicitTypeInlayProvider"/>
@@ -92,7 +89,7 @@
         <compiler.task execute="BEFORE"
                        implementation="org.comroid.kscr.intellij.compiler.KScrCompileTask"/>
 
-        <frameworkSupport implementation="org.comroid.kscr.intellij.facet.KScrFrameworkSupport"/>
+        <!--<frameworkSupport implementation="org.comroid.kscr.intellij.facet.KScrFrameworkSupport"/>-->
         <createFromTemplateHandler implementation="org.comroid.kscr.intellij.KScrTemplates"/>
 
         <internalFileTemplate name="KScr Class"/>
@@ -100,29 +97,28 @@
         <internalFileTemplate name="KScr Enum"/>
         <internalFileTemplate name="KScr Annotation"/>
 
+        <!--
         <localInspection language="KScr"
                          groupPath="KScr"
                          enabledByDefault="true" level="ERROR"
                          groupName="Errors" displayName="Wrong type name for file name"
                          implementationClass="org.comroid.kscr.intellij.inspections.WrongFileNameForTypeNameInspection"/>
-
         <localInspection language="KScr"
                          groupPath="KScr"
                          enabledByDefault="true" level="ERROR"
                          groupName="Errors" displayName="Invalid type reference"
                          implementationClass="org.comroid.kscr.intellij.inspections.InvalidTypeRefInspection"/>
-
         <localInspection language="KScr"
                          groupPath="KScr"
                          enabledByDefault="true" level="ERROR"
                          groupName="Errors" displayName="'this' in static context"
                          implementationClass="org.comroid.kscr.intellij.inspections.ThisInStaticMethodInspection"/>
-
         <localInspection language="KScr"
                          groupPath="KScr"
                          enabledByDefault="true" level="ERROR"
                          groupName="Errors" displayName="Invalid supertype"
                          implementationClass="org.comroid.kscr.intellij.inspections.InvalidSupertypeInspection"/>
+                         -->
 
         <!--
         <intentionAction>

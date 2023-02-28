@@ -14,7 +14,7 @@ public class KScrTemplates extends DefaultCreateFromTemplateHandler{
 	
 	@Override
 	public boolean handlesTemplate(@NotNull FileTemplate template){
-		return template.isTemplateOfType(KScrSourceFileType.FILE_TYPE);
+		return template.isTemplateOfType(KScrFileType.SOURCE);
 	}
 	
 	public @NotNull PsiElement createFromTemplate(@NotNull Project project, @NotNull PsiDirectory directory, String fileName, @NotNull FileTemplate template, @NotNull String templateText, @NotNull Map<String, Object> props) throws IncorrectOperationException{

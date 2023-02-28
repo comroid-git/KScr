@@ -1,5 +1,3 @@
 package ${PACKAGE_NAME};
 
-public annotation ${NAME} {
-
-}
+public annotation ${NAME};

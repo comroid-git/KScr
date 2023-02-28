@@ -8,54 +8,73 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
+import org.antlr.v4.runtime.ANTLRFileStream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.UnbufferedCharStream;
+import org.comroid.kscr.intellij.KScrLanguage;
 import org.comroid.kscr.intellij.antlr_generated.KScrLexer;
 import org.comroid.kscr.intellij.psi.Tokens;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class KScrSyntaxHighlighter extends SyntaxHighlighterFactory implements SyntaxHighlighter {
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
-    public static final TextAttributesKey ID = TextAttributesKey.createTextAttributesKey("KScr-ID", DefaultLanguageHighlighterColors.IDENTIFIER);
-    public static final TextAttributesKey KEYWORD = TextAttributesKey.createTextAttributesKey("KScr-Keyword", DefaultLanguageHighlighterColors.KEYWORD);
-    public static final TextAttributesKey NUMLIT = TextAttributesKey.createTextAttributesKey("KScr-Number-Literal", DefaultLanguageHighlighterColors.NUMBER);
-    public static final TextAttributesKey STRLIT = TextAttributesKey.createTextAttributesKey("KScr-String-Literal", DefaultLanguageHighlighterColors.STRING);
-    public static final TextAttributesKey SYMBOLS = TextAttributesKey.createTextAttributesKey("KScr-Symbols", DefaultLanguageHighlighterColors.SEMICOLON);
-    public static final TextAttributesKey DOTCOMMA = TextAttributesKey.createTextAttributesKey("KScr-Dot-Comma", DefaultLanguageHighlighterColors.DOT);
-    public static final TextAttributesKey OPERATORS = TextAttributesKey.createTextAttributesKey("KScr-Operators", DefaultLanguageHighlighterColors.OPERATION_SIGN);
-    public static final TextAttributesKey COMMENT = TextAttributesKey.createTextAttributesKey("KScr-Comment", DefaultLanguageHighlighterColors.LINE_COMMENT);
+public class KScrSyntaxHighlighter extends SyntaxHighlighterFactory {
+    private static class Impl implements SyntaxHighlighter {
+        private static final TextAttributesKey[] Comment = $(KScrSyntaxHighlighter.Comment);
+        private static final TextAttributesKey[] PrimitiveType = $(KScrSyntaxHighlighter.PrimitiveType);
+        private static final TextAttributesKey[] NumericLit = $(KScrSyntaxHighlighter.NumericLit);
+        private static final TextAttributesKey[] StringLit = $(KScrSyntaxHighlighter.StringLit);
+        private static final TextAttributesKey[] Literals = $(KScrSyntaxHighlighter.Literals);
+        private static final TextAttributesKey[] Braces = $(KScrSyntaxHighlighter.Braces);
+        private static final TextAttributesKey[] Infrastructure = $(KScrSyntaxHighlighter.Infrastructure);
+        private static final TextAttributesKey[] InfrastructureLow = $(KScrSyntaxHighlighter.InfrastructureLow);
+        private final KScrLexer lexer;
 
-    @NotNull
-    @Override public Lexer getHighlightingLexer(){
-        KScrLexer lexer = new KScrLexer(null);
-        return new LexerAdapter(lexer);
+        public Impl(KScrLexer lexer) {
+            this.lexer = lexer;
+        }
+
+        @Override
+        public @NotNull Lexer getHighlightingLexer() {
+            return new LexerAdapter(lexer);
+        }
+
+        @Override
+        public TextAttributesKey @NotNull [] getTokenHighlights(IElementType element){
+            if(Tokens.Comment.contains(element)) return Comment;
+            else if(Tokens.PrimitiveType.contains(element)) return PrimitiveType;
+            else if(Tokens.NumericLit.contains(element)) return NumericLit;
+            else if(Tokens.StringLit.contains(element)) return StringLit;
+            else if(Tokens.Literals.contains(element)) return Literals;
+            else if(Tokens.Braces.contains(element)) return Braces;
+            else if(Tokens.Infrastructure.contains(element)) return Infrastructure;
+            else if(Tokens.InfrastructureLow.contains(element)) return InfrastructureLow;
+            else return new TextAttributesKey[0];
+        }
     }
 
-    public TextAttributesKey @NotNull [] getTokenHighlights(IElementType element){
-        if(Tokens.IDENTIFIERS.contains(element))
-            return array(ID);
-        else if(Tokens.KEYWORDS.contains(element))
-            return array(KEYWORD);
-        else if(Tokens.getFor(KScrLexer.STRLIT) == element)
-            return array(STRLIT);
-        else if(Tokens.LITERALS.contains(element))
-            return array(NUMLIT); // Add boolean literal formatting
-        else if(Tokens.PUNCTUATION.contains(element))
-            return array(DOTCOMMA);
-        else if(Tokens.SYMBOLS.contains(element))
-            return array(SYMBOLS);
-        else if(Tokens.OPERATORS.contains(element))
-            return array(OPERATORS);
-        else if(Tokens.COMMENTS.contains(element))
-            return array(COMMENT);
-
-        return new TextAttributesKey[0];
-    }
+    public static final TextAttributesKey Comment = TextAttributesKey.createTextAttributesKey("kscr_comment", DefaultLanguageHighlighterColors.LINE_COMMENT);
+    public static final TextAttributesKey PrimitiveType = TextAttributesKey.createTextAttributesKey("kscr_primitive", DefaultLanguageHighlighterColors.KEYWORD);
+    public static final TextAttributesKey NumericLit = TextAttributesKey.createTextAttributesKey("kscr_number", DefaultLanguageHighlighterColors.NUMBER);
+    public static final TextAttributesKey StringLit = TextAttributesKey.createTextAttributesKey("kscr_string", DefaultLanguageHighlighterColors.STRING);
+    public static final TextAttributesKey Literals = TextAttributesKey.createTextAttributesKey("kscr_literal", DefaultLanguageHighlighterColors.IDENTIFIER);
+    public static final TextAttributesKey Braces = TextAttributesKey.createTextAttributesKey("kscr_brackets", DefaultLanguageHighlighterColors.BRACES);
+    public static final TextAttributesKey Infrastructure = TextAttributesKey.createTextAttributesKey("kscr_infra", DefaultLanguageHighlighterColors.KEYWORD);
+    public static final TextAttributesKey InfrastructureLow = TextAttributesKey.createTextAttributesKey("kscr_infra_low", DefaultLanguageHighlighterColors.IDENTIFIER);
 
     public @NotNull com.intellij.openapi.fileTypes.SyntaxHighlighter getSyntaxHighlighter(@Nullable Project project, @Nullable VirtualFile virtualFile){
-        return new KScrSyntaxHighlighter();
+        try {
+            if (virtualFile == null)
+                throw new NullPointerException("Need input to get syntaxHighlighter");
+            return new Impl(new KScrLexer(new UnbufferedCharStream(new ByteArrayInputStream(virtualFile.contentsToByteArray()))));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public TextAttributesKey[] array(TextAttributesKey key){
+    private static TextAttributesKey[] $(TextAttributesKey key){
         return new TextAttributesKey[]{key};
     }
 }

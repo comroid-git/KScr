@@ -9,13 +9,61 @@ import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IFileElementType;
-import com.intellij.psi.tree.IStubFileElementType;
 import com.intellij.psi.tree.TokenSet;
-import org.comroid.kscr.intellij.KScrLanguage;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.UnbufferedCharStream;
 import org.comroid.kscr.intellij.antlr_generated.KScrLexer;
 import org.comroid.kscr.intellij.antlr_generated.KScrParser;
-import org.comroid.kscr.intellij.psi.KScrFile;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class KScrParserDefinition implements ParserDefinition {}
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+
+public class KScrParserDefinition implements ParserDefinition {
+    private KScrLexer lexer(Project project) {
+        try {
+            if (project.getWorkspaceFile() == null)
+                throw new NullPointerException("Need a file to parse");
+            return new KScrLexer(new UnbufferedCharStream(new ByteArrayInputStream(project.getWorkspaceFile().contentsToByteArray())));
+        } catch (IOException e) {
+            throw new RuntimeException("Could not parse file " + project.getWorkspaceFile(), e);
+        }
+    }
+
+    @Override
+    public @NotNull Lexer createLexer(Project project) {
+        return new LexerAdapter(lexer(project));
+    }
+
+    @Override
+    public @NotNull PsiParser createParser(Project project) {
+        if (project.getWorkspaceFile() == null)
+            throw new NullPointerException("Need a file to parse");
+        return new ParserAdapter(new KScrParser(new CommonTokenStream(lexer(project))));
+    }
+
+    @Override
+    public @NotNull IFileElementType getFileNodeType() {
+        return null;
+    }
+
+    @Override
+    public @NotNull TokenSet getCommentTokens() {
+        return null;
+    }
+
+    @Override
+    public @NotNull TokenSet getStringLiteralElements() {
+        return null;
+    }
+
+    @Override
+    public @NotNull PsiElement createElement(ASTNode node) {
+        return null;
+    }
+
+    @Override
+    public @NotNull PsiFile createFile(@NotNull FileViewProvider viewProvider) {
+        return null;
+    }
+}

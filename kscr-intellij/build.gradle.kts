@@ -1,17 +1,21 @@
 plugins {
     id("java")
-    id("org.jetbrains.intellij") version "1.8.0"
+    id("org.jetbrains.intellij") version "1.13.0"
 }
 
 group = "org.comroid.kscr"
 version = "1.0-SNAPSHOT"
 
 repositories {
+    maven("https://maven.comroid.org")
     mavenCentral()
 }
 
 dependencies {
-    implementation("org.antlr:antlr4-runtime:4.10.1")
+    if (findProject(":api") != null)
+        implementation(project(":api"))
+    else implementation("org.comroid:api:1.+")
+    implementation("org.antlr:antlr4-runtime:4.11.1")
     implementation("org.antlr:antlr4-intellij-adaptor:0.1")
 }
 

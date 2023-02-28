@@ -3,13 +3,14 @@ package org.comroid.kscr.intellij;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.NlsSafe;
+import org.comroid.api.Named;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public final class KScrFileType extends LanguageFileType {
+public final class KScrFileType extends LanguageFileType implements Named {
     public static final KScrFileType SOURCE = new KScrFileType("KScr Source File", "Provides KScr source code", "kscr", Icons.KSCR, false);
     public static final KScrFileType BINARY = new KScrFileType("KScr Binary File", "Contains KScr Bytecode", "kbin", Icons.KSCR, true);
     public static final KScrFileType MODULE = new KScrFileType("KScr Module File", "Contains a KScr library or application", "kmod", Icons.KSCR, true);
