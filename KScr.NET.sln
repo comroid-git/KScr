@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "common", "..\c#\csapi\commo
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kscr-starter", "kscr-starter\kscr-starter.vcxproj", "{A762711A-74CF-4D75-A0F9-2A3B8A057FD8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kscr-tml-generator", "kscr-tml-generator\kscr-tml-generator.csproj", "{9787A3BC-4EBA-4681-8953-5278FC41BEFF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,10 @@ Global
 		{A762711A-74CF-4D75-A0F9-2A3B8A057FD8}.Debug|Any CPU.Build.0 = Debug|Win32
 		{A762711A-74CF-4D75-A0F9-2A3B8A057FD8}.Release|Any CPU.ActiveCfg = Release|Win32
 		{A762711A-74CF-4D75-A0F9-2A3B8A057FD8}.Release|Any CPU.Build.0 = Release|Win32
+		{9787A3BC-4EBA-4681-8953-5278FC41BEFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9787A3BC-4EBA-4681-8953-5278FC41BEFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9787A3BC-4EBA-4681-8953-5278FC41BEFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9787A3BC-4EBA-4681-8953-5278FC41BEFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -114,5 +120,6 @@ Global
 		{0BF0C0BB-B3A7-4013-BBB6-3689920B3305} = {30E315C1-FDAA-4F5E-8100-B5BB65D37B55}
 		{56EBD0C9-B584-465D-9AF9-D4EF342FBE88} = {BCE9FFFF-7A44-4FFF-A877-A1C5076A2847}
 		{A762711A-74CF-4D75-A0F9-2A3B8A057FD8} = {BCE9FFFF-7A44-4FFF-A877-A1C5076A2847}
+		{9787A3BC-4EBA-4681-8953-5278FC41BEFF} = {BCE9FFFF-7A44-4FFF-A877-A1C5076A2847}
 	EndGlobalSection
 EndGlobal
