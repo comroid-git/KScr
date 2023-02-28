@@ -3,11 +3,9 @@
   <component name="UserContentModel">
     <attachedFolders>
       <Path>examples</Path>
-      <Path>grammar</Path>
     </attachedFolders>
     <explicitIncludes>
       <Path>examples</Path>
-      <Path>grammar</Path>
     </explicitIncludes>
     <explicitExcludes />
   </component>
