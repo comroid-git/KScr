@@ -13,9 +13,9 @@
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
-    <em>most HTML tags may be used</em>
     <description>
         - Adds syntax highlighting
+        - Adds completion contribution
     </description>
 
     <!-- Product and plugin compatibility requirements.
@@ -70,9 +70,8 @@
                 <lang.findUsagesProvider language="KScr"
                                          implementationClass="org.comroid.kscr.intellij.refactoring.KScrFindUsagesProvider"/>
         -->
-        <!--<completion.contributor language="KScr"
-                                implementationClass="org.comroid.kscr.intellij.completion.KScrKeywordContributor"/>-->
-
+        <completion.contributor language="KScr"
+                                implementationClass="org.comroid.kscr.intellij.completion.KScrKeywordContributor"/>
         <!--
                         <codeInsight.inlayProvider language="KScr"
                                                    implementationClass="org.comroid.kscr.intellij.presentation.KScrImplicitTypeInlayProvider"/>
