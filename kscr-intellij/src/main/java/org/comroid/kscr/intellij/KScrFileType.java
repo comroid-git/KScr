@@ -4,6 +4,7 @@ import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.NlsSafe;
 import org.comroid.api.Named;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +42,11 @@ public final class KScrFileType extends LanguageFileType implements Named {
     @Override
     public @NlsSafe @NotNull String getDefaultExtension() {
         return extension;
+    }
+
+    @Override
+    public @Nls @NotNull String getDisplayName() {
+        return getName();
     }
 
     @Override

@@ -15,6 +15,7 @@ public class ParserAdapter extends ANTLRParserAdaptor {
 
     @Override
     protected ParseTree parse(Parser parser, IElementType root) {
+        System.out.println("root = " + root);
         return ((KScrParser)parser).file();
     }
 }

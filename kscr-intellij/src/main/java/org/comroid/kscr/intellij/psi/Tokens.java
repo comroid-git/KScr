@@ -28,10 +28,11 @@ public final class Tokens {
     public static final TokenSet Braces = $(LPAREN, LSQUAR, LBRACE, LESSER, GREATER, RBRACE, RSQUAR, RPAREN);
     public static final TokenSet Infrastructure = $(SEMICOLON, COMMA,
             PUBLIC, PROTECTED, INTERNAL, PRIVATE,
-            ABSTRACT, FINAL, SYNCHRONIZED, NATIVE, SERVE,
+            STATIC, ABSTRACT, FINAL, SYNCHRONIZED, NATIVE, SERVE,
             WHERE, SELECT, ELSE,
             IF, FOR, FOREACH, WHILE, DO, TRY, CATCH, NEW,
             RETURN, THROW,
+            PACKAGE, IMPORT,
             CLASS, ENUM, INTERFACE, ANNOTATION);
     public static final TokenSet InfrastructureLow = $(COLON, DOT, LDASHARROW, LLDASHARROW, RRDASHARROW, RDASHARROW, RREQARROW, REQARROW);
 

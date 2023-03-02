@@ -14,6 +14,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.UnbufferedCharStream;
 import org.comroid.kscr.intellij.antlr_generated.KScrLexer;
 import org.comroid.kscr.intellij.antlr_generated.KScrParser;
+import org.comroid.kscr.intellij.psi.Tokens;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
@@ -49,12 +50,12 @@ public class KScrParserDefinition implements ParserDefinition {
 
     @Override
     public @NotNull TokenSet getCommentTokens() {
-        return null;
+        return Tokens.Comment;
     }
 
     @Override
     public @NotNull TokenSet getStringLiteralElements() {
-        return null;
+        return Tokens.StringLit;
     }
 
     @Override
