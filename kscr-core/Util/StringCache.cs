@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using comroid.csapi.common;
+using comroid.common;
 using KScr.Core.Bytecode;
 using KScr.Core.System;
 

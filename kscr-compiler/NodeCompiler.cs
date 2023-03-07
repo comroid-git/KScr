@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Antlr4.Runtime;
-using comroid.csapi.common;
+using comroid.common;
 using KScr.Antlr;
 using KScr.Core;
 using KScr.Core.Bytecode;

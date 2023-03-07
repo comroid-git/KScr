@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
-using comroid.csapi.common;
+using comroid.common;
 using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.Exception;

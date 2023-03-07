@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 using CommandLine;
-using comroid.csapi.common;
+using comroid.common;
 using KScr.Core;
 using KScr.Core.Bytecode;
 using KScr.Core.System;
