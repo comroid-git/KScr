@@ -14,8 +14,21 @@
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description>
-        - Adds syntax highlighting
-        - Adds completion contribution
+        <![CDATA[
+<p>Adds support for the KScr Language</p>
+<br/>
+<p>Available Features:</p>
+<ul>
+    <li>Syntax Highlighting</li>
+    <li>Basic code completion</li>
+</ul>
+<p>Upcoming Features:</p>
+<ul>
+    <li>Build Support</li>
+    <li>Usage Finder</li>
+    <li>Refactoring options</li>
+</ul>
+        ]]>
     </description>
 
     <!-- Product and plugin compatibility requirements.

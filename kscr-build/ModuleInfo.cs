@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using comroid.csapi.common;
+using comroid.common;
 
 namespace KScr.Build;
 

@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using comroid.csapi.common;
+using comroid.common;
 using KScr.Compiler;
 using Microsoft.Win32;
 using static KScr.Core.RuntimeBase;
