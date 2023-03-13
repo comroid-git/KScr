@@ -1,0 +1,11 @@
+package org.comroid.kscr.util;
+
+public class UUID : byte<16> {
+    public static str Pattern => "^([0-9a-fA-F]{8})\b-([0-9a-fA-F]{4})\b-([0-9a-fA-F]{4})\b-([0-9a-fA-F]{4})\b-([0-9a-fA-F]{12})$";
+
+    public UUID() {
+    }
+
+    public str toString(byte variant) {
+    }
+}
