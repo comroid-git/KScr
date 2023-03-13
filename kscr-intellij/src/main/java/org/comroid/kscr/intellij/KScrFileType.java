@@ -1,5 +1,6 @@
 package org.comroid.kscr.intellij;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.NlsSafe;
@@ -12,9 +13,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public final class KScrFileType extends LanguageFileType implements Named {
-    public static final KScrFileType SOURCE = new KScrFileType("KScr Source File", "Provides KScr source code", "kscr", Icons.KSCR, false);
-    public static final KScrFileType BINARY = new KScrFileType("KScr Binary File", "Contains KScr Bytecode", "kbin", Icons.KSCR, true);
-    public static final KScrFileType MODULE = new KScrFileType("KScr Module File", "Contains a KScr library or application", "kmod", Icons.KSCR, true);
+    public static final KScrFileType SOURCE = new KScrFileType("KScr Source File", "Provides KScr source code", "kscr", AllIcons.Nodes.Class, false);
+    public static final KScrFileType BINARY = new KScrFileType("KScr Binary File", "Contains KScr Bytecode", "kbin", AllIcons.ObjectBrowser.ShowLibraryContents, true);
+    public static final KScrFileType MODULE = new KScrFileType("KScr Module File", "Contains a KScr library or application", "kmod", AllIcons.Nodes.PpLib, true);
     public static final KScrFileType MODULE_DESC = new KScrFileType("KScr Module description File", "Provides build info", "kmod.json", Icons.KSCR, true);
     private final String name;
     private final String description;
