@@ -1,2 +1,3 @@
 ﻿# Exclude build output directory
 build/
+.idea/
