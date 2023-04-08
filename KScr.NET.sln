@@ -33,6 +33,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kscr-starter", "kscr-starte
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kscr-tml-generator", "kscr-tml-generator\kscr-tml-generator.csproj", "{9787A3BC-4EBA-4681-8953-5278FC41BEFF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kscr-repo-server", "kscr-repo-server\kscr-repo-server.csproj", "{BCC0A4E3-D893-48CB-A3FB-A5633979F965}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{9787A3BC-4EBA-4681-8953-5278FC41BEFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9787A3BC-4EBA-4681-8953-5278FC41BEFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9787A3BC-4EBA-4681-8953-5278FC41BEFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCC0A4E3-D893-48CB-A3FB-A5633979F965}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCC0A4E3-D893-48CB-A3FB-A5633979F965}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCC0A4E3-D893-48CB-A3FB-A5633979F965}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCC0A4E3-D893-48CB-A3FB-A5633979F965}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -122,5 +128,6 @@ Global
 		{56EBD0C9-B584-465D-9AF9-D4EF342FBE88} = {BCE9FFFF-7A44-4FFF-A877-A1C5076A2847}
 		{A762711A-74CF-4D75-A0F9-2A3B8A057FD8} = {BCE9FFFF-7A44-4FFF-A877-A1C5076A2847}
 		{9787A3BC-4EBA-4681-8953-5278FC41BEFF} = {BCE9FFFF-7A44-4FFF-A877-A1C5076A2847}
+		{BCC0A4E3-D893-48CB-A3FB-A5633979F965} = {BCE9FFFF-7A44-4FFF-A877-A1C5076A2847}
 	EndGlobalSection
 EndGlobal
